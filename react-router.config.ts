@@ -6,6 +6,7 @@ export default {
       '/',
       '/about',
       '/errors',
+      '/hono-rpc',
     ];
   },
   ssr: true,

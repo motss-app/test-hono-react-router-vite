@@ -5,15 +5,14 @@
   "scripts": {
     "dev": "vite",
     "build": "react-router build && vite build --mode server",
-    "preview": "NODE_ENV=production node ./build/index.js",
-    "start": "NODE_ENV=production node ./build/index.js",
+    "start": "NODE_ENV=production node ./build/server.js",
     "typecheck": "react-router typegen && tsc"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.5",
     "@react-router/node": "^7.9.2",
     "@react-router/serve": "^7.9.2",
-    "hono": "^4.9.10",
+    "hono": "^4.9.11",
     "isbot": "^5.1.31",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
@@ -23,7 +22,7 @@
     "@hono/vite-dev-server": "^0.23.0",
     "@react-router/dev": "^7.9.2",
     "@tailwindcss/vite": "^4.1.13",
-    "@types/node": "^22",
+    "@types/node": "^24.7.2",
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
     "tailwindcss": "^4.1.13",

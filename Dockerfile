@@ -22,4 +22,4 @@ COPY --from=production-dependencies-env /app/node_modules /app/node_modules
 COPY --from=build-env /app/build /app/build
 WORKDIR /app
 ENV NODE_ENV=production
-CMD ["node", "./build/index.js"]
+CMD ["node", "./build/server.js"]

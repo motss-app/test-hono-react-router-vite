@@ -20,6 +20,8 @@ export default function Home() {
         {' | '}
         <Link to="/ssr">SSR Page</Link>
         {' | '}
+        <Link to="/hono-rpc">Hono RPC Demo</Link>
+        {' | '}
         <Link to="/errors">Error Handling Demo</Link>
       </nav>
     </>
