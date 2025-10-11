@@ -3,20 +3,24 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "react-router build",
-    "dev": "react-router dev",
-    "start": "react-router-serve ./build/server/index.js",
+    "dev": "vite",
+    "build": "react-router build && vite build --mode server",
+    "preview": "NODE_ENV=production node ./build/index.js",
+    "start": "NODE_ENV=production node ./build/index.js",
     "typecheck": "react-router typegen && tsc"
   },
   "dependencies": {
+    "@hono/node-server": "^1.19.5",
     "@react-router/node": "^7.9.2",
     "@react-router/serve": "^7.9.2",
+    "hono": "^4.9.10",
     "isbot": "^5.1.31",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router": "^7.9.2"
   },
   "devDependencies": {
+    "@hono/vite-dev-server": "^0.23.0",
     "@react-router/dev": "^7.9.2",
     "@tailwindcss/vite": "^4.1.13",
     "@types/node": "^22",
