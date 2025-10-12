@@ -111,9 +111,10 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): JSX.Element 
   let statusText = 'Internal Server Error';
   let message = 'An unexpected error occurred';
 
-  if (error instanceof Response) {
-    statusCode = error.status;
-    statusText = error.statusText || `${statusCode} Error`;
+  // Check if error is a Response-like object (ErrorResponseImpl from React Router)
+  if (error && typeof error === 'object' && 'status' in error && 'statusText' in error) {
+    statusCode = Number(error.status || -1);
+    statusText = String(error.statusText || '<empty>');
   } else if (error instanceof Error) {
     message = error.message;
     statusText = 'Runtime Error';
