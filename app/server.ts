@@ -71,6 +71,7 @@ if (isProduction) {
     });
   });
 }
+
 const server = serve(
   {
     fetch: app.fetch,

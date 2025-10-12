@@ -46,10 +46,9 @@ export async function loader({ request }: Route.LoaderArgs) {
 // Add Server-Timing header using the custom header we set
 export function headers({ loaderHeaders, parentHeaders }: Route.HeadersArgs): Headers {
   const renderTime = loaderHeaders.get('X-Render-Time') || '-1';
-  const existing = parentHeaders.get('Server-Timing') || '';
   const newTiming = `ssr-loader;dur=${renderTime};desc="SSR Route Loader"`;
 
-  parentHeaders.set('Server-Timing', existing ? `${existing}, ${newTiming}` : newTiming);
+  parentHeaders.append('Server-Timing', newTiming);
 
   return parentHeaders;
 }

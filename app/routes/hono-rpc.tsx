@@ -35,6 +35,7 @@ export async function clientLoader(): Promise<HelloResponse> {
   if (res.ok) {
     return await res.json();
   }
+
   throw new Error(`HTTP error! status: ${res.status}`);
 }
 
