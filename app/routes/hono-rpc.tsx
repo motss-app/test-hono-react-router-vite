@@ -60,14 +60,14 @@ export default function HonoRPCDemo({ loaderData }: Route.ComponentProps) {
   return (
     <div style={{ padding: '2rem', fontFamily: 'system-ui' }}>
       <nav style={{ marginBottom: '1rem' }}>
-        <Link 
+        <Link
           to="/"
           style={{ color: '#0066cc', textDecoration: 'underline' }}
         >
           ← Back to Home
         </Link>
       </nav>
-      
+
       <h1>Hono RPC Demo</h1>
       <p style={{ color: '#666' }}>
         Simple demo of calling a Hono endpoint from React Router using clientLoader.
