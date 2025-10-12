@@ -1,11 +1,11 @@
 import type { JSX } from 'react';
 import { Link } from 'react-router';
 
-import type { Route } from './+types/errors.$code';
+import type { Route } from './+types/errors.$code.ts';
 
 // This route handles individual error codes via URL params
 // Example: /errors/404, /errors/500, etc.
-export async function loader({ params }: Route.LoaderArgs) {
+export function loader({ params }: Route.LoaderArgs) {
   const start = performance.now();
   const { code } = params;
 

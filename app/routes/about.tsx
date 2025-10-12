@@ -1,7 +1,7 @@
 import type { JSX } from 'react';
 import { Link } from 'react-router';
 
-import type { Route } from './+types/about';
+import type { Route } from './+types/about.ts';
 
 export function meta(_args: Route.MetaArgs): Route.MetaDescriptors {
   return [

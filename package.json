@@ -25,14 +25,15 @@
   "name": "test-hono-react-router-vite",
   "private": true,
   "scripts": {
-    "build": "react-router build && vite build --mode server",
+    "build": "react-router build --config ./vite.react-router.config.ts --mode production && vite build --config ./vite.hono.config.ts --mode production",
+    "check": "react-router typegen && tsc",
     "dev": "vite",
     "format": "biome format --write .",
     "format:check": "biome format .",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
-    "start": "NODE_ENV=production node ./build/server.js",
-    "typecheck": "react-router typegen && tsc"
+    "preview": "pnpm run build && pnpm start",
+    "start": "node ./build/server.js"
   },
   "type": "module"
 }

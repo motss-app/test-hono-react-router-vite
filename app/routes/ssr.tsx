@@ -1,8 +1,8 @@
 import type { JSX } from 'react';
 import { data } from 'react-router';
 
-import { getHonoContext } from '../context';
-import type { Route } from './+types/ssr';
+import { getHonoContext } from '../context.ts';
+import type { Route } from './+types/ssr.ts';
 
 // Constants
 const SIMULATION_DELAY_MS = 100;
@@ -31,7 +31,6 @@ export async function loader({ request }: Route.LoaderArgs) {
       honoData: honoContext,
       message: 'This page is rendered on the server on EVERY request!',
       renderTime: duration,
-      serverRegion: honoContext?.serverRegion || 'unknown',
       timestamp,
       userAgent,
     },
@@ -107,9 +106,6 @@ export default function SsrPage({ loaderData }: Route.ComponentProps): JSX.Eleme
           }}
         >
           <h2>Data from Hono Middleware:</h2>
-          <p>
-            <strong>Server Region:</strong> {loaderData.serverRegion}
-          </p>
           <p>
             <strong>Server Timestamp:</strong> {loaderData.honoData.serverTimestamp}
           </p>

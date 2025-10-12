@@ -1,6 +1,6 @@
 import { data, Link, type LoaderFunctionArgs } from 'react-router';
 
-import type { Route } from '../routes/+types/$';
+import type { Route } from '../routes/+types/$.ts';
 
 // Catch-all route for 404s (including Chrome DevTools special paths)
 export function loader({ request }: LoaderFunctionArgs) {

@@ -1,17 +1,15 @@
-import process from 'node:process';
-import { serve } from '@hono/node-server';
-import { serveStatic } from '@hono/node-server/serve-static';
+// import { serve } from '@hono/node-server';
+// import { serveStatic } from '@hono/node-server/serve-static';
+
 import { Hono } from 'hono';
 import { contextStorage } from 'hono/context-storage';
+import { serveStatic } from 'hono/deno';
 import { endTime, startTime, timing } from 'hono/timing';
 
 import { apiApp } from './apis/mod.ts';
 import type { HonoEnv } from './types/hono.types.ts';
 
-const port = Number(process.env.PORT || '3000');
-const isProduction = process.env.NODE_ENV === 'production';
-
-// Define the Hono context type with custom variables
+const port = Number(import.meta.env.PORT || '3000');
 
 const app = new Hono<HonoEnv>()
   // Add Context Storage middleware to enable getContext() outside handlers
@@ -21,7 +19,7 @@ const app = new Hono<HonoEnv>()
   .route('/api', apiApp);
 
 // Production: Serve static files and React Router SSR
-if (isProduction) {
+if (import.meta.env.PROD) {
   app.use(
     '*',
     serveStatic({
@@ -38,7 +36,6 @@ if (isProduction) {
 
     const honoData = {
       computedValue: crypto.randomUUID(),
-      serverRegion: process.env.REGION || 'us-east-1',
       serverTimestamp: new Date().toISOString(),
     };
 
@@ -72,33 +69,46 @@ if (isProduction) {
   });
 }
 
-const server = serve(
-  {
-    fetch: app.fetch,
-    port,
-  },
-  info => {
-    console.info(`Listening on http://${info.address}:${info.port}`);
-  }
-);
+// const server = serve(
+//   {
+//     fetch: app.fetch,
+//     port,
+//   },
+//   info => {
+//     console.info(`Listening on http://${info.address}:${info.port}`);
+//   }
+// );
 
-process.on('SIGINT', () => {
-  server.close();
-  process.exit(0);
-});
-process.on('SIGTERM', () => {
-  server.close(err => {
-    if (err) {
-      console.error(err);
-      process.exit(1);
+// process.on('SIGINT', () => {
+//   server.close();
+//   process.exit(0);
+// });
+// process.on('SIGTERM', () => {
+//   server.close(err => {
+//     if (err) {
+//       console.error(err);
+//       process.exit(1);
+//     }
+//     process.exit(0);
+//   });
+// });
+
+const exports = import.meta.env.DEV
+  ? {
+      fetch: app.fetch,
+      port,
     }
-    process.exit(0);
-  });
-});
+  : {};
 
-export default {
-  fetch: app.fetch,
-  port,
-};
+if (import.meta.env.PROD) {
+  Deno.serve(
+    {
+      port,
+    },
+    app.fetch
+  );
+}
+
+export default exports;
 
 export type App = typeof app;

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Link } from 'react-router';
 
 import type { ApiAppType } from '../apis/mod.ts';
-import type { Route } from './+types/hono-rpc';
+import type { Route } from './+types/hono-rpc.ts';
 
 // Define the expected response type
 interface HelloResponse {

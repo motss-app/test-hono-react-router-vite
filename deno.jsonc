@@ -1,0 +1,81 @@
+{
+  "compilerOptions": {
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "erasableSyntaxOnly": true,
+    "exactOptionalPropertyTypes": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "jsxImportSourceTypes": "@types/react",
+    "lib": [
+      "deno.window",
+      "deno.ns",
+      "deno.worker",
+      "deno.unstable",
+      "dom",
+      "dom.iterable",
+      "dom.asynciterable",
+      "esnext"
+    ],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "noErrorTruncation": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitAny": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "rootDirs": [
+      ".",
+      ".react-router/types"
+    ],
+    "skipLibCheck": true,
+    "strict": true,
+    "strictBindCallApply": true,
+    "strictBuiltinIteratorReturn": true,
+    "strictFunctionTypes": true,
+    "strictNullChecks": true,
+    "strictPropertyInitialization": true,
+    "types": [
+      "vite/client"
+    ],
+    "useUnknownInCatchVariables": true,
+    "verbatimModuleSyntax": true
+  },
+  "imports": {
+    "react-dom/server": "npm:react-dom@19.2.0/server.node"
+  },
+  "lock": true,
+  "tasks": {
+    "build": "deno run --allow-all npm:@react-router/dev build --config ./vite.react-router.config.ts --mode production && deno run --allow-all npm:vite build --config ./vite.hono.config.ts --mode production",
+    "check": " deno run --allow-env --allow-ffi --allow-net --allow-read --allow-run --allow-sys --allow-write npm:@react-router/dev typegen && deno check",
+    "dev": "deno run --allow-env --allow-ffi --allow-net --allow-read --allow-run --allow-sys --allow-write npm:vite",
+    "format": "deno run --allow-all npm:@biomejs/biome format --write .",
+    "format:check": "deno run --allow-all npm:@biomejs/biome format .",
+    "lint": "deno lint && deno run --allow-all npm:@biomejs/biome check .",
+    "lint:fix": "deno run --allow-all npm:@biomejs/biome check --write .",
+    "preview": "deno task build && deno task start",
+    "start": "deno run --allow-env --allow-net --allow-read ./build/server.js"
+  },
+  "unstable": [
+    "bare-node-builtins",
+    "broadcast-channel",
+    "byonm",
+    "detect-cjs",
+    "fmt-component",
+    "fs",
+    "http",
+    "net",
+    "node-globals",
+    "raw-imports",
+    "sloppy-imports",
+    "temporal",
+    "unsafe-proto",
+    "webgpu",
+    "worker-options"
+  ]
+}

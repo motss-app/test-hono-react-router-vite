@@ -117,7 +117,11 @@
       "quoteStyle": "single",
       "semicolons": "always",
       "trailingCommas": "es5"
-    }
+    },
+    "globals": [
+      "Deno",
+      "Bun"
+    ]
   },
   "json": {
     "formatter": {
@@ -193,12 +197,14 @@
     {
       "includes": [
         "**/vite.config.ts",
+        "**/vite.*.config.ts",
         "react-router.config.ts"
       ],
       "linter": {
         "rules": {
           "style": {
-            "noDefaultExport": "off"
+            "noDefaultExport": "off",
+            "useNamingConvention": "off"
           }
         }
       }
@@ -278,6 +284,22 @@
         "rules": {
           "style": {
             "useFilenamingConvention": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "**/*.d.ts"
+      ],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noUnusedVariables": "off"
+          },
+          "style": {
+            "noNamespace": "off",
+            "useNamingConvention": "off"
           }
         }
       }
