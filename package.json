@@ -1,13 +1,4 @@
 {
-  "name": "test-hono-vite",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "react-router build && vite build --mode server",
-    "start": "NODE_ENV=production node ./build/server.js",
-    "typecheck": "react-router typegen && tsc"
-  },
   "dependencies": {
     "@hono/node-server": "^1.19.5",
     "@react-router/node": "^7.9.2",
@@ -19,6 +10,7 @@
     "react-router": "^7.9.2"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.2.5",
     "@hono/vite-dev-server": "^0.23.0",
     "@react-router/dev": "^7.9.2",
     "@tailwindcss/vite": "^4.1.13",
@@ -29,5 +21,18 @@
     "typescript": "^5.9.2",
     "vite": "^7.1.7",
     "vite-tsconfig-paths": "^5.1.4"
-  }
+  },
+  "name": "test-hono-react-router-vite",
+  "private": true,
+  "scripts": {
+    "build": "react-router build && vite build --mode server",
+    "dev": "vite",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "start": "NODE_ENV=production node ./build/server.js",
+    "typecheck": "react-router typegen && tsc"
+  },
+  "type": "module"
 }

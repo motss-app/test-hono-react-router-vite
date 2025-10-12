@@ -1,0 +1,283 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "assist": {
+    "actions": {
+      "recommended": true,
+      "source": {
+        "organizeImports": {
+          "level": "on",
+          "options": {
+            "groups": [
+              [
+                "!:ALIAS:",
+                "!:BUN:",
+                "!:NODE:",
+                "!:PACKAGE:",
+                "!:PACKAGE_WITH_PROTOCOL:",
+                "!:PATH:",
+                "!:URL:"
+              ],
+              ":BLANK_LINE:",
+              [
+                {
+                  "source": ":BUN:",
+                  "type": true
+                },
+                {
+                  "source": ":NODE:",
+                  "type": true
+                },
+                {
+                  "source": ":PACKAGE:",
+                  "type": true
+                },
+                {
+                  "source": ":PACKAGE_WITH_PROTOCOL:",
+                  "type": true
+                },
+                {
+                  "source": ":URL:",
+                  "type": true
+                },
+                {
+                  "source": ":BUN:"
+                },
+                {
+                  "source": ":NODE:"
+                },
+                {
+                  "source": ":PACKAGE:"
+                },
+                {
+                  "source": ":PACKAGE_WITH_PROTOCOL:"
+                },
+                {
+                  "source": ":URL:"
+                }
+              ],
+              ":BLANK_LINE:",
+              [
+                {
+                  "source": ":ALIAS:",
+                  "type": true
+                },
+                {
+                  "source": ":ALIAS:"
+                },
+                {
+                  "source": ":PATH:",
+                  "type": true
+                },
+                {
+                  "source": ":PATH:"
+                }
+              ]
+            ],
+            "identifierOrder": "natural"
+          }
+        },
+        "recommended": true,
+        "useSortedAttributes": "on",
+        "useSortedKeys": "on",
+        "useSortedProperties": "on"
+      }
+    },
+    "enabled": true
+  },
+  "files": {
+    "ignoreUnknown": true,
+    "includes": [
+      "**/*.js",
+      "**/*.jsx",
+      "**/*.ts",
+      "**/*.tsx",
+      "**/*.json"
+    ]
+  },
+  "formatter": {
+    "attributePosition": "multiline",
+    "bracketSameLine": false,
+    "bracketSpacing": true,
+    "enabled": true,
+    "expand": "always",
+    "formatWithErrors": false,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineEnding": "lf",
+    "lineWidth": 100,
+    "useEditorconfig": true
+  },
+  "javascript": {
+    "formatter": {
+      "arrowParentheses": "asNeeded",
+      "enabled": true,
+      "jsxQuoteStyle": "double",
+      "operatorLinebreak": "after",
+      "quoteProperties": "asNeeded",
+      "quoteStyle": "single",
+      "semicolons": "always",
+      "trailingCommas": "es5"
+    }
+  },
+  "json": {
+    "formatter": {
+      "enabled": true,
+      "trailingCommas": "none"
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "a11y": "error",
+      "complexity": "error",
+      "correctness": "error",
+      "nursery": {
+        "noSecrets": "off",
+        "useExplicitType": "error"
+      },
+      "performance": "error",
+      "recommended": true,
+      "security": "error",
+      "style": "error",
+      "suspicious": "error"
+    }
+  },
+  "overrides": [
+    {
+      "includes": [
+        "**/routes/*.ts",
+        "**/routes/*.tsx",
+        "app/root.tsx",
+        "app/routes.ts"
+      ],
+      "linter": {
+        "domains": {
+          "qwik": "none",
+          "react": "all",
+          "solid": "none"
+        },
+        "enabled": true,
+        "rules": {
+          "complexity": {
+            "noExcessiveLinesPerFunction": "off"
+          },
+          "correctness": {
+            "noNodejsModules": "off",
+            "useImportExtensions": "off"
+          },
+          "nursery": {
+            "noSecrets": "off",
+            "useExplicitType": "off"
+          },
+          "style": {
+            "noDefaultExport": "off",
+            "useComponentExportOnlyModules": "off"
+          },
+          "suspicious": {
+            "noReactSpecificProps": "off",
+            "useAwait": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "**/vite.config.ts",
+        "react-router.config.ts"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noDefaultExport": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "**/apis/**/*.ts"
+      ],
+      "linter": {
+        "rules": {
+          "nursery": {
+            "useExplicitType": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "**/*.test.ts",
+        "**/*.test.tsx"
+      ],
+      "linter": {
+        "domains": {
+          "qwik": "none",
+          "solid": "none",
+          "test": "all"
+        }
+      }
+    },
+    {
+      "includes": [
+        "app/server.ts"
+      ],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noNodejsModules": "off"
+          },
+          "nursery": {
+            "useExplicitType": "off"
+          },
+          "style": {
+            "noDefaultExport": "off"
+          },
+          "suspicious": {
+            "noConsole": {
+              "level": "error",
+              "options": {
+                "allow": [
+                  "error",
+                  "info",
+                  "warn"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "**/*.types.ts"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "useNamingConvention": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "**/*$*.tsx"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "useFilenamingConvention": "off"
+          }
+        }
+      }
+    }
+  ],
+  "vcs": {
+    "clientKind": "git",
+    "defaultBranch": "main",
+    "enabled": true,
+    "root": ".",
+    "useIgnoreFile": true
+  }
+}

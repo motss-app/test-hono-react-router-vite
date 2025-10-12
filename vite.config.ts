@@ -1,7 +1,9 @@
-import { reactRouter } from "@react-router/dev/vite";
-import { defineConfig } from "vite";
-import tsconfigPaths from "vite-tsconfig-paths";
 import honoDevServer, { defaultOptions } from '@hono/vite-dev-server';
+import { reactRouter } from '@react-router/dev/vite';
+import { defineConfig } from 'vite';
+import tsconfigPaths from 'vite-tsconfig-paths';
+
+const honoExcludeRegex = /^\/(?!api|apis).*$/;
 
 export default defineConfig(({ mode }) => {
   const isBuildServer = mode === 'server';
@@ -9,21 +11,23 @@ export default defineConfig(({ mode }) => {
   // Building the Hono server entry point
   if (isBuildServer) {
     return {
-      plugins: [tsconfigPaths()],
       build: {
-        outDir: 'build',
         emptyOutDir: false, // Don't delete the client and server folders from React Router
-        ssr: true,
+        minify: false,
+        outDir: 'build',
         rollupOptions: {
           input: './app/server.ts',
           output: {
-            format: 'esm',
             entryFileNames: 'server.js',
+            format: 'esm',
           },
         },
+        ssr: true,
         target: 'node24',
-        minify: false,
       },
+      plugins: [
+        tsconfigPaths(),
+      ],
     };
   }
 
@@ -34,7 +38,7 @@ export default defineConfig(({ mode }) => {
         entry: './app/server.ts',
         exclude: [
           ...defaultOptions.exclude,
-          /^\/(?!api|apis).*$/,
+          honoExcludeRegex,
         ],
       }),
       reactRouter(),

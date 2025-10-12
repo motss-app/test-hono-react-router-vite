@@ -1,13 +1,18 @@
-import type { Route } from "./+types/ssr";
-import { data } from "react-router";
+import type { JSX } from 'react';
+import { data } from 'react-router';
+
 import { getHonoContext } from '../context';
+import type { Route } from './+types/ssr';
+
+// Constants
+const SIMULATION_DELAY_MS = 100;
 
 // This loader makes this page SSR - it runs on EVERY request
 export async function loader({ request }: Route.LoaderArgs) {
   const startTime = performance.now();
 
   // Simulate some async work
-  await new Promise(resolve => setTimeout(resolve, 100));
+  await new Promise(resolve => setTimeout(resolve, SIMULATION_DELAY_MS));
 
   // Fetch dynamic data on every request
   const timestamp = new Date().toISOString();
@@ -20,91 +25,150 @@ export async function loader({ request }: Route.LoaderArgs) {
   const duration = (endTime - startTime).toFixed(2);
 
   // Return response with custom header using data() for proper type inference
-  return data({
-    timestamp,
-    userAgent,
-    message: 'This page is rendered on the server on EVERY request!',
-    renderTime: duration,
-    // Include data from Hono context
-    honoData: honoContext,
-    serverRegion: honoContext?.serverRegion || 'unknown',
-  }, {
-    headers: {
-      'X-Render-Time': duration,
+  return data(
+    {
+      // Include data from Hono context
+      honoData: honoContext,
+      message: 'This page is rendered on the server on EVERY request!',
+      renderTime: duration,
+      serverRegion: honoContext?.serverRegion || 'unknown',
+      timestamp,
+      userAgent,
     },
-  });
+    {
+      headers: {
+        'X-Render-Time': duration,
+      },
+    }
+  );
 }
 
 // Add Server-Timing header using the custom header we set
-export function headers({
-  loaderHeaders,
-  parentHeaders,
-}: Route.HeadersArgs) {
+export function headers({ loaderHeaders, parentHeaders }: Route.HeadersArgs): Headers {
   const renderTime = loaderHeaders.get('X-Render-Time') || '-1';
   const existing = parentHeaders.get('Server-Timing') || '';
   const newTiming = `ssr-loader;dur=${renderTime};desc="SSR Route Loader"`;
 
-  parentHeaders.set(
-    'Server-Timing',
-    existing ? `${existing}, ${newTiming}` : newTiming
-  );
+  parentHeaders.set('Server-Timing', existing ? `${existing}, ${newTiming}` : newTiming);
 
   return parentHeaders;
 }
 
-export default function SSRPage({ loaderData }: Route.ComponentProps) {
+export default function SsrPage({ loaderData }: Route.ComponentProps): JSX.Element {
   return (
-    <div style={{ padding: '2rem', fontFamily: 'system-ui' }}>
+    <div
+      style={{
+        fontFamily: 'system-ui',
+        padding: '2rem',
+      }}
+    >
       <h1>SSR Page (Server-Side Rendered)</h1>
-      <p style={{ color: '#666' }}>
-        This page is rendered on the server for every request. Not pre-rendered (SSG), not client-only (CSR).
+      <p
+        style={{
+          color: '#666',
+        }}
+      >
+        This page is rendered on the server for every request. Not pre-rendered (SSG), not
+        client-only (CSR).
       </p>
 
-      <div style={{
-        borderColor: 'currentColor',
-        borderRadius: '8px',
-        borderWidth: '1px',
-        marginBlockStart: '1rem',
-        marginBlockEnd: '1rem',
-        padding: '1rem',
-      }}>
-        <h2>Server Data:</h2>
-        <p><strong>Timestamp:</strong> {loaderData.timestamp}</p>
-        <p><strong>Render Time:</strong> {loaderData.renderTime}ms</p>
-        <p><strong>Your User Agent:</strong> {loaderData.userAgent}</p>
-        <p><strong>Message:</strong> {loaderData.message}</p>
-      </div>
-
-      {loaderData.honoData && (
-        <div style={{
-          borderColor: '#10b981',
+      <div
+        style={{
+          borderColor: 'currentColor',
           borderRadius: '8px',
           borderWidth: '1px',
           marginBlockEnd: '1rem',
+          marginBlockStart: '1rem',
           padding: '1rem',
-        }}>
+        }}
+      >
+        <h2>Server Data:</h2>
+        <p>
+          <strong>Timestamp:</strong> {loaderData.timestamp}
+        </p>
+        <p>
+          <strong>Render Time:</strong> {loaderData.renderTime}ms
+        </p>
+        <p>
+          <strong>Your User Agent:</strong> {loaderData.userAgent}
+        </p>
+        <p>
+          <strong>Message:</strong> {loaderData.message}
+        </p>
+      </div>
+
+      {loaderData.honoData && (
+        <div
+          style={{
+            borderColor: '#10b981',
+            borderRadius: '8px',
+            borderWidth: '1px',
+            marginBlockEnd: '1rem',
+            padding: '1rem',
+          }}
+        >
           <h2>Data from Hono Middleware:</h2>
-          <p><strong>Server Region:</strong> {loaderData.serverRegion}</p>
-          <p><strong>Server Timestamp:</strong> {loaderData.honoData.serverTimestamp}</p>
-          <p><strong>Computed Value:</strong> {loaderData.honoData.computedValue}</p>
-          <p style={{ fontSize: '0.875rem', color: '#666', marginTop: '0.5rem' }}>
-            ℹ️ This data was computed in Hono middleware and passed to React Router via Hono's Context Storage (AsyncLocalStorage)
+          <p>
+            <strong>Server Region:</strong> {loaderData.serverRegion}
+          </p>
+          <p>
+            <strong>Server Timestamp:</strong> {loaderData.honoData.serverTimestamp}
+          </p>
+          <p>
+            <strong>Computed Value:</strong> {loaderData.honoData.computedValue}
+          </p>
+          <p
+            style={{
+              color: '#666',
+              fontSize: '0.875rem',
+              marginTop: '0.5rem',
+            }}
+          >
+            ℹ️ This data was computed in Hono middleware and passed to React Router via Hono's
+            Context Storage (AsyncLocalStorage)
           </p>
         </div>
       )}
 
-      <div style={{ marginTop: '2rem', fontSize: '0.9rem', color: '#999' }}>
-        <p>💡 Refresh this page - the timestamp will update because it's rendered on the server each time!</p>
-        <p>⏱️ Check the <strong>Network tab → Response Headers → Server-Timing</strong> to see server render time</p>
+      <div
+        style={{
+          color: '#999',
+          fontSize: '0.9rem',
+          marginTop: '2rem',
+        }}
+      >
+        <p>
+          💡 Refresh this page - the timestamp will update because it's rendered on the server each
+          time!
+        </p>
+        <p>
+          ⏱️ Check the <strong>Network tab → Response Headers → Server-Timing</strong> to see server
+          render time
+        </p>
         <p>🔄 This is different from:</p>
         <ul>
-          <li><strong>SSG (/, /about):</strong> Pre-rendered at build time, served as static HTML</li>
-          <li><strong>CSR:</strong> Rendered on the client with JavaScript</li>
+          <li>
+            <strong>SSG (/, /about):</strong> Pre-rendered at build time, served as static HTML
+          </li>
+          <li>
+            <strong>CSR:</strong> Rendered on the client with JavaScript
+          </li>
         </ul>
       </div>
 
-      <div style={{ marginTop: '2rem' }}>
-        <a href="/" style={{ color: '#0066cc' }}>← Back to Home</a>
+      <div
+        style={{
+          marginTop: '2rem',
+        }}
+      >
+        <a
+          href="/"
+          style={{
+            color: '#0066cc',
+          }}
+        >
+          ← Back to Home
+        </a>
       </div>
     </div>
   );

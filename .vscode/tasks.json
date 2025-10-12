@@ -1,0 +1,78 @@
+{
+  "tasks": [
+    {
+      "args": [
+        "Hello from VS Code task!"
+      ],
+      "command": "echo",
+      "label": "Test Task",
+      "type": "shell"
+    },
+    {
+      "args": [
+        "biome",
+        "check",
+        "."
+      ],
+      "command": "pnpm",
+      "label": "Biome: Check",
+      "presentation": {
+        "echo": true,
+        "panel": "shared",
+        "reveal": "always"
+      },
+      "problemMatcher": [
+        "$tsc"
+      ],
+      "type": "shell"
+    },
+    {
+      "args": [
+        "biome",
+        "check",
+        "--write",
+        "."
+      ],
+      "command": "pnpm",
+      "label": "Biome: Check and Fix",
+      "presentation": {
+        "echo": true,
+        "panel": "shared",
+        "reveal": "always"
+      },
+      "type": "shell"
+    },
+    {
+      "args": [
+        "biome",
+        "format",
+        "--write",
+        "."
+      ],
+      "command": "pnpm",
+      "label": "Biome: Format",
+      "presentation": {
+        "echo": true,
+        "panel": "shared",
+        "reveal": "always"
+      },
+      "type": "shell"
+    },
+    {
+      "args": [
+        "biome",
+        "format",
+        "."
+      ],
+      "command": "pnpm",
+      "label": "Biome: Format Check",
+      "presentation": {
+        "echo": true,
+        "panel": "shared",
+        "reveal": "always"
+      },
+      "type": "shell"
+    }
+  ],
+  "version": "2.0.0"
+}

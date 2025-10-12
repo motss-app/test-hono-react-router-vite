@@ -1,26 +1,19 @@
+import process from 'node:process';
 import { serve } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
 import { Hono } from 'hono';
-import { timing, startTime, endTime } from 'hono/timing';
 import { contextStorage } from 'hono/context-storage';
+import { endTime, startTime, timing } from 'hono/timing';
 
-import { apiApp } from './apis/mod';
+import { apiApp } from './apis/mod.ts';
+import type { HonoEnv } from './types/hono.types.ts';
 
-const port = Number(process.env.PORT || 3000);
+const port = Number(process.env.PORT || '3000');
 const isProduction = process.env.NODE_ENV === 'production';
 
 // Define the Hono context type with custom variables
-type Env = {
-  Variables: {
-    honoData: {
-      serverTimestamp: string;
-      serverRegion: string;
-      computedValue: string;
-    };
-  };
-};
 
-const app = new Hono<Env>()
+const app = new Hono<HonoEnv>()
   // Add Context Storage middleware to enable getContext() outside handlers
   .use('*', contextStorage())
   // Add Server-Timing middleware globally
@@ -29,21 +22,24 @@ const app = new Hono<Env>()
 
 // Production: Serve static files and React Router SSR
 if (isProduction) {
-  app.use('*', serveStatic({
-    root: './build/client',
-  }));
+  app.use(
+    '*',
+    serveStatic({
+      root: './build/client',
+    })
+  );
 
   const { createRequestHandler } = await import('react-router');
-  const build = await import('../build/server/index.js');
+  const build = await import('../build/server/index.js' as never);
 
-  app.use('*', async (c) => {
+  app.use('*', async c => {
     // Example: Fetch/compute data in Hono
     startTime(c, 'hono-compute');
 
     const honoData = {
-      serverTimestamp: new Date().toISOString(),
+      computedValue: crypto.randomUUID(),
       serverRegion: process.env.REGION || 'us-east-1',
-      computedValue: Math.random().toString(36).substring(7),
+      serverTimestamp: new Date().toISOString(),
     };
 
     // Store data in Hono context (accessible via getContext() in React Router)
@@ -53,7 +49,7 @@ if (isProduction) {
 
     // Use Hono's contextStorage - the context will be accessible via getContext()
     startTime(c, 'react-router-ssr');
-    const handler = createRequestHandler(build as any);
+    const handler = createRequestHandler(build);
     const response = await handler(c.req.raw);
     endTime(c, 'react-router-ssr');
 
@@ -69,24 +65,28 @@ if (isProduction) {
     }
 
     return new Response(response.body, {
+      headers: responseHeaders,
       status: response.status,
       statusText: response.statusText,
-      headers: responseHeaders,
     });
   });
-} const server = serve({
-  fetch: app.fetch,
-  port,
-}, (info) => {
-  console.log(`Listening on http://${info.address}:${info.port}`);
-});
+}
+const server = serve(
+  {
+    fetch: app.fetch,
+    port,
+  },
+  info => {
+    console.info(`Listening on http://${info.address}:${info.port}`);
+  }
+);
 
 process.on('SIGINT', () => {
   server.close();
   process.exit(0);
 });
 process.on('SIGTERM', () => {
-  server.close((err) => {
+  server.close(err => {
     if (err) {
       console.error(err);
       process.exit(1);
