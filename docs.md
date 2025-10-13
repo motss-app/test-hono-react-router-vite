@@ -233,5 +233,36 @@ build/                  # Production build
 
 - [React Router Docs](https://reactrouter.com/)
 - [Hono Docs](https://hono.dev/)
-- [Vite Docs](https://vitejs.dev/)</content>
-<parameter name="filePath">/Users/rongsen/motss/test-hono-react-router-vite/docs.md
+- [Vite Docs](https://vitejs.dev/)
+
+## FontAwesome Pro Icons Setup
+
+To use FontAwesome 7 Pro icons with UnoCSS:
+
+1. Obtain your FontAwesome Pro token from [FontAwesome](https://fontawesome.com/)
+
+2. Configure npm to access FontAwesome Pro packages:
+   ```bash
+   npm config set @fortawesome:registry https://npm.fontawesome.com/
+   npm config set //npm.fontawesome.com/:_authToken YOUR_FA_PRO_TOKEN
+   ```
+
+3. Install the Pro icon packages:
+   ```bash
+   pnpm add -D @fortawesome/pro-regular-svg-icons @fortawesome/pro-solid-svg-icons @fortawesome/pro-thin-svg-icons @fortawesome/pro-light-svg-icons @fortawesome/pro-duotone-svg-icons
+   ```
+
+4. Uncomment the code in `scripts/convert-fa-pro.ts` (follow the instructions in the file)
+
+5. Generate the Iconify JSON files:
+   ```bash
+   pnpm run convert-fa-pro
+   # or
+   deno task convert-fa-pro
+   ```
+
+6. Uncomment the Pro icon collections in `unocss.config.ts`
+
+The Pro icons will be available as `fal-`, `fad-`, `fat-`, `far-`, `fas-` classes in addition to the free `fa-`, `fab-`, `fas-`.
+
+See `scripts/convert-fa-pro.ts` for detailed setup instructions and reference to [Iconify documentation](https://iconify.design/docs/libraries/tools/examples/import-fa-pro.html#using-the-fontawesome-pro-npm-libraries).

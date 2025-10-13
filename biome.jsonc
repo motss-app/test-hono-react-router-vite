@@ -62,11 +62,11 @@
                   "type": true
                 },
                 {
-                  "source": ":ALIAS:"
-                },
-                {
                   "source": ":PATH:",
                   "type": true
+                },
+                {
+                  "source": ":ALIAS:"
                 },
                 {
                   "source": ":PATH:"
@@ -198,7 +198,8 @@
       "includes": [
         "**/vite.config.ts",
         "**/vite.*.config.ts",
-        "react-router.config.ts"
+        "react-router.config.ts",
+        "unocss.config.ts"
       ],
       "linter": {
         "rules": {
@@ -236,7 +237,8 @@
     },
     {
       "includes": [
-        "app/server.ts"
+        "app/server.ts",
+        "scripts/convert-fa-pro.ts"
       ],
       "linter": {
         "rules": {

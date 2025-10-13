@@ -53,6 +53,7 @@
   "tasks": {
     "build": "deno run --allow-all npm:@react-router/dev build --config ./vite.react-router.config.ts --mode production && deno run --allow-all npm:vite build --config ./vite.hono.config.ts --mode production",
     "check": " deno run --allow-env --allow-ffi --allow-net --allow-read --allow-run --allow-sys --allow-write npm:@react-router/dev typegen && deno check",
+    "convert-fa-pro": "deno run --allow-env scripts/convert-fa-pro.ts",
     "dev": "deno run --allow-env --allow-ffi --allow-net --allow-read --allow-run --allow-sys --allow-write npm:vite",
     "format": "deno run --allow-all npm:@biomejs/biome format --write .",
     "format:check": "deno run --allow-all npm:@biomejs/biome format .",

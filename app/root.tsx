@@ -1,8 +1,11 @@
+import 'virtual:uno.css';
+
 import './app.css';
 
 import type { JSX, PropsWithChildren } from 'react';
 import {
   isRouteErrorResponse,
+  Link,
   Links,
   Meta,
   Outlet,
@@ -30,7 +33,10 @@ export const links: Route.LinksFunction = () => [
 
 export function Layout({ children }: PropsWithChildren): JSX.Element {
   return (
-    <html lang="en">
+    <html
+      className="dark"
+      lang="en"
+    >
       <head>
         <meta charSet="utf-8" />
         <meta
@@ -113,89 +119,43 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): JSX.Element 
   }
 
   return (
-    <main className="pt-16 p-4 container mx-auto">
-      <div
-        style={{
-          margin: '0 auto',
-          maxWidth: '600px',
-          padding: '2rem',
-          textAlign: 'center',
-        }}
-      >
+    <main className="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-900">
+      <div className="max-w-2xl w-full bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 text-center">
+        <div
+          className={`i-fa:exclamation-triangle text-6xl mb-6 ${
+            statusCode >= serverErrorThreshold ? 'text-red-600' : 'text-yellow-600'
+          }`}
+        />
+
         <h1
-          style={{
-            color: statusCode >= serverErrorThreshold ? '#dc2626' : '#f59e0b',
-            fontSize: '3rem',
-            fontWeight: 'bold',
-            marginBottom: '1rem',
-          }}
+          className={`text-4xl font-bold mb-4 ${
+            statusCode >= serverErrorThreshold ? 'text-red-600' : 'text-yellow-600'
+          }`}
         >
           {message}
         </h1>
-        <p
-          style={{
-            color: '#666',
-            fontSize: '1.125rem',
-            marginBottom: '2rem',
-          }}
-        >
-          {details}
-        </p>
+
+        <p className="text-lg text-slate-600 dark:text-slate-300 mb-8">{details}</p>
 
         {stack && (
-          <details
-            style={{
-              background: '#f5f5f5',
-              borderRadius: '8px',
-              marginTop: '2rem',
-              padding: '1rem',
-              textAlign: 'left',
-            }}
-          >
-            <summary
-              style={{
-                cursor: 'pointer',
-                fontWeight: 'bold',
-                marginBottom: '1rem',
-              }}
-            >
-              Stack Trace (Development Only)
+          <details className="bg-slate-100 dark:bg-slate-700 rounded-lg p-4 mb-8 text-left">
+            <summary className="cursor-pointer font-semibold text-slate-900 dark:text-white mb-4 flex items-center space-x-2">
+              <div className="i-fa:bug text-red-600" />
+              <span>Stack Trace (Development Only)</span>
             </summary>
-            <pre
-              style={{
-                background: '#1e1e1e',
-                borderRadius: '4px',
-                color: '#d4d4d4',
-                fontSize: '0.875rem',
-                overflow: 'auto',
-                padding: '1rem',
-              }}
-            >
+            <pre className="bg-slate-800 text-slate-200 rounded p-4 overflow-auto text-sm font-mono">
               <code>{stack}</code>
             </pre>
           </details>
         )}
 
-        <div
-          style={{
-            marginTop: '2rem',
-          }}
+        <Link
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors inline-flex items-center space-x-2"
+          to="/"
         >
-          <a
-            href="/"
-            style={{
-              background: '#0066cc',
-              borderRadius: '8px',
-              color: 'white',
-              display: 'inline-block',
-              fontWeight: '500',
-              padding: '0.75rem 1.5rem',
-              textDecoration: 'none',
-            }}
-          >
-            ← Go back home
-          </a>
-        </div>
+          <div className="i-fa:arrow-left" />
+          <span>Go back home</span>
+        </Link>
       </div>
     </main>
   );
