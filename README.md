@@ -4,6 +4,11 @@ A modern, production-ready template for building full-stack React applications u
 
 [![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
 
+## Documentation
+
+- **[📖 Full Documentation](docs.md)** - Complete project guide
+- **[📚 Detailed Guides](docs/)** - In-depth documentation for specific topics
+
 ## Features
 
 - 🚀 Server-side rendering
