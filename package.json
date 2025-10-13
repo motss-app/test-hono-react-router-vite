@@ -1,16 +1,17 @@
 {
   "dependencies": {
+    "@base-ui-components/react": "1.0.0-beta.4",
     "@hono/node-server": "^1.19.5",
     "@react-router/node": "^7.9.2",
     "@react-router/serve": "^7.9.2",
-    "hono": "^4.9.11",
+    "hono": "^4.9.12",
     "isbot": "^5.1.31",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router": "^7.9.2"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.2.5",
+    "@biomejs/biome": "^2.2.6",
     "@hono/vite-dev-server": "^0.23.0",
     "@iconify-json/fa7-brands": "^1.2.0",
     "@iconify-json/fa7-regular": "^1.2.1",
@@ -20,7 +21,7 @@
     "@react-router/dev": "^7.9.2",
     "@types/node": "^24.7.2",
     "@types/react": "^19.1.13",
-    "@types/react-dom": "^19.1.9",
+    "@types/react-dom": "^19.2.2",
     "@unocss/preset-icons": "^66.5.3",
     "@unocss/preset-mini": "^66.5.3",
     "@unocss/preset-rem-to-px": "^66.5.3",

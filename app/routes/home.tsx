@@ -1,3 +1,4 @@
+import { NavigationMenu } from '@base-ui-components/react/navigation-menu';
 import type { JSX } from 'react';
 import { Link } from 'react-router';
 
@@ -25,36 +26,54 @@ export default function Home(): JSX.Element {
         This is the home page.
       </p>
 
-      <nav className="flex flex-wrap justify-center gap-8 max-w-4xl mx-auto">
-        <Link
-          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-semibold transition-colors"
-          to="/about"
-        >
-          <div className="i-fas:info text-lg" />
-          About
-        </Link>
-        <Link
-          className="flex items-center gap-2 text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 font-semibold transition-colors"
-          to="/ssr"
-        >
-          <div className="i-fas:server text-lg" />
-          SSR Page
-        </Link>
-        <Link
-          className="flex items-center gap-2 text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 font-semibold transition-colors"
-          to="/hono-rpc"
-        >
-          <div className="i-fas:home text-lg" />
-          Hono RPC Demo
-        </Link>
-        <Link
-          className="flex items-center gap-2 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-semibold transition-colors"
-          to="/errors"
-        >
-          <div className="i-fas:warning text-lg" />
-          Error Handling Demo
-        </Link>
-      </nav>
+      <NavigationMenu.Root className="b-amber-1 b-1 b-solid p-2">
+        <NavigationMenu.List className="flex flex-wrap justify-center gap-8 max-w-4xl mx-auto">
+          <NavigationMenu.Item>
+            <Link
+              className="flex items-center gap-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-semibold transition-colors"
+              to="/about"
+            >
+              <NavigationMenu.Icon>
+                <div className="i-fas:info text-lg" />
+              </NavigationMenu.Icon>
+              About
+            </Link>
+          </NavigationMenu.Item>
+          <NavigationMenu.Item>
+            <Link
+              className="flex items-center gap-2 text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 font-semibold transition-colors"
+              to="/ssr"
+            >
+              <NavigationMenu.Icon>
+                <div className="i-fas:server text-lg" />
+              </NavigationMenu.Icon>
+              SSR Page
+            </Link>
+          </NavigationMenu.Item>
+          <NavigationMenu.Item>
+            <Link
+              className="flex items-center gap-2 text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 font-semibold transition-colors"
+              to="/hono-rpc"
+            >
+              <NavigationMenu.Icon>
+                <div className="i-fas:home text-lg" />
+              </NavigationMenu.Icon>
+              Hono RPC Demo
+            </Link>
+          </NavigationMenu.Item>
+          <NavigationMenu.Item>
+            <Link
+              className="flex items-center gap-2 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-semibold transition-colors"
+              to="/errors"
+            >
+              <NavigationMenu.Icon>
+                <div className="i-fas:warning text-lg" />
+              </NavigationMenu.Icon>
+              Error Handling Demo
+            </Link>
+          </NavigationMenu.Item>
+        </NavigationMenu.List>
+      </NavigationMenu.Root>
     </>
   );
 }
