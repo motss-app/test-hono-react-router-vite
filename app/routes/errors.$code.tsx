@@ -121,59 +121,38 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): JSX.Element 
   }
 
   return (
-    <div
-      style={{
-        fontFamily: 'system-ui',
-        margin: '0 auto',
-        maxWidth: '600px',
-        padding: '2rem',
-        textAlign: 'center',
-      }}
-    >
+    <div className="font-sans mx-auto max-w-3xl p-8 text-center min-h-screen">
+      <div className="mt-8">
+        <Link
+          className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 no-underline mr-4"
+          to="/errors"
+        >
+          ← Back to Error Demo
+        </Link>
+        |
+        <Link
+          className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 no-underline ml-4"
+          to="/"
+        >
+          Go Home
+        </Link>
+      </div>
+
       <h1
-        style={{
-          color: statusCode >= serverErrorStatusCode ? '#dc2626' : '#f59e0b',
-          fontSize: '4rem',
-          margin: '0',
-        }}
+        className={`text-6xl m-0 ${
+          statusCode >= serverErrorStatusCode
+            ? 'text-red-600 dark:text-red-400'
+            : 'text-amber-600 dark:text-amber-400'
+        }`}
       >
         {statusCode}
       </h1>
-      <h2
-        style={{
-          marginTop: '1rem',
-        }}
-      >
-        {statusText}
-      </h2>
-      <p
-        style={{
-          color: '#666',
-        }}
-      >
-        {message}
-      </p>
+      <h2 className="mt-4 text-slate-900 dark:text-white">{statusText}</h2>
+      <p className="text-slate-600 dark:text-slate-300">{message}</p>
 
-      <div
-        style={{
-          borderRadius: '8px',
-          marginTop: '2rem',
-          padding: '1rem',
-          textAlign: 'left',
-        }}
-      >
-        <h3
-          style={{
-            marginTop: 0,
-          }}
-        >
-          ℹ️ About this error:
-        </h3>
-        <ul
-          style={{
-            marginBottom: 0,
-          }}
-        >
+      <div className="rounded-lg mt-8 p-16 text-left bg-slate-50 dark:bg-slate-800">
+        <h3 className="mt-0 text-slate-900 dark:text-white">ℹ️ About this error:</h3>
+        <ul className="mb-0 text-slate-600 dark:text-slate-300">
           <li>
             <strong>Status:</strong> {statusCode}
           </li>
@@ -182,38 +161,15 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): JSX.Element 
             {error instanceof Response ? 'HTTP Response Error' : 'Runtime Error'}
           </li>
           <li>
-            <strong>Caught by:</strong> Route ErrorBoundary in <code>errors.$code.tsx</code>
+            <strong>Caught by:</strong> Route ErrorBoundary in{' '}
+            <code className="bg-slate-200 dark:bg-slate-700 px-1 py-0.5 rounded">
+              errors.$code.tsx
+            </code>
           </li>
           <li>
             <strong>SSR:</strong> This page was server-rendered with the error
           </li>
         </ul>
-      </div>
-
-      <div
-        style={{
-          marginTop: '2rem',
-        }}
-      >
-        <Link
-          style={{
-            color: '#0066cc',
-            textDecoration: 'none',
-          }}
-          to="/errors"
-        >
-          ← Back to Error Demo
-        </Link>
-        |
-        <Link
-          style={{
-            color: '#0066cc',
-            textDecoration: 'none',
-          }}
-          to="/"
-        >
-          Go Home
-        </Link>
       </div>
     </div>
   );

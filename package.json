@@ -24,7 +24,7 @@
     "@types/react-dom": "^19.2.2",
     "@unocss/preset-icons": "^66.5.3",
     "@unocss/preset-mini": "^66.5.3",
-    "@unocss/preset-rem-to-px": "^66.5.3",
+    "@unocss/preset-wind4": "^66.5.3",
     "@unocss/vite": "^66.5.3",
     "typescript": "^5.9.2",
     "unocss": "^66.5.3",

@@ -1,5 +1,5 @@
 import type { JSX } from 'react';
-import { data } from 'react-router';
+import { data, Link } from 'react-router';
 
 import { getHonoContext } from '../context.ts';
 import type { Route } from './+types/ssr.ts';
@@ -54,94 +54,65 @@ export function headers({ loaderHeaders, parentHeaders }: Route.HeadersArgs): He
 
 export default function SsrPage({ loaderData }: Route.ComponentProps): JSX.Element {
   return (
-    <div
-      style={{
-        fontFamily: 'system-ui',
-        padding: '2rem',
-      }}
-    >
-      <h1>SSR Page (Server-Side Rendered)</h1>
-      <p
-        style={{
-          color: '#666',
-        }}
-      >
+    <div className="p-8 min-h-screen">
+      <div className="mt-8">
+        <Link
+          className="text-blue-600 hover:text-blue-800 transition-colors"
+          to="/"
+        >
+          ← Back to Home
+        </Link>
+      </div>
+
+      <h1 className="text-4xl font-bold mb-6 text-slate-400">SSR Page (Server-Side Rendered)</h1>
+      <p className="text-xl mb-8 text-slate-600">
         This page is rendered on the server for every request. Not pre-rendered (SSG), not
         client-only (CSR).
       </p>
 
-      <div
-        style={{
-          borderColor: 'currentColor',
-          borderRadius: '8px',
-          borderWidth: '1px',
-          marginBlockEnd: '1rem',
-          marginBlockStart: '1rem',
-          padding: '1rem',
-        }}
-      >
-        <h2>Server Data:</h2>
-        <p>
+      <div className="border border-amber-200 bg-amber-100 rounded-lg p-6 mb-6">
+        <h2 className="text-2xl font-semibold mb-4 text-slate-400">Server Data:</h2>
+        <p className="mb-2 text-slate-700">
           <strong>Timestamp:</strong> {loaderData.timestamp}
         </p>
-        <p>
+        <p className="mb-2 text-slate-700">
           <strong>Render Time:</strong> {loaderData.renderTime}ms
         </p>
-        <p>
+        <p className="mb-2 text-slate-700">
           <strong>Your User Agent:</strong> {loaderData.userAgent}
         </p>
-        <p>
+        <p className="mb-4 text-slate-700">
           <strong>Message:</strong> {loaderData.message}
         </p>
       </div>
 
       {loaderData.honoData && (
-        <div
-          style={{
-            borderColor: '#10b981',
-            borderRadius: '8px',
-            borderWidth: '1px',
-            marginBlockEnd: '1rem',
-            padding: '1rem',
-          }}
-        >
-          <h2>Data from Hono Middleware:</h2>
-          <p>
+        <div className="border border-green-500 bg-green-50 rounded-lg p-6 mb-6">
+          <h2 className="text-2xl font-semibold mb-4 text-slate-400">Data from Hono Middleware:</h2>
+          <p className="mb-2 text-slate-700">
             <strong>Server Timestamp:</strong> {loaderData.honoData.serverTimestamp}
           </p>
-          <p>
+          <p className="mb-2 text-slate-700">
             <strong>Computed Value:</strong> {loaderData.honoData.computedValue}
           </p>
-          <p
-            style={{
-              color: '#666',
-              fontSize: '0.875rem',
-              marginTop: '0.5rem',
-            }}
-          >
+          <p className="text-slate-600 text-sm mt-4">
             ℹ️ This data was computed in Hono middleware and passed to React Router via Hono's
             Context Storage (AsyncLocalStorage)
           </p>
         </div>
       )}
 
-      <div
-        style={{
-          color: '#999',
-          fontSize: '0.9rem',
-          marginTop: '2rem',
-        }}
-      >
-        <p>
+      <div className="text-slate-500 text-sm mt-8">
+        <p className="mb-4">
           💡 Refresh this page - the timestamp will update because it's rendered on the server each
           time!
         </p>
-        <p>
+        <p className="mb-4">
           ⏱️ Check the <strong>Network tab → Response Headers → Server-Timing</strong> to see server
           render time
         </p>
-        <p>🔄 This is different from:</p>
-        <ul>
+        <p className="mb-4">🔄 This is different from:</p>
+        <ul className="list-disc list-inside space-y-2 text-slate-600">
           <li>
             <strong>SSG (/, /about):</strong> Pre-rendered at build time, served as static HTML
           </li>
@@ -149,21 +120,6 @@ export default function SsrPage({ loaderData }: Route.ComponentProps): JSX.Eleme
             <strong>CSR:</strong> Rendered on the client with JavaScript
           </li>
         </ul>
-      </div>
-
-      <div
-        style={{
-          marginTop: '2rem',
-        }}
-      >
-        <a
-          href="/"
-          style={{
-            color: '#0066cc',
-          }}
-        >
-          ← Back to Home
-        </a>
       </div>
     </div>
   );

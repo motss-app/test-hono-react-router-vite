@@ -17,8 +17,17 @@ export function meta(_args: Route.MetaArgs): Route.MetaDescriptors {
 
 export default function About(): JSX.Element {
   return (
-    <div className="min-h-screen py-16 px-4">
-      <div className="container mx-auto max-w-4xl">
+    <div className="p-8 min-h-screen">
+      <div className="m-bs-8">
+        <Link
+          className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+          to="/"
+        >
+          ← Back to Home
+        </Link>
+      </div>
+
+      <div className="container mx-auto max-w-4xl py-16 px-4">
         {/* Header */}
         <div className="text-center mb-16">
           <div className="i-fa:info-circle text-6xl text-blue-600 mb-6" />
@@ -38,7 +47,7 @@ export default function About(): JSX.Element {
           </h2>
 
           <div className="grid md:grid-cols-2 gap-8">
-            <div className="bg-white dark:bg-slate-800 p-8 rounded-xl shadow-lg">
+            <div className="p-8 rounded-xl shadow-lg">
               <h3 className="text-2xl font-semibold mb-4 text-slate-900 dark:text-white flex items-center space-x-3">
                 <div className="i-fa:cogs text-blue-600 text-3xl" />
                 <span>Frontend</span>
@@ -63,7 +72,7 @@ export default function About(): JSX.Element {
               </ul>
             </div>
 
-            <div className="bg-white dark:bg-slate-800 p-8 rounded-xl shadow-lg">
+            <div className="p-8 rounded-xl shadow-lg">
               <h3 className="text-2xl font-semibold mb-4 text-slate-900 dark:text-white flex items-center space-x-3">
                 <div className="i-fa:server text-green-600 text-3xl" />
                 <span>Backend</span>
@@ -135,13 +144,6 @@ export default function About(): JSX.Element {
           <p className="text-xl mb-8 opacity-90">
             See these technologies in action with our interactive demos
           </p>
-          <Link
-            className="bg-blue-600 hover:bg-blue-700 px-8 py-4 rounded-lg font-semibold transition-colors inline-flex items-center space-x-2 text-lg"
-            to="/"
-          >
-            <div className="i-fa:arrow-left" />
-            <span>Back to Home</span>
-          </Link>
         </section>
       </div>
     </div>

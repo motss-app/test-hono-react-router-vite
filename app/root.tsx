@@ -120,7 +120,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): JSX.Element 
 
   return (
     <main className="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-900">
-      <div className="max-w-2xl w-full bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 text-center">
+      <div className="max-w-2xl w-full dark:bg-slate-800 rounded-2xl shadow-xl p-8 text-center">
         <div
           className={`i-fa:exclamation-triangle text-6xl mb-6 ${
             statusCode >= serverErrorThreshold ? 'text-red-600' : 'text-yellow-600'

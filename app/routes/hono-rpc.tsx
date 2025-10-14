@@ -65,60 +65,30 @@ export default function HonoRpcDemo({ loaderData }: Route.ComponentProps): JSX.E
   };
 
   return (
-    <div
-      style={{
-        fontFamily: 'system-ui',
-        padding: '2rem',
-      }}
-    >
-      <nav
-        style={{
-          marginBottom: '1rem',
-        }}
-      >
+    <div className="font-sans p-8 min-h-screen space-y-24">
+      <div className="my-4">
         <Link
-          style={{
-            color: '#0066cc',
-            textDecoration: 'underline',
-          }}
+          className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline transition-colors"
           to="/"
         >
           ← Back to Home
         </Link>
-      </nav>
+      </div>
 
-      <h1>Hono RPC Demo</h1>
-      <p
-        style={{
-          color: '#666',
-        }}
-      >
+      <h1 className="text-4xl font-bold mb-6 text-slate-900 dark:text-white">Hono RPC Demo</h1>
+      <p className="text-xl mb-8 text-slate-600 dark:text-slate-300">
         Simple demo of calling a Hono endpoint from React Router using clientLoader.
       </p>
 
-      <div
-        style={{
-          borderColor: 'currentColor',
-          borderRadius: '8px',
-          borderWidth: '1px',
-          marginBlockEnd: '1rem',
-          marginBlockStart: '1rem',
-          padding: '1rem',
-        }}
-      >
+      <div className="border border-solid rounded-lg p-4 my-24">
         <button
+          className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
+            loading
+              ? 'bg-slate-500 cursor-not-allowed text-slate-100'
+              : 'bg-blue-800 hover:bg-blue-900 cursor-pointer text-white'
+          }`}
           disabled={loading}
           onClick={handleRefresh}
-          style={{
-            backgroundColor: loading ? '#64748b' : '#1e40af',
-            border: 'none',
-            borderRadius: '8px',
-            color: '#e2e8f0',
-            cursor: loading ? 'not-allowed' : 'pointer',
-            fontSize: '1rem',
-            padding: '0.75rem',
-            width: '100%',
-          }}
           type="button"
         >
           {loading ? 'Refreshing...' : 'Refresh RPC Data'}
@@ -126,100 +96,55 @@ export default function HonoRpcDemo({ loaderData }: Route.ComponentProps): JSX.E
       </div>
 
       {error && (
-        <div
-          style={{
-            borderColor: '#ef4444',
-            borderRadius: '8px',
-            borderWidth: '1px',
-            color: '#dc2626',
-            marginBlockEnd: '1rem',
-            padding: '1rem',
-          }}
-        >
+        <div className="border border-red-500 bg-red-50 dark:bg-red-900 dark:border-red-400 rounded-lg p-4 mb-4 text-red-700 dark:text-red-300">
           <strong>Error:</strong> {error}
         </div>
       )}
 
       {response && (
-        <div
-          style={{
-            borderColor: '#10b981',
-            borderRadius: '8px',
-            borderWidth: '1px',
-            marginBlockEnd: '1rem',
-            padding: '1rem',
-          }}
-        >
-          <h2>RPC Response:</h2>
-          <p>
+        <div className="border border-green-500 bg-green-900 dark:border-green-400 rounded-lg p-16">
+          <h2 className="text-2xl font-semibold mb-4 text-slate-900 dark:text-white">
+            RPC Response:
+          </h2>
+          <p className="mb-2 text-slate-700 dark:text-slate-200">
             <strong>Message:</strong> {response.message}
           </p>
-          <p>
+          <p className="mb-2 text-slate-700 dark:text-slate-200">
             <strong>Server:</strong> {response.server}
           </p>
-          <p>
+          <p className="mb-2 text-slate-700 dark:text-slate-200">
             <strong>Timestamp:</strong> {response.timestamp}
           </p>
-          <p
-            style={{
-              color: '#666',
-              fontSize: '0.875rem',
-              marginTop: '0.5rem',
-            }}
-          >
+          <p className="text-slate-600 dark:text-slate-300 text-sm mt-4">
             ℹ️ This data was fetched using Hono RPC client after page hydration
           </p>
         </div>
       )}
 
-      <div
-        style={{
-          borderColor: '#6366f1',
-          borderRadius: '8px',
-          borderWidth: '1px',
-          marginBlockEnd: '1rem',
-          padding: '1rem',
-        }}
-      >
-        <h2>API Information:</h2>
-        <p>
+      <div className="border border-indigo-500 bg-indigo-900 rounded-lg p-4 mb-4">
+        <h2 className="text-2xl font-semibold mb-4 text-slate-900 dark:text-white">
+          API Information:
+        </h2>
+        <p className="mb-2 text-slate-700 dark:text-slate-200">
           <strong>Endpoint:</strong>{' '}
-          <code
-            style={{
-              border: '1px solid #6366f1',
-              borderRadius: '4px',
-              padding: '0.25rem 0.5rem',
-            }}
-          >
+          <code className="border border-indigo-500 bg-indigo-100 dark:bg-indigo-800 dark:border-indigo-400 px-2 py-1 rounded text-sm">
             GET /api/rpc/hello
           </code>
         </p>
-        <p>
+        <p className="mb-2 text-slate-700 dark:text-slate-200">
           <strong>Implementation:</strong>{' '}
-          <code
-            style={{
-              border: '1px solid #6366f1',
-              borderRadius: '4px',
-              padding: '0.25rem 0.5rem',
-            }}
-          >
+          <code className="border border-indigo-500 bg-indigo-100 dark:bg-indigo-800 dark:border-indigo-400 px-2 py-1 rounded text-sm">
             app/apis/mod.ts
           </code>
         </p>
-        <p>
+        <p className="text-slate-600 dark:text-slate-300">
           <strong>Description:</strong> Returns a greeting message with server timestamp
         </p>
       </div>
 
-      <div
-        style={{
-          color: '#999',
-          fontSize: '0.9rem',
-          marginTop: '2rem',
-        }}
-      >
-        <p>💡 This page demonstrates:</p>
-        <ul>
+      <div className="text-slate-500 dark:text-slate-400 text-sm mt-8">
+        <p className="mb-4">💡 This page demonstrates:</p>
+        <ul className="list-disc list-inside space-y-2 text-slate-600 dark:text-slate-300">
           <li>
             <strong>Prerendered:</strong> Page structure is built at build time
           </li>
@@ -230,7 +155,7 @@ export default function HonoRpcDemo({ loaderData }: Route.ComponentProps): JSX.E
             <strong>Hono RPC:</strong> Type-safe API calls using hc() client
           </li>
         </ul>
-        <p>🔄 Click "Refresh RPC Data" to fetch new data without page reload!</p>
+        <p className="mt-4">🔄 Click "Refresh RPC Data" to fetch new data without page reload!</p>
       </div>
     </div>
   );

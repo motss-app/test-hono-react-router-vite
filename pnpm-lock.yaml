@@ -75,7 +75,7 @@ importers:
       '@unocss/preset-mini':
         specifier: ^66.5.3
         version: 66.5.3
-      '@unocss/preset-rem-to-px':
+      '@unocss/preset-wind4':
         specifier: ^66.5.3
         version: 66.5.3
       '@unocss/vite':
@@ -803,9 +803,6 @@ packages:
 
   '@unocss/preset-mini@66.5.3':
     resolution: {integrity: sha512-0WnC4zuyJP3jQQFxFKG7MRUJW5AipdO15yHIkPPWzwNjDSlIcsjhr08v8BJxSFpOsr+XOEgqC3EnHn+CWkv3lg==}
-
-  '@unocss/preset-rem-to-px@66.5.3':
-    resolution: {integrity: sha512-gMuLmdLdhA8JC3pykg8E6qIv1z3+9RqpZuuaZW1Ltns8KMZAll0NQtpmxkQAFC0KlmykzWkGEojrX3Rus0Rlaw==}
 
   '@unocss/preset-tagify@66.5.3':
     resolution: {integrity: sha512-Wqq6LOTz7cJLoDKl2rsQNdzq0/SiEBZud71jUoOGkrh93J24kgly8enxo4VqnKT0Ak5a0gDEAGkOnmQkPJqT7g==}
@@ -2889,10 +2886,6 @@ snapshots:
       '@unocss/core': 66.5.3
       '@unocss/extractor-arbitrary-variants': 66.5.3
       '@unocss/rule-utils': 66.5.3
-
-  '@unocss/preset-rem-to-px@66.5.3':
-    dependencies:
-      '@unocss/core': 66.5.3
 
   '@unocss/preset-tagify@66.5.3':
     dependencies:

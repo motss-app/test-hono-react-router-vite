@@ -1,12 +1,11 @@
 import { presetIcons } from '@unocss/preset-icons';
-import presetMini from '@unocss/preset-mini';
-import presetRemToPx from '@unocss/preset-rem-to-px';
+import presetWind4 from '@unocss/preset-wind4';
 import { defineConfig } from 'unocss';
 
 export default defineConfig({
+  outputToCssLayers: true,
   presets: [
-    presetMini(),
-    presetRemToPx(),
+    presetWind4(),
     presetIcons({
       collections: {
         // Free FontAwesome styles

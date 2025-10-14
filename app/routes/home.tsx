@@ -26,8 +26,8 @@ export default function Home(): JSX.Element {
         This is the home page.
       </p>
 
-      <NavigationMenu.Root className="b-amber-1 b-1 b-solid p-2">
-        <NavigationMenu.List className="flex flex-wrap justify-center gap-8 max-w-4xl mx-auto">
+      <NavigationMenu.Root className="b-amber-200 b-1 b-solid p-16 w-fit mx-auto rounded-sm">
+        <NavigationMenu.List className="grid gap-16">
           <NavigationMenu.Item>
             <Link
               className="flex items-center gap-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-semibold transition-colors"
