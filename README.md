@@ -69,6 +69,36 @@ The containerized application can be deployed to any platform that supports Dock
 - Fly.io
 - Railway
 
+### Deno Deploy
+
+This project is configured for deployment on [Deno Deploy](https://deno.com/deploy).
+
+1. Install the Deno CLI if you haven't already:
+
+   ```bash
+   curl -fsSL https://deno.land/install.sh | sh
+   ```
+
+2. Authenticate with Deno Deploy:
+
+   ```bash
+   deno deploy login
+   ```
+
+3. Deploy to production:
+
+   ```bash
+   deno task deploy
+   ```
+
+   Or directly:
+
+   ```bash
+   deno task build && deno deploy
+   ```
+
+The application will be deployed to Deno Deploy and you'll receive a production URL.
+
 ### DIY Deployment
 
 If you're familiar with deploying Node applications, the built-in app server is production-ready.

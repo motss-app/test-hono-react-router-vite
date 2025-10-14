@@ -98,9 +98,9 @@ const exports = import.meta.env.DEV
       fetch: app.fetch,
       port,
     }
-  : {};
+  : app.fetch;
 
-if (import.meta.env.PROD) {
+if (import.meta.env.PROD && !import.meta.env.VITE_DENO_DEPLOYMENT_ID) {
   Deno.serve(
     {
       port,
