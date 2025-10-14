@@ -47,6 +47,10 @@
     "verbatimModuleSyntax": true
   },
   "imports": {
+    "hono": "npm:hono@4.9.12",
+    "hono/context-storage": "npm:hono@4.9.12/context-storage",
+    "hono/deno": "npm:hono@4.9.12/deno",
+    "hono/timing": "npm:hono@4.9.12/timing",
     "react-dom/server": "npm:react-dom@19.2.0/server.node"
   },
   "lock": true,

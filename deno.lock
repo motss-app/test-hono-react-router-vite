@@ -20,6 +20,7 @@
     "npm:@unocss/preset-mini@^66.5.3": "66.5.3",
     "npm:@unocss/preset-wind4@^66.5.3": "66.5.3",
     "npm:@unocss/vite@^66.5.3": "66.5.3_vite@7.1.9__@types+node@24.7.2__picomatch@4.0.3_@types+node@24.7.2",
+    "npm:hono@4.9.12": "4.9.12",
     "npm:hono@^4.9.12": "4.9.12",
     "npm:isbot@^5.1.31": "5.1.31",
     "npm:react-dom@19.2.0": "19.2.0_react@19.2.0",
@@ -2811,6 +2812,7 @@
   },
   "workspace": {
     "dependencies": [
+      "npm:hono@4.9.12",
       "npm:react-dom@19.2.0"
     ],
     "packageJson": {
