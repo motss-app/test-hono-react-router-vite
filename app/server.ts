@@ -1,10 +1,10 @@
 // import { serve } from '@hono/node-server';
 // import { serveStatic } from '@hono/node-server/serve-static';
 
-import { Hono } from 'hono';
-import { contextStorage } from 'hono/context-storage';
-import { serveStatic } from 'hono/deno';
-import { endTime, startTime, timing } from 'hono/timing';
+import { Hono } from 'npm:hono@4.9.12';
+import { contextStorage } from 'npm:hono@4.9.12/context-storage';
+import { serveStatic } from 'npm:hono@4.9.12/deno';
+import { endTime, startTime, timing } from 'npm:hono@4.9.12/timing';
 
 import { apiApp } from './apis/mod.ts';
 import type { HonoEnv } from './types/hono.types.ts';
