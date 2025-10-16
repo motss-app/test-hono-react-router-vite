@@ -54,17 +54,45 @@
     "react-dom/server": "npm:react-dom@19.2.0/server.node"
   },
   "lock": true,
+  "permissions": {
+    "default": {
+      "env": true,
+      "ffi": true,
+      "net": true,
+      "read": true,
+      "run": true,
+      "sys": true,
+      "write": true
+    },
+    "env": {
+      "env": true
+    },
+    "format": {
+      "env": true,
+      "run": true
+    },
+    "lint": {
+      "env": true,
+      "run": true
+    },
+    "start": {
+      "env": true,
+      "net": true,
+      "read": true
+    }
+  },
   "tasks": {
-    "build": "deno run --allow-all npm:@react-router/dev build --config ./vite.react-router.config.ts --mode production && deno run --allow-all npm:vite build --config ./vite.hono.config.ts --mode production",
-    "check": " deno run --allow-env --allow-ffi --allow-net --allow-read --allow-run --allow-sys --allow-write npm:@react-router/dev typegen && deno check",
-    "convert-fa-pro": "deno run --allow-env scripts/convert-fa-pro.ts",
-    "dev": "deno run --allow-env --allow-ffi --allow-net --allow-read --allow-run --allow-sys --allow-write npm:vite",
-    "format": "deno run --allow-all npm:@biomejs/biome format --write .",
-    "format:check": "deno run --allow-all npm:@biomejs/biome format .",
-    "lint": "deno lint && deno run --allow-all npm:@biomejs/biome check .",
-    "lint:fix": "deno run --allow-all npm:@biomejs/biome check --write .",
+    "build": "deno run -P npm:@react-router/dev build --config ./vite.react-router.config.ts --mode production && deno run -P npm:vite build --config ./vite.hono.config.ts --mode production",
+    "check": " deno run -P npm:@react-router/dev typegen && deno check",
+    "convert-fa-pro": "deno run -P=env scripts/convert-fa-pro.ts",
+    "dev": "deno run -P npm:vite",
+    "format": "deno run -P=format npm:@biomejs/biome format --write .",
+    "format:check": "deno run -P=format npm:@biomejs/biome format .",
+    "install": "pnpm install",
+    "lint": "deno lint && deno run -P=lint npm:@biomejs/biome check .",
+    "lint:fix": "deno run -P=lint npm:@biomejs/biome check --write .",
     "preview": "deno task build && deno task start",
-    "start": "deno run --allow-env --allow-net --allow-read ./build/server.js"
+    "start": "deno run -P=start ./build/server.js"
   },
   "unstable": [
     "bare-node-builtins",

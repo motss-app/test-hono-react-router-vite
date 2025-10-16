@@ -21,5 +21,10 @@
   "typescript.preferences.importModuleSpecifier": "relative",
   "typescript.suggest.autoImports": true,
   "typescript.tsdk": "node_modules/typescript/lib",
-  "typescript.tsserver.experimental.enableProjectDiagnostics": false
+  "typescript.tsserver.experimental.enableProjectDiagnostics": false,
+  "yaml.schemas": {
+    "https://json.schemastore.org/pnpm-workspace.json": [
+      "pnpm-workspace.yaml"
+    ]
+  }
 }
