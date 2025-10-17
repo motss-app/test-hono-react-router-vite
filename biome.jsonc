@@ -151,8 +151,7 @@
       "includes": [
         "**/routes/*.ts",
         "**/routes/*.tsx",
-        "app/root.tsx",
-        "app/routes.ts"
+        "app/**/*.tsx"
       ],
       "linter": {
         "domains": {
@@ -199,7 +198,7 @@
         "**/vite.config.ts",
         "**/vite.*.config.ts",
         "react-router.config.ts",
-        "unocss.config.ts"
+        "tailwind.config.ts"
       ],
       "linter": {
         "rules": {

@@ -10,5 +10,4 @@ const config: Config = {
   },
 };
 
-// biome-ignore lint/style/noDefaultExport: Tailwind requires default export
 export default config;

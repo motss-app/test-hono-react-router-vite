@@ -120,10 +120,12 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): JSX.Element 
     <main className="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-900">
       <div className="max-w-2xl w-full dark:bg-slate-800 rounded-2xl shadow-xl p-8 text-center">
         <div
-          className={`i-fa:exclamation-triangle text-6xl mb-6 ${
+          className={`text-6xl mb-6 ${
             statusCode >= serverErrorThreshold ? 'text-red-600' : 'text-yellow-600'
           }`}
-        />
+        >
+          <i className="iconify fa7-solid--exclamation-triangle" />
+        </div>
 
         <h1
           className={`text-4xl font-bold mb-4 ${
@@ -138,7 +140,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): JSX.Element 
         {stack && (
           <details className="bg-slate-100 dark:bg-slate-700 rounded-lg p-4 mb-8 text-left">
             <summary className="cursor-pointer font-semibold text-slate-900 dark:text-white mb-4 flex items-center space-x-2">
-              <div className="i-fa:bug text-red-600" />
+              <i className="iconify fa7-solid--bug text-red-600" />
               <span>Stack Trace (Development Only)</span>
             </summary>
             <pre className="bg-slate-800 text-slate-200 rounded p-4 overflow-auto text-sm font-mono">
@@ -151,7 +153,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): JSX.Element 
           className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors inline-flex items-center space-x-2"
           to="/"
         >
-          <div className="i-fa:arrow-left" />
+          <i className="iconify fa7-solid--arrow-left" />
           <span>Go back home</span>
         </Link>
       </div>

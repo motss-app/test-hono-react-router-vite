@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+@plugin "@iconify/tailwind4" {
+  prefixes: fa7-brands, fa7-regular, fa7-solid;
+}
+
 @layer theme {
   :root {
     --spacing: 1px;
@@ -19,8 +23,10 @@
 }
 
 @layer components {
-  :is(:any-link):hover {
-    text-decoration: underline;
+  @media (any-hover: hover) {
+    :is(:any-link):hover {
+      text-decoration: underline;
+    }
   }
 
   :is(p) {
