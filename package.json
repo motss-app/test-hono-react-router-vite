@@ -1,48 +1,12 @@
 {
   "dependencies": {
-    "@base-ui-components/react": "catalog:",
-    "@hono/node-server": "catalog:",
-    "@react-router/node": "catalog:",
-    "hono": "catalog:",
-    "isbot": "catalog:",
-    "react": "catalog:",
-    "react-dom": "catalog:",
-    "react-router": "catalog:"
+    "@react-router/node": "7.9.4",
+    "isbot": "^5"
   },
   "devDependencies": {
-    "@biomejs/biome": "catalog:",
-    "@hono/vite-dev-server": "catalog:",
-    "@iconify-json/fa7-brands": "catalog:",
-    "@iconify-json/fa7-regular": "catalog:",
-    "@iconify-json/fa7-solid": "catalog:",
-    "@iconify/tools": "catalog:",
-    "@iconify/types": "catalog:",
-    "@react-router/dev": "catalog:",
-    "@react-router/serve": "catalog:",
-    "@types/node": "catalog:",
-    "@types/react": "catalog:",
-    "@types/react-dom": "catalog:",
-    "@unocss/preset-icons": "catalog:",
-    "@unocss/preset-wind4": "catalog:",
-    "@unocss/vite": "catalog:",
-    "typescript": "catalog:",
-    "unocss": "catalog:",
-    "vite": "catalog:",
-    "vite-tsconfig-paths": "catalog:"
+    "@react-router/dev": "7.9.2"
   },
   "name": "test-hono-react-router-vite",
   "private": true,
-  "scripts": {
-    "build": "react-router build --config ./vite.react-router.config.ts --mode production && vite build --config ./vite.hono.config.ts --mode production",
-    "check": "react-router typegen && tsc",
-    "convert-fa-pro": "node scripts/convert-fa-pro.ts",
-    "dev": "vite",
-    "format": "biome format --write .",
-    "format:check": "biome format .",
-    "lint": "biome check .",
-    "lint:fix": "biome check --write .",
-    "preview": "pnpm run build && pnpm start",
-    "start": "node ./build/server.js"
-  },
   "type": "module"
 }

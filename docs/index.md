@@ -26,10 +26,10 @@ This project combines React Router v7, Hono, and Vite for a modern full-stack we
 
 ## Quick Start
 
-1. **Install dependencies**: `pnpm install`
-2. **Start development**: `pnpm dev` (opens http://localhost:5173)
+1. **Install dependencies**: `deno task install`
+2. **Start development**: `deno task dev` (opens http://localhost:5173)
 3. **Test API**: Visit http://localhost:5173/api/test
-4. **Build for production**: `pnpm build && pnpm start`
+4. **Build for production**: `deno task build && deno task start`
 
 ## Architecture Overview
 
@@ -61,5 +61,5 @@ This project combines React Router v7, Hono, and Vite for a modern full-stack we
 ## Need Help?
 
 - Check the specific guides above
-- Run `pnpm typecheck` for type errors
-- Use `pnpm preview` to test production build locally
+- Run `deno check` for type errors
+- Use `deno task preview` to test production build locally

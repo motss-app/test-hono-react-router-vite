@@ -1,25 +1,13 @@
-FROM node:20-alpine AS base
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
-FROM base AS development-dependencies-env
-COPY . /app
-WORKDIR /app
-RUN pnpm install --frozen-lockfile
-
-FROM base AS production-dependencies-env
-COPY ./package.json pnpm-lock.yaml /app/
-WORKDIR /app
-RUN pnpm install --prod --frozen-lockfile
+FROM denoland/deno:latest AS base
 
 FROM base AS build-env
-COPY . /app/
-COPY --from=development-dependencies-env /app/node_modules /app/node_modules
+COPY . /app
 WORKDIR /app
-RUN pnpm build
+RUN deno cache deno.json
+RUN deno task build
 
 FROM base
-COPY --from=production-dependencies-env /app/node_modules /app/node_modules
 COPY --from=build-env /app/build /app/build
 WORKDIR /app
 ENV NODE_ENV=production
-CMD ["node", "./build/server.js"]
+ENTRYPOINT ["deno", "run", "-P=start", "--check", "./build/server.js"]

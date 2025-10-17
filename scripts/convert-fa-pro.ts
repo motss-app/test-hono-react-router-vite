@@ -4,7 +4,7 @@
 // Instructions:
 // 1. Get FontAwesome Pro token from https://fontawesome.com/
 // 2. Configure npm: npm config set @fortawesome:registry https://npm.fontawesome.com/ && npm config set //npm.fontawesome.com/:_authToken YOUR_TOKEN
-// 3. Install packages: pnpm add -D @fortawesome/pro-duotone-svg-icons @fortawesome/pro-light-svg-icons @fortawesome/pro-regular-svg-icons @fortawesome/pro-solid-svg-icons @fortawesome/pro-thin-svg-icons
+// 3. Install packages: deno add npm:@fortawesome/pro-duotone-svg-icons npm:@fortawesome/pro-light-svg-icons npm:@fortawesome/pro-regular-svg-icons npm:@fortawesome/pro-solid-svg-icons npm:@fortawesome/pro-thin-svg-icons
 // 4. Uncomment the imports and code below
 // 5. Run: deno task convert-fa-pro
 

@@ -5,9 +5,9 @@ A modern full-stack web application using React Router v7, Hono, and Vite with h
 ## Quick Start
 
 ```bash
-pnpm install
-pnpm dev  # Development at http://localhost:5173
-pnpm build && pnpm start  # Production at http://localhost:3000
+deno install
+deno task dev      # Development at http://localhost:5173
+deno task build && deno task start  # Production at http://localhost:3000
 ```
 
 ## Architecture
@@ -152,27 +152,32 @@ View in Chrome DevTools → Network tab → Response Headers.
 - Edit config → restart dev server
 
 ### Testing Checklist
-- [ ] `pnpm dev` starts without errors
+- [ ] `deno task dev` starts without errors
 - [ ] Pages load at http://localhost:5173
 - [ ] API works at `/api/test`
-- [ ] `pnpm build` completes
-- [ ] `pnpm start` serves production
+- [ ] `deno task build` completes
+- [ ] `deno task start` serves production
 
 ### Common Issues
 - **Dev server won't start**: Check port 5173 availability
 - **API not working**: Ensure `/api/*` prefix
-- **Build fails**: Run `pnpm typecheck`
+- **Build fails**: Run `deno check`
 - **HMR not working**: Check for TypeScript errors
 
 ## Deployment
 
 ### Docker
 ```dockerfile
-FROM node:20-alpine
+FROM denoland/deno:latest
+
 COPY . /app
-RUN pnpm install && pnpm build
+WORKDIR /app
+RUN deno cache deno.json
+RUN deno task build
+
+ENV NODE_ENV=production
 EXPOSE 3000
-CMD ["pnpm", "start"]
+ENTRYPOINT ["deno", "run", "-P=start", "--check", "./build/server.js"]
 ```
 
 ### Production Checklist
@@ -249,15 +254,13 @@ To use FontAwesome 7 Pro icons with UnoCSS:
 
 3. Install the Pro icon packages:
    ```bash
-   pnpm add -D @fortawesome/pro-regular-svg-icons @fortawesome/pro-solid-svg-icons @fortawesome/pro-thin-svg-icons @fortawesome/pro-light-svg-icons @fortawesome/pro-duotone-svg-icons
+   deno add npm:@fortawesome/pro-regular-svg-icons npm:@fortawesome/pro-solid-svg-icons npm:@fortawesome/pro-thin-svg-icons npm:@fortawesome/pro-light-svg-icons npm:@fortawesome/pro-duotone-svg-icons
    ```
 
 4. Uncomment the code in `scripts/convert-fa-pro.ts` (follow the instructions in the file)
 
 5. Generate the Iconify JSON files:
    ```bash
-   pnpm run convert-fa-pro
-   # or
    deno task convert-fa-pro
    ```
 

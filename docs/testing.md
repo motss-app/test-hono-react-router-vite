@@ -27,14 +27,14 @@ Test your React Router + Hono + Vite setup.
 
 ### Build Check
 ```bash
-pnpm build
+deno task build
 ls build/client/     # Should see HTML files
 ls build/server/     # Should see index.js
 ```
 
 ### Production Run
 ```bash
-pnpm start           # Runs on port 3000
+deno task start           # Runs on port 3000
 # Visit http://localhost:3000
 # ✅ All routes work
 # ✅ API endpoints work
@@ -44,14 +44,14 @@ pnpm start           # Runs on port 3000
 
 - **Dev server fails**: Check port 5173 availability
 - **API not working**: Ensure `/api/*` prefix
-- **Build fails**: Run `pnpm typecheck`
+- **Build fails**: Run `deno check`
 - **HMR broken**: Check for TypeScript errors
 
 ## Quick Checklist
 
-- [ ] `pnpm dev` starts successfully
+- [ ] `deno task dev` starts successfully
 - [ ] Pages load at localhost:5173
 - [ ] Hot reload works
 - [ ] API routes return JSON
-- [ ] `pnpm build` completes
+- [ ] `deno task build` completes
 - [ ] Production serves correctly

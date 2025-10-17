@@ -51,8 +51,8 @@ Custom middleware intercepts `/api/*` → Hono, else → React Router
 
 ## Testing
 
-- **Dev**: `pnpm dev` → http://localhost:5173
-- **Prod**: `pnpm build && pnpm start` → http://localhost:3000
+- **Dev**: `deno task dev` → http://localhost:5173
+- **Prod**: `deno task build && deno task start` → http://localhost:3000
 - **API**: Visit `/api/test` in both modes
 
 ## Success Criteria

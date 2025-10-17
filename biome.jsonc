@@ -305,6 +305,19 @@
           }
         }
       }
+    },
+    {
+      "includes": [
+        "**/*.ts",
+        "**/*.tsx"
+      ],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noUndeclaredDependencies": "off"
+          }
+        }
+      }
     }
   ],
   "vcs": {

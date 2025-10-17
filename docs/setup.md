@@ -68,10 +68,10 @@ http://localhost:3000/ssr       → Server-rendered (SSR)
 ## Scripts
 
 ```bash
-pnpm dev      # Development with HMR
-pnpm build    # Production build
-pnpm start    # Production server
-pnpm preview  # Preview build locally
+deno task dev      # Development with HMR
+deno task build    # Production build
+deno task start    # Production server
+deno task preview  # Preview build locally
 ```
 
 ## Adding Routes
@@ -103,11 +103,11 @@ Add to `prerender()` array in `react-router.config.ts`
 1. **Edit components** → Instant HMR updates
 2. **Edit API routes** → Refresh browser
 3. **Edit config** → Restart dev server
-4. **Test production** → `pnpm build && pnpm start`
+4. **Test production** → `deno task build && deno task start`
 
 ## Troubleshooting
 
 - **Dev server won't start**: Check port 5173
 - **API not working**: Use `/api/*` prefix
-- **Build fails**: Run `pnpm typecheck`
+- **Build fails**: Run `deno check`
 - **HMR not working**: Check for TypeScript errors

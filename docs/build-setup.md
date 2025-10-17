@@ -19,7 +19,7 @@ build/
 ## Build Process
 
 ```bash
-pnpm build  # Runs: react-router build && vite build --mode server
+deno task build  # Runs: react-router build && vite build --mode server
 ```
 
 1. **React Router build**: Creates client + SSR bundles
@@ -33,15 +33,15 @@ pnpm build  # Runs: react-router build && vite build --mode server
 
 ### Production Start
 ```bash
-pnpm start  # NODE_ENV=production node ./build/index.js
+deno task start  # NODE_ENV=production node ./build/index.js
 ```
 
 ## Docker Deployment
 
-- **Base**: Node.js 20 Alpine
-- **Package manager**: pnpm
+- **Base**: Deno runtime
+- **Package manager**: Deno
 - **Multi-stage build**: Optimized for size
-- **Deployment**: Only `build/` + `node_modules`
+- **Deployment**: Only `build/`
 
 ## Key Features
 
