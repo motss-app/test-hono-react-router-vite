@@ -1,5 +1,3 @@
-import 'virtual:uno.css';
-
 import './app.css';
 
 import type { JSX, PropsWithChildren } from 'react';

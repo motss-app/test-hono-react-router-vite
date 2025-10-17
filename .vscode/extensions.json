@@ -2,7 +2,7 @@
   "recommendations": [
     "biomejs.biome",
     "antfu.iconify",
-    "antfu.unocss",
+    "tailwindlabs.tailwindcss",
     "streetsidesoftware.code-spell-checker",
     "denoland.vscode-deno",
     "editorconfig.editorconfig"

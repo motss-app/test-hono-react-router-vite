@@ -1,7 +1,7 @@
 import honoDevServer, { defaultOptions } from '@hono/vite-dev-server';
 import { nodeAdapter } from '@hono/vite-dev-server/node';
 import { reactRouter } from '@react-router/dev/vite';
-import unoCss from 'unocss/vite';
+import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
@@ -19,8 +19,6 @@ export default defineConfig({
     }),
     reactRouter(),
     tsconfigPaths(),
-    unoCss({
-      configFile: './unocss.config.ts',
-    }),
+    tailwindcss(),
   ],
 });
