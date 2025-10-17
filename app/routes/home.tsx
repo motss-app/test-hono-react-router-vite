@@ -34,7 +34,7 @@ export default function Home(): JSX.Element {
               to="/about"
             >
               <NavigationMenu.Icon>
-                <span className="iconify fa7-solid--info" />
+                <span className="icon:fa7-solid--info" />
               </NavigationMenu.Icon>
               About
             </Link>
@@ -45,7 +45,7 @@ export default function Home(): JSX.Element {
               to="/ssr"
             >
               <NavigationMenu.Icon>
-                <i className="iconify fa7-solid--server" />
+                <i className="icon:fa7-solid--server" />
               </NavigationMenu.Icon>
               SSR Page
             </Link>
@@ -56,7 +56,7 @@ export default function Home(): JSX.Element {
               to="/hono-rpc"
             >
               <NavigationMenu.Icon>
-                <i className="iconify fa7-solid--house" />
+                <i className="icon:fa7-solid--house" />
               </NavigationMenu.Icon>
               Hono RPC Demo
             </Link>
@@ -67,7 +67,7 @@ export default function Home(): JSX.Element {
               to="/errors"
             >
               <NavigationMenu.Icon>
-                <i className="iconify fa7-solid--triangle-exclamation" />
+                <i className="icon:fa7-solid--triangle-exclamation" />
               </NavigationMenu.Icon>
               Error Handling Demo
             </Link>

@@ -2,6 +2,7 @@
   "version": "5",
   "specifiers": {
     "npm:@base-ui-components/react@1.0.0-beta.4": "1.0.0-beta.4_@types+react@19.2.2_react@19.2.0_react-dom@19.2.0__react@19.2.0",
+    "npm:@biomejs/biome@*": "2.2.6",
     "npm:@biomejs/biome@2.2.6": "2.2.6",
     "npm:@hono/node-server@1.19.5": "1.19.5_hono@4.9.12",
     "npm:@hono/vite-dev-server@0.23.0": "0.23.0_hono@4.9.12",
@@ -13,6 +14,7 @@
     "npm:@iconify-json/fa7-solid@1.2.2": "1.2.2",
     "npm:@iconify/tailwind4@*": "1.0.6_tailwindcss@4.1.14",
     "npm:@iconify/tailwind4@1.0.6": "1.0.6_tailwindcss@4.1.14",
+    "npm:@react-router/dev@*": "7.9.2_react-router@7.9.4__react@19.2.0__react-dom@19.2.0___react@19.2.0_typescript@5.9.3_vite@7.1.10__@types+node@24.8.0__picomatch@4.0.3_@babel+core@7.28.4_react@19.2.0_react-dom@19.2.0__react@19.2.0_@types+node@24.8.0",
     "npm:@react-router/dev@7.9.2": "7.9.2_react-router@7.9.4__react@19.2.0__react-dom@19.2.0___react@19.2.0_typescript@5.9.3_vite@7.1.10__@types+node@24.8.0__picomatch@4.0.3_@babel+core@7.28.4_react@19.2.0_react-dom@19.2.0__react@19.2.0_@types+node@24.8.0",
     "npm:@react-router/node@7.9.4": "7.9.4_react-router@7.9.4__react@19.2.0__react-dom@19.2.0___react@19.2.0_typescript@5.9.3_react@19.2.0_react-dom@19.2.0__react@19.2.0",
     "npm:@tailwindcss/vite@4.1.14": "4.1.14_vite@7.1.10__@types+node@24.8.0__picomatch@4.0.3_@types+node@24.8.0",

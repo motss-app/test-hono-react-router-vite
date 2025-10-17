@@ -198,6 +198,7 @@
         "**/vite.config.ts",
         "**/vite.*.config.ts",
         "react-router.config.ts",
+        "app/routes.ts",
         "tailwind.config.ts"
       ],
       "linter": {
