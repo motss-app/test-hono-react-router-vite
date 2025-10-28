@@ -84,6 +84,13 @@
     },
     "enabled": true
   },
+  "css": {
+    "parser": {
+      "allowWrongLineComments": true,
+      "cssModules": true,
+      "tailwindDirectives": true
+    }
+  },
   "files": {
     "ignoreUnknown": true,
     "includes": [
@@ -106,6 +113,18 @@
     "lineEnding": "lf",
     "lineWidth": 100,
     "useEditorconfig": true
+  },
+  "html": {
+    "experimentalFullSupportEnabled": true,
+    "formatter": {
+      "enabled": true,
+      "indentScriptAndStyle": true,
+      "selfCloseVoidElements": "always",
+      "whitespaceSensitivity": "strict"
+    },
+    "linter": {
+      "enabled": true
+    }
   },
   "javascript": {
     "formatter": {
@@ -136,12 +155,14 @@
       "complexity": "error",
       "correctness": "error",
       "nursery": {
-        "noSecrets": "off",
         "useExplicitType": "error"
       },
       "performance": "error",
       "recommended": true,
-      "security": "error",
+      "security": {
+        "noSecrets": "error",
+        "recommended": true
+      },
       "style": "error",
       "suspicious": "error"
     }
@@ -169,8 +190,10 @@
             "useImportExtensions": "off"
           },
           "nursery": {
-            "noSecrets": "off",
             "useExplicitType": "off"
+          },
+          "security": {
+            "noSecrets": "off"
           },
           "style": {
             "noDefaultExport": "off",
