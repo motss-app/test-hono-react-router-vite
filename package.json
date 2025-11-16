@@ -1,10 +1,10 @@
 {
   "dependencies": {
-    "@react-router/node": "7.9.4",
-    "isbot": "5.1.31"
+    "@react-router/node": "7.9.6",
+    "isbot": "5.1.32"
   },
   "devDependencies": {
-    "@react-router/dev": "7.9.4"
+    "@react-router/dev": "7.9.6"
   },
   "name": "test-hono-react-router-vite",
   "private": true,
