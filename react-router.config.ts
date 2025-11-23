@@ -11,7 +11,11 @@ export default {
     v8_middleware: true,
   },
   prerender(): string[] {
-    return discoverStaticRoutes();
+    return discoverStaticRoutes({
+      exclude: [
+        '/ssr',
+      ],
+    });
   },
   ssr: true,
 } satisfies Config;

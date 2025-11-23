@@ -1,8 +1,9 @@
 const EXTENSION_REGEX = /\.(tsx|ts|jsx|js)$/;
 
-export function discoverStaticRoutes(): string[] {
+export function discoverStaticRoutes(options: { exclude?: string[] } = {}): string[] {
   const routesDir = './app/routes';
   const routes: string[] = [];
+  const { exclude = [] } = options;
 
   // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Recursive directory scanning
   function scan(currentDir: string, urlPrefix: string): void {
@@ -13,18 +14,15 @@ export function discoverStaticRoutes(): string[] {
           continue;
         }
 
-        if (entry.isDirectory) {
-          // Recurse into subdirectory
-          scan(`${currentDir}/${entry.name}`, `${urlPrefix}/${entry.name}`);
-          continue;
-        }
-
         // Skip dynamic routes (containing '$' or '[')
         if (entry.name.includes('$') || entry.name.includes('[')) {
           continue;
         }
 
-        if (entry.isFile) {
+        if (entry.isDirectory) {
+          // Recurse into subdirectory
+          scan(`${currentDir}/${entry.name}`, `${urlPrefix}/${entry.name}`);
+        } else if (entry.isFile) {
           // Convert filename to path: "about.tsx" -> "/about"
           const name = entry.name.replace(EXTENSION_REGEX, '');
 
@@ -39,8 +37,8 @@ export function discoverStaticRoutes(): string[] {
             path = '/';
           }
 
-          // Exclude specific routes that should always be SSR (dynamic)
-          if (path !== '/ssr') {
+          // Exclude specific routes based on options
+          if (!exclude.includes(path)) {
             routes.push(path);
           }
         }
