@@ -1,5 +1,7 @@
 import type { Config } from '@react-router/dev/config';
 
+import { discoverStaticRoutes } from './app/utils/route-discovery.ts';
+
 export default {
   future: {
     unstable_optimizeDeps: true,
@@ -9,12 +11,11 @@ export default {
     v8_middleware: true,
   },
   prerender(): string[] {
-    return [
-      '/',
-      '/about',
-      '/errors',
-      '/hono-rpc',
-    ];
+    return discoverStaticRoutes({
+      exclude: [
+        '/ssr',
+      ],
+    });
   },
   ssr: true,
 } satisfies Config;
