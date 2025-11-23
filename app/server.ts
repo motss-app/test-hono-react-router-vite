@@ -19,7 +19,7 @@ const app = new Hono<HonoEnv>()
   .route('/api', apiApp);
 
 const STATIC_ASSET_REGEX =
-  /image|font|text\/(plain|css|javascript)|application\/(json|ld\+json|pdf|zip|manifest\+json)/;
+  /image|video|audio|font|text\/(plain|css|javascript)|application\/(json|ld\+json|pdf|zip|manifest\+json)/;
 
 // Production: Serve static files and React Router SSR
 if (import.meta.env.PROD) {
@@ -34,7 +34,6 @@ if (import.meta.env.PROD) {
     }
   });
 
-  // 2. HTML & Other Static Files (Non-Immutable): Cache for 1 hour in Browser, 1 year in CDN
   app.use('*', async (c, next) => {
     await next();
 

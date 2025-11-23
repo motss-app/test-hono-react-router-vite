@@ -5,6 +5,10 @@ export function discoverStaticRoutes(): string[] {
   const routes: string[] = [];
 
   try {
+    /**
+     * Note: Deno.readDirSync is synchronous and should only be used during build time (prerendering).
+     * Do not use this in runtime request handlers to avoid blocking the event loop.
+     */
     for (const entry of Deno.readDirSync(routesDir)) {
       // Skip directories, hidden files, and dynamic routes (containing '$' or '[')
       if (
@@ -16,7 +20,7 @@ export function discoverStaticRoutes(): string[] {
       ) {
         // Convert filename to path: "about.tsx" -> "/about"
         const name = entry.name.replace(EXTENSION_REGEX, '');
-        const path = name === 'index' || name === 'home' ? '/' : `/${name}`;
+        const path = name === 'index' ? '/' : `/${name}`;
 
         // Exclude specific routes that should always be SSR (dynamic)
         if (path !== '/ssr') {
