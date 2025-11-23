@@ -1,0 +1,37 @@
+name: Deploy
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    # Run on all PRs, regardless of target branch
+    branches:
+      - '**'
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # Required for Deno Deploy authentication
+      contents: read
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+
+      - name: Install Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Build Project
+        run: deno task build
+
+      - name: Deploy to Deno Deploy
+        run: |
+          deno run -A jsr:@deno/deployctl deploy \
+            --project="test-hono-react-router-vite" \
+            --entrypoint="./build/server.js" \
+            --include="./build" \
+            ${{ github.ref == 'refs/heads/main' && '--prod' || '' }}

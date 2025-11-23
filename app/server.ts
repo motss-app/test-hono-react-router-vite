@@ -18,8 +18,45 @@ const app = new Hono<HonoEnv>()
   .use('*', timing())
   .route('/api', apiApp);
 
+const STATIC_ASSET_REGEX =
+  /image|font|text\/(plain|css|javascript)|application\/(json|ld\+json|pdf|zip|manifest\+json)/;
+
 // Production: Serve static files and React Router SSR
 if (import.meta.env.PROD) {
+  // 1. Assets: Cache for 1 day in Browser, 1 year in CDN, with SWR
+  app.use('/assets/*', async (c, next) => {
+    await next();
+    if (c.res.ok) {
+      c.header(
+        'Cache-Control',
+        'public, max-age=86400, s-maxage=31536000, stale-while-revalidate=3600, immutable'
+      );
+    }
+  });
+
+  // 2. HTML & Other Static Files (Non-Immutable): Cache for 1 hour in Browser, 1 year in CDN
+  app.use('*', async (c, next) => {
+    await next();
+
+    // Skip if handled by /assets/ middleware or not successful
+    if (c.req.path.startsWith('/assets/') || !c.res.ok) {
+      return;
+    }
+
+    const contentType = c.res.headers.get('Content-Type');
+
+    if (contentType?.includes('text/html')) {
+      // HTML: 10 min browser, 1 hour CDN, SWR 1 min
+      c.header(
+        'Cache-Control',
+        'public, max-age=600, s-maxage=3600, stale-while-revalidate=60, must-revalidate'
+      );
+    } else if (contentType?.match(STATIC_ASSET_REGEX)) {
+      // Other Static files: 10 min browser, 1 hour CDN, SWR 1 min
+      c.header('Cache-Control', 'public, max-age=600, s-maxage=3600, stale-while-revalidate=60');
+    }
+  });
+
   app.use(
     '*',
     serveStatic({
