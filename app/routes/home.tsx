@@ -2,6 +2,10 @@ import { NavigationMenu } from '@base-ui-components/react/navigation-menu';
 import type { JSX } from 'react';
 import { Link } from 'react-router';
 
+import IconFa7House from '~icons/fa7-solid/house';
+import IconFa7Info from '~icons/fa7-solid/info';
+import IconFa7Server from '~icons/fa7-solid/server';
+import IconFa7TriangleExclamation from '~icons/fa7-solid/triangle-exclamation';
 import type { Route } from './+types/home.ts';
 
 export function meta(_args: Route.MetaArgs): Route.MetaDescriptors {
@@ -34,7 +38,7 @@ export default function Home(): JSX.Element {
               to="/about"
             >
               <NavigationMenu.Icon>
-                <span className="icon:fa7-solid--info" />
+                <IconFa7Info />
               </NavigationMenu.Icon>
               About
             </Link>
@@ -45,7 +49,7 @@ export default function Home(): JSX.Element {
               to="/ssr"
             >
               <NavigationMenu.Icon>
-                <i className="icon:fa7-solid--server" />
+                <IconFa7Server />
               </NavigationMenu.Icon>
               SSR Page
             </Link>
@@ -56,7 +60,7 @@ export default function Home(): JSX.Element {
               to="/hono-rpc"
             >
               <NavigationMenu.Icon>
-                <i className="icon:fa7-solid--house" />
+                <IconFa7House />
               </NavigationMenu.Icon>
               Hono RPC Demo
             </Link>
@@ -67,7 +71,7 @@ export default function Home(): JSX.Element {
               to="/errors"
             >
               <NavigationMenu.Icon>
-                <i className="icon:fa7-solid--triangle-exclamation" />
+                <IconFa7TriangleExclamation />
               </NavigationMenu.Icon>
               Error Handling Demo
             </Link>

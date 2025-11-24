@@ -1,6 +1,14 @@
 import type { JSX } from 'react';
 import { Link } from 'react-router';
 
+import IconFa7ArrowLeft from '~icons/fa7-solid/arrow-left';
+import IconFa7Bolt from '~icons/fa7-solid/bolt';
+import IconFa7Check from '~icons/fa7-solid/check';
+import IconFa7CircleInfo from '~icons/fa7-solid/circle-info';
+import IconFa7Gears from '~icons/fa7-solid/gears';
+import IconFa7Mobile from '~icons/fa7-solid/mobile';
+import IconFa7Server from '~icons/fa7-solid/server';
+import IconFa7Shield from '~icons/fa7-solid/shield';
 import type { Route } from './+types/about.ts';
 
 export function meta(_args: Route.MetaArgs): Route.MetaDescriptors {
@@ -20,10 +28,10 @@ export default function About(): JSX.Element {
     <div className="p-8 min-h-screen">
       <div className="m-bs-8">
         <Link
-          className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+          className="flex items-center gap-2 text-blue-500 hover:underline"
           to="/"
         >
-          ← Back to Home
+          <IconFa7ArrowLeft /> Back to Home
         </Link>
       </div>
 
@@ -31,7 +39,7 @@ export default function About(): JSX.Element {
         {/* Header */}
         <div className="text-center mb-16">
           <div className="text-6xl text-blue-600 mb-6">
-            <i className="icon:fa7-solid--circle-info" />
+            <IconFa7CircleInfo />
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-6">
             About This Project
@@ -51,24 +59,24 @@ export default function About(): JSX.Element {
           <div className="grid md:grid-cols-2 gap-8">
             <div className="p-8 rounded-xl shadow-lg">
               <h3 className="text-2xl font-semibold mb-4 text-slate-900 dark:text-white flex items-center space-x-3">
-                <i className="icon:fa7-solid--gears text-blue-600 text-3xl" />
+                <IconFa7Gears className="text-blue-600 text-3xl" />
                 <span>Frontend</span>
               </h3>
               <ul className="space-y-3 text-slate-600 dark:text-slate-300">
                 <li className="flex items-center space-x-2">
-                  <i className="icon:fa7-solid--check text-green-600" />
+                  <IconFa7Check className="text-green-600" />
                   <span>React 19 with TypeScript</span>
                 </li>
                 <li className="flex items-center space-x-2">
-                  <i className="icon:fa7-solid--check text-green-600" />
+                  <IconFa7Check className="text-green-600" />
                   <span>React Router 7 for routing</span>
                 </li>
                 <li className="flex items-center space-x-2">
-                  <i className="icon:fa7-solid--check text-green-600" />
+                  <IconFa7Check className="text-green-600" />
                   <span>Tailwind CSS for styling</span>
                 </li>
                 <li className="flex items-center space-x-2">
-                  <i className="icon:fa7-solid--check text-green-600" />
+                  <IconFa7Check className="text-green-600" />
                   <span>FontAwesome 7 icons</span>
                 </li>
               </ul>
@@ -76,24 +84,24 @@ export default function About(): JSX.Element {
 
             <div className="p-8 rounded-xl shadow-lg">
               <h3 className="text-2xl font-semibold mb-4 text-slate-900 dark:text-white flex items-center space-x-3">
-                <i className="icon:fa7-solid--server text-green-600 text-3xl" />
+                <IconFa7Server className="text-green-600 text-3xl" />
                 <span>Backend</span>
               </h3>
               <ul className="space-y-3 text-slate-600 dark:text-slate-300">
                 <li className="flex items-center space-x-2">
-                  <i className="icon:fa7-solid--check text-green-600" />
+                  <IconFa7Check className="text-green-600" />
                   <span>Hono web framework</span>
                 </li>
                 <li className="flex items-center space-x-2">
-                  <i className="icon:fa7-solid--check text-green-600" />
+                  <IconFa7Check className="text-green-600" />
                   <span>Node.js runtime</span>
                 </li>
                 <li className="flex items-center space-x-2">
-                  <i className="icon:fa7-solid--check text-green-600" />
+                  <IconFa7Check className="text-green-600" />
                   <span>TypeScript support</span>
                 </li>
                 <li className="flex items-center space-x-2">
-                  <i className="icon:fa7-solid--check text-green-600" />
+                  <IconFa7Check className="text-green-600" />
                   <span>RPC capabilities</span>
                 </li>
               </ul>
@@ -110,7 +118,7 @@ export default function About(): JSX.Element {
           <div className="grid md:grid-cols-3 gap-6">
             <div className="text-center p-6">
               <div className="text-4xl text-yellow-600 mb-4">
-                <i className="icon:fa7-solid--bolt" />
+                <IconFa7Bolt />
               </div>
               <h3 className="text-xl font-semibold mb-3 text-slate-900 dark:text-white">
                 Fast Development
@@ -122,7 +130,7 @@ export default function About(): JSX.Element {
 
             <div className="text-center p-6">
               <div className="text-4xl text-blue-600 mb-4">
-                <i className="icon:fa7-solid--shield" />
+                <IconFa7Shield />
               </div>
               <h3 className="text-xl font-semibold mb-3 text-slate-900 dark:text-white">
                 Type Safety
@@ -134,7 +142,7 @@ export default function About(): JSX.Element {
 
             <div className="text-center p-6">
               <div className="text-4xl text-purple-600 mb-4">
-                <i className="icon:fa7-solid--mobile" />
+                <IconFa7Mobile />
               </div>
               <h3 className="text-xl font-semibold mb-3 text-slate-900 dark:text-white">
                 Responsive Design

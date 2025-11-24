@@ -23,7 +23,8 @@
     "target": "ESNext",
     "types": [
       "node",
-      "vite/client"
+      "vite/client",
+      "unplugin-icons/types/react"
     ],
     "verbatimModuleSyntax": true
   },
