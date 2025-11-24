@@ -4,10 +4,9 @@
   prefixes: fa7-brands, fa7-regular, fa7-solid;
 }
 
-@custom-variant icon {
+/* @custom-variant icon {
   @slot;
 
-  /* @apply iconify; */
   display: inline-block;
   width: 1em;
   height: 1em;
@@ -18,7 +17,7 @@
   mask-repeat: no-repeat;
   -webkit-mask-size: 100% 100%;
   mask-size: 100% 100%;
-}
+} */
 
 @layer theme {
   :root {
