@@ -11,6 +11,10 @@ import {
   ScrollRestoration,
 } from 'react-router';
 
+import IconFa7ArrowLeft from '~icons/fa7-solid/arrow-left';
+import IconFa7ArrowUpWideShort from '~icons/fa7-solid/arrow-up-wide-short';
+import IconFa7Bug from '~icons/fa7-solid/bug';
+import IconFa7ExclamationTriangle from '~icons/fa7-solid/exclamation-triangle';
 import type { Route } from './+types/root.ts';
 
 export const links: Route.LinksFunction = () => [
@@ -36,6 +40,7 @@ export function Layout({ children }: PropsWithChildren): JSX.Element {
       lang="en"
     >
       <head>
+        <IconFa7ArrowUpWideShort />
         <meta charSet="utf-8" />
         <meta
           content="width=device-width, initial-scale=1"
@@ -124,7 +129,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): JSX.Element 
             statusCode >= serverErrorThreshold ? 'text-red-600' : 'text-yellow-600'
           }`}
         >
-          <i className="icon:fa7-solid--exclamation-triangle" />
+          <IconFa7ExclamationTriangle />
         </div>
 
         <h1
@@ -140,7 +145,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): JSX.Element 
         {stack && (
           <details className="bg-slate-100 dark:bg-slate-700 rounded-lg p-4 mb-8 text-left">
             <summary className="cursor-pointer font-semibold text-slate-900 dark:text-white mb-4 flex items-center space-x-2">
-              <i className="icon:fa7-solid--bug text-red-600" />
+              <IconFa7Bug className="text-red-600" />
               <span>Stack Trace (Development Only)</span>
             </summary>
             <pre className="bg-slate-800 text-slate-200 rounded p-4 overflow-auto text-sm font-mono">
@@ -153,7 +158,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): JSX.Element 
           className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors inline-flex items-center space-x-2"
           to="/"
         >
-          <i className="icon:fa7-solid--arrow-left" />
+          <IconFa7ArrowLeft />
           <span>Go back home</span>
         </Link>
       </div>

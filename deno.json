@@ -41,7 +41,8 @@
     "strictNullChecks": true,
     "strictPropertyInitialization": true,
     "types": [
-      "vite/client"
+      "vite/client",
+      "unplugin-icons/types/react"
     ],
     "useUnknownInCatchVariables": true,
     "verbatimModuleSyntax": true
