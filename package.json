@@ -1,13 +1,13 @@
 {
   "dependencies": {
-    "@base-ui-components/react": "1.0.0-beta.6",
+    "@base-ui-components/react": "1.0.0-beta.7",
     "@hono/node-server": "1.19.6",
     "@iconify-json/fa7-brands": "1.2.0",
     "@iconify-json/fa7-regular": "1.2.1",
     "@iconify-json/fa7-solid": "1.2.2",
-    "@iconify/tailwind4": "1.1.0",
+    "@iconify/tailwind4": "1.2.0",
     "@react-router/node": "7.9.6",
-    "hono": "4.10.6",
+    "hono": "4.10.7",
     "isbot": "5.1.32",
     "react": "19.2.0",
     "react-dom": "19.2.0",
@@ -15,7 +15,7 @@
     "tailwindcss": "4.1.17"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.3.7",
+    "@biomejs/biome": "2.3.8",
     "@hono/vite-dev-server": "0.23.0",
     "@react-router/dev": "7.9.6",
     "@tailwindcss/vite": "4.1.17",
