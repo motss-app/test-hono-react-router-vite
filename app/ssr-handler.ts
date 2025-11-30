@@ -1,9 +1,9 @@
 import { endTime, startTime } from 'hono/timing';
+import { createRequestHandler } from 'react-router';
 
 import type { App } from './app.ts';
 
 export async function createSsrHandler(app: App): Promise<void> {
-  const { createRequestHandler } = await import('react-router');
   const build = await import('../build/server/index.js' as never);
 
   app.use('*', async c => {
