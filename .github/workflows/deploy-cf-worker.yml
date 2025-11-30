@@ -37,6 +37,14 @@ jobs:
 
       - name: Deploy to Cloudflare Workers
         run: |
-          deno run -A npm:wrangler deploy
+          deno run -A npm:wrangler deploy > deploy.log 2>&1 || { cat deploy.log; exit 1; }
+
+          cat deploy.log
+
+          URL=$(grep -o 'https://[^ ]*' deploy.log | grep -v 'github.com' | head -n 1)
+
+          echo "### 🚀 Deployment Successful" >> $GITHUB_STEP_SUMMARY
+
+          echo "Your worker is live at: **$URL**" >> $GITHUB_STEP_SUMMARY
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
