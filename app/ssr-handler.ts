@@ -5,6 +5,7 @@ import type { App } from './app.ts';
 
 export async function createSsrHandler(app: App): Promise<void> {
   const build = await import('../build/server/index.js' as never);
+  const handler = createRequestHandler(build);
 
   app.use('*', async c => {
     // Example: Fetch/compute data in Hono
@@ -19,10 +20,8 @@ export async function createSsrHandler(app: App): Promise<void> {
     c.set('honoData', honoData);
 
     endTime(c, 'hono-compute');
-
     // Use Hono's contextStorage - the context will be accessible via getContext()
     startTime(c, 'react-router-ssr');
-    const handler = createRequestHandler(build);
     const response = await handler(c.req.raw);
     endTime(c, 'react-router-ssr');
 

@@ -28,5 +28,5 @@ This repository is a **Deno-first** project using **Hono** and **React Router v7
 
 ## Workflow
 - **Instruction Updates**: When the user asks to "add instructions", update this file (`.github/copilot-instructions.md`) immediately.
-- **Quality Assurance**: Ensure all linting and type errors are resolved for every change made. Run `deno task check` or `deno lint` if unsure.
+- **Quality Assurance**: **ALWAYS** check for and fix type errors immediately after making any code changes. Run `deno task check` to verify. Do not leave broken types for the user to fix.
 - **Testing**: Always verify changes by running relevant tests or build tasks (e.g., `deno task build`) without waiting for explicit user prompts.
