@@ -29,5 +29,5 @@
   Cache-Control: public, max-age=600, s-maxage=3600, stale-while-revalidate=60
 
 /assets/*
-  !Cache-Control
+  ! Cache-Control
   Cache-Control: public, max-age=86400, s-maxage=31536000, stale-while-revalidate=3600, immutable
