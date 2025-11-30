@@ -28,12 +28,9 @@ export async function createSsrHandler(app: App): Promise<void> {
     // Merge Server-Timing headers from React Router with Hono's
     const responseHeaders = new Headers(response.headers);
     const honoTiming = c.res.headers.get('Server-Timing');
-    const rrTiming = responseHeaders.get('Server-Timing');
 
-    if (honoTiming && rrTiming) {
-      responseHeaders.set('Server-Timing', `${rrTiming}, ${honoTiming}`);
-    } else if (honoTiming) {
-      responseHeaders.set('Server-Timing', honoTiming);
+    if (honoTiming) {
+      responseHeaders.append('Server-Timing', honoTiming);
     }
 
     return new Response(response.body, {
