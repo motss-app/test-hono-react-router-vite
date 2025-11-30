@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  pull_request:
   workflow_dispatch:
     inputs:
       environment:
@@ -29,7 +30,7 @@ jobs:
           deno-version: v2.x
 
       - name: Install Dependencies
-        run: npm install
+        run: deno install
 
       - name: Build
         run: deno task build:worker
