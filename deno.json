@@ -47,7 +47,7 @@
     "verbatimModuleSyntax": true
   },
   "imports": {
-    "react-dom/server": "npm:react-dom@19.2.0/server.node"
+    "react-dom/server": "npm:react-dom@19.2.0/server.edge"
   },
   "lock": true,
   "nodeModulesDir": "auto",
@@ -81,6 +81,7 @@
   "tasks": {
     "bench": "ulimit -n 9998999 && deno run build && ./http-bench --target 'deno:PORT=3000 deno run --v8-flags=\"--max-old-space-size=8192\" start' --duration 30 --connections 7999 --url http://localhost:3000/api/test",
     "build": "deno run -P npm:@react-router/dev build --config ./vite.react-router.config.ts --mode production && deno run -P npm:vite build --config ./vite.hono.config.ts --mode production",
+    "build:worker": "deno run -P npm:@react-router/dev build --config ./vite.react-router.config.ts --mode production && deno run -P npm:vite build --config ./vite.worker.config.ts --mode production",
     "check": " deno run -P npm:@react-router/dev typegen && deno check",
     "convert-fa-pro": "deno run -P=env scripts/convert-fa-pro.ts",
     "dev": "deno run -P npm:vite",
@@ -89,6 +90,7 @@
     "lint": "deno lint && deno run -P=lint npm:@biomejs/biome check .",
     "lint:fix": "deno run -P=lint npm:@biomejs/biome check --write .",
     "preview": "deno task build && deno task start",
+    "preview:worker": "deno task build:worker && deno run -A npm:wrangler dev",
     "start": "deno run -P=start ./build/server.js"
   },
   "unstable": [

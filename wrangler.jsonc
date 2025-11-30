@@ -1,0 +1,27 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "./build/client",
+    "html_handling": "drop-trailing-slash"
+  },
+  "compatibility_date": "2024-11-30",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "main": "./build/worker.js",
+  "name": "test-hono-react-router-vite",
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1.0,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1.0,
+      "invocation_logs": true
+    }
+  },
+  "placement": {
+    "mode": "smart"
+  },
+  "upload_source_maps": true
+}
