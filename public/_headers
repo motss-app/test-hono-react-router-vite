@@ -1,0 +1,32 @@
+/assets/*
+  Cache-Control: public, max-age=86400, s-maxage=31536000, stale-while-revalidate=3600, immutable
+
+/*.html
+  Cache-Control: public, max-age=600, s-maxage=3600, stale-while-revalidate=60, must-revalidate
+
+/*.ico
+  Cache-Control: public, max-age=600, s-maxage=3600, stale-while-revalidate=60
+
+/*.txt
+  Cache-Control: public, max-age=600, s-maxage=3600, stale-while-revalidate=60
+
+/*.json
+  Cache-Control: public, max-age=600, s-maxage=3600, stale-while-revalidate=60
+
+/*.png
+  Cache-Control: public, max-age=600, s-maxage=3600, stale-while-revalidate=60
+
+/*.jpg
+  Cache-Control: public, max-age=600, s-maxage=3600, stale-while-revalidate=60
+
+/*.jpeg
+  Cache-Control: public, max-age=600, s-maxage=3600, stale-while-revalidate=60
+
+/*.svg
+  Cache-Control: public, max-age=600, s-maxage=3600, stale-while-revalidate=60
+
+/*.css
+  Cache-Control: public, max-age=600, s-maxage=3600, stale-while-revalidate=60
+
+/*.js
+  Cache-Control: public, max-age=600, s-maxage=3600, stale-while-revalidate=60
