@@ -17,7 +17,7 @@ export default defineConfig({
     },
     sourcemap: true,
     ssr: true,
-    target: 'node24',
+    target: 'esnext',
   },
   plugins: [
     tsconfigPaths(),

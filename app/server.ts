@@ -23,6 +23,24 @@ if (import.meta.env.PROD) {
   app.use(
     '*',
     serveStatic({
+      onFound: (path, c) => {
+        if (path.includes('/assets/')) {
+          c.header(
+            'Cache-Control',
+            'public, max-age=86400, s-maxage=31536000, stale-while-revalidate=3600, immutable'
+          );
+        } else if (path.endsWith('.html')) {
+          c.header(
+            'Cache-Control',
+            'public, max-age=600, s-maxage=3600, stale-while-revalidate=60, must-revalidate'
+          );
+        } else {
+          c.header(
+            'Cache-Control',
+            'public, max-age=600, s-maxage=3600, stale-while-revalidate=60'
+          );
+        }
+      },
       root: './build/client',
     })
   );
