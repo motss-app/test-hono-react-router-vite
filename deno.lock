@@ -9,14 +9,14 @@
     "npm:@hono/node-server@1.19.6": "1.19.6_hono@4.10.7",
     "npm:@hono/vite-dev-server@*": "0.23.0_hono@4.10.7_wrangler@4.51.0__@cloudflare+workers-types@4.20251128.0__unenv@2.0.0-rc.24__workerd@1.20251125.0_@cloudflare+workers-types@4.20251128.0",
     "npm:@hono/vite-dev-server@0.23.0": "0.23.0_hono@4.10.7_wrangler@4.51.0__@cloudflare+workers-types@4.20251128.0__unenv@2.0.0-rc.24__workerd@1.20251125.0_@cloudflare+workers-types@4.20251128.0",
-    "npm:@iconify-json/fa7-brands@1.2.0": "1.2.0",
-    "npm:@iconify-json/fa7-regular@1.2.1": "1.2.1",
-    "npm:@iconify-json/fa7-solid@1.2.2": "1.2.2",
+    "npm:@iconify-json/fa7-brands@1.2.1": "1.2.1",
+    "npm:@iconify-json/fa7-regular@1.2.2": "1.2.2",
+    "npm:@iconify-json/fa7-solid@1.2.3": "1.2.3",
     "npm:@iconify/tailwind4@1.2.0": "1.2.0_tailwindcss@4.1.17",
-    "npm:@react-router/dev@*": "7.9.6_react-router@7.9.6__react@19.2.0__react-dom@19.2.0___react@19.2.0_typescript@5.9.3_vite@7.2.4__@types+node@24.2.0__picomatch@4.0.3_wrangler@4.51.0__@cloudflare+workers-types@4.20251128.0__unenv@2.0.0-rc.24__workerd@1.20251125.0_@babel+core@7.28.5_react@19.2.0_react-dom@19.2.0__react@19.2.0_@types+node@24.2.0_@cloudflare+workers-types@4.20251128.0",
-    "npm:@react-router/dev@7.9.6": "7.9.6_react-router@7.9.6__react@19.2.0__react-dom@19.2.0___react@19.2.0_typescript@5.9.3_vite@7.2.4__@types+node@24.2.0__picomatch@4.0.3_wrangler@4.51.0__@cloudflare+workers-types@4.20251128.0__unenv@2.0.0-rc.24__workerd@1.20251125.0_@babel+core@7.28.5_react@19.2.0_react-dom@19.2.0__react@19.2.0_@types+node@24.2.0_@cloudflare+workers-types@4.20251128.0",
+    "npm:@react-router/dev@*": "7.9.6_react-router@7.9.6__react@19.2.0__react-dom@19.2.0___react@19.2.0_typescript@5.9.3_vite@7.2.6__@types+node@24.2.0__picomatch@4.0.3_wrangler@4.51.0__@cloudflare+workers-types@4.20251128.0__unenv@2.0.0-rc.24__workerd@1.20251125.0_@babel+core@7.28.5_react@19.2.0_react-dom@19.2.0__react@19.2.0_@types+node@24.2.0_@cloudflare+workers-types@4.20251128.0",
+    "npm:@react-router/dev@7.9.6": "7.9.6_react-router@7.9.6__react@19.2.0__react-dom@19.2.0___react@19.2.0_typescript@5.9.3_vite@7.2.6__@types+node@24.2.0__picomatch@4.0.3_wrangler@4.51.0__@cloudflare+workers-types@4.20251128.0__unenv@2.0.0-rc.24__workerd@1.20251125.0_@babel+core@7.28.5_react@19.2.0_react-dom@19.2.0__react@19.2.0_@types+node@24.2.0_@cloudflare+workers-types@4.20251128.0",
     "npm:@react-router/node@7.9.6": "7.9.6_react-router@7.9.6__react@19.2.0__react-dom@19.2.0___react@19.2.0_typescript@5.9.3_react@19.2.0_react-dom@19.2.0__react@19.2.0",
-    "npm:@tailwindcss/vite@4.1.17": "4.1.17_vite@7.2.4__@types+node@24.2.0__picomatch@4.0.3_@types+node@24.2.0",
+    "npm:@tailwindcss/vite@4.1.17": "4.1.17_vite@7.2.6__@types+node@24.2.0__picomatch@4.0.3_@types+node@24.2.0",
     "npm:@types/node@*": "24.2.0",
     "npm:@types/react-dom@19.2.3": "19.2.3_@types+react@19.2.7",
     "npm:@types/react@19.2.7": "19.2.7",
@@ -28,9 +28,9 @@
     "npm:react@19.2.0": "19.2.0",
     "npm:tailwindcss@4.1.17": "4.1.17",
     "npm:typescript@5.9.3": "5.9.3",
-    "npm:vite-tsconfig-paths@5.1.4": "5.1.4_vite@7.2.4__@types+node@24.2.0__picomatch@4.0.3_typescript@5.9.3_@types+node@24.2.0",
-    "npm:vite@*": "7.2.4_@types+node@24.2.0_picomatch@4.0.3",
-    "npm:vite@7.2.4": "7.2.4_@types+node@24.2.0_picomatch@4.0.3",
+    "npm:vite-tsconfig-paths@5.1.4": "5.1.4_vite@7.2.6__@types+node@24.2.0__picomatch@4.0.3_typescript@5.9.3_@types+node@24.2.0",
+    "npm:vite@*": "7.2.6_@types+node@24.2.0_picomatch@4.0.3",
+    "npm:vite@7.2.6": "7.2.6_@types+node@24.2.0_picomatch@4.0.3",
     "npm:wrangler@*": "4.51.0_@cloudflare+workers-types@4.20251128.0_unenv@2.0.0-rc.24_workerd@1.20251125.0",
     "npm:wrangler@^4.51.0": "4.51.0_@cloudflare+workers-types@4.20251128.0_unenv@2.0.0-rc.24_workerd@1.20251125.0"
   },
@@ -581,20 +581,20 @@
         "wrangler"
       ]
     },
-    "@iconify-json/fa7-brands@1.2.0": {
-      "integrity": "sha512-OTdHSwRmycgQQXQr7wJQFyD08zj4OxoRfaWhCuI3a9MhbnHJApU4U2Qbp6hP4zicqOmQB9UII9+MA1IDNNLPlQ==",
+    "@iconify-json/fa7-brands@1.2.1": {
+      "integrity": "sha512-LbOn96p41X63dIdag/vfuYnXQZcKjo0o9XZTzU58/HJOyV1rWb2TwitSgB1xiAcOMwswmvgXQV/+blZc+101dg==",
       "dependencies": [
         "@iconify/types"
       ]
     },
-    "@iconify-json/fa7-regular@1.2.1": {
-      "integrity": "sha512-nq9R7PvDxGYdru05qU0zdS/sdeAlvqBvkHFxuER9G6GlsIR3nZqY55FAxDTo/OKNNInHWdUaakSpvvj3hQluHw==",
+    "@iconify-json/fa7-regular@1.2.2": {
+      "integrity": "sha512-SBSDkdE6yPhCxebAgpbDF9PPUJ7FKEtR/dMCqOqMHvZmJn4Cu/mz6ZVuY3S91PK11MMT/XeKE0aeVwCbgtWt5w==",
       "dependencies": [
         "@iconify/types"
       ]
     },
-    "@iconify-json/fa7-solid@1.2.2": {
-      "integrity": "sha512-qTvkcYWGtYxAZVfXzSrCvxYhQFsl1iCztZzXJDlD0oGAkmOqcxcvQxRhN984Ssn+ZApG7xPeUVKUV99OALbJFw==",
+    "@iconify-json/fa7-solid@1.2.3": {
+      "integrity": "sha512-QMpjaoljKlJ33jnwIlvE/BF449AD+aVUe2o46Wl8oKUHCy+M2E4GRM4LvRaGdCOTUSE3VIQlXkqkYBug8WHEVQ==",
       "dependencies": [
         "@iconify/types"
       ]
@@ -851,7 +851,7 @@
     "@poppinss/exception@1.2.2": {
       "integrity": "sha512-m7bpKCD4QMlFCjA/nKTs23fuvoVFoA83brRKmObCUNmi/9tVu8Ve3w4YQAnJu4q3Tjf5fr685HYIC/IA2zHRSg=="
     },
-    "@react-router/dev@7.9.6_react-router@7.9.6__react@19.2.0__react-dom@19.2.0___react@19.2.0_typescript@5.9.3_vite@7.2.4__@types+node@24.2.0__picomatch@4.0.3_wrangler@4.51.0__@cloudflare+workers-types@4.20251128.0__unenv@2.0.0-rc.24__workerd@1.20251125.0_@babel+core@7.28.5_react@19.2.0_react-dom@19.2.0__react@19.2.0_@types+node@24.2.0_@cloudflare+workers-types@4.20251128.0": {
+    "@react-router/dev@7.9.6_react-router@7.9.6__react@19.2.0__react-dom@19.2.0___react@19.2.0_typescript@5.9.3_vite@7.2.6__@types+node@24.2.0__picomatch@4.0.3_wrangler@4.51.0__@cloudflare+workers-types@4.20251128.0__unenv@2.0.0-rc.24__workerd@1.20251125.0_@babel+core@7.28.5_react@19.2.0_react-dom@19.2.0__react@19.2.0_@types+node@24.2.0_@cloudflare+workers-types@4.20251128.0": {
       "integrity": "sha512-pBkbczGwI+NcZPcK8JPvWGWdjUpT/+okXYp6IXvt7zI3WLxr5hQLLRox5FkLiVxkykbqARO1hk9NRp9KFwJ2sA==",
       "dependencies": [
         "@babel/core",
@@ -1111,7 +1111,7 @@
         "@tailwindcss/oxide-win32-x64-msvc"
       ]
     },
-    "@tailwindcss/vite@4.1.17_vite@7.2.4__@types+node@24.2.0__picomatch@4.0.3_@types+node@24.2.0": {
+    "@tailwindcss/vite@4.1.17_vite@7.2.6__@types+node@24.2.0__picomatch@4.0.3_@types+node@24.2.0": {
       "integrity": "sha512-4+9w8ZHOiGnpcGI6z1TVVfWaX/koK7fKeSYF3qlYg2xpBtbteP2ddBxiarL+HVgfSJGeK5RIxRQmKm4rTJJAwA==",
       "dependencies": [
         "@tailwindcss/node",
@@ -2080,7 +2080,7 @@
       ],
       "bin": true
     },
-    "vite-tsconfig-paths@5.1.4_vite@7.2.4__@types+node@24.2.0__picomatch@4.0.3_typescript@5.9.3_@types+node@24.2.0": {
+    "vite-tsconfig-paths@5.1.4_vite@7.2.6__@types+node@24.2.0__picomatch@4.0.3_typescript@5.9.3_@types+node@24.2.0": {
       "integrity": "sha512-cYj0LRuLV2c2sMqhqhGpaO3LretdtMn/BVX4cPLanIZuwwrkVl+lK84E/miEXkCHWXuq65rhNN4rXsBcOB3S4w==",
       "dependencies": [
         "debug",
@@ -2092,8 +2092,8 @@
         "vite"
       ]
     },
-    "vite@7.2.4_@types+node@24.2.0_picomatch@4.0.3": {
-      "integrity": "sha512-NL8jTlbo0Tn4dUEXEsUg8KeyG/Lkmc4Fnzb8JXN/Ykm9G4HNImjtABMJgkQoVjOBN/j2WAwDTRytdqJbZsah7w==",
+    "vite@7.2.6_@types+node@24.2.0_picomatch@4.0.3": {
+      "integrity": "sha512-tI2l/nFHC5rLh7+5+o7QjKjSR04ivXDF4jcgV0f/bTQ+OJiITy5S6gaynVsEM+7RqzufMnVbIon6Sr5x1SDYaQ==",
       "dependencies": [
         "@types/node",
         "esbuild",
@@ -2212,9 +2212,9 @@
         "npm:@cloudflare/workers-types@^4.20251128.0",
         "npm:@hono/node-server@1.19.6",
         "npm:@hono/vite-dev-server@0.23.0",
-        "npm:@iconify-json/fa7-brands@1.2.0",
-        "npm:@iconify-json/fa7-regular@1.2.1",
-        "npm:@iconify-json/fa7-solid@1.2.2",
+        "npm:@iconify-json/fa7-brands@1.2.1",
+        "npm:@iconify-json/fa7-regular@1.2.2",
+        "npm:@iconify-json/fa7-solid@1.2.3",
         "npm:@iconify/tailwind4@1.2.0",
         "npm:@react-router/dev@7.9.6",
         "npm:@react-router/node@7.9.6",
@@ -2229,7 +2229,7 @@
         "npm:tailwindcss@4.1.17",
         "npm:typescript@5.9.3",
         "npm:vite-tsconfig-paths@5.1.4",
-        "npm:vite@7.2.4",
+        "npm:vite@7.2.6",
         "npm:wrangler@^4.51.0"
       ]
     }

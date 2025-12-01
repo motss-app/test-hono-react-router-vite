@@ -3,6 +3,7 @@ import type { JSX } from 'react';
 import { Link, useRevalidator } from 'react-router';
 
 import type { ApiAppType } from '../apis/mod.ts';
+import { Skeleton } from '../components/skeleton.tsx';
 import type { Route } from './+types/hono-rpc.ts';
 
 // Define the expected response type
@@ -34,10 +35,12 @@ async function loader(): Promise<HelloResponse> {
   // or mock the data.
   if (import.meta.env.SSR && !import.meta.env.VITE_DENO_DEPLOYMENT_ID) {
     // Mock data for build time
+    // We return empty strings to signal the component to render a Skeleton UI
+    // instead of "Build Time" text. This prevents a flash of content.
     return {
-      message: 'Hello from Hono (Build Time)!',
-      server: 'deno',
-      timestamp: new Date().toISOString(),
+      message: '',
+      server: '',
+      timestamp: '',
     };
   }
 
@@ -65,10 +68,42 @@ async function clientLoader(): Promise<HelloResponse> {
 
 clientLoader.hydrate = true;
 
+interface RpcResponseRowProps {
+  className?: string;
+  isLoading: boolean;
+  label: string;
+  value: string;
+}
+
+function RpcResponseRow({ className, isLoading, label, value }: RpcResponseRowProps): JSX.Element {
+  return (
+    <p
+      className={`mb-2 text-slate-700 dark:text-slate-200 ${isLoading ? 'flex items-center' : ''}`}
+    >
+      <strong>{label}:&nbsp;</strong>
+      <Skeleton
+        className={className}
+        isLoading={isLoading}
+      >
+        {value}
+      </Skeleton>
+    </p>
+  );
+}
+
 function HonoRpcDemo({ loaderData }: Route.ComponentProps): JSX.Element {
   const { revalidate, state } = useRevalidator();
-  const loading = state === 'loading';
+  // Show loading state if revalidating OR if we have the empty SSG mock data
+  const isPreRendered = !loaderData.message;
+  const isLoading = state === 'loading' || isPreRendered;
   const response = loaderData;
+
+  const buttonText = isPreRendered
+    ? 'Loading...'
+    : {
+        idle: 'Refresh RPC Data',
+        loading: 'Refreshing...',
+      }[state];
 
   return (
     <div className="font-sans p-8 min-h-screen space-y-24">
@@ -89,37 +124,44 @@ function HonoRpcDemo({ loaderData }: Route.ComponentProps): JSX.Element {
       <div className="border border-solid rounded-lg p-4 my-24">
         <button
           className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
-            loading
+            isLoading
               ? 'bg-slate-500 cursor-not-allowed text-slate-100'
               : 'bg-blue-800 hover:bg-blue-900 cursor-pointer text-white'
           }`}
-          disabled={loading}
+          disabled={isLoading}
           onClick={revalidate}
           type="button"
         >
-          {loading ? 'Refreshing...' : 'Refresh RPC Data'}
+          {buttonText}
         </button>
       </div>
 
-      {response && (
-        <div className="border border-green-500 bg-green-900 dark:border-green-400 rounded-lg p-16">
-          <h2 className="text-2xl font-semibold mb-4 text-slate-900 dark:text-white">
-            RPC Response:
-          </h2>
-          <p className="mb-2 text-slate-700 dark:text-slate-200">
-            <strong>Message:</strong> {response.message}
-          </p>
-          <p className="mb-2 text-slate-700 dark:text-slate-200">
-            <strong>Server:</strong> {response.server}
-          </p>
-          <p className="mb-2 text-slate-700 dark:text-slate-200">
-            <strong>Timestamp:</strong> {response.timestamp}
-          </p>
-          <p className="text-slate-600 dark:text-slate-300 text-sm mt-4">
-            ℹ️ This data was fetched using Hono RPC client (loader for initial, client for refresh)
-          </p>
-        </div>
-      )}
+      <div className="border border-green-500 bg-green-900 dark:border-green-400 rounded-lg p-16">
+        <h2 className="text-2xl font-semibold mb-4 text-slate-900 dark:text-white">
+          RPC Response:
+        </h2>
+        <RpcResponseRow
+          className="w-[10ch]"
+          isLoading={isLoading}
+          label="Message"
+          value={response.message}
+        />
+        <RpcResponseRow
+          className="w-[12ch]"
+          isLoading={isLoading}
+          label="Server"
+          value={response.server}
+        />
+        <RpcResponseRow
+          className="w-[24ch]"
+          isLoading={isLoading}
+          label="Timestamp"
+          value={response.timestamp}
+        />
+        <p className="text-slate-600 dark:text-slate-300 text-sm mt-4">
+          ℹ️ This data was fetched using Hono RPC client (loader for initial, client for refresh)
+        </p>
+      </div>
 
       <div className="border border-indigo-500 bg-indigo-900 rounded-lg p-4 mb-4">
         <h2 className="text-2xl font-semibold mb-4 text-slate-900 dark:text-white">
