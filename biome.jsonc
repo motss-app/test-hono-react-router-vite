@@ -235,7 +235,8 @@
     },
     {
       "includes": [
-        "**/apis/**/*.ts"
+        "**/apis/**/*.ts",
+        "app/app.ts"
       ],
       "linter": {
         "rules": {
@@ -261,6 +262,7 @@
     {
       "includes": [
         "app/server.ts",
+        "app/worker.ts",
         "scripts/convert-fa-pro.ts"
       ],
       "linter": {
@@ -338,6 +340,9 @@
         "rules": {
           "correctness": {
             "noUndeclaredDependencies": "off"
+          },
+          "style": {
+            "noImplicitBoolean": "off"
           }
         }
       }

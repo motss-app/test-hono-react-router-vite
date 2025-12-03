@@ -5,7 +5,7 @@ import { getHonoContext } from '../context.ts';
 import type { Route } from './+types/ssr.ts';
 
 // Constants
-const SIMULATION_DELAY_MS = 100;
+const SIMULATION_DELAY_MS = 5;
 
 // This loader makes this page SSR - it runs on EVERY request
 export async function loader({ request }: Route.LoaderArgs) {

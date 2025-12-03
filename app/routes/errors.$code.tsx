@@ -83,10 +83,9 @@ export function loader({ params }: Route.LoaderArgs) {
 
 export function headers({ loaderHeaders, parentHeaders }: Route.HeadersArgs): Headers {
   const timing = loaderHeaders.get('X-Route-Timing') || '0';
-  const existing = parentHeaders.get('Server-Timing') || '';
   const newTiming = `error-code-loader;dur=${timing};desc="Error Code Route Loader"`;
 
-  parentHeaders.set('Server-Timing', existing ? `${existing}, ${newTiming}` : newTiming);
+  parentHeaders.append('Server-Timing', newTiming);
 
   return parentHeaders;
 }
