@@ -1,5 +1,5 @@
 import { hc } from 'hono/client';
-import type { JSX } from 'react';
+import type { JSX, ReactNode } from 'react';
 import { Link, useRevalidator } from 'react-router';
 
 import type { ApiAppType } from '../apis/mod.ts';
@@ -91,20 +91,13 @@ function RpcResponseRow({ className, isLoading, label, value }: RpcResponseRowPr
   );
 }
 
-function HonoRpcDemo({ loaderData }: Route.ComponentProps): JSX.Element {
-  const { revalidate, state } = useRevalidator();
-  // Show loading state if revalidating OR if we have the empty SSG mock data
-  const isPreRendered = !loaderData.message;
-  const isLoading = state === 'loading' || isPreRendered;
-  const response = loaderData;
+interface HonoRpcViewProps {
+  action: ReactNode;
+  isLoading: boolean;
+  response: HelloResponse;
+}
 
-  const buttonText = isPreRendered
-    ? 'Loading...'
-    : {
-        idle: 'Refresh RPC Data',
-        loading: 'Refreshing...',
-      }[state];
-
+function HonoRpcView({ action, isLoading, response }: HonoRpcViewProps): JSX.Element {
   return (
     <div className="font-sans p-8 min-h-screen space-y-24">
       <div className="my-4">
@@ -121,20 +114,7 @@ function HonoRpcDemo({ loaderData }: Route.ComponentProps): JSX.Element {
         Simple demo of calling a Hono endpoint from React Router using clientLoader.
       </p>
 
-      <div className="border border-solid rounded-lg p-4 my-24">
-        <button
-          className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
-            isLoading
-              ? 'bg-slate-500 cursor-not-allowed text-slate-100'
-              : 'bg-blue-800 hover:bg-blue-900 cursor-pointer text-white'
-          }`}
-          disabled={isLoading}
-          onClick={revalidate}
-          type="button"
-        >
-          {buttonText}
-        </button>
-      </div>
+      <div className="border border-solid rounded-lg p-4 my-24">{action}</div>
 
       <div className="border border-green-500 bg-green-900 dark:border-green-400 rounded-lg p-16">
         <h2 className="text-2xl font-semibold mb-4 text-slate-900 dark:text-white">
@@ -206,6 +186,52 @@ function HonoRpcDemo({ loaderData }: Route.ComponentProps): JSX.Element {
   );
 }
 
+function HydrateFallback(): JSX.Element {
+  return (
+    <HonoRpcView
+      action={
+        <Skeleton
+          className="w-full h-30 rounded-lg"
+          isLoading
+        />
+      }
+      isLoading
+      response={{
+        message: '',
+        server: '',
+        timestamp: '',
+      }}
+    />
+  );
+}
+
+function HonoRpcDemo({ loaderData }: Route.ComponentProps): JSX.Element {
+  const { revalidate, state } = useRevalidator();
+  const isLoading = state === 'loading';
+  const buttonText = isLoading ? 'Refreshing...' : 'Refresh RPC Data';
+
+  return (
+    <HonoRpcView
+      action={
+        <button
+          className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
+            isLoading
+              ? 'bg-slate-500 cursor-not-allowed text-slate-100'
+              : 'bg-blue-800 hover:bg-blue-900 cursor-pointer text-white'
+          }`}
+          disabled={isLoading}
+          onClick={revalidate}
+          type="button"
+        >
+          {buttonText}
+        </button>
+      }
+      isLoading={isLoading}
+      response={loaderData}
+    />
+  );
+}
+
 function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   return (
     <div className="font-sans p-8 min-h-screen">
@@ -232,5 +258,5 @@ function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   );
 }
 
-export { clientLoader, ErrorBoundary, loader, meta };
+export { clientLoader, ErrorBoundary, HydrateFallback, loader, meta };
 export default HonoRpcDemo;

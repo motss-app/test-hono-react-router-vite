@@ -32,10 +32,8 @@ interface SkeletonProps extends ComponentProps<'span'> {
 
 export function Skeleton({ children, className, isLoading, ...props }: SkeletonProps): JSX.Element {
   const loading = isLoading !== false;
-  const [shouldRenderSkeleton, setShouldRenderSkeleton] = useState(() => {
-    return loading && isSlowNetwork();
-  });
-  const lastShowTime = useRef<number>(loading && isSlowNetwork() ? performance.now() : 0);
+  const [shouldRenderSkeleton, setShouldRenderSkeleton] = useState(loading);
+  const lastShowTime = useRef<number>(loading ? performance.now() : 0);
 
   useEffect(() => {
     let timeoutId: number;
@@ -69,7 +67,7 @@ export function Skeleton({ children, className, isLoading, ...props }: SkeletonP
 
   return (
     <span
-      className={`inline-block bg-green-700/50 animate-pulse align-middle leading-24 rounded-lg ${
+      className={`inline-block bg-neutral-300/25 animate-pulse align-middle leading-24 rounded-lg ${
         className || ''
       }`}
       {...props}

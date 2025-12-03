@@ -47,7 +47,7 @@
     "verbatimModuleSyntax": true
   },
   "imports": {
-    "react-dom/server": "npm:react-dom@19.2.0/server.edge"
+    "react-dom/server": "npm:react-dom@19.2.1/server.edge"
   },
   "lock": true,
   "nodeModulesDir": "auto",
