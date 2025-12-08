@@ -10,7 +10,7 @@ on:
       environment:
         description: 'Deployment environment'
         required: false
-        default: 'production'
+        default: 'canary'
 
 jobs:
   deploy:
@@ -32,38 +32,72 @@ jobs:
       - name: Install Dependencies
         run: deno install
 
-      - name: Build
-        run: deno task build:worker
-
-      - name: Deploy to Cloudflare Workers
-        id: deploy
+      - name: Build & Deploy Canary
+        id: deploy-canary
         run: |
-          deno run -A npm:wrangler deploy > deploy.log 2>&1 || { cat deploy.log; exit 1; }
-
-          cat deploy.log
-
-          URL=$(grep -o 'https://[^ ]*' deploy.log | grep -v 'github.com' | head -n 1)
-
-          echo "DEPLOY_URL=$URL" >> $GITHUB_ENV
-
-          echo "### 🚀 Deployment Successful" >> $GITHUB_STEP_SUMMARY
-          echo "Your worker is live at: **$URL**" >> $GITHUB_STEP_SUMMARY
+          echo "🚀 Building Canary..."
+          deno task build:worker:canary
+          
+          echo "🚀 Deploying Canary..."
+          # Deploy with a suffix to separate it from production
+          deno run -A npm:wrangler deploy --env canary > deploy-canary.log 2>&1 || { cat deploy-canary.log; exit 1; }
+          
+          cat deploy-canary.log
+          URL=$(grep -o 'https://[^ ]*' deploy-canary.log | grep -v 'github.com' | head -n 1)
+          echo "CANARY_URL=$URL" >> $GITHUB_ENV
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
+      - name: Build & Deploy Production
+        if: github.ref == 'refs/heads/main'
+        id: deploy-production
+        run: |
+          echo "🚀 Building Production..."
+          deno task build:worker
+          
+          echo "🚀 Deploying Production..."
+          deno run -A npm:wrangler deploy --env production > deploy-prod.log 2>&1 || { cat deploy-prod.log; exit 1; }
+          
+          cat deploy-prod.log
+          URL=$(grep -o 'https://[^ ]*' deploy-prod.log | grep -v 'github.com' | head -n 1)
+          echo "PROD_URL=$URL" >> $GITHUB_ENV
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+      - name: Summary
+        run: |
+          echo "### 🚀 Deployment Successful" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -n "$CANARY_URL" ]; then
+            echo "🐥 **Canary**: $CANARY_URL" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ -n "$PROD_URL" ]; then
+            echo "✅ **Production**: $PROD_URL" >> $GITHUB_STEP_SUMMARY
+          fi
+
       - name: Warm up Cache & Verify
         run: |
-          echo "Warming up $DEPLOY_URL..."
-          
-          # List of routes to warm up
-          ROUTES=("" "about" "ssr" "hono-rpc" "errors")
-          
-          for route in "${ROUTES[@]}"; do
-            TARGET="$DEPLOY_URL/$route"
-            # Remove trailing slash if route is empty
-            TARGET=${TARGET%/}
-            
-            echo "Fetching $TARGET..."
-            # Use -L to follow redirects (if any) and check for 200 OK
-            curl -s -L -o /dev/null -w "%{http_code}" "$TARGET" | grep 200 && echo "✅ $TARGET is up!" || echo "⚠️ Failed to fetch $TARGET"
-          done
+          # Warm up Canary
+          if [ -n "$CANARY_URL" ]; then
+            echo "Warming up Canary: $CANARY_URL..."
+            ROUTES=("" "about" "ssr" "hono-rpc" "errors")
+            for route in "${ROUTES[@]}"; do
+              TARGET="$CANARY_URL/$route"
+              TARGET=${TARGET%/}
+              echo "Fetching $TARGET..."
+              curl -s -L -o /dev/null -w "%{http_code}" "$TARGET" | grep 200 && echo "✅ $TARGET is up!" || echo "⚠️ Failed to fetch $TARGET"
+            done
+          fi
+
+          # Warm up Production
+          if [ -n "$PROD_URL" ]; then
+            echo "Warming up Production: $PROD_URL..."
+            ROUTES=("" "about" "ssr" "hono-rpc" "errors")
+            for route in "${ROUTES[@]}"; do
+              TARGET="$PROD_URL/$route"
+              TARGET=${TARGET%/}
+              echo "Fetching $TARGET..."
+              curl -s -L -o /dev/null -w "%{http_code}" "$TARGET" | grep 200 && echo "✅ $TARGET is up!" || echo "⚠️ Failed to fetch $TARGET"
+            done
+          fi

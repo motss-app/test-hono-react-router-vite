@@ -47,6 +47,7 @@
     "verbatimModuleSyntax": true
   },
   "imports": {
+    "@std/path": "jsr:@std/path@1.1.3",
     "react-dom/server": "npm:react-dom@19.2.1/server.edge"
   },
   "lock": true,
@@ -82,6 +83,7 @@
     "bench": "ulimit -n 9998999 && deno run build && ./http-bench --target 'deno:PORT=3000 deno run --v8-flags=\"--max-old-space-size=8192\" start' --duration 30 --connections 7999 --url http://localhost:3000/api/test",
     "build": "deno run -P npm:@react-router/dev build --config ./vite.react-router.config.ts --mode production && deno run -P npm:vite build --config ./vite.hono.config.ts --mode production",
     "build:worker": "deno run -P npm:@react-router/dev build --config ./vite.react-router.config.ts --mode production && deno run -P npm:vite build --config ./vite.worker.config.ts --mode production",
+    "build:worker:canary": "deno run -P npm:@react-router/dev build --config ./vite.react-router.config.ts --mode canary && deno run -P npm:vite build --config ./vite.worker.config.ts --mode canary",
     "check": " deno run -P npm:@react-router/dev typegen && deno check",
     "convert-fa-pro": "deno run -P=env scripts/convert-fa-pro.ts",
     "dev": "deno run -P npm:vite",
