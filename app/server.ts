@@ -1,7 +1,8 @@
-import { app } from './app.ts';
+import { createApp } from './app.ts';
 import { createSsrHandler } from './ssr-handler.ts';
 
 const port = Number(import.meta.env.PORT || '3000');
+const app = createApp();
 
 // Production: Serve static files and React Router SSR
 if (import.meta.env.PROD) {
@@ -12,9 +13,10 @@ if (import.meta.env.PROD) {
       root: './build/client',
     })
   );
-
-  await createSsrHandler(app);
 }
+
+// Always attach SSR handler (Dev & Prod)
+await createSsrHandler(app);
 
 const exports = import.meta.env.DEV
   ? {

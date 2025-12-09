@@ -1,5 +1,7 @@
-import { app } from './app.ts';
+import { createApp } from './app.ts';
 import { createSsrHandler } from './ssr-handler.ts';
+
+const app = createApp();
 
 // Production: Serve React Router SSR
 if (import.meta.env.PROD) {

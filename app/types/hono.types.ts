@@ -6,8 +6,12 @@ export interface HonoEnv {
   };
   Variables: {
     honoData: {
-      serverTimestamp: string;
       computedValue: string;
+      meta: {
+        requestId: string;
+        requestUrl: string;
+      };
+      serverTimestamp: string;
     };
   };
 }

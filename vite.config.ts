@@ -5,8 +5,6 @@ import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
-const honoExcludeRegex = /^\/(?!api|apis).*$/;
-
 export default defineConfig({
   plugins: [
     honoDevServer({
@@ -14,9 +12,14 @@ export default defineConfig({
       entry: './app/server.ts',
       exclude: [
         ...defaultOptions.exclude,
-        honoExcludeRegex,
       ],
     }),
+    /**
+     * React Router plugin is required to:
+     * 1. Build the app (routes, loaders, actions)
+     * 2. Provide the "virtual:react-router/server-build" module used by Hono
+     * 3. Handle HMR for React components
+     */
     reactRouter(),
     tsconfigPaths(),
     tailwindcss(),
