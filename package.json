@@ -29,7 +29,7 @@
   },
   "name": "test-hono-react-router-vite",
   "overrides": {
-    "vite": "8.0.0-beta.0"
+    "vite": "8.0.0-beta.1"
   },
   "private": true,
   "type": "module"
