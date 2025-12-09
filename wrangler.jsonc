@@ -9,6 +9,14 @@
   "compatibility_flags": [
     "nodejs_compat"
   ],
+  "env": {
+    "canary": {
+      "name": "test-hono-react-router-vite-canary"
+    },
+    "production": {
+      "name": "test-hono-react-router-vite"
+    }
+  },
   "main": "./build/worker.js",
   "name": "test-hono-react-router-vite",
   "observability": {

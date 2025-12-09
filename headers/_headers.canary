@@ -1,0 +1,52 @@
+# Static assets
+/*.html
+  Cache-Control: public, max-age=300, s-maxage=1800, stale-while-revalidate=60, must-revalidate
+
+/*.ico
+  Cache-Control: public, max-age=900, s-maxage=3600, stale-while-revalidate=180, must-revalidate
+
+/*.txt
+  Cache-Control: public, max-age=900, s-maxage=3600, stale-while-revalidate=180, must-revalidate
+
+/*.json
+  Cache-Control: public, max-age=900, s-maxage=3600, stale-while-revalidate=180, must-revalidate
+
+/*.png
+  Cache-Control: public, max-age=900, s-maxage=3600, stale-while-revalidate=180, must-revalidate
+
+/*.jpg
+  Cache-Control: public, max-age=900, s-maxage=3600, stale-while-revalidate=180, must-revalidate
+
+/*.jpeg
+  Cache-Control: public, max-age=900, s-maxage=3600, stale-while-revalidate=180, must-revalidate
+
+/*.svg
+  Cache-Control: public, max-age=900, s-maxage=3600, stale-while-revalidate=180, must-revalidate
+
+/*.css
+  Cache-Control: public, max-age=900, s-maxage=3600, stale-while-revalidate=180, must-revalidate
+
+/*.js
+  Cache-Control: public, max-age=900, s-maxage=3600, stale-while-revalidate=180, must-revalidate
+
+# Static assets with content hashing
+/assets/*
+  ! Cache-Control
+  Cache-Control: public, max-age=86400, s-maxage=31536000, stale-while-revalidate=21600, immutable
+
+# SSG Pages
+/about
+  ! Cache-Control
+  Cache-Control: public, max-age=300, s-maxage=1800, stale-while-revalidate=60, must-revalidate
+
+/errors
+  ! Cache-Control
+  Cache-Control: public, max-age=300, s-maxage=1800, stale-while-revalidate=60, must-revalidate
+
+/hono-rpc
+  ! Cache-Control
+  Cache-Control: public, max-age=300, s-maxage=1800, stale-while-revalidate=60, must-revalidate
+
+/
+  ! Cache-Control
+  Cache-Control: public, max-age=300, s-maxage=1800, stale-while-revalidate=60, must-revalidate
