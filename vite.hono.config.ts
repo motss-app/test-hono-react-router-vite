@@ -8,12 +8,16 @@ export default defineConfig({
     outDir: 'build',
     reportCompressedSize: true,
     rollupOptions: {
+      experimental: {
+        incrementalBuild: true,
+        nativeMagicString: true,
+        viteMode: true,
+      },
       input: './app/server.ts',
       output: {
         entryFileNames: 'server.js',
         format: 'esm',
       },
-      perf: true,
     },
     sourcemap: true,
     ssr: true,
