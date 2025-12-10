@@ -16,7 +16,7 @@ if (import.meta.env.PROD) {
 }
 
 // Always attach SSR handler (Dev & Prod)
-await createSsrHandler(app);
+createSsrHandler(app);
 
 const exports = import.meta.env.DEV
   ? {

@@ -12,6 +12,10 @@ export default defineConfig({
       entry: './app/server.ts',
       exclude: [
         ...defaultOptions.exclude,
+        /** React Router dev server makes module requests with ?import; letting Hono see them returns HTML instead of JS */
+        /\?import$/,
+        /** Route module requests (React Router lazy modules) must be handled by Vite, not Hono */
+        /\/app\/routes\/.*\?import$/,
       ],
     }),
     /**

@@ -5,7 +5,7 @@ const app = createApp();
 
 // Production: Serve React Router SSR
 if (import.meta.env.PROD) {
-  await createSsrHandler(app);
+  createSsrHandler(app);
 }
 
 export default {

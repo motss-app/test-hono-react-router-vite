@@ -6,14 +6,15 @@ import type { App } from './app.ts';
 import { HonoContext } from './router-context.ts';
 import type { HonoEnv } from './types/hono.types.ts';
 
-export async function createSsrHandler(app: App): Promise<void> {
+export function createSsrHandler(app: App): void {
   /**
    * Dynamic import so dev uses virtual module and prod uses the built server
    */
-  const build = (await (import.meta.env.PROD
-    ? import('../build/server/index.js' as never)
-    : import('virtual:react-router/server-build'))) as unknown as ServerBuild;
-  const handler = createRequestHandler(build);
+  const build = (): Promise<ServerBuild> =>
+    import.meta.env.PROD
+      ? import('../build/server/index.js' as never)
+      : import('virtual:react-router/server-build' as never);
+  const handler = createRequestHandler(build, import.meta.env.MODE);
 
   app.use('*', async c => {
     /**
