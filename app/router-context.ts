@@ -3,10 +3,10 @@ import type { RouterContext } from 'react-router';
 import type { HonoEnv } from './types/hono.types.ts';
 
 /**
- * HonoContext is a React Router-specific context key.
- * We define it as a plain object matching the RouterContext interface
- * to avoid confusion with React's createContext.
+ * Use a well-known symbol so the context key is shared across bundles.
+ * Cloudflare deploys separate server/worker bundles; Symbol.for keeps a single
+ * identity so RouterContextProvider lookups succeed in both builds.
  */
-export const HonoContext: RouterContext<HonoEnv['Variables'] | undefined> = {
-  defaultValue: undefined,
-};
+export const HonoContext = Symbol.for('hono.context') as unknown as RouterContext<
+  HonoEnv['Variables']
+>;

@@ -43,7 +43,7 @@ jobs:
           deno run -A npm:wrangler deploy --env canary > deploy-canary.log 2>&1 || { cat deploy-canary.log; exit 1; }
           
           cat deploy-canary.log
-          URL=$(grep -o 'https://[^ ]*' deploy-canary.log | grep -v 'github.com' | head -n 1)
+          URL=$(grep -oE 'https://[^ ]*workers\.dev' deploy-canary.log | head -n 1)
           echo "CANARY_URL=$URL" >> $GITHUB_ENV
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -59,7 +59,7 @@ jobs:
           deno run -A npm:wrangler deploy --env production > deploy-prod.log 2>&1 || { cat deploy-prod.log; exit 1; }
           
           cat deploy-prod.log
-          URL=$(grep -o 'https://[^ ]*' deploy-prod.log | grep -v 'github.com' | head -n 1)
+          URL=$(grep -oE 'https://[^ ]*workers\.dev' deploy-prod.log | head -n 1)
           echo "PROD_URL=$URL" >> $GITHUB_ENV
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
