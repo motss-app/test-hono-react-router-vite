@@ -59,7 +59,7 @@
   },
   "imports": {
     "@std/path": "jsr:@std/path@1.1.3",
-    "react-dom/server": "npm:react-dom@19.2.1/server.edge"
+    "react-dom/server": "npm:react-dom@19.2.3/server.edge"
   },
   "lock": true,
   "nodeModulesDir": "auto",
