@@ -23,14 +23,11 @@
     "@types/react": "19.2.7",
     "@types/react-dom": "19.2.3",
     "typescript": "5.9.3",
-    "vite": "8.0.0-beta.3",
+    "vite": "7.3.0",
     "vite-tsconfig-paths": "6.0.3",
     "wrangler": "4.56.0"
   },
   "name": "test-hono-react-router-vite",
-  "overrides": {
-    "vite": "8.0.0-beta.1"
-  },
   "private": true,
   "type": "module"
 }

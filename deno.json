@@ -2,6 +2,7 @@
   "allowScripts": {
     "allow": [
       "npm:sharp@0.33.5",
+      "npm:workerd",
       "npm:workerd@1.20251202.0"
     ],
     "deny": [
