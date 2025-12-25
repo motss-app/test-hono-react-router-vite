@@ -35,6 +35,7 @@ export default async function handleRequest(
   const body = await renderToReadableStream(
     <ServerRouter
       context={routerContext}
+      nonce={crypto.randomUUID()}
       url={request.url}
     />,
     {
@@ -51,7 +52,7 @@ export default async function handleRequest(
   );
   shellRendered = true;
 
-  if (userAgent && isbot(userAgent)) {
+  if ((userAgent && isbot(userAgent)) || routerContext.isSpaMode) {
     await body.allReady;
   }
 

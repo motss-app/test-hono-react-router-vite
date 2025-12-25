@@ -13,11 +13,6 @@ export default defineConfig({
     outDir: 'build',
     reportCompressedSize: true,
     rollupOptions: {
-      experimental: {
-        incrementalBuild: true,
-        nativeMagicString: true,
-        viteMode: true,
-      },
       input: './app/worker.ts',
       output: {
         entryFileNames: 'worker.js',
