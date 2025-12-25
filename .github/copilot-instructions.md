@@ -25,11 +25,13 @@ This repository is a **Deno-first** project using **Hono** and **React Router v7
 ## Coding Style
 - Prefer TypeScript.
 - Use `import.meta.env` for environment variables.
-- **Comments**: ALWAYS use `/** */` syntax for comments in JS/TS files, even for single lines.
+- **Comments**:
+  - Use `//` for single-line comments.
+  - Use `/** */` for multi-line comments/JSDoc.
 - **Hono Context**: Access Hono context in React Router loaders/actions via `context`.
   - Use `v8_middleware: true` in `react-router.config.ts`.
-  - Define context keys using `createContext` (e.g., `app/router-context.ts`).
-  - In `app/ssr-handler.ts`, initialize context: `new RouterContextProvider(new Map([[HonoContext, c]]))`.
+  - Define context keys using `Symbol.for` (e.g., `app/router-context.ts`).
+  - In `app/ssr-handler.ts`, initialize context: `new RouterContextProvider(new Map([[HonoContext, c.var]]))`.
   - In loaders, use `context.get(HonoContext)`.
   - **Prefer** `RouterContextProvider` over `hono/context-storage` (AsyncLocalStorage) for better performance.
 

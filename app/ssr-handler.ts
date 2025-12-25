@@ -30,7 +30,7 @@ export function createSsrHandler(app: App): void {
       serverTimestamp: new Date().toISOString(),
     } satisfies HonoEnv['Variables']['honoData'];
 
-    /** Another method: store some metadata in Hono's context as well */
+    // Another method: store some metadata in Hono's context as well
     /**
      * Store data in Hono context (accessible via getContext() in React Router)
      */
