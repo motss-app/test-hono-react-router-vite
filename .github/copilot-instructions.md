@@ -6,6 +6,7 @@ This repository is a **Deno-first** project using **Hono** and **React Router v7
 - **ALWAYS** use `deno install` to add dependencies.
   - Example: `deno install npm:react` or `deno install --dev npm:@types/react`.
 - **NEVER** use `npm install`, `pnpm install`, or `yarn install` directly.
+-  Always use either `jsr:` or `npm:` package specifiers (e.g., `import DB from "jsr:sqlite"`). Add packages via `deno install jsr:<package>` or `deno install npm:<package>`.
 - Dependencies are managed in `package.json` but installed via Deno.
 
 ## Task Execution
