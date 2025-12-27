@@ -1,5 +1,38 @@
 # DB Schema Reference — Core Tables (venues, products)
 
+- [DB Schema Reference — Core Tables (venues, products)](#db-schema-reference--core-tables-venues-products)
+  - [Conventions](#conventions)
+    - [Timestamps convention](#timestamps-convention)
+    - [Timezones \& Timestamps](#timezones--timestamps)
+    - [Why store UTC as the canonical timestamp (short)](#why-store-utc-as-the-canonical-timestamp-short)
+    - [`venues` (branch / location)](#venues-branch--location)
+    - [`product_master` (global SKU)](#product_master-global-sku)
+    - [`product_offering` (per-venue listing)](#product_offering-per-venue-listing)
+  - [Index \& constraint recommendations](#index--constraint-recommendations)
+  - [Currency \& Pricing Patterns](#currency--pricing-patterns)
+    - [`currencies` (reference)](#currencies-reference)
+    - [`product_pricing` (versioned pricing)](#product_pricing-versioned-pricing)
+    - [`tax_rates` (regional tax rules)](#tax_rates-regional-tax-rules)
+    - [`users` (application identities)](#users-application-identities)
+    - [`sessions` (KV-backed login sessions)](#sessions-kv-backed-login-sessions)
+    - [Durable Objects (DO) — per-user revocation pattern 🔁](#durable-objects-do--per-user-revocation-pattern-)
+    - [DO implementation sketch (TypeScript pseudocode)](#do-implementation-sketch-typescript-pseudocode)
+    - [ASCII flow (KV-first, DO authoritative)](#ascii-flow-kv-first-do-authoritative)
+    - [`orders` (orders ledger)](#orders-orders-ledger)
+      - [Order Statuses](#order-statuses)
+    - [`discounts` (promotions and discounts)](#discounts-promotions-and-discounts)
+    - [`items` (line items)](#items-line-items)
+    - [`payments` (payment records)](#payments-payment-records)
+    - [`receipts` (payment receipts)](#receipts-payment-receipts)
+    - [`seats` (in-store seating management)](#seats-in-store-seating-management)
+      - [Static Fields (set at creation, rarely change)](#static-fields-set-at-creation-rarely-change)
+      - [Dynamic Fields (change during seat lifecycle)](#dynamic-fields-change-during-seat-lifecycle)
+    - [`addresses` (reusable addresses)](#addresses-reusable-addresses)
+    - [`roles` \& `user_roles` (RBAC)](#roles--user_roles-rbac)
+    - [Guest checkout (anonymous)](#guest-checkout-anonymous)
+  - [How to consume (example pattern)](#how-to-consume-example-pattern)
+  - [Linkages](#linkages)
+
 This file documents the core DB tables and provides example rows for `venues` and product modeling (`product_master` + `product_offering`). Use this as a reference for implementation and migrations.
 
 ---
@@ -54,9 +87,10 @@ Reconstruction pattern (app-level):
 Purpose: tenancy boundary for menus, printers, taxes, and local settings.
 
 Columns
-- `id` — TEXT PK — Example (ULID): `01H0X4ZQ7K8H2A0Q8W1M2N3P4`
+- `id` — TEXT PK — Example (ULID): `venue-01H0X4ZQ7K8H2A0Q8W1M2N3P4`
 - `name` — TEXT — Example: `"Sushi House - Orchard"`
 - `slug` — TEXT UNIQUE — Example: `"sushi-house-orchard"
+- `type` — TEXT — Enum: `restaurant`, `bar`, `cafe`, `food_court`, `quick_service`, `fine_dining` — Example: `restaurant`
 - `brand_id` — TEXT — Example: `"brand-azuki-01"`
 - `owner_id` — TEXT — Example: `"org-42"` (legal owner or franchisee)
 - `country` — TEXT — Example: `"SG"`
@@ -74,14 +108,16 @@ Columns
 
 Notes
 - Use `brand_id` to link branches to a corporate brand. Use `owner_id` for the legal entity that owns the branch.
+- `type` determines venue behavior: restaurants support reservations/seating, bars may have different hours, cafes focus on quick service, etc.
 - `settings` stores venue-specific flags such as KDS configuration or payment preferences.
 
 Example row (YAML):
 
 ```yaml
-id: v1b2c3d4-1111-2222-3333-abcde00001
+id: venue-01H0X4ZQ7K8H2A0Q8W1M2N3P4
 name: Sushi House - Orchard
 slug: sushi-house-orchard
+type: restaurant
 brand_id: brand-azuki-01
 owner_id: org-42
 country: SG
@@ -165,7 +201,7 @@ Note: **Offerings commonly inherit default fields** (e.g., `name`, `description`
 
 Columns
 - `id` — TEXT PK — Example: `offering-6789`
-- `venue_id` — TEXT FK → `venues.id` — Example: `01H0X4ZQ7K8H2A0Q8W1M2N3P4`
+- `venue_id` — TEXT FK → `venues.id` — Example: `venue-01H0X4ZQ7K8H2A0Q8W1M2N3P4`
 - `product_master_id` — TEXT FK → `product_master.id` — Example: `prod-master-0001`
 - `offering_sku` — TEXT — Example: `SH-ORC-YAK-1`
 - `price_minor` — INTEGER — Example: `800` (SGD 8.00)  
@@ -447,7 +483,7 @@ Tax calculations & rounding
 Purpose: store local user accounts and identity metadata (support SSO/external providers by leaving `password_hash` nullable).
 
 Columns
-- `id` TEXT PRIMARY KEY — Example (ULID): `usr-01H0X4ZQ7K8H2A0Q8W1M2N7`
+- `id` TEXT PRIMARY KEY — Example (ULID): `user-01H0X4ZQ7K8H2A0Q8W1M2N7`
 - `email` TEXT UNIQUE NOT NULL — Example: `alice@example.com`
 - `password_hash` TEXT NULLABLE — Example: `bcrypt$2b$...` (nullable for SSO-only accounts)
 - `first_name` TEXT NULLABLE — Example: `Alice`
@@ -472,7 +508,7 @@ Indexes & constraints
 Example row (YAML):
 
 ```yaml
-id: usr-01H0X4ZQ7K8H2A0Q8W1M2N7
+id: user-01H0X4ZQ7K8H2A0Q8W1M2N7
 email: alice@example.com
 password_hash: bcrypt$2b$...
 name: Alice Smith
@@ -494,7 +530,7 @@ deleted_by: null
 Deleted row example (YAML):
 
 ```yaml
-id: usr-01H0X4ZQ7K8H2A0Q8W1M2N7
+id: user-01H0X4ZQ7K8H2A0Q8W1M2N7
 deleted_at: 1700005000
 deleted_by: admin:john
 ```
@@ -508,7 +544,7 @@ KV key pattern (recommended): `session:{session_id}` with a compact JSON value. 
 
 JSON value keys (recommended)
 - `user_id` (TEXT, required)
-  - canonical `users.id` the session belongs to. Example: `"usr-01H0X4ZQ7K8H2A0Q8W1M2N7"`
+  - canonical `users.id` the session belongs to. Example: `"user-01H0X4ZQ7K8H2A0Q8W1M2N7"`
 - `issued_at` (INTEGER, epoch seconds)
   - when the session was created. Example: `1700000000`
 - `expires_at` (INTEGER, epoch seconds)
@@ -802,7 +838,7 @@ Example KV value (expanded JSON):
 
 ```json
 {
-  "user_id":"usr-01H0X4ZQ7K8H2A0Q8W1M2N7",
+  "user_id":"user-01H0X4ZQ7K8H2A0Q8W1M2N7",
   "issued_at":1700000000,
   "expires_at":1700003600,
   "token_hash":"sha256$...",
@@ -840,14 +876,14 @@ Columns
 - `id` TEXT PRIMARY KEY — Example: `ord-0001`
 - `venue_id` TEXT NOT NULL — FK -> `venues.id`
 - `user_id` TEXT NULLABLE — FK -> `users.id` (null for guest checkouts)
+- `seat_id` TEXT NULLABLE — FK -> `seats.id` (for in-store orders; null for delivery/pickup)
 - `status` TEXT NOT NULL — Order business lifecycle state. See **Order Statuses** below for meanings.
 - `subtotal_minor` INTEGER NOT NULL — Example: `2400`
 - `tax_minor` INTEGER NOT NULL — Example: `192`
-- `delivery` JSON NULLABLE — Example: an object containing delivery-related snapshot fields. Recommended shape:
- - `delivery` JSON NULLABLE — delivery snapshot. Recommended shape (types + examples):
+- `delivery` JSON NULLABLE — delivery snapshot. Recommended shape (types + examples):
    - `address_id` TEXT NULLABLE — FK -> `addresses.id` — Example: `addr-001`
    - `fee_minor` INTEGER — delivery fee in minor units. Example: `0`
-   - `method` TEXT — delivery method. Example: `pickup` or `delivery`
+   - `method` TEXT — Enum: `pickup`, `delivery` — Example: `pickup`
    - `address` JSON NULLABLE — delivery address snapshot. Example: `{ "line1": "1 Orchard Rd", "city": "Singapore", "postal_code": "238882" }`
    - `provider_id` TEXT NULLABLE — external delivery provider id. Example: `grab-001`
    - `provider_name` TEXT NULLABLE — delivery provider name. Example: `Grab`
@@ -874,13 +910,15 @@ Columns
 Indexes & constraints
 - `CREATE INDEX idx_orders_venue ON orders(venue_id);`
 - `CREATE INDEX idx_orders_user ON orders(user_id);`
+- `CREATE INDEX idx_orders_seat ON orders(seat_id);`
 
 Example row (YAML):
 
 ```yaml
 id: ord-0001
-venue_id: v1b2c3d4-1111-2222-3333-abcde00001
-user_id: usr-01H0X4ZQ7K8H2A0Q8W1M2N7
+venue_id: venue-01H0X4ZQ7K8H2A0Q8W1M2N3P4
+user_id: user-01H0X4ZQ7K8H2A0Q8W1M2N7
+seat_id: seat-001
 created_by: user:alice
 status: closed
 subtotal_minor: 2400
@@ -932,7 +970,7 @@ items:
     total_minor: 2400
     metadata: {}
 payment:
-  id: usr-01H0X4ZQ7K8H2A0Q8W1M2N7
+  id: user-01H0X4ZQ7K8H2A0Q8W1M2N7
   provider: stripe
   provider_name: Stripe
   provider_payment_id: pi_1JXXXX
@@ -989,7 +1027,7 @@ Purpose: configurable discounts/promotions that merchants can create and apply t
 
 Columns
 - `id` TEXT PRIMARY KEY — Example: `disc-001`
-- `venue_id` TEXT NOT NULL — FK -> `venues.id` — Example: `v1b2c3d4-1111-2222-3333-abcde00001`
+- `venue_id` TEXT NOT NULL — FK -> `venues.id` — Example: `venue-01H0X4ZQ7K8H2A0Q8W1M2N3P4`
 - `product_master_id` TEXT NULLABLE — FK -> `product_master.id` — Example: `prod-master-0001` (null for venue-wide discounts)
 - `offering_id` TEXT NULLABLE — FK -> `product_offering.id` — Example: `offering-6789` (null for venue-wide or master-level discounts)
 - `code` TEXT UNIQUE — Example: `WELCOME10`
@@ -1215,37 +1253,286 @@ deleted_by: null
 
 ---
 
-### `seats` (venue seats / allocations)
-Purpose: optional seat-level reservations/allocations per venue.
+### `seats` (in-store seating management)
+Purpose: Manage seating reservations and occupancy for in-store QR ordering in BBQ/restaurant settings. Supports reservations with payment holds as deposits, occupancy with time limits, multiple orders per seat, and penalty enforcement for violations.
+
+**Note: Audit logging for seat changes will be implemented in a future phase (see TODO: Audit Events System below)**
+
+Use cases:
+1. Reserve a seat for a group arriving soon (reservation window with payment deposit).
+2. Track when a group arrives and occupies the seat (release deposit on arrival).
+3. Enforce time limits on occupancy to free up seats.
+4. Allow multiple orders per occupied seat without sharing tables.
+5. Apply penalties for overstaying or no-shows (convert deposit to charge).
+6. Staff can assign or modify seat status with payment adjustments.
+7. Audit seat lifecycle for venue management.
 
 Columns
-- `id` TEXT PRIMARY KEY — Example: `seat-001`
-- `venue_id` TEXT NOT NULL — FK -> `venues.id`
-- `label` TEXT NOT NULL — Example: `A12`
-- `status` TEXT NOT NULL — Example: `available` (`available`,`reserved`,`occupied`)
-- `metadata` JSON NULLABLE
-- `created_at` INTEGER NOT NULL — Example: `1700000000`
-- `modified_at` INTEGER NOT NULL — Example: `1700000100`
-- `created_by` TEXT NULLABLE — Example: `system`
-- `modified_by` TEXT NULLABLE — Example: `null`
-- `deleted_at` INTEGER NULLABLE
-- `deleted_by` TEXT NULLABLE
+- `id` — TEXT PK — Example: `seat-001`
+- `venue_id` — TEXT FK → `venues.id` — Example: `venue-01H0X4ZQ7K8H2A0Q8W1M2N3P4`
+- `label` — TEXT — Example: `"Table 5"` (human-readable seat identifier)
+- `status` — TEXT — Enum: `available`, `reserved`, `occupied` — Example: `available`
+- `capacity` — INTEGER — Example: `4` (max pax per seat)
+- `type` — TEXT (nullable) — Example: `"table"`, `"booth"`, `"bar"` (seat type)
+- `section` — TEXT (nullable) — Example: `"indoor"`, `"outdoor"`, `"vip"` (venue section)
+- `reserved_at` — INTEGER (nullable) — Timestamp when the reservation starts (begin of reservation window)
+- `reserved_until` — INTEGER (nullable) — Timestamp when the reservation ends (end of reservation window)
+- `occupied_at` — INTEGER (nullable) — Timestamp when the seat was actually occupied (group arrived)
+- `occupied_until` — INTEGER (nullable) — Timestamp when the occupancy ends (time limit)
+- `reserved_by` — TEXT (nullable) — Example: `"user:alice"` (who reserved)
+- `orders` — JSON — Array of order IDs associated with this seat. Example: `["ord-001", "ord-002"]`
+- `staff_id` — TEXT (nullable) — Staff member managing this seat. Example: `"staff:john"`
+- `penalty_fee_minor` — INTEGER (nullable) — Deposit/hold amount in minor units (converted to penalty if violated). Example: `1000` (SGD 10.00 deposit)
+- `metadata` — JSON (nullable) — Additional data. Example: `{"notes": "VIP reservation"}`
+- `created_at` — INTEGER — Example: `1700000000`
+- `modified_at` — INTEGER — Example: `1700000100`
+- `created_by` — TEXT (nullable) — Example: `"user:alice"`
+- `modified_by` — TEXT (nullable) — Example: `"staff:john"`
+- `deleted_at` — INTEGER (nullable) — Example: `null`
+- `deleted_by` — TEXT (nullable) — Example: `null`
+
+#### Static Fields (set at creation, rarely change)
+These fields define the seat's identity and physical characteristics. They only change if the venue reconfigures seating layout.
+
+- `id` — Never changes (primary key)
+- `venue_id` — Never changes (which venue owns this seat)
+- `label` — Human-readable identifier (e.g., "Table 5") - may change during venue reconfiguration
+- `capacity` — Max pax per seat - may change if seating is reconfigured
+- `type` — Seat type (table, booth, bar) - may change during venue reconfiguration
+- `section` — Venue section (indoor, outdoor, VIP) - may change during venue reconfiguration
+- `created_at` — Creation timestamp - never changes
+- `created_by` — Who created the seat record - never changes
+
+#### Dynamic Fields (change during seat lifecycle)
+These fields track the seat's current state and usage throughout its operational lifecycle.
+
+- `status` — Current business status (available/reserved/occupied)
+- `reserved_at` / `reserved_until` — Reservation time window
+- `occupied_at` / `occupied_until` — Actual occupancy time window
+- `reserved_by` — Who made the reservation
+- `orders` — Array of associated order IDs
+- `staff_id` — Staff member currently managing the seat
+- `penalty_fee_minor` — Current deposit/hold amount
+- `metadata` — Additional operational data
+- `modified_at` — Last modification timestamp
+- `modified_by` — Who last modified the record
+- `deleted_at` / `deleted_by` — Soft deletion tracking
+
+Dynamic columns (derived from events):
+- The `seats` table maintains current state for performance.
+- When `status = "reserved"`: `reserved_at`, `reserved_until`, `reserved_by` are set; `occupied_at`, `occupied_until` are null.
+- When `status = "occupied"`: `occupied_at`, `occupied_until` are set; `reserved_at`, `reserved_until` may be cleared or kept for audit.
+- When `status = "available"`: All timestamps are null after "freed" or "expired" event.
+
+Lifecycle notes:
+- Reservation: Update `seats` status and timestamps, place hold on user's payment method as deposit/guarantee.
+- Arrival/Occupancy: Update status and `occupied_at`/`occupied_until` when group arrives, release payment hold.
+- Time limit enforcement: On expiry, free seat and convert hold to charge if user overstayed.
+- Multiple orders: Append to `orders` array.
+- No-show handling: If user doesn't arrive by reservation time, convert hold to penalty charge.
+- Staff override: Allow manual changes by staff, with payment adjustments as needed.
+- **Future**: Event-driven state changes with full audit trail (see TODO: Audit Events System)
+
+Payment hold and charging logic:
+- **Reservation Deposit**: When seat is reserved, place a hold on user's default payment method (e.g., $10-20 deposit based on venue policy)
+- **On-time Arrival**: Release the payment hold when user arrives within reservation window
+- **No-show Penalty**: If user doesn't arrive by `reserved_until`, convert hold to actual charge as no-show penalty
+- **Overstay Penalty**: If user exceeds `occupied_until`, apply additional penalty charge beyond the deposit
+- **Fallback**: If no payment method available, require deposit payment at reservation time or deny reservation
+- **Staff Control**: Staff can waive holds/charges, adjust amounts, or handle manual collection
+- **Future**: All payment actions (holds/releases/charges) will be logged (see TODO: Audit Events System)
+
+Indexes & constraints
+- `CREATE UNIQUE INDEX idx_seats_venue_label ON seats(venue_id, label);`
+- `CREATE INDEX idx_seats_venue ON seats(venue_id);`
+- `CREATE INDEX idx_seats_status ON seats(status);`
+- `CREATE INDEX idx_seats_reserved_at ON seats(reserved_at);`
+- `CREATE INDEX idx_seats_reserved_until ON seats(reserved_until);`
+- `CREATE INDEX idx_seats_occupied_at ON seats(occupied_at);`
+- `CREATE INDEX idx_seats_occupied_until ON seats(occupied_until);`
 
 Example row (YAML):
 
 ```yaml
+# Reserved seat with active deposit hold
 id: seat-001
 venue_id: v1b2c3d4-1111-2222-3333-abcde00001
-label: A12
-status: available
-metadata: null
+label: "Table 5"
+status: reserved
+capacity: 4
+type: table
+section: indoor
+reserved_at: 1700000000
+reserved_until: 1700003600
+occupied_at: null
+occupied_until: null
+reserved_by: user:alice
+orders: []
+staff_id: null
+penalty_fee_minor: 1000  # $10.00 deposit hold on user's card
+metadata: {"special_request": "Window seat preferred"}
 created_at: 1700000000
-modified_at: 1700000100
+modified_at: 1700000000
 created_by: system
+modified_by: user:alice
+```
+
+```yaml
+# Occupied seat with deposit released
+id: seat-002
+venue_id: v1b2c3d4-1111-2222-3333-abcde00001
+label: "Bar Counter 3"
+status: occupied
+capacity: 2
+type: bar
+section: indoor
+reserved_at: null  # Cleared after arrival
+reserved_until: null
+occupied_at: 1700000500
+occupied_until: 1700010500  # 1 hour time limit
+reserved_by: null
+orders: ["ord-001", "ord-002"]
+staff_id: staff:john
+penalty_fee_minor: null  # Deposit released on arrival
+metadata: {"server": "john", "course": "main"}
+created_at: 1699990000
+modified_at: 1700000500
+created_by: system
+modified_by: staff:john
+```
+
+---
+
+### `addresses` (reusable addresses)
+Purpose: centralized address management for venues, users, and guests. Single source of truth for all address data.
+
+Columns
+- `id` TEXT PRIMARY KEY — Unique identifier for the address record. Example: `addr-001`
+- `owner_type` TEXT NOT NULL — Type of entity that owns this address. Enum: `venue`, `user`, `guest`. Example: `venue`
+- `owner_id` TEXT NOT NULL — ID of the entity that owns this address. Example: `venue-01H0X4ZQ7K8H2A0Q8W1M2N3P4` (venue), `user-01H0X4ZQ7K8H2A0Q8W1M2N7` (user), `guest-01H0X4ZQ7K8H2A0Q8W1M2N8` (guest)
+- `type` TEXT NULLABLE — Address purpose. Enum: `business` (venue-only: restaurant location), `delivery` (user/guest-only: food delivery address). Example: `business`
+- `line1` TEXT NOT NULL — Primary street address (building number and street name). Example: `1 Orchard Road`
+- `line2` TEXT NULLABLE — Secondary address line (apartment, suite, floor). Example: `Unit 123`
+- `line3` TEXT NULLABLE — Additional address line (building name, complex). Example: `Orchard Towers`
+- `line4` TEXT NULLABLE — Additional address line (district, neighborhood). Example: `Orchard Planning Area`
+- `line5` TEXT NULLABLE — Additional address line (landmarks, instructions). Example: `Near Orchard MRT`
+- `city` TEXT NOT NULL — City or municipality name. Example: `Singapore`
+- `district` TEXT NULLABLE — District or sub-city area. Example: `Orchard`
+- `state` TEXT NULLABLE — State, province, or administrative region. Example: `Singapore` (for countries with states)
+- `postal_code` TEXT NOT NULL — Postal/ZIP code for mail delivery. Example: `238842`
+- `country` TEXT NOT NULL — Country code (ISO 3166-1 alpha-2). Example: `SG`
+- `phone` TEXT NULLABLE — Contact phone number for this address (for delivery instructions). Example: `+65 9123 4567`
+- `plus_code` TEXT NULLABLE — Google Plus Code (open location code) for human-readable coordinates. Example: `6PH57VP3+PR`
+- `latitude` REAL NULLABLE — Geographic latitude coordinate. Example: `1.2931`
+- `longitude` REAL NULLABLE — Geographic longitude coordinate. Example: `103.8558`
+- `timezone` TEXT NULLABLE — IANA timezone identifier. Example: `Asia/Singapore`
+- `label` TEXT NULLABLE — Human-readable name/tag for this address. Example: `Main Location`, `Home`, `Work`
+- `contact_name` TEXT NULLABLE — Contact person name for this address. Example: `John Doe`
+- `contact_email` TEXT NULLABLE — Contact email for this address (may differ from owner's main email). Example: `john.doe@company.com`
+- `delivery_instructions` TEXT NULLABLE — Special delivery instructions for this address. Example: `Ring doorbell twice, leave at reception`
+- `business_hours` JSON NULLABLE — Weekly business hours for venue addresses as 7-item array [sun,mon,tue,wed,thu,fri,sat]. Each day is null (closed) or flat array of HH:MM times (open,close,open,close,...). Example: `[null,["11:00","15:00","17:00","23:00"],null,["11:00","23:00"],null,["11:00","23:00"],null]`
+- `closure_dates` JSON NULLABLE — Special date closures/modified hours as array of [date,...times] tuples. Use null for times to indicate closure. Times in 24-hour HH:MM format as open,close,open,close,... Example: `[["2025-01-01",null],["2025-12-25","10:00","18:00"]]`
+- `sort_order` INTEGER DEFAULT 0 — Display priority for address ordering (lower numbers = higher priority). 0 = lowest priority, positive numbers = higher priority. Example: `10`
+- `created_at` INTEGER NOT NULL — Unix timestamp when the address was created. Example: `1700000000`
+- `created_by` TEXT NULLABLE — ID of the user/system that created this address. Example: `user:alice`
+- `modified_at` INTEGER NOT NULL — Unix timestamp when the address was last modified. Example: `1700000100`
+- `modified_by` TEXT NULLABLE — ID of the user/system that last modified this address. Example: `user:alice`
+- `deleted_at` INTEGER NULLABLE — Unix timestamp when the address was soft-deleted (null = not deleted). Example: `1700001000`
+- `deleted_by` TEXT NULLABLE — ID of the user/system that soft-deleted this address (null = not deleted). Example: `user:bob`
+
+Indexes & constraints
+- `CREATE INDEX idx_addresses_owner ON addresses(owner_type, owner_id);`
+- `CREATE INDEX idx_addresses_type ON addresses(type);`
+- `CREATE INDEX idx_addresses_city ON addresses(city);`
+- `CREATE INDEX idx_addresses_district ON addresses(district);`
+- `CREATE INDEX idx_addresses_postal ON addresses(postal_code);`
+- `CREATE INDEX idx_addresses_country ON addresses(country);`
+- `CREATE INDEX idx_addresses_sort_order ON addresses(owner_type, owner_id, sort_order);`
+- `CREATE INDEX idx_addresses_geo ON addresses(latitude, longitude) WHERE latitude IS NOT NULL AND longitude IS NOT NULL;`
+
+Example row (YAML):
+
+```yaml
+# Venue business address
+id: addr-001
+owner_type: venue
+owner_id: venue-01H0X4ZQ7K8H2A0Q8W1M2N3P4
+type: business
+line1: "1 Orchard Road"
+line2: null
+line3: "Orchard Towers"
+line4: null
+line5: null
+city: "Singapore"
+district: "Orchard"
+state: null
+postal_code: "238842"
+country: "SG"
+phone: null
+plus_code: "6PH57VP3+PR"
+latitude: 1.2931
+longitude: 103.8558
+timezone: "Asia/Singapore"
+label: "Main Location"
+contact_name: null
+contact_email: null
+delivery_instructions: null
+business_hours: '[null,["11:00","15:00","17:00","23:00"],null,["11:00","23:00"],null,["11:00","23:00"],null]'
+closure_dates: '[["2025-01-01",null],["2025-12-25","10:00","18:00"]]'
+sort_order: 100
+created_at: 1700000000
+created_by: system
+modified_at: 1700000100
 modified_by: null
 deleted_at: null
 deleted_by: null
 ```
+
+```yaml
+# Guest delivery address
+id: addr-002
+owner_type: guest
+owner_id: guest-01H0X4ZQ7K8H2A0Q8W1M2N8
+type: delivery
+line1: "123 Guest Street"
+line2: "#05-678"
+line3: "Guest Apartments"
+line4: "Tampines"
+line5: "Near Tampines MRT Exit A"
+city: "Singapore"
+district: "Tampines"
+state: null
+postal_code: "123456"
+country: "SG"
+phone: "+65 9123 4567"
+plus_code: "6PH58Q2F+8W"
+latitude: 1.3521
+longitude: 103.8198
+timezone: "Asia/Singapore"
+label: "Home"
+contact_name: "John Doe"
+contact_email: "john.doe@example.com"
+delivery_instructions: "Ring doorbell twice"
+business_hours: null
+closure_dates: null
+sort_order: 100
+created_at: 1700000000
+created_by: user:alice
+modified_at: 1700000100
+modified_by: user:alice
+deleted_at: null
+deleted_by: null
+```
+
+Notes
+- **Unified Address Management**: Single table handles all address types (venue, user, guest) for consistency
+- **Query Patterns**: 
+  - Geographic: `WHERE latitude IS NOT NULL AND longitude IS NOT NULL` for mappable addresses
+  - Distance: Use lat/lng for spatial calculations and delivery radius checks
+- **Benefits**: 
+  - **Queryability**: Can search/filter by city, district, postal code, country
+  - **Flexibility**: Supports complex international addresses with multiple lines
+  - **Categorization**: Type field helps organize multiple addresses per owner
 
 ---
 
@@ -1292,7 +1579,7 @@ Example rows (YAML):
   deleted_by: null
 
 # user_roles
-- user_id: usr-01H0X4ZQ7K8H2A0Q8W1M2N7
+- user_id: user-01H0X4ZQ7K8H2A0Q8W1M2N7
   role_id: role-admin
   assigned_at: 1700000000
   assigned_by: admin:john
@@ -1300,47 +1587,6 @@ Example rows (YAML):
   created_by: admin:john
   deleted_at: null
   deleted_by: null
-```
-
----
-
-### `addresses` (reusable addresses)
-Purpose: reusable address records for venues or users.
-
-Columns
-- `id` TEXT PRIMARY KEY — Example: `addr-001`
-- `owner_type` TEXT NOT NULL — Example: `customer|venue|user`
-- `owner_id` TEXT NOT NULL — Example: `cust-001|v1b2c3d4...|usr-...`
-- `type` TEXT NULLABLE — Example: `billing|shipping|home`
-- `address` JSON NOT NULL — Example: `{ "line1": "1 Orchard Rd", "city": "Singapore", "postal": "238842" }`
-- `label` TEXT NULLABLE — Example: `Office`
-- `is_primary` INTEGER DEFAULT 0 — Example: `1`
-- `created_at` INTEGER NOT NULL — Example: `1700000000`
-- `modified_at` INTEGER NOT NULL — Example: `1700000100`
-- `created_by` TEXT NULLABLE — Example: `user:alice`
-- `modified_by` TEXT NULLABLE — Example: `user:alice`
-- `deleted_at` INTEGER NULLABLE
-- `deleted_by` TEXT NULLABLE
-
-Example row (YAML):
-
-```yaml
-id: addr-001
-owner_type: customer
-owner_id: cust-001
-type: billing
-address:
-  line1: "1 Orchard Rd"
-  city: "Singapore"
-  postal: "238842"
-label: Office
-is_primary: 1
-created_at: 1700000000
-modified_at: 1700000100
-created_by: user:alice
-modified_by: user:alice
-deleted_at: null
-deleted_by: null
 ```
 
 ---
@@ -1365,6 +1611,7 @@ Example guest order (YAML):
 id: ord-guest-0001
 venue_id: v1b2c3d4-1111-2222-3333-abcde00001
 user_id: null
+seat_id: null
 created_by: null
 guest_name: "Guest"
 guest_email: null
@@ -1388,8 +1635,6 @@ Deleted row example (YAML):
 id: ord-0001
 deleted_at: 1700005000
 deleted_by: admin:john
-```
-
 ---
 
 ### Provisional orders & DO coordination
@@ -1460,5 +1705,6 @@ Operational notes
 **Consistency note:** Use `created_at` and `modified_at` across tables as the canonical timestamps (INTEGER seconds since epoch). Store local reconstructions (`created_at_local`, `created_at_offset_minutes`) only for display/audit when needed; always compute and compare times in UTC. Also include `created_by`, `modified_by`, `deleted_at`, and `deleted_by` for auditing.
 
 ---
+
 
 Created as a reference for the Phase 0 schema and product modeling (master + offering) — I can add more tables (invoices, refunds, seats) if you want the full schema documented next.

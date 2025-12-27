@@ -5,6 +5,7 @@
     "jsr:@std/internal@^1.0.12": "1.0.12",
     "jsr:@std/path@1.1.4": "1.1.4",
     "npm:@base-ui-components/react@1.0.0-rc.0": "1.0.0-rc.0_@types+react@19.2.7_react@19.2.3_react-dom@19.2.3__react@19.2.3",
+    "npm:@biomejs/biome@*": "2.3.10",
     "npm:@biomejs/biome@2.3.10": "2.3.10",
     "npm:@cloudflare/workers-types@4.20251225.0": "4.20251225.0",
     "npm:@hono/node-server@1.19.7": "1.19.7_hono@4.11.2",
