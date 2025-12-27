@@ -453,6 +453,7 @@ Columns
 - `first_name` TEXT NULLABLE — Example: `Alice`
 - `last_name` TEXT NULLABLE — Example: `Smith`
 - `phone` TEXT NULLABLE — Example: `+65 9123 4567`
+- `default_delivery_address_id` TEXT NULLABLE — FK -> `addresses.id` — Example: `addr-001`
 - `status` TEXT NOT NULL — Example: `active` (enum: `active`, `suspended`, `deleted`)
 - `email_verified` INTEGER DEFAULT 0 — Example: `0`
 - `first_login` INTEGER NULLABLE — Example: `1700000000` — *set on first successful login*
@@ -476,6 +477,7 @@ email: alice@example.com
 password_hash: bcrypt$2b$...
 name: Alice Smith
 phone: "+65 9123 4567"
+default_delivery_address_id: addr-001
 status: active
 email_verified: 1
 last_login: 1700000500
@@ -843,52 +845,19 @@ Columns
 - `tax_minor` INTEGER NOT NULL — Example: `192`
 - `delivery` JSON NULLABLE — Example: an object containing delivery-related snapshot fields. Recommended shape:
  - `delivery` JSON NULLABLE — delivery snapshot. Recommended shape (types + examples):
+   - `address_id` TEXT NULLABLE — FK -> `addresses.id` — Example: `addr-001`
    - `fee_minor` INTEGER — delivery fee in minor units. Example: `0`
    - `method` TEXT — delivery method. Example: `pickup` or `delivery`
    - `address` JSON NULLABLE — delivery address snapshot. Example: `{ "line1": "1 Orchard Rd", "city": "Singapore", "postal_code": "238882" }`
    - `provider_id` TEXT NULLABLE — external delivery provider id. Example: `grab-001`
+   - `provider_name` TEXT NULLABLE — delivery provider name. Example: `Grab`
    - `eta_minutes` INTEGER NULLABLE — estimated minutes until delivery/pickup. Example: `30`
    - `tracking_number` TEXT NULLABLE — provider tracking id. Example: `GRAB123456789`
-- `discounts` JSON NULLABLE — array of discount objects applied to the order. Each discount entry SHOULD include:
-   - `id` TEXT NULLABLE — discount identifier. Example: `d-001`
-  - `amount_minor` INTEGER — discount amount in minor units. Example: `200`
-  - `type` TEXT NOT NULL — calculation method for the discount: `fixed` or `percentage`. Example: `fixed`
-   - `code` TEXT NULLABLE — promo/discount code used. Example: `WELCOME10`
-   - `applied_to` TEXT NULLABLE — whether discount applies to `order` or `line_item`. Example: `order`
-  - `item_id` TEXT NULLABLE — when `applied_to` is `line_item` / specific order line. Example: `oi-0001`
-  - `percentage_bps` INTEGER NULLABLE — percentage value expressed in basis points when `type` is `percentage`. Example: `1000` = 10.00% (store as integer bps to avoid floats)
-  - `category` TEXT NULLABLE — classification of the discount source. Example: `promo` / `loyalty` / `manual`
-  
-  When `type` is `percentage`, `percentage_bps` defines the discount rule; `amount_minor`, if present, is the computed snapshot (rounded to minor units) stored on the order for receipts/audit. Example rows may omit `amount_minor` to show a rule-only representation.
-   - `metadata` JSON NULLABLE — free-form details. Example: `{ "note": "VIP discount" }`
+- `discounts` JSON NULLABLE — array of discount objects applied to the order. See [`discounts` table schema](#discounts-promotions-and-discounts) for base structure. Includes computed fields like `amount_minor` for applied snapshots.
 - `total_minor` INTEGER NOT NULL — Example: `2592`
 - `currency` TEXT NOT NULL — Example: `SGD`
- - `items` JSON NOT NULL — array of order item objects (types + examples):
-   - `id` TEXT — line item id. Example: `oi-0001`
-   - `offering_id` TEXT NULLABLE — `product_offering.id` if available. Example: `offering-6789`
-   - `product_master_id` TEXT NULLABLE — `product_master.id` for analytics. Example: `prod-master-0001`
-   - `name` TEXT — display name at order time. Example: `Yakitori (3pc)`
-   - `unit_price_minor` INTEGER — unit price at order time (minor units). Example: `800`
-   - `quantity` INTEGER — number of units. Example: `3`
-   - `tax_code` TEXT NULLABLE — tax code applied to this line. Example: `GST`
-   - `tax_minor` INTEGER — tax amount for this line (minor units). Example: `192`
-   - `total_minor` INTEGER — line total in minor units (`unit_price_minor * quantity + tax_minor`). Example: `2400`
-   - `metadata` JSON NULLABLE — free-form (modifiers, notes). Example: `{ "spice": "mild" }`
- - `payment` JSON NULLABLE — payment snapshot stored on the order (types + examples):
-   - `id` TEXT NULLABLE — payer user id or payment id. Example: `usr-01H0X4ZQ7K8H2A0Q8W1M2N7`
-   - `provider` TEXT NULLABLE — payment provider. Example: `stripe`
-   - `provider_payment_id` TEXT NULLABLE — provider transaction/intent id. Example: `pi_1JXXXX`
-   - `method` TEXT NULLABLE — payment method. Example: `card`
-   - `amount_minor` INTEGER — amount in minor units. Example: `2592`
-   - `currency` TEXT NULLABLE — currency code. Example: `SGD`
-   - `status` TEXT — payment lifecycle status. Example: `succeeded` (values: `pending`,`succeeded`,`failed`,`refunded`)
-   - `captured_at` INTEGER NULLABLE — capture timestamp (epoch seconds). Example: `1700001300`
-   - `refunded_amount_minor` INTEGER NULLABLE — refunded amount in minor units. Example: `0`
-   - `fee_minor` INTEGER NULLABLE — payment processor fee in minor units. Example: `0`
-   - `payer` JSON NULLABLE — small snapshot for guest payers. Example: `{ "name": "Alice", "email": "alice@example.com" }`
-   - `card` JSON NULLABLE — masked card info. Example: `{ "brand": "Visa", "last4": "4242", "exp_month": 12, "exp_year": 2026 }`
-   - `metadata` JSON NULLABLE — free-form. Example: `{ "receipt_url": "https://..." }`
-   - `created_at` INTEGER NULLABLE — payment record creation time. Example: `1700001300`
+ - `items` JSON NOT NULL — array of order item objects. See [`items` table schema](#items-line-items) for structure.
+ - `payment` JSON NULLABLE — payment snapshot stored on the order. See [`payments` table schema](#payments-payment-records) for structure.
  - `created_at` INTEGER NOT NULL — Example: `1700001000`
  - `created_by` TEXT NULLABLE — Example: `user:alice`
  - `closed_at` INTEGER NULLABLE — Example: `1700001300`
@@ -917,14 +886,20 @@ status: closed
 subtotal_minor: 2400
 tax_minor: 192
 delivery:
-  fee_minor: 0
-  method: pickup
-  address: null
-  provider_id: null
-  eta_minutes: null
-  tracking_number: null
+  address_id: addr-001
+  fee_minor: 500
+  method: delivery
+  address:
+    line1: "1 Orchard Rd"
+    city: "Singapore"
+    postal_code: "238882"
+  provider_id: grab-001
+  provider_name: Grab
+  eta_minutes: 30
+  tracking_number: GRAB123456789
 discounts:
-  - id: d-001
+  - discount_id: disc-001
+    id: d-001
     amount_minor: 200
     type: fixed
     code: WELCOME10
@@ -933,7 +908,8 @@ discounts:
     category: promo
     metadata:
       note: "VIP discount"
-  - id: d-002
+  - discount_id: disc-002
+    id: d-002
     type: percentage
     percentage_bps: 1000
     code: SUMMER10
@@ -954,10 +930,11 @@ items:
     tax_code: GST
     tax_minor: 192
     total_minor: 2400
-    metadata: null
+    metadata: {}
 payment:
   id: usr-01H0X4ZQ7K8H2A0Q8W1M2N7
   provider: stripe
+  provider_name: Stripe
   provider_payment_id: pi_1JXXXX
   method: card
   amount_minor: 2592
@@ -972,7 +949,7 @@ payment:
   card:
     brand: Visa
     last4: "4242"
-  metadata: null
+  metadata: {}
   created_at: 1700001300
 created_at: 1700001000
 closed_at: 1700001300
@@ -1004,6 +981,367 @@ deleted_by: null
 - `expired`: TTL or provisional window elapsed (or payment timeout). Treat as terminal for that session; may be revived only by creating a new order or explicit re-open flow.
 
 - `closed`: Business lifecycle finished/archived — no further edits; used for completed bookkeeping/audits. Terminal.
+
+---
+
+### `discounts` (promotions and discounts)
+Purpose: configurable discounts/promotions that merchants can create and apply to orders or specific products.
+
+Columns
+- `id` TEXT PRIMARY KEY — Example: `disc-001`
+- `venue_id` TEXT NOT NULL — FK -> `venues.id` — Example: `v1b2c3d4-1111-2222-3333-abcde00001`
+- `product_master_id` TEXT NULLABLE — FK -> `product_master.id` — Example: `prod-master-0001` (null for venue-wide discounts)
+- `offering_id` TEXT NULLABLE — FK -> `product_offering.id` — Example: `offering-6789` (null for venue-wide or master-level discounts)
+- `code` TEXT UNIQUE — Example: `WELCOME10`
+- `name` TEXT NOT NULL — Example: `Welcome Discount`
+- `type` TEXT NOT NULL — Example: `fixed` or `percentage`
+- `amount_minor` INTEGER NULLABLE — for fixed type, discount amount in minor units. Set only when `type = 'fixed'`. Example: `200`
+- `percentage_bps` INTEGER NULLABLE — for percentage type, discount in basis points. Set only when `type = 'percentage'`. Example: `1000` (10%)
+- `applicable_to` TEXT NOT NULL — Example: `order` or `item`
+- `category` TEXT NULLABLE — Example: `promo`, `loyalty`, `manual`
+- `valid_from` INTEGER NULLABLE — Example: `1700000000`
+- `valid_to` INTEGER NULLABLE — Example: `1702593000`
+- `usage_limit` INTEGER NULLABLE — max uses. Example: `100`
+- `used_count` INTEGER DEFAULT 0 — Example: `5`
+- `metadata` JSON NULLABLE — Example: `{ "note": "First-time customers" }`
+- `created_at` INTEGER NOT NULL — Example: `1700000000`
+- `modified_at` INTEGER NOT NULL — Example: `1700000100`
+- `created_by` TEXT NULLABLE — Example: `merchant:john`
+- `modified_by` TEXT NULLABLE — Example: `merchant:john`
+- `deleted_at` INTEGER NULLABLE — Example: `null`
+- `deleted_by` TEXT NULLABLE — Example: `null`
+
+Indexes & constraints
+- `CREATE UNIQUE INDEX idx_discounts_code ON discounts(venue_id, code);`
+- `CREATE INDEX idx_discounts_venue ON discounts(venue_id);`
+- `CREATE INDEX idx_discounts_product ON discounts(product_master_id);`
+- `CREATE INDEX idx_discounts_offering ON discounts(offering_id);`
+
+Example row (YAML):
+
+```yaml
+id: disc-001
+venue_id: v1b2c3d4-1111-2222-3333-abcde00001
+product_master_id: prod-master-0001
+code: WELCOME10
+name: Welcome Discount
+type: fixed
+amount_minor: 200
+applicable_to: order
+category: promo
+valid_from: 1700000000
+valid_to: 1702593000
+usage_limit: 100
+used_count: 5
+metadata:
+  note: "First-time customers"
+created_at: 1700000000
+modified_at: 1700000100
+created_by: merchant:john
+modified_by: merchant:john
+```
+
+---
+
+### `items` (line items)
+Purpose: individual items in an order (snapshot pricing and references to master/offering).
+
+Columns
+- `id` TEXT PRIMARY KEY — Example: `oi-0001`
+- `order_id` TEXT NOT NULL — FK -> `orders.id` — Example: `ord-0001`
+- `product_master_id` TEXT NULLABLE — FK -> `product_master.id` — Example: `prod-master-0001`
+- `offering_id` TEXT NULLABLE — FK -> `product_offering.id` — Example: `offering-6789`
+- `name` TEXT NOT NULL — Example: `Yakitori (3pc)` (snapshot)
+- `unit_price_minor` INTEGER NOT NULL — Example: `800`
+- `quantity` INTEGER NOT NULL — Example: `3`
+- `tax_code` TEXT NULLABLE — snapshot of tax code applied. Example: `GST`
+- `tax_minor` INTEGER NOT NULL — Example: `192`
+- `discount_minor` INTEGER DEFAULT 0 — Example: `0`
+- `total_minor` INTEGER NOT NULL — Example: `2400` (calculated as `(unit_price_minor * quantity) + tax_minor - discount_minor`)
+
+- `metadata` JSON NULLABLE — Example: `null`
+- `created_at` INTEGER NOT NULL — Example: `1700001000`
+- `created_by` TEXT NULLABLE — Example: `user:alice`
+- `modified_at` INTEGER NOT NULL — Example: `1700001000`
+- `modified_by` TEXT NULLABLE — Example: `user:alice`
+- `deleted_at` INTEGER NULLABLE — Example: `null`
+- `deleted_by` TEXT NULLABLE — Example: `null`
+
+Indexes
+- `CREATE INDEX idx_items_order ON items(order_id);`
+
+Example row (YAML):
+
+```yaml
+id: oi-0001
+order_id: ord-0001
+product_master_id: 01H0X4ZQ7K8H2A0Q8W1M2N4A
+offering_id: offering-6789
+name: Yakitori (3pc)
+unit_price_minor: 800
+quantity: 3
+tax_code: GST
+tax_minor: 192
+discount_minor: 0
+total_minor: 2400
+metadata: {}
+created_at: 1700001000
+created_by: user:alice
+modified_at: 1700001000
+modified_by: user:alice
+```
+
+---
+
+### `payments` (payment records)
+Purpose: record payment attempts and captures associated with orders.
+
+Columns
+- `id` TEXT PRIMARY KEY — Example: `pay-0001`
+- `order_id` TEXT NULLABLE — FK -> `orders.id` — Example: `ord-0001`
+- `amount_minor` INTEGER NOT NULL — Example: `2592`
+- `currency` TEXT NOT NULL — Example: `SGD`
+- `provider` TEXT NULLABLE — Example: `stripe`
+- `provider_name` TEXT NULLABLE — Example: `Stripe`
+- `provider_payment_id` TEXT NULLABLE — Example: `ch_1J...`
+- `method` TEXT NULLABLE — Example: `card`
+- `card_brand` TEXT NULLABLE — Example: `Visa`
+- `card_last4` TEXT NULLABLE — Example: `4242`
+- `status` TEXT NOT NULL — Example: `captured` (`pending`,`captured`,`failed`,`refunded`)
+- `captured_at` INTEGER NULLABLE — Example: `1700001300`
+- `captured_by` TEXT NULLABLE — Example: `system`
+- `failed_at` INTEGER NULLABLE — Example: `null`
+- `failed_by` TEXT NULLABLE — Example: `null`
+- `refunded_at` INTEGER NULLABLE — Example: `null`
+- `refunded_by` TEXT NULLABLE — Example: `null`
+- `refunded_minor` INTEGER DEFAULT 0 — Example: `0`
+- `metadata` JSON NULLABLE — Example: `{}`
+- `created_at` INTEGER NOT NULL — Example: `1700001300`
+- `modified_at` INTEGER NOT NULL — Example: `1700001300`
+- `created_by` TEXT NULLABLE — Example: `system`
+- `modified_by` TEXT NULLABLE — Example: `system`
+- `deleted_at` INTEGER NULLABLE — Example: `null`
+- `deleted_by` TEXT NULLABLE — Example: `null`
+
+Indexes
+- `CREATE INDEX idx_payments_order ON payments(order_id);`
+
+Example row (YAML):
+
+```yaml
+id: pay-0001
+order_id: ord-0001
+amount_minor: 2592
+currency: SGD
+provider: stripe
+provider_name: Stripe
+provider_payment_id: ch_1J...
+method: card
+card_brand: Visa
+card_last4: 4242
+status: captured
+captured_at: 1700001300
+captured_by: system
+refunded_minor: 0
+metadata: {}
+created_at: 1700001300
+modified_at: 1700001300
+created_by: system
+modified_by: system
+deleted_at: null
+deleted_by: null
+failed_at: null
+failed_by: null
+refunded_at: null
+refunded_by: null
+```
+
+Deleted row example (YAML):
+
+```yaml
+id: pay-0001
+deleted_at: 1700005000
+deleted_by: admin:john
+modified_at: 1700005000
+modified_by: admin:john
+```
+
+---
+
+### `receipts` (payment receipts)
+Purpose: receipts generated from orders after successful payment for accounting and records.
+
+Columns
+- `id` TEXT PRIMARY KEY — Receipt unique identifier. Example: `rec-0001`
+- `order_id` TEXT NOT NULL — FK -> `orders.id` — Reference to the order this receipt is for. Example: `ord-0001`
+- `receipt_number` TEXT UNIQUE — Human-readable receipt number for reference. Example: `REC-2025-0001`
+- `currency` TEXT NOT NULL — Currency code (e.g., SGD). Example: `SGD`
+- `subtotal_minor` INTEGER NOT NULL — Subtotal amount in minor units (before tax and discounts). Example: `3000`
+- `tax_minor` INTEGER NOT NULL — Tax amount in minor units. Example: `300`
+- `discount_minor` INTEGER NOT NULL — Discount amount in minor units. Example: `708`
+- `amount_minor` INTEGER NOT NULL — Total amount in minor units (subtotal + tax - discount). Example: `2592`
+- `issued_at` INTEGER NOT NULL — Date and time the receipt was generated. Example: `1700002000`
+- `paid_at` INTEGER NULLABLE — Date and time the payment was received. Example: `1700002000`
+- `created_at` INTEGER NOT NULL — Record creation timestamp. Example: `1700002000`
+- `modified_at` INTEGER NOT NULL — Record modification timestamp. Example: `1700002000`
+- `created_by` TEXT NULLABLE — User/system that created the record. Example: `system`
+- `modified_by` TEXT NULLABLE — User/system that modified the record. Example: `system`
+- `deleted_at` INTEGER NULLABLE — Soft delete timestamp. Example: `null`
+- `deleted_by` TEXT NULLABLE — User/system that deleted the record. Example: `null`
+
+Indexes
+- `CREATE UNIQUE INDEX idx_receipts_number ON receipts(receipt_number);`
+
+Example row (YAML):
+
+```yaml
+id: rec-0001
+order_id: ord-0001
+receipt_number: REC-2025-0001
+currency: SGD
+subtotal_minor: 3000
+tax_minor: 300
+discount_minor: 708
+amount_minor: 2592
+issued_at: 1700002000
+paid_at: 1700002000
+created_at: 1700002000
+created_by: system
+modified_at: 1700002000
+modified_by: system
+deleted_at: null
+deleted_by: null
+```
+
+---
+
+### `seats` (venue seats / allocations)
+Purpose: optional seat-level reservations/allocations per venue.
+
+Columns
+- `id` TEXT PRIMARY KEY — Example: `seat-001`
+- `venue_id` TEXT NOT NULL — FK -> `venues.id`
+- `label` TEXT NOT NULL — Example: `A12`
+- `status` TEXT NOT NULL — Example: `available` (`available`,`reserved`,`occupied`)
+- `metadata` JSON NULLABLE
+- `created_at` INTEGER NOT NULL — Example: `1700000000`
+- `modified_at` INTEGER NOT NULL — Example: `1700000100`
+- `created_by` TEXT NULLABLE — Example: `system`
+- `modified_by` TEXT NULLABLE — Example: `null`
+- `deleted_at` INTEGER NULLABLE
+- `deleted_by` TEXT NULLABLE
+
+Example row (YAML):
+
+```yaml
+id: seat-001
+venue_id: v1b2c3d4-1111-2222-3333-abcde00001
+label: A12
+status: available
+metadata: null
+created_at: 1700000000
+modified_at: 1700000100
+created_by: system
+modified_by: null
+deleted_at: null
+deleted_by: null
+```
+
+---
+
+### `roles` & `user_roles` (RBAC)
+Purpose: basic role-based access control (named roles + association table).
+
+`roles` columns
+- `id` TEXT PRIMARY KEY — Example: `role-admin`
+- `name` TEXT UNIQUE NOT NULL — Example: `admin`
+- `permissions` JSON NULLABLE — Example: `{"manage_users": true}`
+- `created_at` INTEGER NOT NULL — Example: `1700000000`
+- `modified_at` INTEGER NOT NULL — Example: `1700000000`
+- `created_by` TEXT NULLABLE
+- `modified_by` TEXT NULLABLE
+- `deleted_at` INTEGER NULLABLE
+- `deleted_by` TEXT NULLABLE
+
+`user_roles` columns
+- `user_id` TEXT NOT NULL — FK -> `users.id`
+- `role_id` TEXT NOT NULL — FK -> `roles.id`
+- `assigned_at` INTEGER NOT NULL — Example: `1700000000`
+- `assigned_by` TEXT NULLABLE — Example: `admin:john`
+- `created_at` INTEGER NOT NULL — Example: `1700000000`
+- `created_by` TEXT NULLABLE — Example: `admin:john`
+- `deleted_at` INTEGER NULLABLE — Example: `null`
+- `deleted_by` TEXT NULLABLE — Example: `null`
+
+Indexes
+- `CREATE UNIQUE INDEX idx_user_roles_unique ON user_roles(user_id, role_id);`
+
+Example rows (YAML):
+
+```yaml
+# roles
+- id: role-admin
+  name: admin
+  permissions:
+    manage_users: true
+  created_at: 1700000000
+  modified_at: 1700000000
+  created_by: system
+  modified_by: null
+  deleted_at: null
+  deleted_by: null
+
+# user_roles
+- user_id: usr-01H0X4ZQ7K8H2A0Q8W1M2N7
+  role_id: role-admin
+  assigned_at: 1700000000
+  assigned_by: admin:john
+  created_at: 1700000000
+  created_by: admin:john
+  deleted_at: null
+  deleted_by: null
+```
+
+---
+
+### `addresses` (reusable addresses)
+Purpose: reusable address records for venues or users.
+
+Columns
+- `id` TEXT PRIMARY KEY — Example: `addr-001`
+- `owner_type` TEXT NOT NULL — Example: `customer|venue|user`
+- `owner_id` TEXT NOT NULL — Example: `cust-001|v1b2c3d4...|usr-...`
+- `type` TEXT NULLABLE — Example: `billing|shipping|home`
+- `address` JSON NOT NULL — Example: `{ "line1": "1 Orchard Rd", "city": "Singapore", "postal": "238842" }`
+- `label` TEXT NULLABLE — Example: `Office`
+- `is_primary` INTEGER DEFAULT 0 — Example: `1`
+- `created_at` INTEGER NOT NULL — Example: `1700000000`
+- `modified_at` INTEGER NOT NULL — Example: `1700000100`
+- `created_by` TEXT NULLABLE — Example: `user:alice`
+- `modified_by` TEXT NULLABLE — Example: `user:alice`
+- `deleted_at` INTEGER NULLABLE
+- `deleted_by` TEXT NULLABLE
+
+Example row (YAML):
+
+```yaml
+id: addr-001
+owner_type: customer
+owner_id: cust-001
+type: billing
+address:
+  line1: "1 Orchard Rd"
+  city: "Singapore"
+  postal: "238842"
+label: Office
+is_primary: 1
+created_at: 1700000000
+modified_at: 1700000100
+created_by: user:alice
+modified_by: user:alice
+deleted_at: null
+deleted_by: null
+```
 
 ---
 
@@ -1107,274 +1445,6 @@ Operational notes
 - Cron job to expire and GC provisional orders beyond `expires_at` (clean DO state + D1 audit).  
 - DOs can be sharded by order id to handle hot orders; keep DO state small and persist audits to D1.  
 - Use idempotency and durable payment patterns (provider-side idempotency or your payment orchestrator) to avoid double-charges.
-
----
-
-### `items` (line items)
-Purpose: individual items in an order (snapshot pricing and references to master/offering).
-
-Columns
-- `id` TEXT PRIMARY KEY — Example: `oi-0001`
-- `order_id` TEXT NOT NULL — FK -> `orders.id`
-- `product_master_id` TEXT NULLABLE — FK -> `product_master.id`
-- `offering_id` TEXT NULLABLE — FK -> `product_offering.id`
-- `name` TEXT NOT NULL — Example: `Yakitori (3pc)` (snapshot)
-- `unit_price_minor` INTEGER NOT NULL — Example: `800`
-- `quantity` INTEGER NOT NULL — Example: `3`
-- `total_minor` INTEGER NOT NULL — Example: `2400`
-- `metadata` JSON NULLABLE
-- `created_at` INTEGER NOT NULL — Example: `1700001000`
-- `created_by` TEXT NULLABLE
-- `deleted_at` INTEGER NULLABLE
-- `deleted_by` TEXT NULLABLE
-
-Indexes
-- `CREATE INDEX idx_items_order ON items(order_id);`
-
-Example row (YAML):
-
-```yaml
-id: oi-0001
-order_id: ord-0001
-product_master_id: 01H0X4ZQ7K8H2A0Q8W1M2N4A
-offering_id: offering-6789
-name: Yakitori (3pc)
-unit_price_minor: 800
-quantity: 3
-total_minor: 2400
-metadata: null
-created_at: 1700001000
-created_by: user:alice
-deleted_at: null
-deleted_by: null
-```
-
----
-
-### `payments` (payment records)
-Purpose: record payment attempts and captures associated with orders.
-
-Columns
-- `id` TEXT PRIMARY KEY — Example: `pay-0001`
-- `order_id` TEXT NULLABLE — FK -> `orders.id`
-- `amount_minor` INTEGER NOT NULL — Example: `2592`
-- `currency` TEXT NOT NULL — Example: `SGD`
-- `provider` TEXT NULLABLE — Example: `stripe`
-- `provider_payment_id` TEXT NULLABLE — Example: `ch_1J...`
-- `method` TEXT NULLABLE — Example: `card`
-- `card_brand` TEXT NULLABLE — Example: `Visa`
-- `card_last4` TEXT NULLABLE — Example: `4242`
-- `status` TEXT NOT NULL — Example: `captured` (`pending`,`captured`,`failed`,`refunded`)
-- `captured_at` INTEGER NULLABLE
-- `refunded_minor` INTEGER DEFAULT 0 — Example: `0`
-- `metadata` JSON NULLABLE
-- `created_at` INTEGER NOT NULL — Example: `1700001300`
-- `created_by` TEXT NULLABLE
-- `deleted_at` INTEGER NULLABLE
-- `deleted_by` TEXT NULLABLE
-
-Indexes
-- `CREATE INDEX idx_payments_order ON payments(order_id);`
-
-Example row (YAML):
-
-```yaml
-id: pay-0001
-order_id: ord-0001
-amount_minor: 2592
-currency: SGD
-provider: stripe
-provider_payment_id: ch_1J...
-method: card
-card_brand: Visa
-card_last4: 4242
-status: captured
-captured_at: 1700001300
-refunded_minor: 0
-metadata: null
-created_at: 1700001300
-created_by: system
-```
-
-Deleted row example (YAML):
-
-```yaml
-id: pay-0001
-deleted_at: 1700005000
-deleted_by: admin:john
-```
-
----
-
-### `invoices` (invoicing)
-Purpose: invoices generated from orders for billing and accounting.
-
-Columns
-- `id` TEXT PRIMARY KEY — Example: `inv-0001`
-- `order_id` TEXT NOT NULL — FK -> `orders.id`
-- `invoice_number` TEXT UNIQUE — Example: `INV-2025-0001`
-- `amount_minor` INTEGER NOT NULL — Example: `2592`
-- `due_at` INTEGER NULLABLE
-- `issued_at` INTEGER NOT NULL — Example: `1700001400`
-- `paid_at` INTEGER NULLABLE
-- `status` TEXT NOT NULL — Example: `issued` (`issued`,`paid`,`overdue`)
-- `created_at` INTEGER NOT NULL — Example: `1700001400`
-- `created_by` TEXT NULLABLE
-
-Indexes
-- `CREATE UNIQUE INDEX idx_invoices_number ON invoices(invoice_number);`
-
-Example row (YAML):
-
-```yaml
-id: inv-0001
-order_id: ord-0001
-invoice_number: INV-2025-0001
-amount_minor: 2592
-due_at: 1700004000
-issued_at: 1700001400
-paid_at: 1700002000
-status: paid
-created_at: 1700001400
-created_by: system
-```
-
----
-
-### `refunds` (refund records)
-Purpose: record refunds tied to payments, with reasons and processing metadata.
-
-Columns
-- `id` TEXT PRIMARY KEY — Example: `rfnd-0001`
-- `payment_id` TEXT NOT NULL — FK -> `payments.id`
-- `amount_minor` INTEGER NOT NULL — Example: `2592`
-- `reason` TEXT NULLABLE — Example: `customer_return`
-- `processed_at` INTEGER NULLABLE
-- `processed_by` TEXT NULLABLE
-- `created_at` INTEGER NOT NULL — Example: `1700002000`
-- `created_by` TEXT NULLABLE
-
-Indexes
-- `CREATE INDEX idx_refunds_payment ON refunds(payment_id);`
-
-Example row (YAML):
-
-```yaml
-id: rfnd-0001
-payment_id: pay-0001
-amount_minor: 2592
-reason: customer_return
-processed_at: 1700002000
-processed_by: admin:john
-created_at: 1700002000
-created_by: system
-```
-
----
-
-### `seats` (venue seats / allocations)
-Purpose: optional seat-level reservations/allocations per venue.
-
-Columns
-- `id` TEXT PRIMARY KEY — Example: `seat-001`
-- `venue_id` TEXT NOT NULL — FK -> `venues.id`
-- `label` TEXT NOT NULL — Example: `A12`
-- `status` TEXT NOT NULL — Example: `available` (`available`,`reserved`,`occupied`)
-- `metadata` JSON NULLABLE
-- `created_at` INTEGER NOT NULL — Example: `1700000000`
-- `modified_at` INTEGER NOT NULL — Example: `1700000100`
-- `deleted_at` INTEGER NULLABLE
-- `deleted_by` TEXT NULLABLE
-
-Example row (YAML):
-
-```yaml
-id: seat-001
-venue_id: v1b2c3d4-1111-2222-3333-abcde00001
-label: A12
-status: available
-metadata: null
-created_at: 1700000000
-modified_at: 1700000100
-deleted_at: null
-deleted_by: null
-```
-
----
-
-### `roles` & `user_roles` (RBAC)
-Purpose: basic role-based access control (named roles + association table).
-
-`roles` columns
-- `id` TEXT PRIMARY KEY — Example: `role-admin`
-- `name` TEXT UNIQUE NOT NULL — Example: `admin`
-- `permissions` JSON NULLABLE — Example: `{"manage_users": true}`
-- `created_at` INTEGER NOT NULL — Example: `1700000000`
-- `created_by` TEXT NULLABLE
-- `deleted_at` INTEGER NULLABLE
-
-`user_roles` columns
-- `user_id` TEXT NOT NULL — FK -> `users.id`
-- `role_id` TEXT NOT NULL — FK -> `roles.id`
-- `assigned_at` INTEGER NOT NULL — Example: `1700000000`
-- `assigned_by` TEXT NULLABLE — Example: `admin:john`
-
-Indexes
-- `CREATE UNIQUE INDEX idx_user_roles_unique ON user_roles(user_id, role_id);`
-
-Example rows (YAML):
-
-```yaml
-# roles
-- id: role-admin
-  name: admin
-  permissions:
-    manage_users: true
-  created_at: 1700000000
-
-# user_roles
-- user_id: usr-01H0X4ZQ7K8H2A0Q8W1M2N7
-  role_id: role-admin
-  assigned_at: 1700000000
-  assigned_by: admin:john
-```
-
----
-
-### `addresses` (reusable addresses)
-Purpose: reusable address records for venues or users.
-
-Columns
-- `id` TEXT PRIMARY KEY — Example: `addr-001`
-- `owner_type` TEXT NOT NULL — Example: `customer|venue|user`
-- `owner_id` TEXT NOT NULL — Example: `cust-001|v1b2c3d4...|usr-...`
-- `type` TEXT NULLABLE — Example: `billing|shipping|home`
-- `address` JSON NOT NULL — Example: `{ "line1": "1 Orchard Rd", "city": "Singapore", "postal": "238842" }`
-- `label` TEXT NULLABLE — Example: `Office`
-- `is_primary` INTEGER DEFAULT 0 — Example: `1`
-- `created_at` INTEGER NOT NULL — Example: `1700000000`
-- `modified_at` INTEGER NOT NULL — Example: `1700000100`
-- `deleted_at` INTEGER NULLABLE
-- `deleted_by` TEXT NULLABLE
-
-Example row (YAML):
-
-```yaml
-id: addr-001
-owner_type: customer
-owner_id: cust-001
-type: billing
-address:
-  line1: "1 Orchard Rd"
-  city: "Singapore"
-  postal: "238842"
-label: Office
-is_primary: 1
-created_at: 1700000000
-modified_at: 1700000100
-deleted_at: null
-deleted_by: null
-```
 
 ---
 
