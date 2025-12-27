@@ -6,7 +6,7 @@
     "@iconify-json/fa7-solid": "1.2.3",
     "@iconify/tailwind4": "1.2.0",
     "@react-router/node": "7.11.0",
-    "hono": "4.11.2",
+    "hono": "4.11.3",
     "isbot": "5.1.32",
     "react": "19.2.3",
     "react-dom": "19.2.3",
