@@ -28,7 +28,7 @@
       - [Static Fields (set at creation, rarely change)](#static-fields-set-at-creation-rarely-change)
       - [Dynamic Fields (change during seat lifecycle)](#dynamic-fields-change-during-seat-lifecycle)
     - [`addresses` (reusable addresses)](#addresses-reusable-addresses)
-    - [`roles` \& `user_roles` (RBAC)](#roles--user_roles-rbac)
+    - [`roles` (RBAC)](#roles-rbac)
     - [Guest checkout (anonymous)](#guest-checkout-anonymous)
   - [How to consume (example pattern)](#how-to-consume-example-pattern)
   - [Linkages](#linkages)
@@ -485,6 +485,7 @@ Purpose: store local user accounts and identity metadata (support SSO/external p
 Columns
 - `id` TEXT PRIMARY KEY — Example (ULID): `user-01H0X4ZQ7K8H2A0Q8W1M2N7`
 - `email` TEXT UNIQUE NOT NULL — Example: `alice@example.com`
+- `role_id` TEXT NOT NULL — FK -> `roles.id` — Example: `role-admin`
 - `password_hash` TEXT NULLABLE — Example: `bcrypt$2b$...` (nullable for SSO-only accounts)
 - `first_name` TEXT NULLABLE — Example: `Alice`
 - `last_name` TEXT NULLABLE — Example: `Smith`
@@ -510,6 +511,7 @@ Example row (YAML):
 ```yaml
 id: user-01H0X4ZQ7K8H2A0Q8W1M2N7
 email: alice@example.com
+role_id: role-admin
 password_hash: bcrypt$2b$...
 name: Alice Smith
 phone: "+65 9123 4567"
@@ -1536,32 +1538,78 @@ Notes
 
 ---
 
-### `roles` & `user_roles` (RBAC)
-Purpose: basic role-based access control (named roles + association table).
+### `roles` (RBAC)
+Purpose: basic role-based access control (named roles).
 
 `roles` columns
-- `id` TEXT PRIMARY KEY — Example: `role-admin`
-- `name` TEXT UNIQUE NOT NULL — Example: `admin`
-- `permissions` JSON NULLABLE — Example: `{"manage_users": true}`
-- `created_at` INTEGER NOT NULL — Example: `1700000000`
-- `modified_at` INTEGER NOT NULL — Example: `1700000000`
-- `created_by` TEXT NULLABLE
-- `modified_by` TEXT NULLABLE
-- `deleted_at` INTEGER NULLABLE
-- `deleted_by` TEXT NULLABLE
+- `id` TEXT PRIMARY KEY — Unique role identifier. Example: `role-admin`
+- `name` TEXT UNIQUE NOT NULL — Human-readable role name. Example: `admin`
+- `permissions` JSON NOT NULL DEFAULT '[]' — JSON Array of permission strings. Presence implies `true`. Example: `["users:create", "orders:read"]`
+- `created_at` INTEGER NOT NULL — Unix timestamp of creation. Example: `1700000000`
+- `created_by` TEXT NULLABLE — User ID who created the role. Example: `system`
+- `modified_at` INTEGER NOT NULL — Unix timestamp of last modification. Example: `1700000000`
+- `modified_by` TEXT NULLABLE — User ID who last modified the role. Example: `user:alice`
+- `deleted_at` INTEGER NULLABLE — Soft-delete timestamp. Example: `null`
+- `deleted_by` TEXT NULLABLE — User ID who deleted the role. Example: `null`
 
-`user_roles` columns
-- `user_id` TEXT NOT NULL — FK -> `users.id`
-- `role_id` TEXT NOT NULL — FK -> `roles.id`
-- `assigned_at` INTEGER NOT NULL — Example: `1700000000`
-- `assigned_by` TEXT NULLABLE — Example: `admin:john`
-- `created_at` INTEGER NOT NULL — Example: `1700000000`
-- `created_by` TEXT NULLABLE — Example: `admin:john`
-- `deleted_at` INTEGER NULLABLE — Example: `null`
-- `deleted_by` TEXT NULLABLE — Example: `null`
+#### Recommended Permission Flags (String Array)
+Add these strings to the `permissions` array to grant access.
 
-Indexes
-- `CREATE UNIQUE INDEX idx_user_roles_unique ON user_roles(user_id, role_id);`
+**System**
+- `user:read` — View user list
+- `user:create` — Create new users
+- `user:edit` — Edit user details
+- `user:delete` — Delete users
+- `role:read` — View roles & permissions
+- `role:create` — Create new roles
+- `role:edit` — Edit role names & permissions
+- `role:delete` — Delete roles
+- `venue:read` — View venue details
+- `venue:create` — Create new venues
+- `venue:edit` — Edit venue settings, taxes & printers
+- `venue:delete` — Delete venues
+
+**Catalog**
+- `catalog:read` — View products/menus
+- `catalog:create` — Create new products/offerings
+- `catalog:edit` — Edit products/prices
+- `catalog:delete` — Delete/Archive products
+
+**Orders**
+- `order:read` — View orders
+- `order:create` — Create orders (POS)
+- `order:edit` — Edit active orders
+- `order:delete` — Delete/Archive orders
+- `order:discount` — Apply manual discounts
+- `order:void` — Void active orders
+- `order:refund` — Refund completed orders
+
+**Seating**
+- `seat:read` — View floor plan/status
+- `seat:create` — Create new storage/tables
+- `seat:edit` — Edit seat/table details
+- `seat:delete` — Delete/Remove seats
+
+**Promotions (Discounts)**
+- `discount:read` — View available promotions
+- `discount:create` — Create new promotions
+- `discount:edit` — Edit promotion rules
+- `discount:delete` — Delete promotions
+
+**Payments**
+- `payment:read` — View payment history
+- `payment:create` — Process/Capture payments
+- `payment:edit` — Edit payment metadata
+- `payment:delete` — Delete/Void payments
+
+**Addresses**
+- `address:read` — View all stored addresses
+- `address:create` — Create new addresses
+- `address:edit` — Edit address details
+- `address:delete` — Delete addresses
+
+**Reports**
+- `report:read` — View sales reports
 
 Example rows (YAML):
 
@@ -1570,21 +1618,23 @@ Example rows (YAML):
 - id: role-admin
   name: admin
   permissions:
-    manage_users: true
+    - user:create
+    - user:edit
+    - user:delete
   created_at: 1700000000
   modified_at: 1700000000
   created_by: system
   modified_by: null
   deleted_at: null
   deleted_by: null
-
-# user_roles
-- user_id: user-01H0X4ZQ7K8H2A0Q8W1M2N7
-  role_id: role-admin
-  assigned_at: 1700000000
-  assigned_by: admin:john
+  
+- id: role-staff
+  name: staff
+  permissions: []
   created_at: 1700000000
-  created_by: admin:john
+  modified_at: 1700000000
+  created_by: system
+  modified_by: null
   deleted_at: null
   deleted_by: null
 ```
