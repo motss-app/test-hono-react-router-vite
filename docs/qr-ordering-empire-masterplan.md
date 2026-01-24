@@ -536,11 +536,16 @@ This architecture prioritizes **simplicity** and **reliability**.
 ```sql
 -- 1. Venues (The Tenant)
 CREATE TABLE venues (
-  id TEXT PRIMARY KEY, -- UUID
+  id TEXT PRIMARY KEY, -- ULID or UUIDv7 (sortable ID)
   slug TEXT UNIQUE, -- e.g. 'yakun-orchard'
   name TEXT NOT NULL,
   settings_json TEXT, -- Config: { "tax": 0.09, "service_charge": 0.10 }
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  created_at INTEGER DEFAULT (strftime('%s','now')),
+  modified_at INTEGER DEFAULT (strftime('%s','now')),
+  created_by TEXT NULL,
+  modified_by TEXT NULL,
+  deleted_at INTEGER NULL,
+  deleted_by TEXT NULL
 );
 
 -- 2. Products (The Menu Items)
@@ -553,7 +558,13 @@ CREATE TABLE products (
   cost_price_cents INTEGER, -- NEW: For Margin Analysis (Profit = Price - Cost)
   is_available BOOLEAN DEFAULT TRUE, -- For '86' (Sold Out) feature
   category TEXT, -- 'Drinks', 'Mains'
-  attributes_json TEXT -- { "spicy": true, "vegan": false }
+  attributes_json TEXT, -- { "spicy": true, "vegan": false }
+  created_at INTEGER DEFAULT (strftime('%s','now')),
+  modified_at INTEGER DEFAULT (strftime('%s','now')),
+  created_by TEXT NULL,
+  modified_by TEXT NULL,
+  deleted_at INTEGER NULL,
+  deleted_by TEXT NULL
 );
 
 -- 3. Users (The Customer)
@@ -563,7 +574,13 @@ CREATE TABLE users (
   phone TEXT UNIQUE, -- Primary identifier in SEA
   email TEXT,
   name TEXT,
-  points_balance INTEGER DEFAULT 0
+  points_balance INTEGER DEFAULT 0,
+  created_at INTEGER DEFAULT (strftime('%s','now')),
+  modified_at INTEGER DEFAULT (strftime('%s','now')),
+  created_by TEXT NULL,
+  modified_by TEXT NULL,
+  deleted_at INTEGER NULL,
+  deleted_by TEXT NULL
 );
 
 -- 4. Orders (The Transaction Header)
@@ -576,24 +593,35 @@ CREATE TABLE orders (
   total_amount_cents INTEGER NOT NULL,
   payment_method TEXT, -- 'PAYNOW', 'CARD', 'CASH'
   session_duration_seconds INTEGER, -- NEW: For Table Turnover Analysis (DO calculates this)
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  created_at INTEGER DEFAULT (strftime('%s','now')),
+  modified_at INTEGER DEFAULT (strftime('%s','now')),
+  created_by TEXT NULL,
+  modified_by TEXT NULL,
+  deleted_at INTEGER NULL,
+  deleted_by TEXT NULL
 );
 
 -- 5. OrderItems (The Transaction Details)
 -- Split from Orders to allow item-level analytics and kitchen routing.
-CREATE TABLE order_items (
+CREATE TABLE items (
   id TEXT PRIMARY KEY,
   order_id TEXT NOT NULL REFERENCES orders(id),
   product_id TEXT NOT NULL REFERENCES products(id),
   product_name_snapshot TEXT NOT NULL, -- Store name at time of purchase!
   price_at_purchase_cents INTEGER NOT NULL,
   quantity INTEGER NOT NULL DEFAULT 1,
-  modifiers_json TEXT -- { "sugar": "less", "ice": "more" }
+  modifiers_json TEXT, -- { "sugar": "less", "ice": "more" }
+  created_at INTEGER DEFAULT (strftime('%s','now')),
+  modified_at INTEGER DEFAULT (strftime('%s','now')),
+  created_by TEXT NULL,
+  modified_by TEXT NULL,
+  deleted_at INTEGER NULL,
+  deleted_by TEXT NULL
 );
 
 -- Indexes for Performance
 CREATE INDEX idx_orders_venue_date ON orders(venue_id, created_at);
-CREATE INDEX idx_order_items_order ON order_items(order_id);
+CREATE INDEX idx_items_order ON items(order_id);
 ```
 
 ### C. Performance & Scaling Strategy (Handling Joins)
@@ -737,7 +765,7 @@ CREATE INDEX idx_order_items_order ON order_items(order_id);
     *   **Scenario:** User visits Venue A and Venue B. Both orders link to the same `user_id`. We can calculate "Total Lifetime Value" of this user across the entire platform.
 
 4.  **Managing Relationships (Foreign Keys)**
-    *   **Strategy:** We use `TEXT` (UUIDs) for IDs and enforce relationships via code (and SQL constraints where supported).
+    *   **Strategy:** We use `TEXT` (sortable IDs — ULID or UUIDv7) for IDs and enforce relationships via code (and SQL constraints where supported).
     *   **Performance:** We add **Indexes** on foreign keys (`venue_id`, `order_id`) to make lookups instant.
     *   **Scale:** This structure is "Sharding-Ready". If we grow to 1 million venues, we can move Venue A's data to a different D1 database easily because all its related data (Products, Orders) shares the same `venue_id`.
 
