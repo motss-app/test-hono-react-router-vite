@@ -26,10 +26,13 @@
     - [`addresses` (reusable addresses)](#addresses-reusable-addresses)
     - [`roles` (RBAC)](#roles-rbac)
       - [Recommended Permission Flags (String Array)](#recommended-permission-flags-string-array)
-    - [Durable Objects (DO) — per-user revocation pattern](#durable-objects-do--per-user-revocation-pattern)
+- [Architecture Patterns \& Implementation Examples](#architecture-patterns--implementation-examples)
+  - [Durable Objects (DO) — per-user revocation pattern](#durable-objects-do--per-user-revocation-pattern)
     - [DO implementation sketch (TypeScript pseudocode)](#do-implementation-sketch-typescript-pseudocode)
     - [ASCII flow (KV-first, DO authoritative)](#ascii-flow-kv-first-do-authoritative)
-    - [Guest checkout (anonymous)](#guest-checkout-anonymous)
+    - [Expiration Strategy \& Recommendations](#expiration-strategy--recommendations)
+  - [Guest checkout (anonymous)](#guest-checkout-anonymous)
+  - [Provisional orders \& DO coordination](#provisional-orders--do-coordination)
   - [How to consume (example pattern)](#how-to-consume-example-pattern)
   - [Linkages](#linkages)
 
@@ -1434,7 +1437,13 @@ Example rows (YAML):
 
 ---
 
-### Durable Objects (DO) — per-user revocation pattern
+---
+
+# Architecture Patterns & Implementation Examples
+
+The following sections verify the feasibility of key flows using the schema above.
+
+## Durable Objects (DO) — per-user revocation pattern
 Rationale: when you want a Cloudflare-only solution that supports *fast* global revocation and simple coordination without an external Redis, use a small DO instance keyed by `user:{user_id}` to hold the *authoritative* version and a small active-session set.
 
 How it works (concise):
@@ -1450,7 +1459,7 @@ interface SessionMeta {
   user_id: string
   issued_at: number
   expires_at: number
-  ver: string | number
+  ver: number // use integer for simple comparison
   device?: string
   ip?: string
   user_agent?: string
@@ -1461,22 +1470,43 @@ interface SessionMeta {
 }
 
 interface DOState {
-  version: string | number
-  sessions: Record<string, SessionMeta>
-  last_cleanup_at?: number
+  version: number
+  sessions: Record<string, SessionMeta> // Record for JSON serialization support
+  last_cleanup_at: number // For lazy garbage collection of expired sessions
 }
 ```
 
 DO methods (sketch):
 ```ts
-class UserSessionDO {
+class UserSessionDO implements DurableObject {
+  private state: DOState;
+
+  // Helper: Centralize version logic
+  private isValidVersion(ver: number): boolean {
+    return ver === this.state.version;
+  }
+  
+  // Helper: Lazy cleanup of expired sessions
+  private cleanupExpired() {
+     const now = Date.now();
+     // Run only if enough time passed (e.g., 24h) to save CPU
+     if (now - this.state.last_cleanup_at < 86400000) return;
+
+     for (const [id, meta] of Object.entries(this.state.sessions)) {
+       if (meta.expires_at < now) {
+         delete this.state.sessions[id];
+       }
+     }
+     this.state.last_cleanup_at = now;
+  }
+
   async addSession(meta: SessionMeta) {
     this.state.sessions[meta.session_id] = meta
     // write-through: update KV for fast reads
     await SESSIONS_KV.put(`session:${meta.session_id}`, JSON.stringify(meta), {expiration: meta.expires_at})
     await SESSIONS_KV.put(`user:${meta.user_id}:ver`, String(this.state.version))
     await this.saveState()
-    await D1.run('INSERT INTO session_audit ...')
+    await D1.run('INSERT INTO session_audit ...') // Persist audit trail
   }
 
   async removeSession(session_id: string) {
@@ -1488,46 +1518,51 @@ class UserSessionDO {
     await D1.run('INSERT INTO session_audit ...')
   }
 
-  async incrVersion() {
-    // new version may be integer INCR or ULID/UUIDv7
-    this.state.version = newULIDOrIncr()
-    // clear active sessions set
-    this.state.sessions = {}
+  // Renamed from incrVersion/clearSessions to be more explicit
+  async revokeAllSessions() {
+    // 1. Bump version (invalidates all old session versions)
+    this.state.version++;
+    // 2. Clear memory (garbage collection) - technically optional for security but good hygiene
+    this.state.sessions = {} 
+    
     await this.saveState()
     // write-through KV for fast readers
     await SESSIONS_KV.put(`user:${this.user_id}:ver`, String(this.state.version))
     await D1.run('INSERT INTO session_audit ...')
   }
 
-  async isActiveSession(session_id: string, ver?: string|number): Promise<{ active: boolean, session?: SessionMeta, currentVersion?: string|number }> {
-    // authoritative check: session exists, not expired, and matches current DO version
+  async isActiveSession(session_id: string, ver?: number): Promise<{ active: boolean, session?: SessionMeta, currentVersion?: number }> {
+    // 0. Occasional cleanup
+    this.cleanupExpired();
+
+    // 1. Authoritative check: version match (fastest fail)
+    // If ver is provided, must match current DO version
+    if (ver !== undefined && !this.isValidVersion(ver)) {
+        return { active: false };
+    }
+
+    // 2. Session existence check
     const s = this.state.sessions[session_id]
     if (!s) return { active: false }
-    const active = (s.expires_at > now()) && (ver == null ? (s.ver === this.state.version) : (s.ver === this.state.version || ver === this.state.version))
-    if (!active) return { active: false }
+
+    // 3. Expiry check
+    if (s.expires_at <= Date.now()) return { active: false }
+
+    // Double check internal version consistency (in case session stored has diff version)
+    if (!this.isValidVersion(s.ver)) return { active: false }
+
     return { active: true, session: s, currentVersion: this.state.version }
   }
 
-  async getVersion(): Promise<string|number> {
-    // returns the current authoritative per-user version
+  async getVersion(): Promise<number> {
     return this.state.version
-  }
-
-  async clearSessions() {
-    // authoritative revoke-all: bump version and clear sessions
-    this.state.version = newULIDOrIncr()
-    this.state.sessions = {}
-    await this.saveState()
-    // write-through update so edges can fast-reject on version mismatch
-    await SESSIONS_KV.put(`user:${this.user_id}:ver`, String(this.state.version))
-    await D1.run('INSERT INTO session_audit ...')
   }
 }
 ```
 
 ### ASCII flow (KV-first, DO authoritative)
 ```text
-            Client
+            Client (sends cookie: session_id)
             |
             v
     Edge Worker (Auth middleware)
@@ -1540,25 +1575,25 @@ class UserSessionDO {
    +--------+--------+
    |                 |
    |                 |
-[NO SESSION]    [SESSION FOUND in KV]
+[KV MISS]       [KV HIT]
    |                 |
    v                 v
 +----------------+  read session.user_id & session.ver
 | Call userDO.is  |        |
-| ActiveSession() |        v
-+----------------+  +-------------------------------+
-| DO active ->    |  | 2) KV.get(user:{user_id}:ver) |
-|   ALLOW (opt:   |  +-------------------------------+
-|   populate KV)  |        |
-| DO inactive ->  |        |
-|   REJECT        |        +-- user_ver === session.ver -> ALLOW (fast path)
-+----------------+        |
-                          +-- mismatch/missing -> Call userDO.isActiveSession(session_id, session.ver)
+| ActiveSession   |        v
+| (session_id)    |  +-------------------------------+
++----------------+  | 2) KV.get(user:{user_id}:ver) |
+| DO active ->    |  +-------------------------------+
+|   ALLOW (write  |       |
+|    to KV)       |       |
+| DO inactive ->  |       +-- user_ver === session.ver -> ALLOW (fast path)
+|   REJECT        |       |
++----------------+        +-- mismatch/missing -> Call userDO.isActiveSession(session_id, session.ver)
                                 | active -> ALLOW (update KV)
                                 | inactive -> REJECT + DELETE KV `session:{id}`
 
 Canonical flows (matches examples):
-1) KV miss -> DO says active -> ALLOW (optionally re-populate KV for future fast path)
+1) KV miss (but cookie sent) -> DO says active -> ALLOW (write to KV so next time is fast)
 2) KV hit with user_ver match -> ALLOW (fast, no DO call)
 3) KV hit with ver mismatch -> DO: if session active -> ALLOW (update KV); else -> REJECT + DELETE KV
 
@@ -1569,33 +1604,26 @@ Administrative / logout actions:
   2) Persist audit row to D1
   3) Immediately delete KV `session:{session_id}` (no stale cache)
 - Logout-everywhere / revoke-all:
-  1) userDO.incrVersion(); userDO.clearSessions()  <-- authoritative
+  1) userDO.revokeAllSessions()  <-- authoritative (bumps version + clears sessions)
   2) Persist audit to D1
-  3) Delete per-user KV session keys OR rely on ver mismatch to reject (DO writes new `user:{id}:ver` to KV)
+  3) Rely on ver mismatch to reject (DO writes new `user:{id}:ver` to KV) - this is mathematically equivalent to deleting keys but instantly global.
 ```
 
 Notes & concerns:
 - Deleting KV immediately after DO changes avoids stale reads on edges.
-- Clearing all per-user KV session keys may be expensive; use a per-user index (in D1 or compact KV list) to enumerate and delete, or rely on DO clearing + KV write-through to update user version for fast rejection.
-- Keep DO state small; perform periodic cleanup of expired sessions in the DO.
-- On auth check: read session from KV (fast), then call `userDO.check(session_id, session.ver)` → returns OK or REJECT (DO keeps authoritative state).
+- DO state is small and authoritative; periodic cleanup handles expired sessions.
+- On auth check: read session from KV (fast), then call `userDO.isActiveSession` only if needed.
 
 Pros ✅
-- Immediate revocation (no eventual-consistency window).
+- Near-immediate revocation (KV propagation speed ~seconds).
+- Reliable strong consistency option available (bypassing KV if needed).
 - No external provider required — fits full CF stack (KV + DO + D1 for audit).
-- Strong consistency for revokes; simple API for admins and edges.
+- Simple API for admins and edges.
 
 Cons ⚠️
 - DOs serialize requests per instance — for extremely hot users there may be contention. If you expect heavy concurrent operations for the same user, shard DO state (user:{id}:shardN) or offload hot counters to D1/Redis.
 - DO memory limits; keep per-user state tiny (int + small set with TTL).
 - Extra DO call per auth check (low latency, but additional hop).
-
-DO interface (canonical, pseudo)
-- getVersion() -> string | number
-- incrVersion() -> string | number
-- removeSession(session_id: string) -> ok  // removes session from DO active set
-- clearSessions() -> ok // bump version and clear active sessions
-- isActiveSession(session_id: string, ver?: string | number) -> { active: boolean, session?: SessionMeta, currentVersion?: string | number }
 
 Pseudocode (auth check) — uses rich DO response:
 
@@ -1635,17 +1663,16 @@ return allow()
 Admin revoke-all pseudocode:
 
 ```js
-await userDO.incrVersion(); // returns new version
-await userDO.clearSessions(); // remove all session IDs from DO active set
-INSERT INTO session_audit (user_id,event,at) VALUES (?, 'revoke_all', strftime('%s','now'))
+await userDO.revokeAllSessions(); 
+// DO internally handles version bump, clearing sessions, and KV write-through
 ```
 
 Policy: logout behavior and safe actions
-- **Default logout (recommended UX):** clear only the current session — implement by calling `userDO.removeSession(session_id)`, writing an audit row to D1, and **delete the KV session key immediately** (do not rely on expiry).
-- **Logout everywhere / security event:** invalidate all sessions by calling `userDO.incrVersion()` (or set a new ULID/UUIDv7 version), write an audit row to D1, then optionally delete KV session keys for that user.
+- **Default logout (recommended UX):** clear only the current session — implement by calling `userDO.removeSession(session_id)`, writing an audit row to D1, and **delete the KV session key immediately**.
+- **Logout everywhere / security event:** invalidate all sessions by calling `userDO.revokeAllSessions()`.
 
 Safe write order (summary):
-1. Update authoritative DO (revokeSession or incrVersion).
+1. Update authoritative DO (revokeSession or revokeAllSessions).
 2. Persist audit to D1 (who/when/reason).
 3. Optionally delete KV session keys (or let them expire).
 
@@ -1654,7 +1681,9 @@ Notes:
 - Use DO per-user — DO per-session is generally overkill and can exhaust DO instances.
 
 Listing & admin operations
-- KV is not great for arbitrary listing; maintain a compact per-user index (D1 table or KV list key `user:{user_id}:sessions`) when you create sessions so admin UI can list & revoke quickly.
+- **Real-time (Active):** Call the DO directly (e.g., `userDO.getSessions()`) to view technically active sessions. Since the DO is per-user, this is fast and strictly consistent.
+- **Historical (Audit):** Query the `session_audit` table in D1 to see login history and revocation events.
+- **Anti-pattern:** Do not maintain a "list of sessions" in KV. It is redundant, hard to keep in sync, and unnecessary given the DO's authoritative state.
 
 Example KV value (expanded JSON):
 
@@ -1685,13 +1714,23 @@ VALUES (?, ?, 'login', strftime('%s','now'), ?, ?);
 
 Quick checklist
 - Generate long random `session_id` and store as cookie value.
-- Set KV expiration; keep values small.
-- Implement revocation via versioning or per-session revocation keys.
+- Use `expiration` (absolute timestamp) in KV to match `session.expires_at`. Do not use `expirationTtl` to avoid extending cache beyond valid session life.
+- Implement revocation via versioning.
 - Write compact audit rows to D1 when sessions are created/revoked for traceability.
 
----
+### Expiration Strategy & Recommendations
 
-### Guest checkout (anonymous)
+**KV Cache vs. Session Life**
+- **CRITICAL:** Always use `expiration` (absolute timestamp) when writing to KV, never `expirationTtl`.
+  - *Risk:* If a session expires at 10:00 PM, and you write to KV at 9:55 PM with `expirationTtl: 3600` (1 hour), the KV key remains alive until 10:55 PM. This creates a 55-minute window where a "dead" session effectively persists in the cache.
+  - *Fix:* `KV.put(key, value, { expiration: session.expires_at })`. This ensures the cache key vanishes exactly when the session dies.
+
+**Recommended Session Durations**
+- **Standard Web App (SaaS, Commerce):** 7 to 30 days. Prioritize UX and reducing login friction.
+- **High-Security (Banking, Admin):** 15 to 30 minutes (sliding window).
+- **Mobile App:** Long-lived refresh token (infinite/year) + short-lived access token (1 hour).
+
+## Guest checkout (anonymous)
 Policy: For guest/anonymous orders we **do not** create `users` rows. Guest activity is a one-off tied to the `orders` record and should be captured via snapshot fields.
 
 Recommended fields:
@@ -1735,9 +1774,9 @@ Deleted row example (YAML):
 id: ord-0001
 deleted_at: 1700005000
 deleted_by: admin:john
----
+```
 
-### Provisional orders & DO coordination
+## Provisional orders & DO coordination
 In high-concurrency or multi-device scenarios we recommend supporting *provisional* orders (short-lived, mutable order objects) that are coordinated by a Durable Object (DO). This lets the DO act as the authoritative coordinator for merges, concurrency resolution, and finalization (no long-lived reservations required).
 
 Key additions to `orders` schema (recommended):
