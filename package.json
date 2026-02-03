@@ -14,8 +14,8 @@
     "tailwindcss": "4.1.18"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.3.13",
-    "@cloudflare/workers-types": "4.20260131.0",
+    "@biomejs/biome": "2.3.14",
+    "@cloudflare/workers-types": "4.20260203.0",
     "@hono/node-server": "1.19.9",
     "@hono/vite-dev-server": "0.24.1",
     "@react-router/dev": "7.13.0",
@@ -25,7 +25,7 @@
     "typescript": "5.9.3",
     "vite": "7.3.1",
     "vite-tsconfig-paths": "6.0.5",
-    "wrangler": "4.61.1"
+    "wrangler": "4.62.0"
   },
   "name": "test-hono-react-router-vite",
   "private": true,
