@@ -25,7 +25,10 @@
     - [`seats` (in-store seating management)](#seats-in-store-seating-management)
     - [`addresses` (reusable addresses)](#addresses-reusable-addresses)
     - [`roles` (RBAC)](#roles-rbac)
+      - [Access Scope Definitions](#access-scope-definitions)
+      - [How Scope is Applied (Implementation Logic)](#how-scope-is-applied-implementation-logic)
       - [Recommended Permission Flags (String Array)](#recommended-permission-flags-string-array)
+      - [Reference: User Types \& Default Roles](#reference-user-types--default-roles)
 - [Architecture Patterns \& Implementation Examples](#architecture-patterns--implementation-examples)
   - [Durable Objects (DO) — per-user revocation pattern](#durable-objects-do--per-user-revocation-pattern)
     - [DO implementation sketch (TypeScript pseudocode)](#do-implementation-sketch-typescript-pseudocode)
@@ -603,14 +606,14 @@ Purpose: store local user accounts and identity metadata (support SSO/external p
 
 Columns
 - `id` TEXT PRIMARY KEY — Example (ULID): `user-01H0X4ZQ7K8H2A0Q8W1M2N7`
-- `email` TEXT UNIQUE NOT NULL — Example: `alice@example.com`
+- `email` TEXT NULLABLE — Example: `alice@example.com` (Nullable for anonymous guests)
 - `role_id` TEXT NOT NULL — FK -> `roles.id` — Example: `role-admin`
 - `password_hash` TEXT NULLABLE — Example: `bcrypt$2b$...` (nullable for SSO-only accounts)
 - `first_name` TEXT NULLABLE — Example: `Alice`
 - `last_name` TEXT NULLABLE — Example: `Smith`
 - `phone` TEXT NULLABLE — Example: `+65 9123 4567`
 - `default_delivery_address_id` TEXT NULLABLE — FK -> `addresses.id` — Example: `addr-001`
-- `status` TEXT NOT NULL — Example: `active` (enum: `active`, `suspended`, `deleted`)
+- `status` TEXT NOT NULL — Example: `active` (enum: `active`, `suspended`, `deleted`). Guests are `active` but have `role_id='role-guest'`.
 - `email_verified` INTEGER DEFAULT 0 — Example: `0`
 - `first_login` INTEGER NULLABLE — Example: `1700000000` — *set on first successful login*
 - `last_login` INTEGER NULLABLE — Example: `1700000500`
@@ -623,7 +626,7 @@ Columns
 - `deleted_by` TEXT NULLABLE — Example: `null`
 
 Indexes & constraints
-- `CREATE UNIQUE INDEX idx_users_email ON users(email);`
+- `CREATE UNIQUE INDEX idx_users_email ON users(email) WHERE email IS NOT NULL;`
 
 Example row (YAML):
 
@@ -1341,6 +1344,7 @@ Purpose: basic role-based access control (named roles).
 - `id` TEXT PRIMARY KEY — Unique role identifier. Example: `role-admin`
 - `name` TEXT UNIQUE NOT NULL — Human-readable role name. Example: `admin`
 - `permissions` JSON NOT NULL DEFAULT '[]' — JSON Array of permission strings. Presence implies `true`. Example: `["users:create", "orders:read"]`
+- `scope` TEXT NOT NULL DEFAULT 'own' — Data visibility scope. Values: `own`, `venue`, `system`. Determine which rows are returned. Example: `venue`
 - `created_at` INTEGER NOT NULL — Unix timestamp of creation. Example: `1700000000`
 - `created_by` TEXT NULLABLE — User ID who created the role. Example: `system`
 - `modified_at` INTEGER NOT NULL — Unix timestamp of last modification. Example: `1700000000`
@@ -1348,64 +1352,157 @@ Purpose: basic role-based access control (named roles).
 - `deleted_at` INTEGER NULLABLE — Soft-delete timestamp. Example: `null`
 - `deleted_by` TEXT NULLABLE — User ID who deleted the role. Example: `null`
 
+#### Access Scope Definitions
+Permissions follow the format `resource:action`.
+- **Resource**: The entity being accessed (e.g., `order`, `user`).
+- **Action**: The capability being performed (e.g., `read`, `create`).
+- **Scope**: The data visibility filter (e.g., Own, Venue, System).
+
+| Scope | Description | Typical Role | Database Filter Example |
+| :--- | :--- | :--- | :--- |
+| **Own** | User acts only on their own data. | Guest, Customer | `WHERE owner_id = current_user.id` |
+| **Venue** | User acts on all data in their active venue. | Staff | `WHERE venue_id = current_user.venue_id` |
+| **System** | User acts on all data globally. | Admin | (No Filter) |
+
+#### How Scope is Applied (Implementation Logic)
+When an API request is made, the backend performs two checks:
+1. **Permission Check**: Does the user have the `resource:action` flag? (e.g., `order:read`)
+2. **Scope Application**: What is the user's role scope? Apply the filter.
+
+**Pseudo-code Example:**
+```typescript
+export type AccessScope = 'own' | 'venue' | 'system';
+
+/**
+ * Applies row-level security filters based on the user's role scope.
+ * @param query - The Knex/Kysely query builder instance
+ * @param user - The authenticated user object (must contain role.scope and identifying IDs)
+ * @param ownerColumn - The column name checking ownership (default: 'user_id')
+ */
+export function applyScope(query: any, user: any, ownerColumn = 'user_id') {
+  const scope = user.role.scope as AccessScope;
+
+  // 1. System Admin: See everything (Global)
+  if (scope === 'system') {
+    return query; 
+  }
+
+  // 2. Venue Staff: See everything in this venue
+  if (scope === 'venue') {
+    // Assumes the user is linked to a venue and the table has 'venue_id'
+    if (!user.venue_id) throw new Error("Venue scope requires user.venue_id");
+    return query.where('venue_id', '=', user.venue_id);
+  }
+
+  // 3. Customer/Guest: See only their own data
+  if (scope === 'own') {
+    // Assumes the table tracks ownership via `ownerColumn` (e.g. user_id)
+    return query.where(ownerColumn, '=', user.id);
+  }
+  
+  // Default: Safe fallback (return nothing if scope is unknown)
+  return query.where('1', '=', '0'); 
+}
+
+async function getOrders(user, db) {
+  // 1. Permission Check
+  if (!user.permissions.includes("order:read")) {
+    // Check strict string permission
+    throw new Error("Unauthorized: Missing order:read permission");
+  }
+
+  // 2. Scope Application
+  let query = db.selectFrom("orders");
+
+  // Apply the helper function to filter rows based on 'scope'
+  query = applyScope(query, user, 'user_id');
+
+  return await query.execute();
+}
+```
+
 #### Recommended Permission Flags (String Array)
-Add these strings to the `permissions` array to grant access.
+We use standard granular verbs.
+
+We standardize on the `read`, `create`, `edit`, `delete` order, followed by specialized actions.
 
 **System**
-- `user:read` — View user list
-- `user:create` — Create new users
-- `user:edit` — Edit user details
-- `user:delete` — Delete users
-- `role:read` — View roles & permissions
-- `role:create` — Create new roles
-- `role:edit` — Edit role names & permissions
-- `role:delete` — Delete roles
+- `sys:monitor` — View system status
+- `settings:read` — View global settings
+- `settings:edit` — Update global settings
+
+**Venues**
 - `venue:read` — View venue details
-- `venue:create` — Create new venues
-- `venue:edit` — Edit venue settings, taxes & printers
+- `venue:create` — Create venues
+- `venue:edit` — Edit venue details
 - `venue:delete` — Delete venues
 
+**Users**
+- `user:read` — View user profiles
+- `user:create` — Create users
+- `user:edit` — Edit user details
+- `user:delete` — Delete/Ban users
+
+**Roles**
+- `role:read` — View roles
+- `role:create` — Create roles
+- `role:edit` — Edit roles
+- `role:delete` — Delete roles
+
 **Catalog**
-- `catalog:read` — View products/menus
-- `catalog:create` — Create new products/offerings
+- `catalog:read` — View products
+- `catalog:create` — Create products
 - `catalog:edit` — Edit products/prices
 - `catalog:delete` — Delete/Archive products
 
 **Orders**
 - `order:read` — View orders
-- `order:create` — Create orders (POS)
-- `order:edit` — Edit active orders
+- `order:create` — Create/Draft new orders
+- `order:edit` — Edit active orders (add/remove items)
 - `order:delete` — Delete/Archive orders
+- `order:checkout` — Finalize/Place orders
 - `order:discount` — Apply manual discounts
-- `order:void` — Void active orders
-- `order:refund` — Refund completed orders
+- `order:void` — Void orders
+- `order:refund` — Refund orders
 
 **Seating**
 - `seat:read` — View floor plan/status
-- `seat:create` — Create new storage/tables
-- `seat:edit` — Edit seat/table details
-- `seat:delete` — Delete/Remove seats
+- `seat:create` — Create seats/tables
+- `seat:edit` — Edit seat properties
+- `seat:delete` — Remove seats
+- `seat:reserve` — Make a reservation
 
-**Promotions (Discounts)**
+**Promotions**
 - `discount:read` — View available promotions
-- `discount:create` — Create new promotions
+- `discount:create` — Create promotions
 - `discount:edit` — Edit promotion rules
 - `discount:delete` — Delete promotions
 
 **Payments**
-- `payment:read` — View payment history
-- `payment:create` — Process/Capture payments
+- `payment:read` — View payment records
+- `payment:create` — Process a payment
 - `payment:edit` — Edit payment metadata
-- `payment:delete` — Delete/Void payments
+- `payment:delete` — Delete payment records
+- `payment:void` — Void pending payments
 
 **Addresses**
-- `address:read` — View all stored addresses
-- `address:create` — Create new addresses
-- `address:edit` — Edit address details
+- `address:read` — View addresses
+- `address:create` — Create addresses
+- `address:edit` — Edit addresses
 - `address:delete` — Delete addresses
 
 **Reports**
-- `report:read` — View sales reports
+- `report:read` — View reports
+- `report:export` — Export reports
+
+#### Reference: User Types & Default Roles
+
+| User Configuration / Type | Default Role ID | Typical Permissions | Scope / Description |
+| :--- | :--- | :--- | :--- |
+| **Guest** (Anonymous) | `role-guest` | `["catalog:read", "order:create", "order:checkout", "seat:read", "seat:reserve", "discount:read", "payment:create"]` | Can browse, order, and pay for own session. |
+| **Customer** (Signed Up) | `role-user` | `["catalog:read", "order:read", "order:create", "order:checkout", "seat:read", "seat:reserve", "discount:read", "payment:create", "user:read", "user:edit", "address:read", "address:create", "address:edit", "address:delete"]` | Can browse and manage own data (profile, orders, addresses). |
+| **Staff** (Employee) | `role-staff` | `["venue:read", "catalog:read", "order:read", "order:edit", "order:discount", "order:void", "payment:read", "seat:edit", "discount:read", "user:read"]` | Can manage all venue resources. |
+| **Admin** (Manager/Owner) | `role-admin` | `["*"]` (Wildcard) | Full access. |
 
 Example rows (YAML):
 
@@ -1413,10 +1510,9 @@ Example rows (YAML):
 # roles
 - id: role-admin
   name: admin
+  scope: system
   permissions:
-    - user:create
-    - user:edit
-    - user:delete
+    - "*"
   created_at: 1700000000
   modified_at: 1700000000
   created_by: system
@@ -1426,7 +1522,60 @@ Example rows (YAML):
   
 - id: role-staff
   name: staff
-  permissions: []
+  scope: venue
+  permissions:
+    - venue:read
+    - catalog:read
+    - order:read
+    - order:edit
+    - order:discount
+    - order:void
+    - payment:read
+    - seat:edit
+    - user:read
+  created_at: 1700000000
+  modified_at: 1700000000
+  created_by: system
+  modified_by: null
+  deleted_at: null
+  deleted_by: null
+
+- id: role-user
+  name: user
+  scope: own
+  permissions:
+    - catalog:read
+    - order:read
+    - order:create
+    - order:checkout
+    - seat:read
+    - seat:reserve
+    - discount:read
+    - payment:create
+    - user:read
+    - user:edit
+    - address:read
+    - address:create
+    - address:edit
+    - address:delete
+  created_at: 1700000000
+  modified_at: 1700000000
+  created_by: system
+  modified_by: null
+  deleted_at: null
+  deleted_by: null
+
+- id: role-guest
+  name: guest
+  scope: own
+  permissions:
+    - catalog:read
+    - order:create
+    - order:checkout
+    - seat:read
+    - seat:reserve
+    - discount:read
+    - payment:create
   created_at: 1700000000
   modified_at: 1700000000
   created_by: system
@@ -1728,37 +1877,68 @@ Quick checklist
 **Recommended Session Durations**
 - **Standard Web App (SaaS, Commerce):** 7 to 30 days. Prioritize UX and reducing login friction.
 - **High-Security (Banking, Admin):** 15 to 30 minutes (sliding window).
+  - *Sliding window:* The expiration timer resets on every user action (e.g., navigation, API call). If the timeout is set to 15 minutes, the user is logged out only if they are inactive for the full 15 minutes. This contrasts with a *fixed* expiration, which would force a logout regardless of activity.
 - **Mobile App:** Long-lived refresh token (infinite/year) + short-lived access token (1 hour).
 
 ## Guest checkout (anonymous)
-Policy: For guest/anonymous orders we **do not** create `users` rows. Guest activity is a one-off tied to the `orders` record and should be captured via snapshot fields.
+Policy: Reuse the `users` table for guests to unify identity management. This avoids duplicate fields in `orders` and simplifies address/history association if they register later.
 
-Recommended fields:
-- `orders.guest_name` TEXT NULLABLE
-- `orders.guest_email` TEXT NULLABLE
-- `orders.guest_phone` TEXT NULLABLE
-- Use `items` rows (or an `items` list) to store per-line prices and tax; avoid a separate `pricing_snapshot` JSON field.
-- `order_items.price_minor`, `order_items.tax_code`, `order_items.item_name` — snapshot pricing and display values at order time
+**Guest User Schema (Annotated `users` row)**
 
-Notes:
-- `created_by` will be `null` or set to a readable token (e.g., `system:cron`) for guest or system-created orders.
-- If a guest later registers, you may link their account to existing orders via application logic, but do not create persistent `users` automatically without consent.
+Guests are stored in the main `users` table to unify identity management.
 
-Example guest order (YAML):
+**User Table Columns (Guest Configuration):**
+
+- `id`: *Generate Link* (ULID/UUID).
+- `email`: **`NULL`** (unless you captured it via a "Email me my receipt" flow).
+- `role_id`: **`role-guest`** (A restricted role with 0 permissions).
+- `password_hash`: **`NULL`** (Guests cannot login).
+- `first_name`: **`NULL`** (or captured name).
+- `last_name`: **`NULL`** (or captured name).
+- `phone`: **`NULL`** (or captured phone).
+- `default_delivery_address_id`: **`NULL`**.
+- `status`: `'active'` (They are active users, just with a specific role).
+- `email_verified`: `0`.
+- `first_login`: **`NULL`**.
+- `last_login`: **`NULL`**.
+- `metadata`: `{ "is_guest": true }` (Optional flag for easier filtering).
+- `created_at`: *Timestamp*.
+- `modified_at`: *Timestamp*.
+- `created_by`: `'system'` (or generic app user).
+- `modified_by`: `'system'`.
+- `deleted_at`: **`NULL`**.
+- `deleted_by`: **`NULL`**.
+
+**Address Handling:**
+- Do **not** create a row in the `addresses` table for one-off guest deliveries.
+- Store the delivery details efficiently in the `orders.delivery` JSON snapshot.
+- *Reason:* Keeps the global address book clean. Convert to an `addresses` row only if the guest converts to a full account.
+
+**Key Changes:**
+- `orders` table: `user_id` should now point to this guest user row (typically generated at checkout start).
+- `orders` table: `guest_email` and `guest_name` fields are **not needed** on the order itself, as they are stored on the linked user row.
+
+**Account Promotion (Guest → Full User):**
+When a guest decides to sign up, use their **Email** or **Phone** as the unique identifier.
+1. **Lookup:** Check `users` table for this email/phone.
+2. **Match (Guest):** If found and `role_id` is `role-guest` -> **Update** this row (promote): set `password_hash`, change `role` to `role-user` (the default for signed-up customers), verify status.
+   - **Why this works:** The `users.id` (PK) remains unchanged. Since existing `orders` are already linked to this `user_id`, the user effectively "inherits" their entire guest history instantly upon registration.
+3. **Match (Full User):** If found and is a standard user -> **Reject** (or require login). You cannot overwrite a full account. 
+4. **No Match:** Create new user with `role-user`.
+
+**Example guest order (YAML):**
 
 ```yaml
 id: ord-guest-0001
 venue_id: v1b2c3d4-1111-2222-3333-abcde00001
-user_id: null
+user_id: user-guest-01H0X4ZQ...  # Points to the guest user row
 seat_id: null
 created_by: null
-guest_name: "Guest"
-guest_email: null
 status: closed
 subtotal_minor: 1299
 tax_minor: 104
 items:
-  - id: oi-guest-01
+  - id: oi-001
     offering_id: null
     name: "Yakitori (3pc)"
     unit_price_minor: 1299
