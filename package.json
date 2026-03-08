@@ -4,14 +4,14 @@
     "@iconify-json/fa7-brands": "1.2.2",
     "@iconify-json/fa7-regular": "1.2.3",
     "@iconify-json/fa7-solid": "1.2.4",
-    "@iconify/tailwind4": "1.2.3",
+    "@iconify/react": "^5.2.0",
     "@react-router/node": "7.13.1",
+    "@stylexjs/stylex": "^0.18.1",
     "hono": "4.12.5",
     "isbot": "5.1.35",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "react-router": "7.13.1",
-    "tailwindcss": "4.1.18"
+    "react-router": "7.13.1"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.6",
@@ -19,7 +19,7 @@
     "@hono/node-server": "1.19.11",
     "@hono/vite-dev-server": "0.25.0",
     "@react-router/dev": "7.13.1",
-    "@tailwindcss/vite": "4.2.1",
+    "@stylexjs/unplugin": "^0.18.1",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "typescript": "5.9.3",

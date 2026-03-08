@@ -1,9 +1,34 @@
-import { data, Link, type LoaderFunctionArgs } from 'react-router';
+import { create, props } from '@stylexjs/stylex';
+import type { JSX } from 'react/jsx-runtime';
+import { data, Link } from 'react-router';
 
-import type { Route } from '../routes/+types/$.ts';
+import { tokens } from '../styles/tokens.stylex.ts';
+import type { Route } from './+types/$.ts';
+
+const s = create({
+  container: {
+    fontFamily: 'system-ui',
+    padding: tokens.spacing8,
+    textAlign: 'center',
+  },
+  h1: {
+    fontSize: '4rem',
+    margin: 0,
+  },
+  link: {
+    color: {
+      ':hover': '#004499',
+      default: '#0066cc',
+    },
+    textDecoration: 'none',
+  },
+  marginTop: {
+    marginTop: tokens.spacing8,
+  },
+});
 
 // Catch-all route for 404s (including Chrome DevTools special paths)
-export function loader({ request }: LoaderFunctionArgs) {
+export function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url);
 
   // Silently handle Chrome DevTools system requests
@@ -28,43 +53,23 @@ export function loader({ request }: LoaderFunctionArgs) {
   });
 }
 
-export default function NotFound({ loaderData }: Route.ComponentProps) {
+export default function NotFound({ loaderData }: Route.ComponentProps): JSX.Element | null {
   // For special system paths, don't render anything visible
   if (loaderData.silent) {
     return null;
   }
 
   return (
-    <div
-      style={{
-        fontFamily: 'system-ui',
-        padding: '2rem',
-        textAlign: 'center',
-      }}
-    >
-      <h1
-        style={{
-          fontSize: '4rem',
-          margin: '0',
-        }}
-      >
-        404
-      </h1>
+    <div {...props(s.container)}>
+      <h1 {...props(s.h1)}>404</h1>
       <h2>Page Not Found</h2>
       <p>
         The page <code>{loaderData.url}</code> does not exist.
       </p>
-      <div
-        style={{
-          marginTop: '2rem',
-        }}
-      >
+      <div {...props(s.marginTop)}>
         <Link
-          style={{
-            color: '#0066cc',
-            textDecoration: 'none',
-          }}
           to="/"
+          {...props(s.link)}
         >
           ← Go back home
         </Link>

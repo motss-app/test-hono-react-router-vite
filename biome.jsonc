@@ -346,6 +346,19 @@
           }
         }
       }
+    },
+    {
+      "includes": [
+        "**/*.styles.ts",
+        "**/*.stylex.ts"
+      ],
+      "linter": {
+        "rules": {
+          "nursery": {
+            "useExplicitType": "off"
+          }
+        }
+      }
     }
   ],
   "vcs": {

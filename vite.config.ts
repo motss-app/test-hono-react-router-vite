@@ -1,12 +1,15 @@
 import honoDevServer, { defaultOptions } from '@hono/vite-dev-server';
 import { nodeAdapter } from '@hono/vite-dev-server/node';
 import { reactRouter } from '@react-router/dev/vite';
-import tailwindcss from '@tailwindcss/vite';
+import stylex from '@stylexjs/unplugin';
 import { defineConfig } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig({
   plugins: [
+    stylex.vite({
+      useCSSLayers: true,
+    }),
     honoDevServer({
       adapter: nodeAdapter(),
       entry: './app/server.ts',
@@ -26,6 +29,5 @@ export default defineConfig({
      */
     reactRouter(),
     tsconfigPaths(),
-    tailwindcss(),
   ],
 });

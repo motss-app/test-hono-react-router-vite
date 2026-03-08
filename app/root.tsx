@@ -1,5 +1,5 @@
-import './app.css';
-
+import { Icon } from '@iconify/react';
+import { props } from '@stylexjs/stylex';
 import type { JSX, PropsWithChildren } from 'react';
 import {
   isRouteErrorResponse,
@@ -12,6 +12,7 @@ import {
 } from 'react-router';
 
 import type { Route } from './+types/root.ts';
+import { errorStyles, globalStyles } from './app.styles.ts';
 
 export const links: Route.LinksFunction = () => [
   {
@@ -32,8 +33,8 @@ export const links: Route.LinksFunction = () => [
 export function Layout({ children }: PropsWithChildren): JSX.Element {
   return (
     <html
-      className="dark"
       lang="en"
+      {...props(globalStyles.global)}
     >
       <head>
         <meta charSet="utf-8" />
@@ -43,8 +44,15 @@ export function Layout({ children }: PropsWithChildren): JSX.Element {
         />
         <Meta />
         <Links />
+
+        {import.meta.env.DEV ? (
+          <link
+            href="/virtual:stylex.css"
+            rel="stylesheet"
+          />
+        ) : null}
       </head>
-      <body>
+      <body {...props(globalStyles.body)}>
         {children}
         <ScrollRestoration />
         <Scripts />
@@ -117,43 +125,52 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): JSX.Element 
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-900">
-      <div className="max-w-2xl w-full dark:bg-slate-800 rounded-2xl shadow-xl p-8 text-center">
+    <main {...props(errorStyles.main)}>
+      <div {...props(errorStyles.container)}>
         <div
-          className={`text-6xl mb-6 ${
-            statusCode >= serverErrorThreshold ? 'text-red-600' : 'text-yellow-600'
-          }`}
+          {...props(
+            errorStyles.icon,
+            statusCode >= serverErrorThreshold
+              ? errorStyles.iconServerError
+              : errorStyles.iconClientError
+          )}
         >
-          <i className="iconify fa7-solid--exclamation-triangle" />
+          <Icon icon="fa7-solid:exclamation-triangle" />
         </div>
 
         <h1
-          className={`text-4xl font-bold mb-4 ${
-            statusCode >= serverErrorThreshold ? 'text-red-600' : 'text-yellow-600'
-          }`}
+          {...props(
+            errorStyles.title,
+            statusCode >= serverErrorThreshold
+              ? errorStyles.titleServerError
+              : errorStyles.titleClientError
+          )}
         >
           {message}
         </h1>
 
-        <p className="text-lg text-slate-600 dark:text-slate-300 mb-8">{details}</p>
+        <p {...props(errorStyles.details)}>{details}</p>
 
         {stack && (
-          <details className="bg-slate-100 dark:bg-slate-700 rounded-lg p-4 mb-8 text-left">
-            <summary className="cursor-pointer font-semibold text-slate-900 dark:text-white mb-4 flex items-center space-x-2">
-              <i className="iconify fa7-solid--bug text-red-600" />
+          <details {...props(errorStyles.stackDetails)}>
+            <summary {...props(errorStyles.stackSummary)}>
+              <Icon
+                color="#f87171"
+                icon="fa7-solid:bug"
+              />
               <span>Stack Trace (Development Only)</span>
             </summary>
-            <pre className="bg-slate-800 text-slate-200 rounded p-4 overflow-auto text-sm font-mono">
+            <pre {...props(errorStyles.stackPre)}>
               <code>{stack}</code>
             </pre>
           </details>
         )}
 
         <Link
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors inline-flex items-center space-x-2"
           to="/"
+          {...props(errorStyles.link)}
         >
-          <i className="iconify fa7-solid--arrow-left" />
+          <Icon icon="fa7-solid:arrow-left" />
           <span>Go back home</span>
         </Link>
       </div>
