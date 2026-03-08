@@ -51,6 +51,8 @@ export const tokens = defineVars({
   // Layout - Max Widths
   maxWidth2xl: '42rem', // max-w-2xl
   maxWidth4xl: '56rem', // max-w-4xl
+  primary: '#2563eb',
+  primaryHover: '#1e40af',
   purple: '#9333ea', // purple-600
   purpleHover: '#6b21a8', // purple-800
   slate100: '#f1f5f9',
@@ -79,6 +81,9 @@ export const tokens = defineVars({
 
   // Layout - Other
   textAlign: 'center',
+
+  // Accessibility / semantic
+  textColor: '#111827',
 
   // Transitions
   transitionColors: 'color 0.15s ease-in-out',
@@ -118,4 +123,32 @@ export const darkTokens = defineVars({
 export const darkTheme = createTheme(tokens, {
   // Dark mode uses CSS @media (prefers-color-scheme: dark) - defined in global styles
   // These overrides are placeholders if we need explicit class-based dark mode
+  amber200: '#78350f',
+  bgColor: '#0f172a',
+  // slate-900 approx
+  error: '#f87171',
+  // red-400
+  errorHover: '#fca5a5',
+  // red-300
+  info: '#60a5fa',
+  // blue-400
+  infoHover: '#93c5fd',
+  // blue-300
+  primary: '#60a5fa',
+  // blue-400
+  primaryHover: '#93c5fd',
+  // blue-300
+  purple: '#c084fc',
+  // purple-400
+  purpleHover: '#d8b4fe',
+  // purple-300
+  slate400: '#94a3b8',
+  slate600: '#475569',
+  // adjust new slate/amber tokens to match dark mode classes
+  slate800: '#1e293b',
+  success: '#4ade80',
+  // green-400
+  successHover: '#86efac',
+  // green-300
+  textColor: '#e2e8f0',
 });

@@ -52,7 +52,12 @@ export function Layout({ children }: PropsWithChildren): JSX.Element {
             href="/virtual:stylex.css"
             rel="stylesheet"
           />
-        ) : null}
+        ) : (
+          <link
+            href="/assets/stylex.css"
+            rel="stylesheet"
+          />
+        )}
       </head>
       <body {...props(globalStyles.body)}>
         {children}
