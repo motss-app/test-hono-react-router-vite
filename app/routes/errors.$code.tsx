@@ -75,7 +75,6 @@ const s = create({
   page: {
     margin: '0 auto',
     maxWidth: '48rem', // max-w-3xl
-    minHeight: '100vh',
     padding: tokens.spacing8,
     textAlign: 'center',
   },

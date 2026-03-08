@@ -21,6 +21,13 @@ This repository is a **Deno-first** project using **Hono** and **React Router v7
   - `deno.json`: Main configuration for Deno tasks and compiler options.
   - `wrangler.jsonc`: Configuration for Cloudflare Workers.
   - `vite.config.ts`: Base Vite config.
+  - `vite.hono.config.ts`: *never* include the `@stylexjs/unplugin` plugin;
+    the only config allowed to hold `stylex.vite()` is `vite.config.ts`.
+    Plugins added to other configs are strictly prohibited and will be removed.
+  - **Never create or import a global stylesheet such as `app.css`**. All
+    global helpers and resets must be expressed via StyleX tokens, utilities,
+    or components. Introducing vanilla CSS causes layering issues and is
+    strictly prohibited.
 
 ## Coding Style
 - Prefer TypeScript.
@@ -36,6 +43,11 @@ This repository is a **Deno-first** project using **Hono** and **React Router v7
   - **Prefer** `RouterContextProvider` over `hono/context-storage` (AsyncLocalStorage) for better performance.
 
 ## Workflow
-- **Instruction Updates**: When the user asks to "add instructions", update this file (`.github/copilot-instructions.md`) immediately.
+- **Instruction Updates**: When the user asks to "add instructions", update this file (`.github/copilot-instructions.md`) immediately.  
+  - ***New rules:***
+    * LLM responses must respect the configuration rule above and never
+      gratuitously modify other Vite configs with the StyleX plugin.
+    * LLMs must **never suggest adding `app.css` or any global CSS file**
+      anywhere in the repo; global styling belongs inside StyleX constructs only.
 - **Quality Assurance**: **ALWAYS** check for and fix type errors immediately after making any code changes. Run `deno task check` to verify. Do not leave broken types for the user to fix.
 - **Testing**: Always verify changes by running relevant tests or build tasks (e.g., `deno task build`) without waiting for explicit user prompts.

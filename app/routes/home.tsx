@@ -1,79 +1,101 @@
-import { NavigationMenu } from '@base-ui-components/react/navigation-menu';
+import { NavigationMenu } from '@base-ui/react/navigation-menu';
 import { Icon } from '@iconify/react';
 import { create, props } from '@stylexjs/stylex';
 import type { JSX } from 'react';
-import { Link } from 'react-router';
 
+import { Link } from '../components/Link.tsx';
+import { Text } from '../components/Text.tsx';
 import { tokens } from '../styles/tokens.stylex.ts';
 import type { Route } from './+types/home.ts';
 
 const s = create({
   heading: {
-    color: tokens.textColor, // dark mode handled by theme provider or CSS variables
+    color: 'oklch(92.9% .013 255.508)',
     fontSize: tokens.fontSize4xl,
     fontWeight: tokens.fontWeightBold,
     marginBottom: tokens.spacing8,
     textAlign: tokens.textAlign,
   },
-  link: {
+  linkBlue: {
+    ':hover': {
+      color: 'oklch(70.7% .165 254.624)',
+    },
     alignItems: 'center',
+    color: {
+      '@media (prefers-color-scheme: dark)': 'oklch(70.7% .165 254.624)',
+      default: 'oklch(42.4% .199 265.638)',
+    },
     display: 'flex',
     fontWeight: tokens.fontWeightSemibold,
     gap: tokens.spacing2,
     textDecoration: 'none',
     transition: tokens.transitionColors,
   },
-  // Link variants
-  linkBlue: {
-    ':hover': {
-      color: tokens.infoHover,
-    },
-    color: tokens.info,
-  },
   linkGreen: {
     ':hover': {
-      color: tokens.successHover,
+      color: 'oklch(79.2% .209 151.711)',
     },
-    color: tokens.success,
+    alignItems: 'center',
+    color: {
+      '@media (prefers-color-scheme: dark)': 'oklch(79.2% .209 151.711)',
+      default: 'oklch(62.7% .194 149.214)',
+    },
+    display: 'flex',
+    fontWeight: tokens.fontWeightSemibold,
+    gap: tokens.spacing2,
+    textDecoration: 'none',
+    transition: tokens.transitionColors,
   },
   linkPurple: {
     ':hover': {
-      color: tokens.purpleHover,
+      color: 'oklch(71.4% .203 305.504)',
     },
-    color: tokens.purple,
+    alignItems: 'center',
+    color: {
+      '@media (prefers-color-scheme: dark)': 'oklch(71.4% .203 305.504)',
+      default: 'oklch(55.8% .288 302.321)',
+    },
+    display: 'flex',
+    fontWeight: tokens.fontWeightSemibold,
+    gap: tokens.spacing2,
+    textDecoration: 'none',
+    transition: tokens.transitionColors,
   },
   linkRed: {
     ':hover': {
-      color: tokens.errorHover,
+      color: 'oklch(70.4% .191 22.216)',
     },
-    color: tokens.error,
+    alignItems: 'center',
+    color: {
+      '@media (prefers-color-scheme: dark)': 'oklch(70.4% .191 22.216)',
+      default: 'oklch(57.7% .245 27.325)',
+    },
+    display: 'flex',
+    fontWeight: tokens.fontWeightSemibold,
+    gap: tokens.spacing2,
+    textDecoration: 'none',
+    transition: tokens.transitionColors,
   },
   navList: {
     display: 'grid',
-    gap: tokens.spacing16,
+    gap: tokens.spacing4,
     listStyle: 'none',
     margin: 0,
     padding: 0,
   },
   navRoot: {
-    borderColor: '#fde68a', // b-amber-200
-    borderRadius: tokens.borderRadiusSm,
-    borderStyle: 'solid',
-    borderWidth: '1px',
     marginLeft: 'auto',
     marginRight: 'auto',
-    padding: tokens.spacing16,
+    padding: tokens.spacing8,
     width: 'fit-content',
   },
   paragraph: {
-    color: tokens.textColor,
+    color: 'oklch(70.4% .04 256.788)',
     fontSize: tokens.fontSizeXl,
-    lineHeight: 1.625, // leading-relaxed
-    marginBottom: '3rem', // mb-12
+    lineHeight: tokens.lineHeightRelaxed,
     marginLeft: 'auto',
     marginRight: 'auto',
-    maxWidth: '42rem', // max-w-2xl
-    opacity: 0.8, // Approximation for slate-600/400
+    maxWidth: tokens.maxWidth2xl,
     textAlign: tokens.textAlign,
   },
 });
@@ -93,15 +115,20 @@ export function meta(_args: Route.MetaArgs): Route.MetaDescriptors {
 export default function Home(): JSX.Element {
   return (
     <>
-      <h1 {...props(s.heading)}>Home</h1>
-      <p {...props(s.paragraph)}>This is the home page.</p>
+      <Text
+        as="h1"
+        {...props(s.heading)}
+      >
+        Home
+      </Text>
+      <Text {...props(s.paragraph)}>This is the home page.</Text>
 
       <NavigationMenu.Root {...props(s.navRoot)}>
         <NavigationMenu.List {...props(s.navList)}>
           <NavigationMenu.Item>
             <Link
               to="/about"
-              {...props(s.link, s.linkBlue)}
+              {...props(s.linkBlue)}
             >
               <NavigationMenu.Icon>
                 <Icon icon="fa7-solid:info" />
@@ -112,7 +139,7 @@ export default function Home(): JSX.Element {
           <NavigationMenu.Item>
             <Link
               to="/ssr"
-              {...props(s.link, s.linkGreen)}
+              {...props(s.linkGreen)}
             >
               <NavigationMenu.Icon>
                 <Icon icon="fa7-solid:server" />
@@ -123,7 +150,7 @@ export default function Home(): JSX.Element {
           <NavigationMenu.Item>
             <Link
               to="/hono-rpc"
-              {...props(s.link, s.linkPurple)}
+              {...props(s.linkPurple)}
             >
               <NavigationMenu.Icon>
                 <Icon icon="fa7-solid:home" />
@@ -134,7 +161,7 @@ export default function Home(): JSX.Element {
           <NavigationMenu.Item>
             <Link
               to="/errors"
-              {...props(s.link, s.linkRed)}
+              {...props(s.linkRed)}
             >
               <NavigationMenu.Icon>
                 <Icon icon="fa7-solid:triangle-exclamation" />

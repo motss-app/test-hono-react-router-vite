@@ -33,6 +33,7 @@ export const links: Route.LinksFunction = () => [
 export function Layout({ children }: PropsWithChildren): JSX.Element {
   return (
     <html
+      className="dark"
       lang="en"
       {...props(globalStyles.global)}
     >
@@ -44,6 +45,7 @@ export function Layout({ children }: PropsWithChildren): JSX.Element {
         />
         <Meta />
         <Links />
+        {/* body/global styles are applied via StyleX `globalStyles` */}
 
         {import.meta.env.DEV ? (
           <link
@@ -66,7 +68,6 @@ export default function App(): JSX.Element {
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): JSX.Element {
-  // HTTP status code constants
   const httpNotFound = 404;
   const httpUnauthorized = 401;
   const httpForbidden = 403;
@@ -84,7 +85,6 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): JSX.Element 
   if (isRouteErrorResponse(error)) {
     statusCode = error.status;
 
-    // Handle different HTTP status codes
     switch (error.status) {
       case httpNotFound:
         message = '404 - Not Found';
@@ -119,7 +119,6 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): JSX.Element 
         details = error.statusText || error.data?.message || details;
     }
   } else if (import.meta.env.DEV && error && error instanceof Error) {
-    // Development mode: show detailed error info
     details = error.message;
     stack = error.stack;
   }

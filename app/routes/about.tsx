@@ -3,15 +3,16 @@ import { create, props } from '@stylexjs/stylex';
 import type { JSX } from 'react';
 import { Link } from 'react-router';
 
+import { Text } from '../components/Text.tsx';
 import { tokens } from '../styles/tokens.stylex.ts';
 import type { Route } from './+types/about.ts';
 
 const s = create({
   backLink: {
     ':hover': {
-      color: tokens.primaryHover,
+      color: '#93c5fd',
     },
-    color: tokens.primary,
+    color: '#60a5fa',
     textDecoration: 'none',
     transition: tokens.transitionColors,
   },
@@ -19,18 +20,18 @@ const s = create({
     marginBlockStart: tokens.spacing8,
   },
   card: {
-    backgroundColor: tokens.bgColor, // Implicit, but good to be explicit or leave transparent if body bg
-    borderRadius: '0.75rem', // rounded-xl
+    backgroundColor: '#1e293b', // dark:bg-slate-800
+    borderRadius: tokens.borderRadiusXl,
     boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
     padding: tokens.spacing8,
   },
   cardIcon: {
-    fontSize: '1.875rem', // text-3xl
+    fontSize: tokens.fontSize3xl,
   },
   container: {
     marginLeft: 'auto',
     marginRight: 'auto',
-    maxWidth: '56rem', // max-w-4xl
+    maxWidth: tokens.maxWidth4xl,
     paddingBottom: tokens.spacing16,
     paddingLeft: tokens.spacing4,
     paddingRight: tokens.spacing4,
@@ -38,44 +39,43 @@ const s = create({
     width: '100%',
   },
   ctaSection: {
-    backgroundColor: '#0f172a', // bg-slate-900 (always dark for CTA)
-    borderRadius: '1rem', // rounded-2xl
-    color: 'white',
-    padding: '3rem', // p-12
-    textAlign: 'center',
+    backgroundColor: tokens.slate900,
+    borderRadius: tokens.borderRadius2xl,
+    color: tokens.white,
+    padding: tokens.spacing12,
+    textAlign: tokens.textAlign,
   },
   ctaText: {
-    color: 'white',
+    color: tokens.white,
     fontSize: tokens.fontSizeXl,
     marginBottom: tokens.spacing8,
     opacity: 0.9,
   },
   ctaTitle: {
-    color: 'white',
-    fontSize: '1.875rem',
+    color: tokens.white,
+    fontSize: tokens.fontSize3xl,
     fontWeight: tokens.fontWeightBold,
     marginBottom: tokens.spacing4,
   },
   featureCard: {
-    padding: '1.5rem',
-    textAlign: 'center',
+    padding: tokens.spacing6,
+    textAlign: tokens.textAlign,
   },
   featureIconBase: {
-    fontSize: '2.25rem', // text-4xl
+    fontSize: tokens.fontSize4xl,
     marginBottom: tokens.spacing4,
   },
   featureIconPurple: {
     color: tokens.purple,
   },
   featureIconYellow: {
-    color: tokens.warning,
+    color: '#fbbf24', // amber-400
   },
   featureText: {
-    color: tokens.textColor,
-    opacity: 0.8,
+    color: '#94a3b8', // dark:text-slate-400
   },
   featureTitle: {
-    color: tokens.textColor,
+    color: '#ffffff', // dark:text-white
     fontSize: tokens.fontSizeXl,
     fontWeight: tokens.fontWeightSemibold,
     marginBottom: '0.75rem',
@@ -90,53 +90,53 @@ const s = create({
   },
   grid3: {
     display: 'grid',
-    gap: '1.5rem', // gap-6
+    gap: tokens.spacing6,
     gridTemplateColumns: {
       '@media (min-width: 768px)': 'repeat(3, 1fr)',
       default: '1fr',
     },
   },
   h1: {
-    color: tokens.textColor,
+    color: '#ffffff', // dark:text-white
     fontSize: {
       '@media (min-width: 768px)': '3rem',
-      default: '2.25rem',
-    }, // text-4xl / md:5xl
+      default: tokens.fontSize4xl,
+    },
     fontWeight: tokens.fontWeightBold,
-    marginBottom: tokens.spacing4,
+    marginBottom: tokens.spacing6,
   },
   h2: {
-    color: tokens.textColor,
-    fontSize: '1.875rem', // text-3xl
+    color: '#ffffff', // dark:text-white
+    fontSize: tokens.fontSize3xl,
     fontWeight: tokens.fontWeightBold,
-    marginBottom: '3rem', // mb-12
-    textAlign: 'center',
+    marginBottom: tokens.spacing12,
+    textAlign: tokens.textAlign,
   },
   h3: {
     alignItems: 'center',
-    color: tokens.textColor,
+    color: '#ffffff', // dark:text-white
     display: 'flex',
-    fontSize: '1.5rem', // text-2xl
+    fontSize: tokens.fontSize2xl,
     fontWeight: tokens.fontWeightSemibold,
-    gap: '0.75rem', // space-x-3
+    gap: tokens.spacing3,
     marginBottom: tokens.spacing4,
   },
   heroIconWrapper: {
-    color: tokens.primary,
-    fontSize: '3.75rem', // text-6xl
-    marginBottom: tokens.spacing4, // mb-6 originally
+    color: '#60a5fa', // dark:text-blue-400
+    fontSize: '3.75rem',
+    marginBottom: tokens.spacing6,
   },
   heroSection: {
     marginBottom: tokens.spacing16,
+    textAlign: tokens.textAlign,
   },
   list: {
-    color: tokens.textColor,
+    color: '#94a3b8', // dark:text-slate-400
     display: 'flex',
     flexDirection: 'column',
-    gap: '0.75rem', // space-y-3
+    gap: tokens.spacing3,
     listStyle: 'none',
     margin: 0,
-    opacity: 0.8,
     padding: 0,
   },
   listItem: {
@@ -145,28 +145,23 @@ const s = create({
     gap: tokens.spacing2,
   },
   p: {
-    color: tokens.textColor,
+    color: '#94a3b8', // dark:text-slate-400
     fontSize: tokens.fontSizeXl,
     marginLeft: 'auto',
     marginRight: 'auto',
-    maxWidth: '42rem',
-    opacity: 0.8, // slate-600 approx
+    maxWidth: tokens.maxWidth2xl,
   },
   pageWrapper: {
-    minHeight: '100vh',
     padding: tokens.spacing8,
   },
   section: {
     marginBottom: tokens.spacing16,
   },
   textBlue: {
-    color: tokens.primary,
-  },
-  textCenter: {
-    textAlign: 'center',
+    color: '#60a5fa', // dark:text-blue-400
   },
   textGreen: {
-    color: tokens.success,
+    color: '#4ade80', // dark:text-green-400
   },
 });
 
@@ -196,29 +191,42 @@ export default function About(): JSX.Element {
 
       <div {...props(s.container)}>
         {/* Header */}
-        <div {...props(s.heroSection, s.textCenter)}>
+        <div {...props(s.heroSection)}>
           <div {...props(s.heroIconWrapper)}>
             <Icon icon="fa7-solid:circle-info" />
           </div>
-          <h1 {...props(s.h1)}>About This Project</h1>
-          <p {...props(s.p)}>
+          <Text
+            as="h1"
+            {...props(s.h1)}
+          >
+            About This Project
+          </Text>
+          <Text {...props(s.p)}>
             A modern full-stack web application showcasing the power of React Router, Hono, and
             cutting-edge development tools.
-          </p>
+          </Text>
         </div>
 
         {/* Tech Stack */}
         <section {...props(s.section)}>
-          <h2 {...props(s.h2)}>Technology Stack</h2>
+          <Text
+            as="h2"
+            {...props(s.h2)}
+          >
+            Technology Stack
+          </Text>
 
           <div {...props(s.grid2)}>
             <div {...props(s.card)}>
-              <h3 {...props(s.h3)}>
+              <Text
+                as="h3"
+                {...props(s.h3)}
+              >
                 <span {...props(s.cardIcon, s.textBlue)}>
                   <Icon icon="fa7-solid:gears" />
                 </span>
                 <span>Frontend</span>
-              </h3>
+              </Text>
               <ul {...props(s.list)}>
                 <li {...props(s.listItem)}>
                   <span {...props(s.textGreen)}>
@@ -248,12 +256,15 @@ export default function About(): JSX.Element {
             </div>
 
             <div {...props(s.card)}>
-              <h3 {...props(s.h3)}>
+              <Text
+                as="h3"
+                {...props(s.h3)}
+              >
                 <span {...props(s.cardIcon, s.textGreen)}>
                   <Icon icon="fa7-solid:server" />
                 </span>
                 <span>Backend</span>
-              </h3>
+              </Text>
               <ul {...props(s.list)}>
                 <li {...props(s.listItem)}>
                   <span {...props(s.textGreen)}>
@@ -286,39 +297,70 @@ export default function About(): JSX.Element {
 
         {/* Features */}
         <section {...props(s.section)}>
-          <h2 {...props(s.h2)}>Key Features</h2>
+          <Text
+            as="h2"
+            {...props(s.h2)}
+          >
+            Key Features
+          </Text>
 
           <div {...props(s.grid3)}>
             <div {...props(s.featureCard)}>
               <div {...props(s.featureIconBase, s.featureIconYellow)}>
                 <Icon icon="fa7-solid:bolt" />
               </div>
-              <h3 {...props(s.featureTitle)}>Fast Development</h3>
-              <p {...props(s.featureText)}>Hot module replacement and instant builds with Vite</p>
+              <Text
+                as="h3"
+                {...props(s.featureTitle)}
+              >
+                Fast Development
+              </Text>
+              <Text {...props(s.featureText)}>
+                Hot module replacement and instant builds with Vite
+              </Text>
             </div>
 
             <div {...props(s.featureCard)}>
               <div {...props(s.featureIconBase, s.textBlue)}>
                 <Icon icon="fa7-solid:shield" />
               </div>
-              <h3 {...props(s.featureTitle)}>Type Safety</h3>
-              <p {...props(s.featureText)}>Full TypeScript support throughout the entire stack</p>
+              <Text
+                as="h3"
+                {...props(s.featureTitle)}
+              >
+                Type Safety
+              </Text>
+              <Text {...props(s.featureText)}>
+                Full TypeScript support throughout the entire stack
+              </Text>
             </div>
 
             <div {...props(s.featureCard)}>
               <div {...props(s.featureIconBase, s.featureIconPurple)}>
                 <Icon icon="fa7-solid:mobile" />
               </div>
-              <h3 {...props(s.featureTitle)}>Responsive Design</h3>
-              <p {...props(s.featureText)}>Mobile-first design with StyleX</p>
+              <Text
+                as="h3"
+                {...props(s.featureTitle)}
+              >
+                Responsive Design
+              </Text>
+              <Text {...props(s.featureText)}>Mobile-first design with StyleX</Text>
             </div>
           </div>
         </section>
 
         {/* Call to Action */}
         <section {...props(s.ctaSection)}>
-          <h2 {...props(s.ctaTitle)}>Explore the Demos</h2>
-          <p {...props(s.ctaText)}>See these technologies in action with our interactive demos</p>
+          <Text
+            as="h2"
+            {...props(s.ctaTitle)}
+          >
+            Explore the Demos
+          </Text>
+          <Text {...props(s.ctaText)}>
+            See these technologies in action with our interactive demos
+          </Text>
         </section>
       </div>
     </div>

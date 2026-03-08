@@ -339,10 +339,12 @@
       "linter": {
         "rules": {
           "correctness": {
-            "noUndeclaredDependencies": "off"
+            "noUndeclaredDependencies": "off",
+            "noUnresolvedImports": "off"
           },
           "style": {
-            "noImplicitBoolean": "off"
+            "noImplicitBoolean": "off",
+            "noJsxLiterals": "off"
           }
         }
       }

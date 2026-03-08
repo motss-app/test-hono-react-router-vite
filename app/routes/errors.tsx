@@ -112,7 +112,6 @@ const s = create({
     fontFamily: "'Inter', sans-serif",
     margin: '0 auto',
     maxWidth: '48rem', // max-w-3xl
-    minHeight: '100vh',
     padding: tokens.spacing8,
   },
   ul: {

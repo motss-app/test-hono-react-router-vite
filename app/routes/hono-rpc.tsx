@@ -5,6 +5,7 @@ import { Link, useRevalidator } from 'react-router';
 
 import type { ApiAppType } from '../apis/mod.ts';
 import { Skeleton } from '../components/skeleton.tsx';
+import { Text } from '../components/Text.tsx';
 import { tokens } from '../styles/tokens.stylex.ts';
 import type { Route } from './+types/hono-rpc.ts';
 
@@ -72,17 +73,13 @@ clientLoader.hydrate = true;
 
 const s = create({
   actionContainer: {
-    borderColor: 'currentColor', // default border
-    borderRadius: '0.5rem', // rounded-lg
-    borderStyle: 'solid',
-    borderWidth: '1px',
-    margin: `${tokens.spacing24} 0`,
-    padding: tokens.spacing4,
+    marginBlockEnd: tokens.spacing2,
+    marginBlockStart: tokens.spacing2,
   },
   apiInfoCard: {
-    backgroundColor: '#312e81', // bg-indigo-900
-    borderColor: '#6366f1', // border-indigo-500
-    borderRadius: '0.5rem', // rounded-lg
+    backgroundColor: '#312e81',
+    borderColor: '#6366f1',
+    borderRadius: tokens.borderRadiusLg,
     borderStyle: 'solid',
     borderWidth: '1px',
     marginBottom: tokens.spacing4,
@@ -90,8 +87,8 @@ const s = create({
   },
   apiText: {
     color: {
-      '@media (prefers-color-scheme: dark)': '#e2e8f0', // text-slate-200
-      default: '#334155', // text-slate-700
+      '@media (prefers-color-scheme: dark)': tokens.slate200,
+      default: tokens.slate700,
     },
     marginBottom: tokens.spacing2,
   },
@@ -100,121 +97,119 @@ const s = create({
   },
   button: {
     border: 'none',
-    borderRadius: '0.5rem', // rounded-lg
+    borderRadius: tokens.borderRadiusLg,
     fontWeight: tokens.fontWeightMedium,
     outline: 'none',
-    padding: '0.75rem 1rem', // py-3 px-4
+    padding: '0.75rem 1rem',
     transition: tokens.transitionColors,
     width: '100%',
   },
   buttonActive: {
     backgroundColor: {
-      ':hover': '#1e3a8a', // hover:bg-blue-900
-      default: '#1e40af', // bg-blue-800
+      ':hover': '#1e3a8a',
+      default: tokens.infoHover,
     },
-    color: '#ffffff', // text-white
+    color: tokens.white,
     cursor: 'pointer',
   },
   buttonLoading: {
-    backgroundColor: '#64748b', // bg-slate-500
-    color: '#f1f5f9', // text-slate-100
+    backgroundColor: tokens.slate500,
+    color: tokens.slate100,
     cursor: 'not-allowed',
   },
   codeBlock: {
     backgroundColor: {
-      '@media (prefers-color-scheme: dark)': '#3730a3', // dark:bg-indigo-800
-      default: '#e0e7ff', // bg-indigo-100
+      '@media (prefers-color-scheme: dark)': '#3730a3',
+      default: '#e0e7ff',
     },
     borderColor: {
-      '@media (prefers-color-scheme: dark)': '#818cf8', // dark:border-indigo-400
-      default: '#6366f1', // border-indigo-500
+      '@media (prefers-color-scheme: dark)': '#818cf8',
+      default: '#6366f1',
     },
-    borderRadius: '0.25rem', // rounded
+    borderRadius: tokens.borderRadius,
     borderStyle: 'solid',
     borderWidth: '1px',
     fontFamily: 'monospace',
-    fontSize: '0.875rem', // text-sm
-    padding: '0.25rem 0.5rem', // px-2 py-1
+    fontSize: tokens.fontSizeSm,
+    padding: '0.25rem 0.5rem',
   },
   errorBox: {
     backgroundColor: {
-      '@media (prefers-color-scheme: dark)': '#7f1d1d', // dark:bg-red-900
-      default: '#fef2f2', // bg-red-50
+      '@media (prefers-color-scheme: dark)': '#7f1d1d',
+      default: '#fef2f2',
     },
     borderColor: {
-      '@media (prefers-color-scheme: dark)': '#f87171', // dark:border-red-400
-      default: '#ef4444', // border-red-500
+      '@media (prefers-color-scheme: dark)': tokens.error,
+      default: '#ef4444',
     },
-    borderRadius: '0.5rem', // rounded-lg
+    borderRadius: tokens.borderRadiusLg,
     borderStyle: 'solid',
     borderWidth: '1px',
     color: {
-      '@media (prefers-color-scheme: dark)': '#fca5a5', // dark:text-red-300
-      default: '#b91c1c', // text-red-700
+      '@media (prefers-color-scheme: dark)': '#fca5a5',
+      default: '#b91c1c',
     },
     marginBottom: tokens.spacing4,
     padding: tokens.spacing4,
   },
   h1: {
     color: {
-      '@media (prefers-color-scheme: dark)': '#ffffff', // text-white
-      default: '#0f172a', // text-slate-900
+      '@media (prefers-color-scheme: dark)': tokens.white,
+      default: tokens.slate900,
     },
     fontSize: tokens.fontSize4xl,
     fontWeight: tokens.fontWeightBold,
-    marginBottom: '1.5rem', // mb-6
+    marginBottom: tokens.spacing6,
   },
   h2: {
     color: {
-      '@media (prefers-color-scheme: dark)': '#ffffff', // text-white
-      default: '#0f172a', // text-slate-900
+      '@media (prefers-color-scheme: dark)': tokens.white,
+      default: tokens.slate900,
     },
-    fontSize: '1.5rem', // text-2xl
+    fontSize: tokens.fontSize2xl,
     fontWeight: tokens.fontWeightSemibold,
     marginBottom: tokens.spacing4,
   },
   infoContainer: {
-    color: '#64748b', // text-slate-500
-    fontSize: '0.875rem', // text-sm
-    marginTop: tokens.spacing8,
+    color: tokens.slate500,
+    fontSize: tokens.fontSizeSm,
   },
   infoPara: {
     marginBottom: tokens.spacing4,
   },
   infoText: {
     color: {
-      '@media (prefers-color-scheme: dark)': '#cbd5e1', // text-slate-300
-      default: '#475569', // text-slate-600
+      '@media (prefers-color-scheme: dark)': tokens.slate300,
+      default: tokens.slate600,
     },
-    fontSize: '0.875rem', // text-sm
+    fontSize: tokens.fontSizeSm,
     marginTop: tokens.spacing4,
   },
   link: {
+    ':hover': {
+      color: tokens.infoHover,
+    },
     color: {
-      ':hover': '#1e40af', // hover:text-blue-800
-      '@media (prefers-color-scheme: dark)': {
-        ':hover': '#93c5fd', // hover:text-blue-300
-        default: '#60a5fa', // text-blue-400
-      },
-      default: '#2563eb', // text-blue-600
+      '@media (prefers-color-scheme: dark)': '#60a5fa',
+      default: tokens.info,
     },
     textDecoration: 'underline',
     transition: tokens.transitionColors,
   },
   list: {
     color: {
-      '@media (prefers-color-scheme: dark)': '#cbd5e1', // text-slate-300
-      default: '#475569', // text-slate-600
+      '@media (prefers-color-scheme: dark)': tokens.slate300,
+      default: tokens.slate600,
     },
     listStylePosition: 'inside',
     listStyleType: 'disc',
-    marginBottom: tokens.spacing2, // space-y-2
+    marginBottom: tokens.spacing2,
     marginTop: tokens.spacing2,
   },
   p: {
     color: {
-      '@media (prefers-color-scheme: dark)': '#cbd5e1', // text-slate-300
-      default: '#475569', // text-slate-600
+      '@media (prefers-color-scheme: dark)': tokens.slate300,
+      default: tokens.slate600,
     },
     fontSize: tokens.fontSizeXl,
     marginBottom: tokens.spacing8,
@@ -222,41 +217,36 @@ const s = create({
   page: {
     display: 'flex',
     flexDirection: 'column',
-    fontFamily: tokens.fontSans,
-    gap: tokens.spacing24,
-    minHeight: '100vh',
+    gap: tokens.spacing2,
     padding: tokens.spacing8,
   },
   refreshPara: {
     marginTop: tokens.spacing4,
   },
   responseCard: {
-    backgroundColor: {
-      default: '#14532d', // bg-green-900 (Wait, original was bg-green-900? Let's check. Yes.)
-      // dark mode wasn't specified for bg, so it uses same.
-    },
+    backgroundColor: '#14532d',
     borderColor: {
-      '@media (prefers-color-scheme: dark)': '#4ade80', // dark:border-green-400
-      default: '#22c55e', // border-green-500
+      '@media (prefers-color-scheme: dark)': '#4ade80',
+      default: '#22c55e',
     },
-    borderRadius: '0.5rem', // rounded-lg
+    borderRadius: tokens.borderRadiusLg,
     borderStyle: 'solid',
     borderWidth: '1px',
-    padding: tokens.spacing16,
+    padding: tokens.spacing4,
   },
   retryLink: {
     color: {
       ':hover': {
-        '@media (prefers-color-scheme: dark)': '#ffffff', // dark:hover:text-white
-        default: '#0f172a', // hover:text-slate-900
+        '@media (prefers-color-scheme: dark)': tokens.white,
+        default: tokens.slate900,
       },
     },
     textDecoration: 'underline',
   },
   row: {
     color: {
-      '@media (prefers-color-scheme: dark)': '#e2e8f0', // text-slate-200
-      default: '#334155', // text-slate-700
+      '@media (prefers-color-scheme: dark)': tokens.slate200,
+      default: tokens.slate700,
     },
     marginBottom: tokens.spacing2,
   },
@@ -264,34 +254,34 @@ const s = create({
     alignItems: 'center',
     display: 'flex',
   },
-  skeletionAction: {
-    borderRadius: '0.5rem', // rounded-lg
-    height: '7.5rem', // h-30 (30 * 0.25rem = 7.5rem)
+  skeletonAction: {
+    borderRadius: tokens.borderRadiusLg,
+    height: '7.5rem',
     width: '100%',
   },
 });
 
 interface RpcResponseRowProps {
-  className?: string; // Expecting StyleX class name string if passed, but typically props spread
-  style?: Readonly<{
-    [key: string]: string | number;
-  }>; // Allow passing styles
+  className?: string;
   isLoading: boolean;
   label: string;
+  styles?: Readonly<{
+    [key: string]: string | number;
+  }>;
   value: string;
 }
 
-function RpcResponseRow({ style, isLoading, label, value }: RpcResponseRowProps): JSX.Element {
+function RpcResponseRow({ isLoading, label, styles, value }: RpcResponseRowProps): JSX.Element {
   return (
-    <p {...props(s.row, isLoading && s.rowLoading)}>
+    <Text {...props(s.row, isLoading && s.rowLoading)}>
       <strong>{label}:&nbsp;</strong>
       <Skeleton
         isLoading={isLoading}
-        style={style}
+        styles={styles}
       >
         {value}
       </Skeleton>
-    </p>
+    </Text>
   );
 }
 
@@ -313,19 +303,29 @@ function HonoRpcView({ action, isLoading, response }: HonoRpcViewProps): JSX.Ele
         </Link>
       </div>
 
-      <h1 {...props(s.h1)}>Hono RPC Demo</h1>
-      <p {...props(s.p)}>
+      <Text
+        as="h1"
+        {...props(s.h1)}
+      >
+        Hono RPC Demo
+      </Text>
+      <Text {...props(s.p)}>
         Simple demo of calling a Hono endpoint from React Router using clientLoader.
-      </p>
+      </Text>
 
       <div {...props(s.actionContainer)}>{action}</div>
 
       <div {...props(s.responseCard)}>
-        <h2 {...props(s.h2)}>RPC Response:</h2>
+        <Text
+          as="h2"
+          {...props(s.h2)}
+        >
+          RPC Response:
+        </Text>
         <RpcResponseRow
           isLoading={isLoading}
           label="Message"
-          style={{
+          styles={{
             width: '10ch',
           }}
           value={response.message}
@@ -333,7 +333,7 @@ function HonoRpcView({ action, isLoading, response }: HonoRpcViewProps): JSX.Ele
         <RpcResponseRow
           isLoading={isLoading}
           label="Server"
-          style={{
+          styles={{
             width: '12ch',
           }}
           value={response.server}
@@ -341,31 +341,36 @@ function HonoRpcView({ action, isLoading, response }: HonoRpcViewProps): JSX.Ele
         <RpcResponseRow
           isLoading={isLoading}
           label="Timestamp"
-          style={{
+          styles={{
             width: '24ch',
           }}
           value={response.timestamp}
         />
-        <p {...props(s.infoText)}>
+        <Text {...props(s.infoText)}>
           ℹ️ This data was fetched using Hono RPC client (loader for initial, client for refresh)
-        </p>
+        </Text>
       </div>
 
       <div {...props(s.apiInfoCard)}>
-        <h2 {...props(s.h2)}>API Information:</h2>
-        <p {...props(s.apiText)}>
+        <Text
+          as="h2"
+          {...props(s.h2)}
+        >
+          API Information:
+        </Text>
+        <Text {...props(s.apiText)}>
           <strong>Endpoint:</strong> <code {...props(s.codeBlock)}>GET /api/rpc/hello</code>
-        </p>
-        <p {...props(s.apiText)}>
+        </Text>
+        <Text {...props(s.apiText)}>
           <strong>Implementation:</strong> <code {...props(s.codeBlock)}>app/apis/mod.ts</code>
-        </p>
-        <p {...props(s.apiText)}>
+        </Text>
+        <Text {...props(s.apiText)}>
           <strong>Description:</strong> Returns a greeting message with server timestamp
-        </p>
+        </Text>
       </div>
 
       <div {...props(s.infoContainer)}>
-        <p {...props(s.infoPara)}>💡 This page demonstrates:</p>
+        <Text {...props(s.infoPara)}>💡 This page demonstrates:</Text>
         <ul {...props(s.list)}>
           <li>
             <strong>Prerendered:</strong> Page structure is built at build time
@@ -380,9 +385,9 @@ function HonoRpcView({ action, isLoading, response }: HonoRpcViewProps): JSX.Ele
             <strong>Hono RPC:</strong> Type-safe API calls using hc() client
           </li>
         </ul>
-        <p {...props(s.refreshPara)}>
+        <Text {...props(s.refreshPara)}>
           🔄 Click "Refresh RPC Data" to fetch new data without page reload!
-        </p>
+        </Text>
       </div>
     </div>
   );
@@ -394,7 +399,7 @@ function HydrateFallback(): JSX.Element {
       action={
         <Skeleton
           isLoading
-          {...props(s.skeletionAction)}
+          {...props(s.skeletonAction)}
         />
       }
       isLoading
@@ -444,14 +449,14 @@ function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
       <div {...props(s.errorBox)}>
         <strong>Error:</strong> {error instanceof Error ? error.message : 'Unknown error'}
       </div>
-      <p {...props(s.infoText)}>
+      <Text {...props(s.infoText)}>
         <a
           href="/hono-rpc"
           {...props(s.retryLink)}
         >
           Try reloading the page
         </a>
-      </p>
+      </Text>
     </div>
   );
 }
