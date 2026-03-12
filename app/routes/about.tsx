@@ -1,9 +1,18 @@
-import { Icon } from '@iconify/react';
+import {
+  IconBolt,
+  IconCheck,
+  IconCircleInfo,
+  IconGears,
+  IconMobile,
+  IconServer,
+  IconShield,
+} from '../icons/iconify.ts';
 import { create, props } from '@stylexjs/stylex';
 import type { JSX } from 'react';
 import { Link } from 'react-router';
 
 import { Text } from '../components/Text.tsx';
+import { iconStyles } from '../styles/icon.stylex.ts';
 import { tokens } from '../styles/tokens.stylex.ts';
 import type { Route } from './+types/about.ts';
 
@@ -193,7 +202,7 @@ export default function About(): JSX.Element {
         {/* Header */}
         <div {...props(s.heroSection)}>
           <div {...props(s.heroIconWrapper)}>
-            <Icon icon="fa7-solid:circle-info" />
+            <IconCircleInfo {...props(iconStyles.base)} />
           </div>
           <Text
             as="h1"
@@ -223,32 +232,32 @@ export default function About(): JSX.Element {
                 {...props(s.h3)}
               >
                 <span {...props(s.cardIcon, s.textBlue)}>
-                  <Icon icon="fa7-solid:gears" />
+                  <IconGears {...props(iconStyles.base)} />
                 </span>
                 <span>Frontend</span>
               </Text>
               <ul {...props(s.list)}>
                 <li {...props(s.listItem)}>
                   <span {...props(s.textGreen)}>
-                    <Icon icon="fa7-solid:check" />
+                    <IconCheck {...props(iconStyles.base)} />
                   </span>
                   <span>React 19 with TypeScript</span>
                 </li>
                 <li {...props(s.listItem)}>
                   <span {...props(s.textGreen)}>
-                    <Icon icon="fa7-solid:check" />
+                    <IconCheck {...props(iconStyles.base)} />
                   </span>
                   <span>React Router 7 for routing</span>
                 </li>
                 <li {...props(s.listItem)}>
                   <span {...props(s.textGreen)}>
-                    <Icon icon="fa7-solid:check" />
+                    <IconCheck {...props(iconStyles.base)} />
                   </span>
                   <span>StyleX for styling</span>
                 </li>
                 <li {...props(s.listItem)}>
                   <span {...props(s.textGreen)}>
-                    <Icon icon="fa7-solid:check" />
+                    <IconCheck {...props(iconStyles.base)} />
                   </span>
                   <span>Iconify with FontAwesome 7</span>
                 </li>
@@ -261,32 +270,32 @@ export default function About(): JSX.Element {
                 {...props(s.h3)}
               >
                 <span {...props(s.cardIcon, s.textGreen)}>
-                  <Icon icon="fa7-solid:server" />
+                  <IconServer {...props(iconStyles.base)} />
                 </span>
                 <span>Backend</span>
               </Text>
               <ul {...props(s.list)}>
                 <li {...props(s.listItem)}>
                   <span {...props(s.textGreen)}>
-                    <Icon icon="fa7-solid:check" />
+                    <IconCheck {...props(iconStyles.base)} />
                   </span>
                   <span>Hono web framework</span>
                 </li>
                 <li {...props(s.listItem)}>
                   <span {...props(s.textGreen)}>
-                    <Icon icon="fa7-solid:check" />
+                    <IconCheck {...props(iconStyles.base)} />
                   </span>
                   <span>Node.js runtime</span>
                 </li>
                 <li {...props(s.listItem)}>
                   <span {...props(s.textGreen)}>
-                    <Icon icon="fa7-solid:check" />
+                    <IconCheck {...props(iconStyles.base)} />
                   </span>
                   <span>TypeScript support</span>
                 </li>
                 <li {...props(s.listItem)}>
                   <span {...props(s.textGreen)}>
-                    <Icon icon="fa7-solid:check" />
+                    <IconCheck {...props(iconStyles.base)} />
                   </span>
                   <span>RPC capabilities</span>
                 </li>
@@ -307,7 +316,7 @@ export default function About(): JSX.Element {
           <div {...props(s.grid3)}>
             <div {...props(s.featureCard)}>
               <div {...props(s.featureIconBase, s.featureIconYellow)}>
-                <Icon icon="fa7-solid:bolt" />
+                <IconBolt {...props(iconStyles.base)} />
               </div>
               <Text
                 as="h3"
@@ -322,7 +331,7 @@ export default function About(): JSX.Element {
 
             <div {...props(s.featureCard)}>
               <div {...props(s.featureIconBase, s.textBlue)}>
-                <Icon icon="fa7-solid:shield" />
+                <IconShield {...props(iconStyles.base)} />
               </div>
               <Text
                 as="h3"
@@ -337,7 +346,7 @@ export default function About(): JSX.Element {
 
             <div {...props(s.featureCard)}>
               <div {...props(s.featureIconBase, s.featureIconPurple)}>
-                <Icon icon="fa7-solid:mobile" />
+                <IconMobile {...props(iconStyles.base)} />
               </div>
               <Text
                 as="h3"

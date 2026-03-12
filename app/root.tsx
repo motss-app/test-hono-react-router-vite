@@ -1,4 +1,8 @@
-import { Icon } from '@iconify/react';
+import {
+  IconArrowLeft,
+  IconBug,
+  IconExclamationTriangle,
+} from './icons/iconify.ts';
 import { props } from '@stylexjs/stylex';
 import type { JSX, PropsWithChildren } from 'react';
 import {
@@ -13,6 +17,7 @@ import {
 
 import type { Route } from './+types/root.ts';
 import { errorStyles, globalStyles } from './app.styles.ts';
+import { iconStyles } from './styles/icon.stylex.ts';
 
 export const links: Route.LinksFunction = () => [
   {
@@ -139,7 +144,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): JSX.Element 
               : errorStyles.iconClientError
           )}
         >
-          <Icon icon="fa7-solid:exclamation-triangle" />
+          <IconExclamationTriangle {...props(iconStyles.base)} />
         </div>
 
         <h1
@@ -158,10 +163,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): JSX.Element 
         {stack && (
           <details {...props(errorStyles.stackDetails)}>
             <summary {...props(errorStyles.stackSummary)}>
-              <Icon
-                color="#f87171"
-                icon="fa7-solid:bug"
-              />
+              <IconBug {...props(iconStyles.base, errorStyles.iconBug)} />
               <span>Stack Trace (Development Only)</span>
             </summary>
             <pre {...props(errorStyles.stackPre)}>
@@ -174,7 +176,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): JSX.Element 
           to="/"
           {...props(errorStyles.link)}
         >
-          <Icon icon="fa7-solid:arrow-left" />
+          <IconArrowLeft {...props(iconStyles.base)} />
           <span>Go back home</span>
         </Link>
       </div>

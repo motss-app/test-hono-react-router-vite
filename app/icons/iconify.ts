@@ -1,0 +1,13 @@
+export { default as IconArrowLeft } from '@iconify-react/fa7-solid/arrow-left';
+export { default as IconBolt } from '@iconify-react/fa7-solid/bolt';
+export { default as IconBug } from '@iconify-react/fa7-solid/bug';
+export { default as IconCheck } from '@iconify-react/fa7-solid/check';
+export { default as IconCircleInfo } from '@iconify-react/fa7-solid/circle-info';
+export { default as IconExclamationTriangle } from '@iconify-react/fa7-solid/exclamation-triangle';
+export { default as IconGears } from '@iconify-react/fa7-solid/gears';
+export { default as IconHome } from '@iconify-react/fa7-solid/home';
+export { default as IconInfo } from '@iconify-react/fa7-solid/info';
+export { default as IconMobile } from '@iconify-react/fa7-solid/mobile';
+export { default as IconServer } from '@iconify-react/fa7-solid/server';
+export { default as IconShield } from '@iconify-react/fa7-solid/shield';
+export { default as IconTriangleExclamation } from '@iconify-react/fa7-solid/triangle-exclamation';

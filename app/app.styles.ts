@@ -42,6 +42,9 @@ export const errorStyles = create({
     fontSize: '3.75rem',
     marginBottom: tokens.spacing4,
   },
+  iconBug: {
+    color: '#f87171',
+  },
   iconClientError: {
     color: tokens.warning,
   },

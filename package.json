@@ -1,10 +1,9 @@
 {
   "dependencies": {
     "@base-ui/react": "1.2.0",
-    "@iconify-json/fa7-brands": "1.2.2",
-    "@iconify-json/fa7-regular": "1.2.3",
-    "@iconify-json/fa7-solid": "1.2.4",
-    "@iconify/react": "^6.0.2",
+    "@iconify-react/fa7-brands": "1.0.0",
+    "@iconify-react/fa7-regular": "1.0.0",
+    "@iconify-react/fa7-solid": "1.0.0",
     "@react-router/node": "7.13.1",
     "@stylexjs/stylex": "^0.18.1",
     "hono": "4.12.7",

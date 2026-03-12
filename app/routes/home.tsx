@@ -1,10 +1,16 @@
 import { NavigationMenu } from '@base-ui/react/navigation-menu';
-import { Icon } from '@iconify/react';
+import {
+  IconHome,
+  IconInfo,
+  IconServer,
+  IconTriangleExclamation,
+} from '../icons/iconify.ts';
 import { create, props } from '@stylexjs/stylex';
 import type { JSX } from 'react';
 
 import { Link } from '../components/Link.tsx';
 import { Text } from '../components/Text.tsx';
+import { iconStyles } from '../styles/icon.stylex.ts';
 import { tokens } from '../styles/tokens.stylex.ts';
 import type { Route } from './+types/home.ts';
 
@@ -131,7 +137,7 @@ export default function Home(): JSX.Element {
               {...props(s.linkBlue)}
             >
               <NavigationMenu.Icon>
-                <Icon icon="fa7-solid:info" />
+                <IconInfo {...props(iconStyles.base)} />
               </NavigationMenu.Icon>
               About
             </Link>
@@ -142,7 +148,7 @@ export default function Home(): JSX.Element {
               {...props(s.linkGreen)}
             >
               <NavigationMenu.Icon>
-                <Icon icon="fa7-solid:server" />
+                <IconServer {...props(iconStyles.base)} />
               </NavigationMenu.Icon>
               SSR Page
             </Link>
@@ -153,7 +159,7 @@ export default function Home(): JSX.Element {
               {...props(s.linkPurple)}
             >
               <NavigationMenu.Icon>
-                <Icon icon="fa7-solid:home" />
+                <IconHome {...props(iconStyles.base)} />
               </NavigationMenu.Icon>
               Hono RPC Demo
             </Link>
@@ -164,7 +170,7 @@ export default function Home(): JSX.Element {
               {...props(s.linkRed)}
             >
               <NavigationMenu.Icon>
-                <Icon icon="fa7-solid:triangle-exclamation" />
+                <IconTriangleExclamation {...props(iconStyles.base)} />
               </NavigationMenu.Icon>
               Error Handling Demo
             </Link>
