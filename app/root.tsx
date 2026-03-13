@@ -1,5 +1,7 @@
 import '@fontsource-variable/open-sans/wght.css';
-import openSansLatinWghtNormalWoff2 from '@fontsource-variable/open-sans/files/open-sans-latin-wght-normal.woff2?url';
+import openSansLatinWghtNormalWoff2 from '@fontsource-variable/open-sans/files/open-sans-latin-wght-normal.woff2';
+import openSansMathWghtNormalWoff2 from '@fontsource-variable/open-sans/files/open-sans-math-wght-normal.woff2';
+import openSansSymbolsWghtNormalWoff2 from '@fontsource-variable/open-sans/files/open-sans-symbols-wght-normal.woff2';
 import { props } from '@stylexjs/stylex';
 import type { JSX, PropsWithChildren } from 'react';
 import {
@@ -22,6 +24,20 @@ export const links: Route.LinksFunction = () => [
     as: 'font',
     crossOrigin: 'anonymous',
     href: openSansLatinWghtNormalWoff2,
+    rel: 'preload',
+    type: 'font/woff2',
+  },
+  {
+    as: 'font',
+    crossOrigin: 'anonymous',
+    href: openSansSymbolsWghtNormalWoff2,
+    rel: 'preload',
+    type: 'font/woff2',
+  },
+  {
+    as: 'font',
+    crossOrigin: 'anonymous',
+    href: openSansMathWghtNormalWoff2,
     rel: 'preload',
     type: 'font/woff2',
   },
