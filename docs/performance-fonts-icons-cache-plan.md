@@ -25,7 +25,7 @@ This plan addresses these 3 problems:
 
 ---
 
-## Problem 1 — Fonts: Self-host + Manual update flow (not per deploy)
+## Problem 1 — Fonts: `@fontsource-variable/open-sans` + manual update flow (not per deploy)
 
 ## Goal
 
@@ -35,49 +35,72 @@ This plan addresses these 3 problems:
 
 ## Recommendation
 
-Use **committed local font files** as default strategy:
+Use `@fontsource-variable/open-sans` as the default source of font files.
 
-- Put Inter files in `public/fonts/`
-- Serve locally from your domain
-- Update only when needed
+- Fonts are bundled/served from your own app origin (no Google Fonts runtime request chain).
+- No font download step on every deployment.
+- Update only when you intentionally bump the package version.
+
+### Install command
+
+This repo is Deno-first, so install via Deno:
+
+```bash
+deno install npm:@fontsource-variable/open-sans
+```
+
+If you are outside this repo's Deno workflow, the npm equivalent is:
+
+```bash
+npm install @fontsource-variable/open-sans
+```
 
 ### Update options (manual trigger only)
 
-### Option A (simple, no automation)
+### Option A (recommended): package bump only
 
-- Download Inter `.woff2` files manually from Google Fonts / helper site.
-- Commit files to `public/fonts`.
-- Rename with a version suffix when updating (example: `inter-latin-var-v4.woff2`).
+- Keep `@fontsource-variable/open-sans` pinned in `package.json`.
+- Manual update = bump package version intentionally.
+- No per-deployment font-fetch script required.
 
-### Option B (manual script trigger, recommended for repeatability)
+### Option B: manual script trigger (optional)
 
-- Add a script like `scripts/update-fonts.ts`
+- Add a script like `scripts/update-fonts.ts` only if you want custom control.
 - Trigger it manually via `deno task fonts:update`
 - Script behavior:
-  1. Fetch selected Inter file(s)
+  1. Fetch selected Open Sans file(s)
   2. Write to `public/fonts`
   3. Optionally update a small manifest/version constant
   4. Do **not** run automatically in build/deploy
 
-### Option C (use npm source package, still manual)
+### Option C: direct committed `.woff2` files (fallback)
 
-- Use `@fontsource/inter` as source files
-- Manual update = bump package version intentionally
-- Optional copy step from `node_modules` to `public/fonts`
-- Still not required at deploy time
+- Download Open Sans `.woff2` files manually and commit under `public/fonts`.
+- Still update only when needed.
+- Useful if you want zero dependency on `@fontsource*`.
 
 ## Implementation steps
 
-1. Add `public/fonts/inter-latin-var-v1.woff2` (and any needed subsets).
-2. Replace Google stylesheet usage in `app/root.tsx` with local preload + local `@font-face`.
-3. Keep `font-display: swap`.
-4. Add font metric overrides in `@font-face`:
-   - `size-adjust`
-   - `ascent-override`
-   - `descent-override`
-   - `line-gap-override`
-5. Keep existing app font stack as fallback (`'Inter', sans-serif`).
+1. Add dependency: `@fontsource-variable/open-sans`.
+2. Import once in `app/root.tsx` (top-level side-effect import):
+   ```ts
+   import '@fontsource-variable/open-sans';
+   ```
+3. Remove Google font links from `links()` in `app/root.tsx`:
+   - `fonts.googleapis.com` preconnect
+   - `fonts.gstatic.com` preconnect
+   - Google stylesheet URL
+4. Update global font stack in `app/app.styles.ts`:
+   - from: `'Inter', sans-serif`
+   - to: `'Open Sans Variable', 'Open Sans', sans-serif`
+5. Keep `font-display: swap` (Fontsource already ships with this default; verify generated CSS if needed).
 6. Validate CLS and render-blocking reduction in Lighthouse.
+
+### How to use `@fontsource-variable/open-sans` in this app
+
+- Import it once in `app/root.tsx` so every route has font-face definitions.
+- Do not import it repeatedly in route files.
+- Keep typography usage in StyleX (`fontFamily`) as usual.
 
 ---
 
@@ -141,7 +164,7 @@ Use short browser cache + longer CDN cache:
 
 ### 3) Fonts (`/*.woff2`)
 
-If filenames are versioned (`inter-...-v1.woff2`):
+If filenames are versioned:
 
 - Browser: medium-long (`max-age=604800` or higher)
 - CDN: long (`s-maxage=31536000`)
@@ -151,6 +174,15 @@ If filenames are not versioned:
 
 - Browser: shorter
 - no `immutable`
+
+### Suggested concrete header values for this repo
+
+- Hashed assets (`/assets/*`): long browser + long CDN
+  - `Cache-Control: public, max-age=604800, s-maxage=31536000, stale-while-revalidate=86400, immutable`
+- Non-hashed JS/CSS (`/*.js`, `/*.css`): short browser + longer CDN
+  - `Cache-Control: public, max-age=900, s-maxage=86400, stale-while-revalidate=300, must-revalidate`
+- Non-hashed HTML routes: short browser + short/medium CDN
+  - keep existing route-level HTML policy style (`must-revalidate`)
 
 ---
 
@@ -177,4 +209,3 @@ If filenames are not versioned:
 - [ ] Non-hashed assets receive short browser cache headers.
 - [ ] Lighthouse render-blocking insight improved.
 - [ ] CLS remains low after font swap (metric overrides verified).
-
