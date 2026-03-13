@@ -86,19 +86,37 @@ npm install @fontsource-variable/open-sans
    ```ts
    import '@fontsource-variable/open-sans';
    ```
-3. Remove Google font links from `links()` in `app/root.tsx`:
+3. Preload the primary Open Sans `.woff2` file in `app/root.tsx` `links()`:
+   ```ts
+   import openSansPrimaryWoff2
+     from '@fontsource-variable/open-sans/files/open-sans-latin-wght-normal.woff2?url';
+
+   export const links = () => [
+     {
+       as: 'font',
+       crossOrigin: 'anonymous',
+       href: openSansPrimaryWoff2,
+       rel: 'preload',
+       type: 'font/woff2',
+     },
+   ];
+   ```
+   - Use the exact `.woff2` filename that matches your chosen subset/axis in `@fontsource-variable/open-sans/files`.
+   - Vite will fingerprint/hash this emitted asset in production.
+4. Remove Google font links from `links()` in `app/root.tsx`:
    - `fonts.googleapis.com` preconnect
    - `fonts.gstatic.com` preconnect
    - Google stylesheet URL
-4. Update global font stack in `app/app.styles.ts`:
+5. Update global font stack in `app/app.styles.ts`:
    - from: `'Inter', sans-serif`
    - to: `'Open Sans Variable', 'Open Sans', sans-serif`
-5. Keep `font-display: swap` (Fontsource already ships with this default; verify generated CSS if needed).
-6. Validate CLS and render-blocking reduction in Lighthouse.
+6. Keep `font-display: swap` (Fontsource already ships with this default; verify generated CSS if needed).
+7. Validate CLS and render-blocking reduction in Lighthouse.
 
 ### How to use `@fontsource-variable/open-sans` in this app
 
 - Import it once in `app/root.tsx` so every route has font-face definitions.
+- Add a manual preload entry for the primary above-the-fold `.woff2` file in `links()`.
 - Do not import it repeatedly in route files.
 - Keep typography usage in StyleX (`fontFamily`) as usual.
 
