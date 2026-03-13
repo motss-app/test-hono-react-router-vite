@@ -45,6 +45,10 @@ export const links: Route.LinksFunction = () => [
 ];
 
 export function Layout({ children }: PropsWithChildren): JSX.Element {
+  const stylexLinkProps = {
+    disabled: true,
+  };
+
   return (
     <html
       className="dark"
@@ -62,10 +66,18 @@ export function Layout({ children }: PropsWithChildren): JSX.Element {
         {/* body/global styles are applied via StyleX `globalStyles` */}
 
         {import.meta.env.DEV ? (
-          <link
-            href="/virtual:stylex.css"
-            rel="stylesheet"
-          />
+          <>
+           {/* Reference: https://stylexjs.com/docs/api/configuration/unplugin#vite */}
+            <link
+              {...stylexLinkProps}
+              href="/virtual:stylex.css"
+              rel="stylesheet"
+            />
+            <script
+              src="/@id/virtual:stylex:runtime"
+              type="module"
+            />
+          </>
         ) : null}
       </head>
       <body {...props(globalStyles.body)}>
