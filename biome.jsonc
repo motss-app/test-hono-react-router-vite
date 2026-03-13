@@ -347,7 +347,21 @@
           },
           "style": {
             "noImplicitBoolean": "off",
-            "noJsxLiterals": "off"
+            "noJsxLiterals": "off",
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "@iconify-react",
+                      "@iconify-react/**"
+                    ],
+                    "message": "Import @iconify-react only inside *.icons.ts files."
+                  }
+                ]
+              }
+            }
           }
         }
       }
@@ -361,6 +375,19 @@
         "rules": {
           "nursery": {
             "useExplicitType": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "**/*.icons.ts"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noExportedImports": "off",
+            "noRestrictedImports": "off"
           }
         }
       }

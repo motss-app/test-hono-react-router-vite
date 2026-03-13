@@ -4,7 +4,7 @@ import type { JSX } from 'react';
 
 import { Link } from '../components/Link.tsx';
 import { Text } from '../components/Text.tsx';
-import { IconHome, IconInfo, IconServer, IconTriangleExclamation } from '../icons/iconify.ts';
+import { IconHome, IconInfo, IconServer, IconTriangleExclamation } from '../icons/home.icons.ts';
 import { iconStyles } from '../styles/icon.stylex.ts';
 import { tokens } from '../styles/tokens.stylex.ts';
 import type { Route } from './+types/home.ts';

@@ -1,4 +1,5 @@
 import '@fontsource-variable/open-sans/wght.css';
+
 import openSansLatinWghtNormalWoff2 from '@fontsource-variable/open-sans/files/open-sans-latin-wght-normal.woff2';
 import openSansMathWghtNormalWoff2 from '@fontsource-variable/open-sans/files/open-sans-math-wght-normal.woff2';
 import openSansSymbolsWghtNormalWoff2 from '@fontsource-variable/open-sans/files/open-sans-symbols-wght-normal.woff2';
@@ -16,7 +17,7 @@ import {
 
 import type { Route } from './+types/root.ts';
 import { errorStyles, globalStyles } from './app.styles.ts';
-import { IconArrowLeft, IconBug, IconExclamationTriangle } from './icons/iconify.ts';
+import { IconArrowLeft, IconBug, IconExclamationTriangle } from './icons/root.icons.ts';
 import { iconStyles } from './styles/icon.stylex.ts';
 
 export const links: Route.LinksFunction = () => [
