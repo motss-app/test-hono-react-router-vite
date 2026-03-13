@@ -17,7 +17,7 @@ import {
 
 import type { Route } from './+types/root.ts';
 import { errorStyles, globalStyles } from './app.styles.ts';
-import { IconArrowLeft, IconBug, IconExclamationTriangle } from './icons/root.icons.ts';
+import { IconArrowLeft, IconBug, IconExclamationTriangle } from './icons.ts';
 import { iconStyles } from './styles/icon.stylex.ts';
 
 export const links: Route.LinksFunction = () => [

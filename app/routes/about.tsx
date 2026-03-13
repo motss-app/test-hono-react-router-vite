@@ -11,7 +11,7 @@ import {
   IconMobile,
   IconServer,
   IconShield,
-} from '../icons/about.icons.ts';
+} from '../icons.ts';
 import { iconStyles } from '../styles/icon.stylex.ts';
 import { tokens } from '../styles/tokens.stylex.ts';
 import type { Route } from './+types/about.ts';

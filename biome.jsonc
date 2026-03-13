@@ -381,7 +381,8 @@
     },
     {
       "includes": [
-        "**/*.icons.ts"
+        "**/*.icons.ts",
+        "**/icons.ts"
       ],
       "linter": {
         "rules": {
