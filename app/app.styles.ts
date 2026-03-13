@@ -9,7 +9,7 @@ const vendorPrefixFontSmoothing = {
 
 export const globalStyles = create({
   body: {
-    fontFamily: "'Inter', sans-serif",
+    fontFamily: "'Open Sans Variable', 'Open Sans', sans-serif",
     margin: 0,
     [vendorPrefixFontSmoothing.mozOsxFontSmoothing]: 'grayscale',
     [vendorPrefixFontSmoothing.webkitFontSmoothing]: 'antialiased',
