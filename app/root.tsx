@@ -1,8 +1,3 @@
-import {
-  IconArrowLeft,
-  IconBug,
-  IconExclamationTriangle,
-} from './icons/iconify.ts';
 import { props } from '@stylexjs/stylex';
 import type { JSX, PropsWithChildren } from 'react';
 import {
@@ -17,6 +12,7 @@ import {
 
 import type { Route } from './+types/root.ts';
 import { errorStyles, globalStyles } from './app.styles.ts';
+import { IconArrowLeft, IconBug, IconExclamationTriangle } from './icons/iconify.ts';
 import { iconStyles } from './styles/icon.stylex.ts';
 
 export const links: Route.LinksFunction = () => [
@@ -57,12 +53,7 @@ export function Layout({ children }: PropsWithChildren): JSX.Element {
             href="/virtual:stylex.css"
             rel="stylesheet"
           />
-        ) : (
-          <link
-            href="/assets/stylex.css"
-            rel="stylesheet"
-          />
-        )}
+        ) : null}
       </head>
       <body {...props(globalStyles.body)}>
         {children}
