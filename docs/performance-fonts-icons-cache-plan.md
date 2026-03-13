@@ -114,6 +114,7 @@ npm install @fontsource-variable/open-sans
 
 - **Do not import Iconify icons from `app/root.tsx`.**
 - Import Iconify only in route/component modules that render those icons.
+- Prefer `@loadable/component` for code-splitting over `React.lazy`.
 
 ## Concrete approach
 
@@ -125,7 +126,7 @@ npm install @fontsource-variable/open-sans
    - `app/icons/home-icons.ts`
    - `app/icons/about-icons.ts`
    - avoid a single root-level “export all icons” dependency.
-4. Optional: lazy-load large icon-heavy UI sections with `React.lazy`.
+4. Optional: lazy-load large icon-heavy UI sections with `@loadable/component`.
 
 ## Expected outcome
 
