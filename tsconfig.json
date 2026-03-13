@@ -7,7 +7,6 @@
     "lib": [
       "DOM",
       "DOM.Iterable",
-      "DOM.AsyncIterable",
       "ESNext"
     ],
     "module": "ESNext",

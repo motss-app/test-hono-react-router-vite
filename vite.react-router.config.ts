@@ -1,7 +1,6 @@
 import { reactRouter } from '@react-router/dev/vite';
 import stylex from '@stylexjs/unplugin';
 import { defineConfig } from 'vite';
-import tsconfigPaths from 'vite-tsconfig-paths';
 
 import { headersCopyPlugin } from './vite-plugins/copy-headers.ts';
 
@@ -17,12 +16,14 @@ export default defineConfig(({ mode }) => {
             useCSSLayers: true,
           }),
           reactRouter(),
-          tsconfigPaths(),
           headersCopyPlugin({
             dest: 'build/client/_headers',
             headersDir: 'headers',
             mode,
           }),
         ],
+    resolve: {
+      tsconfigPaths: true,
+    },
   };
 });

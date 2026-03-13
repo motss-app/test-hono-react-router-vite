@@ -3,7 +3,6 @@ import { nodeAdapter } from '@hono/vite-dev-server/node';
 import { reactRouter } from '@react-router/dev/vite';
 import stylex from '@stylexjs/unplugin';
 import { defineConfig } from 'vite';
-import tsconfigPaths from 'vite-tsconfig-paths';
 
 const isRegExpImport = /\?import$/;
 const isRegExpRouteImport = /\/app\/routes\/.*\?import$/;
@@ -45,7 +44,9 @@ export default defineConfig(config => {
             reactRouter(),
           ]
         : []),
-      tsconfigPaths(),
     ],
+    resolve: {
+      tsconfigPaths: true,
+    },
   };
 });
