@@ -14,7 +14,7 @@
     "react-router": "7.13.1"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.4.6",
+    "@biomejs/biome": "2.4.7",
     "@cloudflare/workers-types": "4.20260313.1",
     "@hono/node-server": "1.19.11",
     "@hono/vite-dev-server": "0.25.1",
