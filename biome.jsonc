@@ -149,6 +149,9 @@
     }
   },
   "linter": {
+    "domains": {
+      "qwik": "none"
+    },
     "enabled": true,
     "rules": {
       "a11y": "error",

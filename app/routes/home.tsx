@@ -1,15 +1,10 @@
 import { NavigationMenu } from '@base-ui/react/navigation-menu';
-import {
-  IconHome,
-  IconInfo,
-  IconServer,
-  IconTriangleExclamation,
-} from '../icons/iconify.ts';
 import { create, props } from '@stylexjs/stylex';
 import type { JSX } from 'react';
 
 import { Link } from '../components/Link.tsx';
 import { Text } from '../components/Text.tsx';
+import { IconHome, IconInfo, IconServer, IconTriangleExclamation } from '../icons/iconify.ts';
 import { iconStyles } from '../styles/icon.stylex.ts';
 import { tokens } from '../styles/tokens.stylex.ts';
 import type { Route } from './+types/home.ts';

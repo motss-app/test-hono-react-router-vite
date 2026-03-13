@@ -17,6 +17,7 @@ import { iconStyles } from './styles/icon.stylex.ts';
 
 export const links: Route.LinksFunction = () => [
   {
+    crossOrigin: 'anonymous',
     href: 'https://fonts.googleapis.com',
     rel: 'preconnect',
   },

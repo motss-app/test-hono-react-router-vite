@@ -1,3 +1,8 @@
+import { create, props } from '@stylexjs/stylex';
+import type { JSX } from 'react';
+import { Link } from 'react-router';
+
+import { Text } from '../components/Text.tsx';
 import {
   IconBolt,
   IconCheck,
@@ -7,11 +12,6 @@ import {
   IconServer,
   IconShield,
 } from '../icons/iconify.ts';
-import { create, props } from '@stylexjs/stylex';
-import type { JSX } from 'react';
-import { Link } from 'react-router';
-
-import { Text } from '../components/Text.tsx';
 import { iconStyles } from '../styles/icon.stylex.ts';
 import { tokens } from '../styles/tokens.stylex.ts';
 import type { Route } from './+types/about.ts';
