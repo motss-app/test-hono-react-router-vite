@@ -8,11 +8,13 @@ export default defineConfig(({ mode }) => {
   const isDev = mode === 'development';
 
   return {
+    build: {
+      cssCodeSplit: false,
+    },
     plugins: isDev
       ? []
       : [
           stylex.vite({
-            treeshakeCompensation: true,
             useCSSLayers: true,
           }),
           reactRouter(),

@@ -32,7 +32,6 @@ export default defineConfig(config => {
              * prevent styles from being removed during treeshaking.
              */
             stylex.vite({
-              treeshakeCompensation: true,
               useCSSLayers: true,
             }),
             /**
