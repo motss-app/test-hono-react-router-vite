@@ -2,13 +2,14 @@ import { create, props } from '@stylexjs/stylex';
 import type { JSX } from 'react';
 import { Link } from 'react-router';
 
-import { tokens } from '../styles/tokens.stylex.ts';
+import { themeConditions, tokens } from '../styles/tokens.stylex.ts';
 import type { Route } from './+types/errors.$code.ts';
 
 const s = create({
   code: {
     backgroundColor: {
-      '@media (prefers-color-scheme: dark)': '#334155', // bg-slate-700
+      [themeConditions.prefersDarkMode]: '#334155', // bg-slate-700
+      [themeConditions.dataThemeDark]: '#334155', // bg-slate-700
       default: '#e2e8f0', // bg-slate-200
     },
     borderRadius: '0.25rem', // rounded
@@ -23,7 +24,8 @@ const s = create({
   },
   h2: {
     color: {
-      '@media (prefers-color-scheme: dark)': '#ffffff', // text-white
+      [themeConditions.prefersDarkMode]: '#ffffff', // text-white
+      [themeConditions.dataThemeDark]: '#ffffff', // text-white
       default: '#0f172a', // text-slate-900
     },
     fontSize: '1.5rem', // text-2xl
@@ -32,7 +34,8 @@ const s = create({
   },
   h3: {
     color: {
-      '@media (prefers-color-scheme: dark)': '#ffffff', // text-white
+      [themeConditions.prefersDarkMode]: '#ffffff', // text-white
+      [themeConditions.dataThemeDark]: '#ffffff', // text-white
       default: '#0f172a', // text-slate-900
     },
     fontSize: '1.17em',
@@ -41,7 +44,8 @@ const s = create({
   },
   infoBox: {
     backgroundColor: {
-      '@media (prefers-color-scheme: dark)': '#1e293b', // bg-slate-800
+      [themeConditions.prefersDarkMode]: '#1e293b', // bg-slate-800
+      [themeConditions.dataThemeDark]: '#1e293b', // bg-slate-800
       default: '#f8fafc', // bg-slate-50
     },
     borderRadius: '0.5rem', // rounded-lg
@@ -52,7 +56,11 @@ const s = create({
   link: {
     color: {
       ':hover': '#1e40af', // hover:text-blue-800
-      '@media (prefers-color-scheme: dark)': {
+      [themeConditions.prefersDarkMode]: {
+        ':hover': '#93c5fd', // hover:text-blue-300
+        default: '#60a5fa', // text-blue-400
+      },
+      [themeConditions.dataThemeDark]: {
         ':hover': '#93c5fd', // hover:text-blue-300
         default: '#60a5fa', // text-blue-400
       },
@@ -67,7 +75,8 @@ const s = create({
   },
   p: {
     color: {
-      '@media (prefers-color-scheme: dark)': '#cbd5e1', // text-slate-300
+      [themeConditions.prefersDarkMode]: '#cbd5e1', // text-slate-300
+      [themeConditions.dataThemeDark]: '#cbd5e1', // text-slate-300
       default: '#475569', // text-slate-600
     },
     marginBottom: tokens.spacing4,
@@ -80,7 +89,8 @@ const s = create({
   },
   ul: {
     color: {
-      '@media (prefers-color-scheme: dark)': '#cbd5e1', // text-slate-300
+      [themeConditions.prefersDarkMode]: '#cbd5e1', // text-slate-300
+      [themeConditions.dataThemeDark]: '#cbd5e1', // text-slate-300
       default: '#475569', // text-slate-600
     },
     listStyleType: 'disc',
@@ -92,13 +102,15 @@ const s = create({
 const statusColors = create({
   amber: {
     color: {
-      '@media (prefers-color-scheme: dark)': '#fbbf24', // text-amber-400
+      [themeConditions.prefersDarkMode]: '#fbbf24', // text-amber-400
+      [themeConditions.dataThemeDark]: '#fbbf24', // text-amber-400
       default: '#d97706', // text-amber-600
     },
   },
   red: {
     color: {
-      '@media (prefers-color-scheme: dark)': '#f87171', // text-red-400
+      [themeConditions.prefersDarkMode]: '#f87171', // text-red-400
+      [themeConditions.dataThemeDark]: '#f87171', // text-red-400
       default: '#dc2626', // text-red-600
     },
   },

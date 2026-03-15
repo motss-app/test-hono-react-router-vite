@@ -1,6 +1,6 @@
 import { create } from '@stylexjs/stylex';
 
-import { tokens } from './styles/tokens.stylex.ts';
+import { themeConditions, tokens } from './styles/tokens.stylex.ts';
 
 const vendorPrefixFontSmoothing = {
   mozOsxFontSmoothing: '-moz-osx-font-smoothing',
@@ -13,8 +13,16 @@ export const globalStyles = create({
     margin: 0,
     [vendorPrefixFontSmoothing.mozOsxFontSmoothing]: 'grayscale',
     [vendorPrefixFontSmoothing.webkitFontSmoothing]: 'antialiased',
-    backgroundColor: '#000002',
-    color: '#DDE2E9',
+    backgroundColor: {
+      [themeConditions.dataThemeDark]: tokens.backgroundDark,
+      [themeConditions.prefersDarkMode]: tokens.backgroundDark,
+      default: tokens.backgroundLight,
+    },
+    color: {
+      [themeConditions.dataThemeDark]: tokens.slate200,
+      [themeConditions.prefersDarkMode]: tokens.slate200,
+      default: tokens.textColor,
+    },
   },
   global: {
     boxSizing: 'border-box',

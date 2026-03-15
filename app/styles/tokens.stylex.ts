@@ -1,4 +1,9 @@
-import { createTheme, defineVars } from '@stylexjs/stylex';
+import { createTheme, defineConsts, defineVars } from '@stylexjs/stylex';
+
+export const themeConditions = defineConsts({
+  dataThemeDark: ':root[data-theme="dark"] &',
+  prefersDarkMode: '@media (prefers-color-scheme: dark)',
+});
 
 /**
  * Design system tokens using StyleX.

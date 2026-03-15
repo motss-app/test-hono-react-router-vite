@@ -4,7 +4,7 @@ import { data, Link } from 'react-router';
 
 import { Text } from '../components/Text.tsx';
 import { HonoContext } from '../router-context.ts';
-import { tokens } from '../styles/tokens.stylex.ts';
+import { themeConditions, tokens } from '../styles/tokens.stylex.ts';
 import type { HonoEnv } from '../types/hono.types.ts';
 import type { Route } from './+types/ssr.ts';
 
@@ -16,7 +16,8 @@ const s = create({
       color: tokens.infoHover,
     },
     color: {
-      '@media (prefers-color-scheme: dark)': '#60a5fa',
+      [themeConditions.prefersDarkMode]: '#60a5fa',
+      [themeConditions.dataThemeDark]: '#60a5fa',
       default: tokens.info,
     },
     textDecoration: 'none',
@@ -51,7 +52,8 @@ const s = create({
   },
   footer: {
     color: {
-      '@media (prefers-color-scheme: dark)': tokens.slate400,
+      [themeConditions.prefersDarkMode]: tokens.slate400,
+      [themeConditions.dataThemeDark]: tokens.slate400,
       default: tokens.slate500,
     },
     fontSize: tokens.fontSizeSm,
@@ -62,7 +64,8 @@ const s = create({
   },
   h1: {
     color: {
-      '@media (prefers-color-scheme: dark)': tokens.slate300,
+      [themeConditions.prefersDarkMode]: tokens.slate300,
+      [themeConditions.dataThemeDark]: tokens.slate300,
       default: tokens.slate400,
     },
     fontSize: tokens.fontSize4xl,
@@ -71,7 +74,8 @@ const s = create({
   },
   h2: {
     color: {
-      '@media (prefers-color-scheme: dark)': tokens.slate300,
+      [themeConditions.prefersDarkMode]: tokens.slate300,
+      [themeConditions.dataThemeDark]: tokens.slate300,
       default: tokens.slate400,
     },
     fontSize: tokens.fontSize2xl,
@@ -88,7 +92,8 @@ const s = create({
   },
   list: {
     color: {
-      '@media (prefers-color-scheme: dark)': tokens.slate300,
+      [themeConditions.prefersDarkMode]: tokens.slate300,
+      [themeConditions.dataThemeDark]: tokens.slate300,
       default: tokens.slate600,
     },
     listStylePosition: 'inside',
@@ -98,7 +103,8 @@ const s = create({
   },
   p: {
     color: {
-      '@media (prefers-color-scheme: dark)': tokens.slate400,
+      [themeConditions.prefersDarkMode]: tokens.slate400,
+      [themeConditions.dataThemeDark]: tokens.slate400,
       default: tokens.slate600,
     },
     fontSize: tokens.fontSizeXl,

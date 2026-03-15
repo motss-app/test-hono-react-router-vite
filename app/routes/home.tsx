@@ -6,7 +6,7 @@ import { Link } from '../components/Link.tsx';
 import { Text } from '../components/Text.tsx';
 import { IconHome, IconInfo, IconServer, IconTriangleExclamation } from '../icons.ts';
 import { iconStyles } from '../styles/icon.stylex.ts';
-import { tokens } from '../styles/tokens.stylex.ts';
+import { themeConditions, tokens } from '../styles/tokens.stylex.ts';
 import type { Route } from './+types/home.ts';
 
 const s = create({
@@ -23,7 +23,8 @@ const s = create({
     },
     alignItems: 'center',
     color: {
-      '@media (prefers-color-scheme: dark)': 'oklch(70.7% .165 254.624)',
+      [themeConditions.prefersDarkMode]: 'oklch(70.7% .165 254.624)',
+      [themeConditions.dataThemeDark]: 'oklch(70.7% .165 254.624)',
       default: 'oklch(42.4% .199 265.638)',
     },
     display: 'flex',
@@ -38,7 +39,8 @@ const s = create({
     },
     alignItems: 'center',
     color: {
-      '@media (prefers-color-scheme: dark)': 'oklch(79.2% .209 151.711)',
+      [themeConditions.prefersDarkMode]: 'oklch(79.2% .209 151.711)',
+      [themeConditions.dataThemeDark]: 'oklch(79.2% .209 151.711)',
       default: 'oklch(62.7% .194 149.214)',
     },
     display: 'flex',
@@ -53,7 +55,8 @@ const s = create({
     },
     alignItems: 'center',
     color: {
-      '@media (prefers-color-scheme: dark)': 'oklch(71.4% .203 305.504)',
+      [themeConditions.prefersDarkMode]: 'oklch(71.4% .203 305.504)',
+      [themeConditions.dataThemeDark]: 'oklch(71.4% .203 305.504)',
       default: 'oklch(55.8% .288 302.321)',
     },
     display: 'flex',
@@ -68,7 +71,8 @@ const s = create({
     },
     alignItems: 'center',
     color: {
-      '@media (prefers-color-scheme: dark)': 'oklch(70.4% .191 22.216)',
+      [themeConditions.prefersDarkMode]: 'oklch(70.4% .191 22.216)',
+      [themeConditions.dataThemeDark]: 'oklch(70.4% .191 22.216)',
       default: 'oklch(57.7% .245 27.325)',
     },
     display: 'flex',

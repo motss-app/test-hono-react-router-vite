@@ -6,7 +6,7 @@ import { Link, useRevalidator } from 'react-router';
 import type { ApiAppType } from '../apis/mod.ts';
 import { Skeleton } from '../components/skeleton.tsx';
 import { Text } from '../components/Text.tsx';
-import { tokens } from '../styles/tokens.stylex.ts';
+import { themeConditions, tokens } from '../styles/tokens.stylex.ts';
 import type { Route } from './+types/hono-rpc.ts';
 
 // Define the expected response type
@@ -87,7 +87,8 @@ const s = create({
   },
   apiText: {
     color: {
-      '@media (prefers-color-scheme: dark)': tokens.slate200,
+      [themeConditions.prefersDarkMode]: tokens.slate200,
+      [themeConditions.dataThemeDark]: tokens.slate200,
       default: tokens.slate700,
     },
     marginBottom: tokens.spacing2,
@@ -119,11 +120,13 @@ const s = create({
   },
   codeBlock: {
     backgroundColor: {
-      '@media (prefers-color-scheme: dark)': '#3730a3',
+      [themeConditions.prefersDarkMode]: '#3730a3',
+      [themeConditions.dataThemeDark]: '#3730a3',
       default: '#e0e7ff',
     },
     borderColor: {
-      '@media (prefers-color-scheme: dark)': '#818cf8',
+      [themeConditions.prefersDarkMode]: '#818cf8',
+      [themeConditions.dataThemeDark]: '#818cf8',
       default: '#6366f1',
     },
     borderRadius: tokens.borderRadius,
@@ -135,18 +138,21 @@ const s = create({
   },
   errorBox: {
     backgroundColor: {
-      '@media (prefers-color-scheme: dark)': '#7f1d1d',
+      [themeConditions.prefersDarkMode]: '#7f1d1d',
+      [themeConditions.dataThemeDark]: '#7f1d1d',
       default: '#fef2f2',
     },
     borderColor: {
-      '@media (prefers-color-scheme: dark)': tokens.error,
+      [themeConditions.prefersDarkMode]: tokens.error,
+      [themeConditions.dataThemeDark]: tokens.error,
       default: '#ef4444',
     },
     borderRadius: tokens.borderRadiusLg,
     borderStyle: 'solid',
     borderWidth: '1px',
     color: {
-      '@media (prefers-color-scheme: dark)': '#fca5a5',
+      [themeConditions.prefersDarkMode]: '#fca5a5',
+      [themeConditions.dataThemeDark]: '#fca5a5',
       default: '#b91c1c',
     },
     marginBottom: tokens.spacing4,
@@ -154,7 +160,8 @@ const s = create({
   },
   h1: {
     color: {
-      '@media (prefers-color-scheme: dark)': tokens.white,
+      [themeConditions.prefersDarkMode]: tokens.white,
+      [themeConditions.dataThemeDark]: tokens.white,
       default: tokens.slate900,
     },
     fontSize: tokens.fontSize4xl,
@@ -163,7 +170,8 @@ const s = create({
   },
   h2: {
     color: {
-      '@media (prefers-color-scheme: dark)': tokens.white,
+      [themeConditions.prefersDarkMode]: tokens.white,
+      [themeConditions.dataThemeDark]: tokens.white,
       default: tokens.slate900,
     },
     fontSize: tokens.fontSize2xl,
@@ -179,7 +187,8 @@ const s = create({
   },
   infoText: {
     color: {
-      '@media (prefers-color-scheme: dark)': tokens.slate300,
+      [themeConditions.prefersDarkMode]: tokens.slate300,
+      [themeConditions.dataThemeDark]: tokens.slate300,
       default: tokens.slate600,
     },
     fontSize: tokens.fontSizeSm,
@@ -190,7 +199,8 @@ const s = create({
       color: tokens.infoHover,
     },
     color: {
-      '@media (prefers-color-scheme: dark)': '#60a5fa',
+      [themeConditions.prefersDarkMode]: '#60a5fa',
+      [themeConditions.dataThemeDark]: '#60a5fa',
       default: tokens.info,
     },
     textDecoration: 'underline',
@@ -198,7 +208,8 @@ const s = create({
   },
   list: {
     color: {
-      '@media (prefers-color-scheme: dark)': tokens.slate300,
+      [themeConditions.prefersDarkMode]: tokens.slate300,
+      [themeConditions.dataThemeDark]: tokens.slate300,
       default: tokens.slate600,
     },
     listStylePosition: 'inside',
@@ -208,7 +219,8 @@ const s = create({
   },
   p: {
     color: {
-      '@media (prefers-color-scheme: dark)': tokens.slate300,
+      [themeConditions.prefersDarkMode]: tokens.slate300,
+      [themeConditions.dataThemeDark]: tokens.slate300,
       default: tokens.slate600,
     },
     fontSize: tokens.fontSizeXl,
@@ -226,7 +238,8 @@ const s = create({
   responseCard: {
     backgroundColor: '#14532d',
     borderColor: {
-      '@media (prefers-color-scheme: dark)': '#4ade80',
+      [themeConditions.prefersDarkMode]: '#4ade80',
+      [themeConditions.dataThemeDark]: '#4ade80',
       default: '#22c55e',
     },
     borderRadius: tokens.borderRadiusLg,
@@ -237,7 +250,8 @@ const s = create({
   retryLink: {
     color: {
       ':hover': {
-        '@media (prefers-color-scheme: dark)': tokens.white,
+        [themeConditions.prefersDarkMode]: tokens.white,
+        [themeConditions.dataThemeDark]: tokens.white,
         default: tokens.slate900,
       },
     },
@@ -245,7 +259,8 @@ const s = create({
   },
   row: {
     color: {
-      '@media (prefers-color-scheme: dark)': tokens.slate200,
+      [themeConditions.prefersDarkMode]: tokens.slate200,
+      [themeConditions.dataThemeDark]: tokens.slate200,
       default: tokens.slate700,
     },
     marginBottom: tokens.spacing2,
