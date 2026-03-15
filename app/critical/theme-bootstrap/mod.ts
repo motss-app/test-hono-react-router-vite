@@ -52,8 +52,9 @@ export function init(): void {
     .matchMedia('(prefers-color-scheme: dark)')
     .addEventListener('change', (event: MediaQueryListEvent): void => {
       const systemTheme: Theme = event.matches ? 'dark' : 'light';
+
       // Only update if no saved preference (follow system)
-      if (!getSavedTheme()) {
+      if (systemTheme !== getSavedTheme()) {
         applyTheme(systemTheme);
       }
     });
