@@ -6,3 +6,7 @@
 # React Router
 /.react-router/
 /build/
+
+# Theme bootstrap build artifact (generated)
+/public/theme-bootstrap.js
+/build/client/theme-bootstrap.js
