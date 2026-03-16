@@ -163,7 +163,7 @@ npm install @fontsource-variable/open-sans
 
 ## Proposed policy
 
-### 1) Hashed assets (`/assets/*`)
+### Hashed assets (`/assets/*`)
 
 Use long cache (safe because filename changes on content changes):
 
@@ -172,7 +172,7 @@ Use long cache (safe because filename changes on content changes):
 - Keep `immutable`
 - Keep `stale-while-revalidate` (e.g. `86400`)
 
-### 2) Non-hashed JS/CSS (`/*.js`, `/*.css`)
+### Non-hashed JS/CSS (`/*.js`, `/*.css`)
 
 Use short browser cache + longer CDN cache:
 
@@ -181,7 +181,7 @@ Use short browser cache + longer CDN cache:
 - `stale-while-revalidate` optional
 - **No `immutable`**
 
-### 3) Fonts (`/*.woff2`)
+### Fonts (`/*.woff2`)
 
 If filenames are versioned:
 
