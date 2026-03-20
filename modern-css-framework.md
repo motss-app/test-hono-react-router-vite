@@ -404,8 +404,6 @@ function applyTenantTheme(theme: TenantTheme): void {
 
 ---
 
-
-
 ## Why Tailwind CSS v3 Is Not Suitable (Primary Decision Driver)
 
 Tailwind v3 is excellent for utility-first development, but it is fundamentally optimized for **build-time class generation**, while our core problem is **runtime token orchestration**.
@@ -538,7 +536,7 @@ function applyTenantTheme(theme: { brand: string; onBrand: string }): void {
 }
 ```
 
-Here, `bg-brand` resolves through `--color-brand` -> `var(--tenant-brand)` at runtime.  
+Here, `bg-brand` resolves through `--color-brand` → `var(--tenant-brand)` at runtime.  
 This is a good improvement, but teams still own most of the runtime token lifecycle complexity themselves.
 
 ---
@@ -597,12 +595,13 @@ Excellent typing across both build-time (`assignVars`) and runtime (`setElementV
 - Familiar CSS-in-JS authoring style.
 - Static extraction (no heavy runtime styling engine).
 - Works with CSS variables for theming.
+- First-party atomic CSS support via `@linaria/atomic` (opt-in via `atomizer` configuration), using `cx()` from `@linaria/core` for property-conflict-safe composition.
 
 ### Cons
 - Dynamic styling constraints can be limiting.
 - Ergonomics can be weaker for Tailwind-heavy teams; moving from utility-first classes to Linaria `css`/`styled` template APIs introduces relearning and migration friction.
 - Ecosystem momentum and tooling depth are weaker than top alternatives.
-- Atomic CSS is supported via the first-party `@linaria/atomic` package (requires enabling an `atomizer` in the Linaria config and using `cx()` from `@linaria/core` for property-conflict-safe composition).
+- Atomic mode requires additional configuration (`atomizer`) and `cx()` for safe composition; it is not zero-config out of the box.
 
 ### Example
 
