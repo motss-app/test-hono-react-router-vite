@@ -6,6 +6,7 @@ This file lists available skills and agents for this workspace. LLMs should cons
 
 | Skill | Location | Description |
 |-------|----------|-------------|
+| `frontend-skill` | `.github/skills/frontend-skill/SKILL.md` | Vendored OpenAI frontend skill for visually strong landing pages, apps, demos, and premium UI direction. |
 | `skill-vite-plugin-creation` | `.github/skills/skill-vite-plugin-creation/SKILL.md` | Create or update a Vite plugin that watches a TypeScript entry file and emits a built JS artifact for dev and production builds. Provides templates, decision points, and validation checks. |
 
 ## How to use
