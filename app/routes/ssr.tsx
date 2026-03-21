@@ -1,141 +1,401 @@
-import { create, props } from '@stylexjs/stylex';
+import { create, keyframes, props } from '@stylexjs/stylex';
 import type { JSX } from 'react';
-import { data, Link } from 'react-router';
+import { data } from 'react-router';
 
+import { Link } from '../components/Link.tsx';
 import { Text } from '../components/Text.tsx';
+import { IconArrowLeft, IconServer } from '../icons.ts';
 import { HonoContext } from '../router-context.ts';
+import { iconStyles } from '../styles/icon.stylex.ts';
 import { colorTokens, fontWeightTokens, themeConditions } from '../styles/tokens.stylex.ts';
 import type { HonoEnv } from '../types/hono.types.ts';
 import type { Route } from './+types/ssr.ts';
 
 const SIMULATION_DELAY_MS = 5;
 
+const heroReveal = keyframes({
+  '0%': {
+    opacity: 0,
+    transform: 'translate3d(0, 1.5rem, 0)',
+  },
+  '100%': {
+    opacity: 1,
+    transform: 'translate3d(0, 0, 0)',
+  },
+});
+
+const artworkDrift = keyframes({
+  '0%': {
+    transform: 'scale(1.02) translate3d(0, 0, 0)',
+  },
+  '50%': {
+    transform: 'scale(1.05) translate3d(-0.75%, 0.5%, 0)',
+  },
+  '100%': {
+    transform: 'scale(1.03) translate3d(-0.25%, -0.35%, 0)',
+  },
+});
+
 const s = create({
-  backLink: {
+  ctaPrimary: {
     ':hover': {
-      color: {
-        [themeConditions.dataThemeDark]: '#bfdbfe',
+      backgroundColor: {
+        [themeConditions.dataThemeDark]: '#7dd3fc',
         default: colorTokens.infoHover,
       },
+      transform: 'translate3d(0, -0.125rem, 0)',
     },
-    color: {
-      [themeConditions.dataThemeDark]: '#93c5fd',
+    animationDelay: '240ms',
+    animationDuration: '700ms',
+    animationFillMode: 'both',
+    animationName: heroReveal,
+    animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
+    backgroundColor: {
+      [themeConditions.dataThemeDark]: '#bae6fd',
       default: colorTokens.info,
     },
+    borderRadius: '9999px',
+    color: {
+      [themeConditions.dataThemeDark]: colorTokens.slate900,
+      default: colorTokens.white,
+    },
+    display: 'inline-flex',
+    fontWeight: fontWeightTokens.fontWeightSemibold,
+    gap: '0.5rem',
+    padding: '0.92rem 1.45rem',
     textDecoration: 'none',
-    transition: 'color 0.15s ease-in-out',
+    transition: 'background-color 0.2s ease, transform 0.2s ease',
   },
-  backLinkWrapper: {
-    marginTop: '2rem',
-  },
-  cardAmber: {
+  ctaSecondary: {
+    ':hover': {
+      backgroundColor: {
+        [themeConditions.dataThemeDark]: 'rgba(148, 163, 184, 0.12)',
+        default: 'rgba(255, 255, 255, 0.7)',
+      },
+      borderColor: {
+        [themeConditions.dataThemeDark]: colorTokens.slate400,
+        default: '#bfdbfe',
+      },
+      transform: 'translate3d(0, -0.125rem, 0)',
+    },
+    animationDelay: '320ms',
+    animationDuration: '700ms',
+    animationFillMode: 'both',
+    animationName: heroReveal,
+    animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
     backgroundColor: {
-      [themeConditions.dataThemeDark]: '#78350f',
-      default: '#fef3c7',
+      [themeConditions.dataThemeDark]: 'rgba(15, 23, 42, 0.28)',
+      default: 'rgba(255, 255, 255, 0.78)',
     },
     borderColor: {
-      [themeConditions.dataThemeDark]: colorTokens.amber200,
-      default: '#fcd34d',
+      [themeConditions.dataThemeDark]: 'rgba(226, 232, 240, 0.26)',
+      default: 'rgba(15, 23, 42, 0.12)',
     },
-    borderRadius: '0.5rem',
+    borderRadius: '9999px',
     borderStyle: 'solid',
     borderWidth: '1px',
     color: {
       [themeConditions.dataThemeDark]: colorTokens.slate100,
       default: colorTokens.slate900,
     },
-    marginBottom: '1.5rem',
-    padding: '1.5rem',
+    display: 'inline-flex',
+    fontWeight: fontWeightTokens.fontWeightSemibold,
+    gap: '0.5rem',
+    padding: '0.92rem 1.45rem',
+    textDecoration: 'none',
+    transition: 'background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease',
   },
-  cardIndigo: {
-    backgroundColor: {
-      [themeConditions.dataThemeDark]: '#312e81',
-      default: '#eef2ff',
+  dataLabel: {
+    color: {
+      [themeConditions.dataThemeDark]: colorTokens.slate400,
+      default: colorTokens.slate600,
     },
-    borderColor: {
-      [themeConditions.dataThemeDark]: '#818cf8',
-      default: '#6366f1',
+    fontSize: '0.86rem',
+    letterSpacing: '0.08em',
+    marginBottom: '0.3rem',
+    textTransform: 'uppercase',
+  },
+  dataList: {
+    display: 'grid',
+    gap: '1rem',
+    gridTemplateColumns: {
+      '@media (min-width: 768px)': '1fr 1fr',
+      default: '1fr',
     },
-    borderRadius: '0.5rem',
-    borderStyle: 'solid',
-    borderWidth: '1px',
+    minWidth: 0,
+  },
+  dataValue: {
     color: {
       [themeConditions.dataThemeDark]: colorTokens.slate100,
       default: colorTokens.slate900,
     },
-    marginBottom: '1.5rem',
-    padding: '1.5rem',
+    fontSize: '1.1rem',
+    lineHeight: '1.55',
+    margin: 0,
+    minWidth: 0,
+    overflowWrap: 'anywhere',
   },
-  dataRow: {
-    color: {
-      [themeConditions.dataThemeDark]: colorTokens.slate200,
-      default: colorTokens.slate700,
+  hero: {
+    backgroundColor: {
+      [themeConditions.dataThemeDark]: '#08101b',
+      default: '#edf6ff',
     },
-    marginBottom: '0.5rem',
+    minWidth: 0,
+    overflow: 'hidden',
+    position: 'relative',
   },
-  footer: {
+  heroActions: {
+    alignItems: 'center',
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '0.75rem',
+  },
+  heroBody: {
+    animationDelay: '160ms',
+    animationDuration: '700ms',
+    animationFillMode: 'both',
+    animationName: heroReveal,
+    animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
+    color: {
+      [themeConditions.dataThemeDark]: colorTokens.slate300,
+      default: colorTokens.slate800,
+    },
+    fontSize: '1rem',
+    lineHeight: '1.7',
+    marginBottom: '2rem',
+    marginTop: 0,
+    maxWidth: '31rem',
+  },
+  heroCopy: {
+    maxWidth: '38rem',
+    minWidth: 0,
+    paddingBottom: {
+      '@media (min-width: 768px)': '4rem',
+      default: '2.5rem',
+    },
+    position: 'relative',
+    zIndex: 2,
+  },
+  heroInner: {
+    alignItems: 'flex-end',
+    display: 'flex',
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    maxWidth: '84rem',
+    minHeight: '100svh',
+    minWidth: 0,
+    paddingBottom: {
+      '@media (min-width: 768px)': '0',
+      default: '2rem',
+    },
+    paddingLeft: '1rem',
+    paddingRight: '1rem',
+    paddingTop: '4rem',
+    position: 'relative',
+  },
+  heroLead: {
+    animationDelay: '110ms',
+    animationDuration: '700ms',
+    animationFillMode: 'both',
+    animationName: heroReveal,
+    animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
+    color: {
+      [themeConditions.dataThemeDark]: colorTokens.slate100,
+      default: colorTokens.slate900,
+    },
+    fontSize: {
+      '@media (min-width: 768px)': '1.95rem',
+      default: '1.28rem',
+    },
+    fontWeight: fontWeightTokens.fontWeightMedium,
+    letterSpacing: '-0.025em',
+    lineHeight: '1.12',
+    marginBottom: '0.85rem',
+    marginTop: 0,
+    maxWidth: '15ch',
+  },
+  heroMedia: {
+    '@media (prefers-reduced-motion: reduce)': {
+      animationDuration: '1ms',
+      animationIterationCount: '1',
+    },
+    animationDirection: 'alternate',
+    animationDuration: '18s',
+    animationIterationCount: 'infinite',
+    animationName: artworkDrift,
+    animationTimingFunction: 'ease-in-out',
+    backgroundImage: {
+      [themeConditions.dataThemeDark]: 'url("/assets/ssr-hero-dark.svg")',
+      default: 'url("/assets/ssr-hero-light.svg")',
+    },
+    backgroundPosition: {
+      '@media (min-width: 768px)': 'center center',
+      default: '72% center',
+    },
+    backgroundRepeat: 'no-repeat',
+    backgroundSize: 'cover',
+    inset: 0,
+    opacity: {
+      [themeConditions.dataThemeDark]: 1,
+      default: 0.8,
+    },
+    position: 'absolute',
+    transformOrigin: 'center',
+  },
+  heroOverlay: {
+    backgroundImage: {
+      [themeConditions.dataThemeDark]:
+        'linear-gradient(90deg, rgba(8, 16, 27, 0.92) 0%, rgba(8, 16, 27, 0.72) 26%, rgba(8, 16, 27, 0.28) 54%, rgba(8, 16, 27, 0.1) 100%), linear-gradient(180deg, rgba(8, 16, 27, 0.12) 0%, rgba(8, 16, 27, 0.18) 100%)',
+      default:
+        'linear-gradient(90deg, rgba(249, 252, 255, 0.995) 0%, rgba(249, 252, 255, 0.94) 28%, rgba(243, 248, 255, 0.78) 48%, rgba(239, 246, 255, 0.48) 68%, rgba(237, 246, 255, 0.26) 100%), linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(226, 239, 255, 0.12) 100%)',
+    },
+    inset: 0,
+    position: 'absolute',
+    zIndex: 1,
+  },
+  page: {
+    minWidth: 0,
+    paddingBottom: '4rem',
+  },
+  routesInner: {
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    maxWidth: '84rem',
+    minWidth: 0,
+    paddingLeft: '1rem',
+    paddingRight: '1rem',
+    paddingTop: '3.5rem',
+  },
+  routesIntro: {
     color: {
       [themeConditions.dataThemeDark]: colorTokens.slate300,
       default: colorTokens.slate700,
     },
-    fontSize: '0.875rem',
-    marginTop: '2rem',
-  },
-  footerPara: {
-    marginBottom: '1rem',
-  },
-  h1: {
-    color: {
-      [themeConditions.dataThemeDark]: colorTokens.slate100,
-      default: colorTokens.slate900,
-    },
-    fontSize: '2.25rem',
-    fontWeight: fontWeightTokens.fontWeightBold,
-    marginBottom: '1.5rem',
-  },
-  h2: {
-    color: {
-      [themeConditions.dataThemeDark]: colorTokens.slate100,
-      default: colorTokens.slate900,
-    },
-    fontSize: '1.5rem',
-    fontWeight: fontWeightTokens.fontWeightSemibold,
-    marginBottom: '1rem',
-  },
-  h2Card: {
-    color: {
-      [themeConditions.dataThemeDark]: colorTokens.slate200,
-      default: colorTokens.slate700,
-    },
-  },
-  infoText: {
-    color: {
-      [themeConditions.dataThemeDark]: colorTokens.slate200,
-      default: colorTokens.slate700,
-    },
-    fontSize: '0.875rem',
-    marginTop: '1rem',
-  },
-  list: {
-    color: {
-      [themeConditions.dataThemeDark]: colorTokens.slate200,
-      default: colorTokens.slate700,
-    },
-    listStylePosition: 'inside',
-    listStyleType: 'disc',
-    marginBottom: '0.5rem',
-    marginTop: '0.5rem',
-  },
-  p: {
-    color: {
-      [themeConditions.dataThemeDark]: colorTokens.slate200,
-      default: colorTokens.slate700,
-    },
-    fontSize: '1.25rem',
+    fontSize: '1rem',
+    lineHeight: '1.7',
     marginBottom: '2rem',
+    marginTop: 0,
+    maxWidth: '34rem',
   },
-  page: {
-    padding: '2rem',
+  routesList: {
+    borderTopColor: {
+      [themeConditions.dataThemeDark]: colorTokens.slate800,
+      default: colorTokens.slate200,
+    },
+    borderTopStyle: 'solid',
+    borderTopWidth: '1px',
+    minWidth: 0,
+  },
+  routesTitle: {
+    color: {
+      [themeConditions.dataThemeDark]: colorTokens.white,
+      default: colorTokens.slate900,
+    },
+    fontSize: {
+      '@media (min-width: 768px)': '2.6rem',
+      default: '2rem',
+    },
+    fontWeight: fontWeightTokens.fontWeightBold,
+    letterSpacing: '-0.04em',
+    lineHeight: '0.98',
+    marginBottom: '0.75rem',
+    marginTop: 0,
+    maxWidth: '12ch',
+  },
+  rowBody: {
+    color: {
+      [themeConditions.dataThemeDark]: colorTokens.slate300,
+      default: colorTokens.slate700,
+    },
+    fontSize: '0.98rem',
+    lineHeight: '1.65',
+    margin: 0,
+    minWidth: 0,
+  },
+  rowContent: {
+    minWidth: 0,
+  },
+  rowNumber: {
+    color: {
+      [themeConditions.dataThemeDark]: '#7dd3fc',
+      default: colorTokens.info,
+    },
+    fontSize: {
+      '@media (min-width: 768px)': '2rem',
+      default: '1.45rem',
+    },
+    fontWeight: fontWeightTokens.fontWeightBold,
+    letterSpacing: '-0.04em',
+    lineHeight: '1',
+  },
+  rowPanel: {
+    alignItems: {
+      '@media (min-width: 960px)': 'start',
+      default: 'start',
+    },
+    display: 'grid',
+    gap: '1rem 1rem',
+    gridTemplateColumns: {
+      '@media (min-width: 960px)': '5.5rem minmax(0, 18rem) minmax(0, 1fr)',
+      default: '1fr',
+    },
+    minWidth: 0,
+    paddingBottom: '1.45rem',
+    paddingLeft: '0.5rem',
+    paddingRight: '0.5rem',
+    paddingTop: '1.45rem',
+  },
+  rowRow: {
+    borderBottomColor: {
+      [themeConditions.dataThemeDark]: colorTokens.slate800,
+      default: colorTokens.slate200,
+    },
+    borderBottomStyle: 'solid',
+    borderBottomWidth: '1px',
+    minWidth: 0,
+  },
+  rowTitle: {
+    color: {
+      [themeConditions.dataThemeDark]: colorTokens.white,
+      default: colorTokens.slate900,
+    },
+    fontSize: '1.45rem',
+    fontWeight: fontWeightTokens.fontWeightSemibold,
+    letterSpacing: '-0.03em',
+    lineHeight: '1.1',
+    marginBottom: '0.3rem',
+    marginTop: 0,
+  },
+  title: {
+    '@media (prefers-reduced-motion: reduce)': {
+      animationDuration: '1ms',
+      animationIterationCount: '1',
+    },
+    animationDuration: '700ms',
+    animationFillMode: 'both',
+    animationName: heroReveal,
+    animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
+    color: {
+      [themeConditions.dataThemeDark]: colorTokens.white,
+      default: colorTokens.slate900,
+    },
+    fontSize: {
+      '@media (min-width: 768px)': '6.4rem',
+      default: '3.95rem',
+    },
+    fontWeight: fontWeightTokens.fontWeightBold,
+    letterSpacing: '-0.07em',
+    lineHeight: '0.84',
+    marginBottom: '1rem',
+    marginTop: 0,
+    maxWidth: '7ch',
+  },
+  titleAccent: {
+    color: {
+      [themeConditions.dataThemeDark]: '#7dd3fc',
+      default: colorTokens.info,
+    },
+    display: 'block',
   },
 });
 
@@ -143,38 +403,19 @@ const s = create({
 export async function loader({ context, request }: Route.LoaderArgs) {
   const startTime = performance.now();
 
-  // Simulate some async work
   await new Promise(resolve => setTimeout(resolve, SIMULATION_DELAY_MS));
 
-  // Fetch dynamic data on every request
   const timestamp = new Date().toISOString();
   const userAgent = request.headers.get('user-agent') || 'Unknown';
 
-  /**
-   * Access data from Hono context via AsyncLocalStorage
-   * Note: This has slight overhead compared to context.get(HonoContext)
-   *
-   * We cannot use ALS and Hono Context at the same time.
-   * ALS comes with overhead. Hono context is just plain object.
-   */
-  // const honoContext = getHonoContext();
-
-  /**
-   * Access data from Hono context via loadContext (passed from handler)
-   * We cast context to AppLoadContext because React Router v7 infers RouterContextProvider
-   * when middleware is enabled.
-   */
   const honoVars = context.get(HonoContext) as HonoEnv['Variables'] | undefined;
   const requestId = honoVars?.honoData?.meta?.requestId;
 
   const endTime = performance.now();
   const duration = (endTime - startTime).toFixed(2);
 
-  // Return response with custom header using data() for proper type inference
   return data(
     {
-      // Include data from Hono context
-      // honoContext,
       honoVars: honoVars?.honoData,
       message: 'This page is rendered on the server on EVERY request!',
       renderTime: duration,
@@ -194,13 +435,11 @@ export async function loader({ context, request }: Route.LoaderArgs) {
   );
 }
 
-// Add Server-Timing header using the custom header we set
 export function headers({ loaderHeaders, parentHeaders }: Route.HeadersArgs): Headers {
   const renderTime = loaderHeaders.get('X-Render-Time') ?? '-1';
 
   parentHeaders.append('Server-Timing', `ssr-loader;dur=${renderTime}`);
 
-  // Forward X-Request-Id from loader headers to the response
   const requestId = loaderHeaders.get('X-Request-Id');
   if (requestId) {
     parentHeaders.set('X-Request-Id', requestId);
@@ -210,91 +449,220 @@ export function headers({ loaderHeaders, parentHeaders }: Route.HeadersArgs): He
 }
 
 export default function SsrPage({ loaderData }: Route.ComponentProps): JSX.Element {
+  const responseRows = [
+    {
+      label: 'Timestamp',
+      value: loaderData.timestamp,
+    },
+    {
+      label: 'Render time',
+      value: `${loaderData.renderTime}ms`,
+    },
+    {
+      label: 'User agent',
+      value: loaderData.userAgent,
+    },
+    {
+      label: 'Message',
+      value: loaderData.message,
+    },
+  ] as const;
+
+  const verificationRows = [
+    {
+      label: 'Refresh the route',
+      value:
+        'The timestamp changes on every request because the loader runs server-side each time.',
+    },
+    {
+      label: 'Inspect response headers',
+      value: 'Open the Network tab and check `Server-Timing` to verify the loader duration.',
+    },
+    {
+      label: 'Compare rendering modes',
+      value:
+        'Unlike `/` or `/about`, this route is not SSG. Unlike CSR-only UI, its first HTML already contains the server response.',
+    },
+  ] as const;
+
   return (
-    <div {...props(s.page)}>
-      <div {...props(s.backLinkWrapper)}>
-        <Link
-          to="/"
-          {...props(s.backLink)}
-        >
-          ← Back to Home
-        </Link>
-      </div>
+    <main {...props(s.page)}>
+      <section {...props(s.hero)}>
+        <div
+          aria-hidden="true"
+          {...props(s.heroMedia)}
+        />
+        <div
+          aria-hidden="true"
+          {...props(s.heroOverlay)}
+        />
 
-      <Text
-        as="h1"
-        {...props(s.h1)}
-      >
-        SSR Page (Server-Side Rendered)
-      </Text>
-      <Text {...props(s.p)}>
-        This page is rendered on the server for every request. Not pre-rendered (SSG), not
-        client-only (CSR).
-      </Text>
+        <div {...props(s.heroInner)}>
+          <div {...props(s.heroCopy)}>
+            <Text
+              as="h1"
+              {...props(s.title)}
+            >
+              SSR
+              <span {...props(s.titleAccent)}>Live on request</span>
+            </Text>
 
-      <div {...props(s.cardAmber)}>
-        <Text
-          as="h2"
-          {...props(s.h2, s.h2Card)}
-        >
-          Server Data:
-        </Text>
-        <Text {...props(s.dataRow)}>
-          <strong>Timestamp:</strong> {loaderData.timestamp}
-        </Text>
-        <Text {...props(s.dataRow)}>
-          <strong>Render Time:</strong> {loaderData.renderTime}ms
-        </Text>
-        <Text {...props(s.dataRow)}>
-          <strong>Your User Agent:</strong> {loaderData.userAgent}
-        </Text>
-        <Text {...props(s.dataRow)}>
-          <strong>Message:</strong> {loaderData.message}
-        </Text>
-      </div>
+            <Text
+              as="p"
+              {...props(s.heroLead)}
+            >
+              This route renders on the server for every visit.
+            </Text>
 
-      {loaderData.honoVars ? (
-        <div {...props(s.cardIndigo)}>
+            <p {...props(s.heroBody)}>
+              The loader runs on each request, forwards timing metadata, and can read Hono context
+              before the page reaches the browser.
+            </p>
+
+            <div {...props(s.heroActions)}>
+              <Link
+                to="/"
+                {...props(s.ctaSecondary)}
+              >
+                <IconArrowLeft {...props(iconStyles.base)} />
+                <span>Back home</span>
+              </Link>
+              <Link
+                to="/hono-rpc"
+                {...props(s.ctaPrimary)}
+              >
+                <IconServer {...props(iconStyles.base)} />
+                <span>Compare with RPC</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div {...props(s.routesInner)}>
           <Text
             as="h2"
-            {...props(s.h2, s.h2Card)}
+            {...props(s.routesTitle)}
           >
-            Data from Hono Context (via RouterContextProvider)
+            The current response came from the server.
           </Text>
-          <Text {...props(s.dataRow)}>
-            <strong>Request URL:</strong> {loaderData.honoVars.meta.requestUrl}
-          </Text>
-          {loaderData.honoVars.meta.requestId ? (
-            <Text {...props(s.dataRow)}>
-              <strong>Hono Meta Request ID:</strong> {loaderData.honoVars.meta.requestId}
-            </Text>
-          ) : null}
-          <Text {...props(s.infoText)}>
-            ℹ️ This data was passed directly via the Hono context object (`c`) to the React Router
-            loader through `RouterContextProvider`.
-          </Text>
-        </div>
-      ) : null}
 
-      <div {...props(s.footer)}>
-        <p {...props(s.footerPara)}>
-          💡 Refresh this page - the timestamp will update because it's rendered on the server each
-          time!
-        </p>
-        <p {...props(s.footerPara)}>
-          ⏱️ Check the <strong>Network tab → Response Headers → Server-Timing</strong> to see server
-          render time
-        </p>
-        <p {...props(s.footerPara)}>🔄 This is different from:</p>
-        <ul {...props(s.list)}>
-          <li>
-            <strong>SSG (/, /about):</strong> Pre-rendered at build time, served as static HTML
-          </li>
-          <li>
-            <strong>CSR:</strong> Rendered on the client with JavaScript
-          </li>
-        </ul>
-      </div>
-    </div>
+          <p {...props(s.routesIntro)}>
+            These values are generated during the request, then serialized into the rendered HTML
+            and response headers.
+          </p>
+
+          <div {...props(s.routesList)}>
+            <div {...props(s.rowRow)}>
+              <div {...props(s.rowPanel)}>
+                <span {...props(s.rowNumber)}>01</span>
+
+                <div {...props(s.rowContent)}>
+                  <Text
+                    as="h3"
+                    {...props(s.rowTitle)}
+                  >
+                    Live response
+                  </Text>
+                  <p {...props(s.rowBody)}>
+                    Request-specific data produced by the SSR loader before the page is delivered.
+                  </p>
+                </div>
+
+                <dl {...props(s.dataList)}>
+                  {responseRows.map(row => (
+                    <div key={row.label}>
+                      <dt {...props(s.dataLabel)}>{row.label}</dt>
+                      <dd {...props(s.dataValue)}>{row.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            </div>
+
+            {loaderData.honoVars ? (
+              <div {...props(s.rowRow)}>
+                <div {...props(s.rowPanel)}>
+                  <span {...props(s.rowNumber)}>02</span>
+
+                  <div {...props(s.rowContent)}>
+                    <Text
+                      as="h3"
+                      {...props(s.rowTitle)}
+                    >
+                      Hono context
+                    </Text>
+                    <p {...props(s.rowBody)}>
+                      Data forwarded from the Hono request context into the React Router loader
+                      through `RouterContextProvider`.
+                    </p>
+                  </div>
+
+                  <dl {...props(s.dataList)}>
+                    <div>
+                      <dt {...props(s.dataLabel)}>Request URL</dt>
+                      <dd {...props(s.dataValue)}>{loaderData.honoVars.meta.requestUrl}</dd>
+                    </div>
+                    {loaderData.honoVars.meta.requestId ? (
+                      <div>
+                        <dt {...props(s.dataLabel)}>Request ID</dt>
+                        <dd {...props(s.dataValue)}>{loaderData.honoVars.meta.requestId}</dd>
+                      </div>
+                    ) : null}
+                  </dl>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div {...props(s.routesInner)}>
+          <Text
+            as="h2"
+            {...props(s.routesTitle)}
+          >
+            How to verify the page is really SSR.
+          </Text>
+
+          <p {...props(s.routesIntro)}>
+            The route is meant to be inspected, not just viewed. These checks make the rendering
+            mode obvious.
+          </p>
+
+          <div {...props(s.routesList)}>
+            <div {...props(s.rowRow)}>
+              <div {...props(s.rowPanel)}>
+                <span {...props(s.rowNumber)}>03</span>
+
+                <div {...props(s.rowContent)}>
+                  <Text
+                    as="h3"
+                    {...props(s.rowTitle)}
+                  >
+                    Verification steps
+                  </Text>
+                  <p {...props(s.rowBody)}>
+                    Use the browser and network tooling to confirm the response is generated at
+                    request time.
+                  </p>
+                </div>
+
+                <dl {...props(s.dataList)}>
+                  {verificationRows.map(row => (
+                    <div key={row.label}>
+                      <dt {...props(s.dataLabel)}>{row.label}</dt>
+                      <dd {...props(s.dataValue)}>{row.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
   );
 }
