@@ -1,5 +1,11 @@
-import './app.css';
+import criticalCss from './critical/app.css?raw';
+import '@fontsource-variable/open-sans/wght.css';
 
+import { themeBootstrapIntegrity, themeBootstrapSrc } from 'virtual:theme-bootstrap';
+import openSansLatinWghtNormalWoff2 from '@fontsource-variable/open-sans/files/open-sans-latin-wght-normal.woff2';
+import openSansMathWghtNormalWoff2 from '@fontsource-variable/open-sans/files/open-sans-math-wght-normal.woff2';
+import openSansSymbolsWghtNormalWoff2 from '@fontsource-variable/open-sans/files/open-sans-symbols-wght-normal.woff2';
+import { props } from '@stylexjs/stylex';
 import type { JSX, PropsWithChildren } from 'react';
 import {
   isRouteErrorResponse,
@@ -12,28 +18,44 @@ import {
 } from 'react-router';
 
 import type { Route } from './+types/root.ts';
+import { errorStyles, globalStyles } from './app.styles.ts';
+import { IconArrowLeft, IconBug, IconExclamationTriangle } from './icons.ts';
+import { iconStyles } from './styles/icon.stylex.ts';
 
 export const links: Route.LinksFunction = () => [
   {
-    href: 'https://fonts.googleapis.com',
-    rel: 'preconnect',
-  },
-  {
+    as: 'font',
     crossOrigin: 'anonymous',
-    href: 'https://fonts.gstatic.com',
-    rel: 'preconnect',
+    href: openSansLatinWghtNormalWoff2,
+    rel: 'preload',
+    type: 'font/woff2',
   },
   {
-    href: 'https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap',
-    rel: 'stylesheet',
+    as: 'font',
+    crossOrigin: 'anonymous',
+    href: openSansSymbolsWghtNormalWoff2,
+    rel: 'preload',
+    type: 'font/woff2',
+  },
+  {
+    as: 'font',
+    crossOrigin: 'anonymous',
+    href: openSansMathWghtNormalWoff2,
+    rel: 'preload',
+    type: 'font/woff2',
   },
 ];
 
 export function Layout({ children }: PropsWithChildren): JSX.Element {
+  const stylexLinkProps = {
+    disabled: true,
+  };
+
   return (
     <html
-      className="dark"
       lang="en"
+      suppressHydrationWarning
+      {...props(globalStyles.html)}
     >
       <head>
         <meta charSet="utf-8" />
@@ -42,9 +64,34 @@ export function Layout({ children }: PropsWithChildren): JSX.Element {
           name="viewport"
         />
         <Meta />
+
+        <style>{criticalCss}</style>
+
+        {/* External bootstrap keeps theme initialization early without adding another inline script. */}
+        <script
+          crossOrigin="anonymous"
+          integrity={themeBootstrapIntegrity}
+          src={themeBootstrapSrc}
+        />
         <Links />
+        {/* Base reset lives in critical CSS; theme/body styles are applied via StyleX `globalStyles`. */}
+
+        {import.meta.env.DEV ? (
+          <>
+            {/* Reference: https://stylexjs.com/docs/api/configuration/unplugin#vite */}
+            <link
+              {...stylexLinkProps}
+              href="/virtual:stylex.css"
+              rel="stylesheet"
+            />
+            <script
+              src="/@id/virtual:stylex:runtime"
+              type="module"
+            />
+          </>
+        ) : null}
       </head>
-      <body>
+      <body {...props(globalStyles.body)}>
         {children}
         <ScrollRestoration />
         <Scripts />
@@ -58,7 +105,6 @@ export default function App(): JSX.Element {
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): JSX.Element {
-  // HTTP status code constants
   const httpNotFound = 404;
   const httpUnauthorized = 401;
   const httpForbidden = 403;
@@ -76,7 +122,6 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): JSX.Element 
   if (isRouteErrorResponse(error)) {
     statusCode = error.status;
 
-    // Handle different HTTP status codes
     switch (error.status) {
       case httpNotFound:
         message = '404 - Not Found';
@@ -111,49 +156,54 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): JSX.Element 
         details = error.statusText || error.data?.message || details;
     }
   } else if (import.meta.env.DEV && error && error instanceof Error) {
-    // Development mode: show detailed error info
     details = error.message;
     stack = error.stack;
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-900">
-      <div className="max-w-2xl w-full dark:bg-slate-800 rounded-2xl shadow-xl p-8 text-center">
+    <main {...props(errorStyles.main)}>
+      <div {...props(errorStyles.container)}>
         <div
-          className={`text-6xl mb-6 ${
-            statusCode >= serverErrorThreshold ? 'text-red-600' : 'text-yellow-600'
-          }`}
+          {...props(
+            errorStyles.icon,
+            statusCode >= serverErrorThreshold
+              ? errorStyles.iconServerError
+              : errorStyles.iconClientError
+          )}
         >
-          <i className="iconify fa7-solid--exclamation-triangle" />
+          <IconExclamationTriangle {...props(iconStyles.base)} />
         </div>
 
         <h1
-          className={`text-4xl font-bold mb-4 ${
-            statusCode >= serverErrorThreshold ? 'text-red-600' : 'text-yellow-600'
-          }`}
+          {...props(
+            errorStyles.title,
+            statusCode >= serverErrorThreshold
+              ? errorStyles.titleServerError
+              : errorStyles.titleClientError
+          )}
         >
           {message}
         </h1>
 
-        <p className="text-lg text-slate-600 dark:text-slate-300 mb-8">{details}</p>
+        <p {...props(errorStyles.details)}>{details}</p>
 
         {stack && (
-          <details className="bg-slate-100 dark:bg-slate-700 rounded-lg p-4 mb-8 text-left">
-            <summary className="cursor-pointer font-semibold text-slate-900 dark:text-white mb-4 flex items-center space-x-2">
-              <i className="iconify fa7-solid--bug text-red-600" />
+          <details {...props(errorStyles.stackDetails)}>
+            <summary {...props(errorStyles.stackSummary)}>
+              <IconBug {...props(iconStyles.base, errorStyles.iconBug)} />
               <span>Stack Trace (Development Only)</span>
             </summary>
-            <pre className="bg-slate-800 text-slate-200 rounded p-4 overflow-auto text-sm font-mono">
+            <pre {...props(errorStyles.stackPre)}>
               <code>{stack}</code>
             </pre>
           </details>
         )}
 
         <Link
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors inline-flex items-center space-x-2"
           to="/"
+          {...props(errorStyles.link)}
         >
-          <i className="iconify fa7-solid--arrow-left" />
+          <IconArrowLeft {...props(iconStyles.base)} />
           <span>Go back home</span>
         </Link>
       </div>

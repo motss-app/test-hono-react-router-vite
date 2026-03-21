@@ -24,15 +24,15 @@
   Cache-Control: public, max-age=1800, s-maxage=10800, stale-while-revalidate=300, must-revalidate
 
 /*.css
-  Cache-Control: public, max-age=1800, s-maxage=10800, stale-while-revalidate=300, must-revalidate
+  Cache-Control: public, max-age=900, s-maxage=86400, stale-while-revalidate=300, must-revalidate
 
 /*.js
-  Cache-Control: public, max-age=1800, s-maxage=10800, stale-while-revalidate=300, must-revalidate
+  Cache-Control: public, max-age=900, s-maxage=86400, stale-while-revalidate=300, must-revalidate
 
 # Static assets with content hashing
 /assets/*
   ! Cache-Control
-  Cache-Control: public, max-age=604800, s-maxage=315360000, stale-while-revalidate=86400, immutable
+  Cache-Control: public, max-age=2592000, s-maxage=31536000, stale-while-revalidate=86400, immutable
 
 # SSG Pages
 /about

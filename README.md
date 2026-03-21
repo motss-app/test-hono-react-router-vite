@@ -16,7 +16,7 @@ A modern, production-ready template for building full-stack React applications u
 - 📦 Asset bundling and optimization
 - 🔄 Data loading and mutations
 - 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
+- 🎨 StyleX for styling
 - 📖 [React Router docs](https://reactrouter.com/)
 
 ## Getting Started
@@ -103,7 +103,7 @@ The application will be deployed to Deno Deploy and you'll receive a production 
 
 If you're familiar with deploying Node applications, the built-in app server is production-ready.
 
-Make sure to deploy the output of `npm run build`
+Make sure to deploy the output of `deno task build`
 
 ```
 ├── package.json
@@ -116,7 +116,7 @@ Make sure to deploy the output of `npm run build`
 
 ## Styling
 
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
+This project uses [StyleX](https://stylexjs.com/) for styling and theming. Global styling is expressed through StyleX tokens, utilities, and components rather than a global CSS framework.
 
 ---
 

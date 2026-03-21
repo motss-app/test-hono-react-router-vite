@@ -13,7 +13,7 @@ function fileExists(path: string): boolean {
   }
 }
 
-export interface HeadersCopyPluginOptions {
+interface HeadersCopyPluginOptions {
   dest: string;
   headersDir: string;
   mode: string;

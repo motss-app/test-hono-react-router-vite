@@ -18,6 +18,19 @@ if (import.meta.env.PROD) {
 // Always attach SSR handler (Dev & Prod)
 createSsrHandler(app);
 
+if (import.meta.env.DEV) {
+  // Ignore Broken Pipe errors in Deno when a WebSocket disconnects during Vite HMR
+  globalThis.addEventListener('unhandledrejection', (e: PromiseRejectionEvent) => {
+    if (
+      e.reason?.message?.includes('Broken pipe') ||
+      e.reason?.message?.includes('Connection reset by peer')
+    ) {
+      e.preventDefault();
+      console.warn('Ignored unhandled rejection:', e.reason);
+    }
+  });
+}
+
 const exports = import.meta.env.DEV
   ? {
       fetch: app.fetch,

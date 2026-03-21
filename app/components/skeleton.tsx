@@ -1,3 +1,4 @@
+import { create, keyframes, props } from '@stylexjs/stylex';
 import { type ComponentProps, type JSX, useEffect, useRef, useState } from 'react';
 
 const DELAY_BEFORE_SHOWING_SKELETON_MS = 100;
@@ -26,11 +27,43 @@ function isSlowNetwork() {
   );
 }
 
+const pulse = keyframes({
+  '0%': {
+    opacity: 1,
+  },
+  '50%': {
+    opacity: 0.5,
+  },
+  '100%': {
+    opacity: 1,
+  },
+});
+
+const s = create({
+  base: {
+    animationDuration: '2s',
+    animationIterationCount: 'infinite',
+    animationName: pulse,
+    animationTimingFunction: 'cubic-bezier(0.4, 0, 0.6, 1)',
+    backgroundColor: 'rgba(212, 212, 212, 0.25)', // bg-neutral-300/25
+    borderRadius: '0.5rem', // rounded-lg
+    display: 'inline-block',
+    lineHeight: '1.5rem', // leading-24 (assuming 24px)
+    verticalAlign: 'middle',
+  },
+});
+
 interface SkeletonProps extends ComponentProps<'span'> {
   isLoading?: boolean;
 }
 
-export function Skeleton({ children, className, isLoading, ...props }: SkeletonProps): JSX.Element {
+export function Skeleton({
+  children,
+  className,
+  isLoading,
+  style,
+  ...rest
+}: SkeletonProps): JSX.Element {
   const loading = isLoading !== false;
   const [shouldRenderSkeleton, setShouldRenderSkeleton] = useState(loading);
   const lastShowTime = useRef<number>(loading ? performance.now() : 0);
@@ -65,12 +98,21 @@ export function Skeleton({ children, className, isLoading, ...props }: SkeletonP
     return <>{children}</>;
   }
 
+  const skeletonProps = props(s.base);
+  const mergedClassName = `${skeletonProps.className || ''} ${className || ''}`.trim() || undefined;
+  const mergedStyle =
+    skeletonProps.style || style
+      ? {
+          ...skeletonProps.style,
+          ...style,
+        }
+      : undefined;
+
   return (
     <span
-      className={`inline-block bg-neutral-300/25 animate-pulse align-middle leading-24 rounded-lg ${
-        className || ''
-      }`}
-      {...props}
+      {...rest}
+      className={mergedClassName}
+      style={mergedStyle}
     >
       &nbsp;
     </span>

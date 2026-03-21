@@ -87,8 +87,7 @@
   "css": {
     "parser": {
       "allowWrongLineComments": true,
-      "cssModules": true,
-      "tailwindDirectives": true
+      "cssModules": true
     }
   },
   "files": {
@@ -149,13 +148,16 @@
     }
   },
   "linter": {
+    "domains": {
+      "qwik": "none"
+    },
     "enabled": true,
     "rules": {
       "a11y": "error",
       "complexity": "error",
       "correctness": "error",
       "nursery": {
-        "useExplicitType": "error"
+        "useExplicitType": "off"
       },
       "performance": "error",
       "recommended": true,
@@ -189,9 +191,6 @@
             "noNodejsModules": "off",
             "useImportExtensions": "off"
           },
-          "nursery": {
-            "useExplicitType": "off"
-          },
           "security": {
             "noSecrets": "off"
           },
@@ -221,8 +220,7 @@
         "**/vite.config.ts",
         "**/vite.*.config.ts",
         "react-router.config.ts",
-        "app/routes.ts",
-        "tailwind.config.ts"
+        "app/routes.ts"
       ],
       "linter": {
         "rules": {
@@ -235,13 +233,12 @@
     },
     {
       "includes": [
-        "**/apis/**/*.ts",
-        "app/app.ts"
+        "vite-plugins/**/*.ts"
       ],
       "linter": {
         "rules": {
-          "nursery": {
-            "useExplicitType": "off"
+          "correctness": {
+            "noNodejsModules": "off"
           }
         }
       }
@@ -269,9 +266,6 @@
         "rules": {
           "correctness": {
             "noNodejsModules": "off"
-          },
-          "nursery": {
-            "useExplicitType": "off"
           },
           "style": {
             "noDefaultExport": "off"
@@ -339,10 +333,40 @@
       "linter": {
         "rules": {
           "correctness": {
-            "noUndeclaredDependencies": "off"
+            "noUndeclaredDependencies": "off",
+            "noUnresolvedImports": "off"
           },
           "style": {
-            "noImplicitBoolean": "off"
+            "noImplicitBoolean": "off",
+            "noJsxLiterals": "off",
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "@iconify-react",
+                      "@iconify-react/**"
+                    ],
+                    "message": "Import @iconify-react only inside *.icons.ts files."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "**/*.icons.ts",
+        "**/icons.ts"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noExportedImports": "off",
+            "noRestrictedImports": "off"
           }
         }
       }
