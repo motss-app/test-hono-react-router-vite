@@ -1,23 +1,47 @@
-import { create, props } from '@stylexjs/stylex';
+import { create, keyframes, props, type StyleXStyles } from '@stylexjs/stylex';
 import { hc } from 'hono/client';
 import type { JSX, ReactNode } from 'react';
-import { Link, useRevalidator } from 'react-router';
+import { useRevalidator } from 'react-router';
 
 import type { ApiAppType } from '../apis/mod.ts';
+import { Link } from '../components/Link.tsx';
 import { Skeleton } from '../components/skeleton.tsx';
 import { Text } from '../components/Text.tsx';
+import { IconArrowLeft } from '../icons.ts';
+import { iconStyles } from '../styles/icon.stylex.ts';
 import { colorTokens, fontWeightTokens, themeConditions } from '../styles/tokens.stylex.ts';
 import type { Route } from './+types/hono-rpc.ts';
 
-// Define the expected response type
 interface HelloResponse {
   message: string;
   timestamp: string;
   server: string;
 }
 
-// Create properly typed RPC client with correct base URL
 const client = hc<ApiAppType>('/api');
+
+const heroReveal = keyframes({
+  '0%': {
+    opacity: 0,
+    transform: 'translate3d(0, 1.5rem, 0)',
+  },
+  '100%': {
+    opacity: 1,
+    transform: 'translate3d(0, 0, 0)',
+  },
+});
+
+const artworkDrift = keyframes({
+  '0%': {
+    transform: 'scale(1.02) translate3d(0, 0, 0)',
+  },
+  '50%': {
+    transform: 'scale(1.05) translate3d(-0.75%, 0.5%, 0)',
+  },
+  '100%': {
+    transform: 'scale(1.03) translate3d(-0.25%, -0.35%, 0)',
+  },
+});
 
 function meta(): Route.MetaDescriptors {
   return [
@@ -25,21 +49,14 @@ function meta(): Route.MetaDescriptors {
       title: 'Hono RPC Demo',
     },
     {
-      content: 'Simple Hono RPC demo',
+      content: 'Typed Hono RPC demo with client refresh',
       name: 'description',
     },
   ];
 }
 
-// Use loader for SSG/SSR data fetching
 async function loader(): Promise<HelloResponse> {
-  // During build time (SSG), we can't make HTTP requests to our own API
-  // because the server isn't running. We should import the logic directly
-  // or mock the data.
   if (import.meta.env.SSR && !import.meta.env.VITE_DENO_DEPLOYMENT_ID) {
-    // Mock data for build time
-    // We return empty strings to signal the component to render a Skeleton UI
-    // instead of "Build Time" text. This prevents a flash of content.
     return {
       message: '',
       server: '',
@@ -47,7 +64,6 @@ async function loader(): Promise<HelloResponse> {
     };
   }
 
-  // Use Hono RPC client properly
   const res = await client.rpc.hello.$get();
 
   if (res.ok) {
@@ -57,8 +73,6 @@ async function loader(): Promise<HelloResponse> {
   throw new Error(`HTTP error! status: ${res.status}`);
 }
 
-// Client loader runs on the browser.
-// We set hydrate=true to force it to run on initial load, replacing the SSG mock data.
 async function clientLoader(): Promise<HelloResponse> {
   const res = await client.rpc.hello.$get();
 
@@ -72,72 +86,111 @@ async function clientLoader(): Promise<HelloResponse> {
 clientLoader.hydrate = true;
 
 const s = create({
-  actionContainer: {
-    marginBlockEnd: '0.5rem',
-    marginBlockStart: '0.5rem',
-  },
-  apiInfoCard: {
+  actionButton: {
+    ':hover': {
+      backgroundColor: {
+        [themeConditions.dataThemeDark]: '#7dd3fc',
+        default: colorTokens.infoHover,
+      },
+      transform: 'translate3d(0, -0.125rem, 0)',
+    },
     backgroundColor: {
-      [themeConditions.dataThemeDark]: '#312e81',
-      default: '#eef2ff',
+      [themeConditions.dataThemeDark]: '#bae6fd',
+      default: colorTokens.info,
     },
-    borderColor: {
-      [themeConditions.dataThemeDark]: '#a5b4fc',
-      default: '#6366f1',
-    },
-    borderRadius: '0.5rem',
-    borderStyle: 'solid',
-    borderWidth: '1px',
-    marginBottom: '1rem',
-    padding: '1rem',
-  },
-  apiText: {
-    color: {
-      [themeConditions.dataThemeDark]: colorTokens.slate200,
-      default: colorTokens.slate800,
-    },
-    marginBottom: '0.5rem',
-  },
-  backLinkContainer: {
-    margin: '1rem 0',
-  },
-  button: {
     border: 'none',
-    borderRadius: '0.5rem',
-    fontWeight: fontWeightTokens.fontWeightMedium,
-    outline: 'none',
-    padding: '0.75rem 1rem',
-    transition: 'color 0.15s ease-in-out',
+    borderRadius: '9999px',
+    color: {
+      [themeConditions.dataThemeDark]: colorTokens.slate900,
+      default: colorTokens.white,
+    },
+    cursor: 'pointer',
+    fontWeight: fontWeightTokens.fontWeightSemibold,
+    padding: '0.92rem 1.45rem',
+    transition: 'background-color 0.2s ease, transform 0.2s ease',
     width: '100%',
   },
-  buttonActive: {
+  actionButtonLoading: {
     backgroundColor: {
-      ':hover': '#1e3a8a',
-      default: colorTokens.infoHover,
+      [themeConditions.dataThemeDark]: colorTokens.slate500,
+      default: colorTokens.slate400,
     },
-    color: colorTokens.white,
-    cursor: 'pointer',
-  },
-  buttonLoading: {
-    backgroundColor: colorTokens.slate500,
     color: colorTokens.slate100,
     cursor: 'not-allowed',
   },
-  codeBlock: {
+  actionShell: {
+    alignItems: 'center',
+    display: 'flex',
+    minWidth: 0,
+  },
+  ctaSecondary: {
+    ':hover': {
+      backgroundColor: {
+        [themeConditions.dataThemeDark]: 'rgba(148, 163, 184, 0.12)',
+        default: 'rgba(255, 255, 255, 0.7)',
+      },
+      borderColor: {
+        [themeConditions.dataThemeDark]: colorTokens.slate400,
+        default: '#bfdbfe',
+      },
+      transform: 'translate3d(0, -0.125rem, 0)',
+    },
+    animationDelay: '320ms',
+    animationDuration: '700ms',
+    animationFillMode: 'both',
+    animationName: heroReveal,
+    animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
     backgroundColor: {
-      [themeConditions.dataThemeDark]: '#3730a3',
-      default: '#e0e7ff',
+      [themeConditions.dataThemeDark]: 'rgba(15, 23, 42, 0.28)',
+      default: 'rgba(255, 255, 255, 0.78)',
     },
     borderColor: {
-      [themeConditions.dataThemeDark]: '#818cf8',
-      default: '#6366f1',
+      [themeConditions.dataThemeDark]: 'rgba(226, 232, 240, 0.26)',
+      default: 'rgba(15, 23, 42, 0.12)',
     },
-    borderRadius: '0.25rem',
+    borderRadius: '9999px',
     borderStyle: 'solid',
     borderWidth: '1px',
-    fontFamily: 'monospace',
-    fontSize: '0.875rem',
-    padding: '0.25rem 0.5rem',
+    color: {
+      [themeConditions.dataThemeDark]: colorTokens.slate100,
+      default: colorTokens.slate900,
+    },
+    display: 'inline-flex',
+    fontWeight: fontWeightTokens.fontWeightSemibold,
+    gap: '0.5rem',
+    padding: '0.92rem 1.45rem',
+    textDecoration: 'none',
+    transition: 'background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease',
+  },
+  dataLabel: {
+    color: {
+      [themeConditions.dataThemeDark]: colorTokens.slate400,
+      default: colorTokens.slate600,
+    },
+    fontSize: '0.86rem',
+    letterSpacing: '0.08em',
+    marginBottom: '0.3rem',
+    textTransform: 'uppercase',
+  },
+  dataList: {
+    display: 'grid',
+    gap: '1rem',
+    gridTemplateColumns: {
+      '@media (min-width: 768px)': '1fr 1fr',
+      default: '1fr',
+    },
+    minWidth: 0,
+  },
+  dataValue: {
+    color: {
+      [themeConditions.dataThemeDark]: colorTokens.slate100,
+      default: colorTokens.slate900,
+    },
+    fontSize: '1.1rem',
+    lineHeight: '1.55',
+    margin: 0,
+    minWidth: 0,
+    overflowWrap: 'anywhere',
   },
   errorBox: {
     backgroundColor: {
@@ -148,155 +201,320 @@ const s = create({
       [themeConditions.dataThemeDark]: colorTokens.error,
       default: '#ef4444',
     },
-    borderRadius: '0.5rem',
+    borderRadius: '1rem',
     borderStyle: 'solid',
     borderWidth: '1px',
     color: {
       [themeConditions.dataThemeDark]: '#fca5a5',
       default: '#b91c1c',
     },
-    marginBottom: '1rem',
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    maxWidth: '42rem',
     padding: '1rem',
   },
-  h1: {
+  errorPage: {
+    minWidth: 0,
+    padding: '2rem',
+  },
+  hero: {
+    backgroundColor: {
+      [themeConditions.dataThemeDark]: '#08101b',
+      default: '#edf6ff',
+    },
+    minWidth: 0,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  heroActions: {
+    alignItems: 'center',
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '0.75rem',
+  },
+  heroBody: {
+    animationDelay: '160ms',
+    animationDuration: '700ms',
+    animationFillMode: 'both',
+    animationName: heroReveal,
+    animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
     color: {
-      [themeConditions.dataThemeDark]: colorTokens.white,
+      [themeConditions.dataThemeDark]: colorTokens.slate300,
+      default: colorTokens.slate800,
+    },
+    fontSize: '1rem',
+    lineHeight: '1.7',
+    marginBottom: '2rem',
+    marginTop: 0,
+    maxWidth: '31rem',
+  },
+  heroCopy: {
+    maxWidth: '38rem',
+    minWidth: 0,
+    paddingBottom: {
+      '@media (min-width: 768px)': '4rem',
+      default: '2.5rem',
+    },
+    position: 'relative',
+    zIndex: 2,
+  },
+  heroInner: {
+    alignItems: 'flex-end',
+    display: 'flex',
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    maxWidth: '84rem',
+    minHeight: '100svh',
+    minWidth: 0,
+    paddingBottom: {
+      '@media (min-width: 768px)': '0',
+      default: '2rem',
+    },
+    paddingLeft: '1rem',
+    paddingRight: '1rem',
+    paddingTop: '4rem',
+    position: 'relative',
+  },
+  heroLead: {
+    animationDelay: '110ms',
+    animationDuration: '700ms',
+    animationFillMode: 'both',
+    animationName: heroReveal,
+    animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
+    color: {
+      [themeConditions.dataThemeDark]: colorTokens.slate100,
       default: colorTokens.slate900,
     },
-    fontSize: '2.25rem',
-    fontWeight: fontWeightTokens.fontWeightBold,
-    marginBottom: '1.5rem',
-  },
-  h2: {
-    color: {
-      [themeConditions.dataThemeDark]: colorTokens.white,
-      default: colorTokens.slate900,
+    fontSize: {
+      '@media (min-width: 768px)': '1.95rem',
+      default: '1.28rem',
     },
-    fontSize: '1.5rem',
-    fontWeight: fontWeightTokens.fontWeightSemibold,
-    marginBottom: '1rem',
+    fontWeight: fontWeightTokens.fontWeightMedium,
+    letterSpacing: '-0.025em',
+    lineHeight: '1.12',
+    marginBottom: '0.85rem',
+    marginTop: 0,
+    maxWidth: '15ch',
   },
-  infoContainer: {
+  heroMedia: {
+    '@media (prefers-reduced-motion: reduce)': {
+      animationDuration: '1ms',
+      animationIterationCount: '1',
+    },
+    animationDirection: 'alternate',
+    animationDuration: '18s',
+    animationIterationCount: 'infinite',
+    animationName: artworkDrift,
+    animationTimingFunction: 'ease-in-out',
+    backgroundImage: {
+      [themeConditions.dataThemeDark]: 'url("/assets/hono-rpc-hero-dark.svg")',
+      default: 'url("/assets/hono-rpc-hero-light.svg")',
+    },
+    backgroundPosition: {
+      '@media (min-width: 768px)': 'center center',
+      default: '72% center',
+    },
+    backgroundRepeat: 'no-repeat',
+    backgroundSize: 'cover',
+    inset: 0,
+    opacity: {
+      [themeConditions.dataThemeDark]: 1,
+      default: 0.8,
+    },
+    position: 'absolute',
+    transformOrigin: 'center',
+  },
+  heroOverlay: {
+    backgroundImage: {
+      [themeConditions.dataThemeDark]:
+        'linear-gradient(90deg, rgba(8, 16, 27, 0.92) 0%, rgba(8, 16, 27, 0.72) 26%, rgba(8, 16, 27, 0.28) 54%, rgba(8, 16, 27, 0.1) 100%), linear-gradient(180deg, rgba(8, 16, 27, 0.12) 0%, rgba(8, 16, 27, 0.18) 100%)',
+      default:
+        'linear-gradient(90deg, rgba(249, 252, 255, 0.995) 0%, rgba(249, 252, 255, 0.94) 28%, rgba(243, 248, 255, 0.78) 48%, rgba(239, 246, 255, 0.48) 68%, rgba(237, 246, 255, 0.26) 100%), linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(226, 239, 255, 0.12) 100%)',
+    },
+    inset: 0,
+    position: 'absolute',
+    zIndex: 1,
+  },
+  page: {
+    minWidth: 0,
+    paddingBottom: '4rem',
+  },
+  routesInner: {
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    maxWidth: '84rem',
+    minWidth: 0,
+    paddingLeft: '1rem',
+    paddingRight: '1rem',
+    paddingTop: '3.5rem',
+  },
+  routesIntro: {
     color: {
       [themeConditions.dataThemeDark]: colorTokens.slate300,
       default: colorTokens.slate700,
     },
-    fontSize: '0.875rem',
+    fontSize: '1rem',
+    lineHeight: '1.7',
+    marginBottom: '2rem',
+    marginTop: 0,
+    maxWidth: '34rem',
   },
-  infoPara: {
-    marginBottom: '1rem',
+  routesList: {
+    borderTopColor: {
+      [themeConditions.dataThemeDark]: colorTokens.slate800,
+      default: colorTokens.slate200,
+    },
+    borderTopStyle: 'solid',
+    borderTopWidth: '1px',
+    minWidth: 0,
   },
-  infoText: {
+  routesTitle: {
     color: {
-      [themeConditions.dataThemeDark]: colorTokens.slate200,
+      [themeConditions.dataThemeDark]: colorTokens.white,
+      default: colorTokens.slate900,
+    },
+    fontSize: {
+      '@media (min-width: 768px)': '2.6rem',
+      default: '2rem',
+    },
+    fontWeight: fontWeightTokens.fontWeightBold,
+    letterSpacing: '-0.04em',
+    lineHeight: '0.98',
+    marginBottom: '0.75rem',
+    marginTop: 0,
+    maxWidth: '12ch',
+  },
+  rowBody: {
+    color: {
+      [themeConditions.dataThemeDark]: colorTokens.slate300,
       default: colorTokens.slate700,
     },
-    fontSize: '0.875rem',
-    marginTop: '1rem',
+    fontSize: '0.98rem',
+    lineHeight: '1.65',
+    margin: 0,
+    minWidth: 0,
   },
-  link: {
-    ':hover': {
-      color: {
-        [themeConditions.dataThemeDark]: '#bfdbfe',
-        default: colorTokens.infoHover,
-      },
-    },
+  rowContent: {
+    minWidth: 0,
+  },
+  rowNumber: {
     color: {
-      [themeConditions.dataThemeDark]: '#93c5fd',
+      [themeConditions.dataThemeDark]: '#7dd3fc',
       default: colorTokens.info,
     },
-    textDecoration: 'underline',
-    transition: 'color 0.15s ease-in-out',
+    fontSize: {
+      '@media (min-width: 768px)': '2rem',
+      default: '1.45rem',
+    },
+    fontWeight: fontWeightTokens.fontWeightBold,
+    letterSpacing: '-0.04em',
+    lineHeight: '1',
   },
-  list: {
+  rowPanel: {
+    alignItems: {
+      '@media (min-width: 960px)': 'start',
+      default: 'start',
+    },
+    display: 'grid',
+    gap: '1rem 1rem',
+    gridTemplateColumns: {
+      '@media (min-width: 960px)': '5.5rem minmax(0, 18rem) minmax(0, 1fr)',
+      default: '1fr',
+    },
+    minWidth: 0,
+    paddingBottom: '1.45rem',
+    paddingLeft: '0.5rem',
+    paddingRight: '0.5rem',
+    paddingTop: '1.45rem',
+  },
+  rowRow: {
+    borderBottomColor: {
+      [themeConditions.dataThemeDark]: colorTokens.slate800,
+      default: colorTokens.slate200,
+    },
+    borderBottomStyle: 'solid',
+    borderBottomWidth: '1px',
+    minWidth: 0,
+  },
+  rowTitle: {
     color: {
-      [themeConditions.dataThemeDark]: colorTokens.slate200,
-      default: colorTokens.slate700,
+      [themeConditions.dataThemeDark]: colorTokens.white,
+      default: colorTokens.slate900,
     },
-    listStylePosition: 'inside',
-    listStyleType: 'disc',
-    marginBottom: '0.5rem',
-    marginTop: '0.5rem',
-  },
-  p: {
-    color: {
-      [themeConditions.dataThemeDark]: colorTokens.slate200,
-      default: colorTokens.slate700,
-    },
-    fontSize: '1.25rem',
-    marginBottom: '2rem',
-  },
-  page: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.5rem',
-    padding: '2rem',
-  },
-  refreshPara: {
-    marginTop: '1rem',
-  },
-  responseCard: {
-    backgroundColor: {
-      [themeConditions.dataThemeDark]: '#14532d',
-      default: '#ecfdf5',
-    },
-    borderColor: {
-      [themeConditions.dataThemeDark]: '#4ade80',
-      default: '#22c55e',
-    },
-    borderRadius: '0.5rem',
-    borderStyle: 'solid',
-    borderWidth: '1px',
-    padding: '1rem',
-  },
-  retryLink: {
-    color: {
-      ':hover': {
-        [themeConditions.dataThemeDark]: colorTokens.white,
-        default: colorTokens.slate900,
-      },
-    },
-    textDecoration: 'underline',
-  },
-  row: {
-    color: {
-      [themeConditions.dataThemeDark]: colorTokens.slate200,
-      default: colorTokens.slate700,
-    },
-    marginBottom: '0.5rem',
-  },
-  rowLoading: {
-    alignItems: 'center',
-    display: 'flex',
+    fontSize: '1.45rem',
+    fontWeight: fontWeightTokens.fontWeightSemibold,
+    letterSpacing: '-0.03em',
+    lineHeight: '1.1',
+    marginBottom: '0.3rem',
+    marginTop: 0,
   },
   skeletonAction: {
-    borderRadius: '0.5rem',
-    height: '7.5rem',
+    borderRadius: '9999px',
+    height: '3rem',
     width: '100%',
+  },
+  skeletonMessage: {
+    width: '10ch',
+  },
+  skeletonServer: {
+    width: '12ch',
+  },
+  skeletonTimestamp: {
+    width: '24ch',
+  },
+  title: {
+    '@media (prefers-reduced-motion: reduce)': {
+      animationDuration: '1ms',
+      animationIterationCount: '1',
+    },
+    animationDuration: '700ms',
+    animationFillMode: 'both',
+    animationName: heroReveal,
+    animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
+    color: {
+      [themeConditions.dataThemeDark]: colorTokens.white,
+      default: colorTokens.slate900,
+    },
+    fontSize: {
+      '@media (min-width: 768px)': '6.4rem',
+      default: '3.95rem',
+    },
+    fontWeight: fontWeightTokens.fontWeightBold,
+    letterSpacing: '-0.07em',
+    lineHeight: '0.84',
+    marginBottom: '1rem',
+    marginTop: 0,
+    maxWidth: '7ch',
+  },
+  titleAccent: {
+    color: {
+      [themeConditions.dataThemeDark]: '#7dd3fc',
+      default: colorTokens.info,
+    },
+    display: 'block',
   },
 });
 
 interface RpcResponseRowProps {
-  className?: string;
   isLoading: boolean;
   label: string;
-  styles?: Readonly<{
-    [key: string]: string | number;
-  }>;
+  styles?: StyleXStyles;
   value: string;
 }
 
 function RpcResponseRow({ isLoading, label, styles, value }: RpcResponseRowProps): JSX.Element {
   return (
-    <Text {...props(s.row, isLoading && s.rowLoading)}>
-      <strong>{label}:&nbsp;</strong>
-      <Skeleton
-        isLoading={isLoading}
-        styles={styles}
-      >
-        {value}
-      </Skeleton>
-    </Text>
+    <div>
+      <dt {...props(s.dataLabel)}>{label}</dt>
+      <dd {...props(s.dataValue)}>
+        <Skeleton
+          isLoading={isLoading}
+          styles={styles}
+        >
+          {value}
+        </Skeleton>
+      </dd>
+    </div>
   );
 }
 
@@ -308,103 +526,195 @@ interface HonoRpcViewProps {
 
 function HonoRpcView({ action, isLoading, response }: HonoRpcViewProps): JSX.Element {
   return (
-    <div {...props(s.page)}>
-      <div {...props(s.backLinkContainer)}>
-        <Link
-          to="/"
-          {...props(s.link)}
-        >
-          ← Back to Home
-        </Link>
-      </div>
-
-      <Text
-        as="h1"
-        {...props(s.h1)}
-      >
-        Hono RPC Demo
-      </Text>
-      <Text {...props(s.p)}>
-        Simple demo of calling a Hono endpoint from React Router using clientLoader.
-      </Text>
-
-      <div {...props(s.actionContainer)}>{action}</div>
-
-      <div {...props(s.responseCard)}>
-        <Text
-          as="h2"
-          {...props(s.h2)}
-        >
-          RPC Response:
-        </Text>
-        <RpcResponseRow
-          isLoading={isLoading}
-          label="Message"
-          styles={{
-            width: '10ch',
-          }}
-          value={response.message}
+    <main {...props(s.page)}>
+      <section {...props(s.hero)}>
+        <div
+          aria-hidden="true"
+          {...props(s.heroMedia)}
         />
-        <RpcResponseRow
-          isLoading={isLoading}
-          label="Server"
-          styles={{
-            width: '12ch',
-          }}
-          value={response.server}
+        <div
+          aria-hidden="true"
+          {...props(s.heroOverlay)}
         />
-        <RpcResponseRow
-          isLoading={isLoading}
-          label="Timestamp"
-          styles={{
-            width: '24ch',
-          }}
-          value={response.timestamp}
-        />
-        <Text {...props(s.infoText)}>
-          ℹ️ This data was fetched using Hono RPC client (loader for initial, client for refresh)
-        </Text>
-      </div>
 
-      <div {...props(s.apiInfoCard)}>
-        <Text
-          as="h2"
-          {...props(s.h2)}
-        >
-          API Information:
-        </Text>
-        <Text {...props(s.apiText)}>
-          <strong>Endpoint:</strong> <code {...props(s.codeBlock)}>GET /api/rpc/hello</code>
-        </Text>
-        <Text {...props(s.apiText)}>
-          <strong>Implementation:</strong> <code {...props(s.codeBlock)}>app/apis/mod.ts</code>
-        </Text>
-        <Text {...props(s.apiText)}>
-          <strong>Description:</strong> Returns a greeting message with server timestamp
-        </Text>
-      </div>
+        <div {...props(s.heroInner)}>
+          <div {...props(s.heroCopy)}>
+            <Text
+              as="h1"
+              {...props(s.title)}
+            >
+              Hono RPC
+              <span {...props(s.titleAccent)}>Typed on both sides</span>
+            </Text>
 
-      <div {...props(s.infoContainer)}>
-        <Text {...props(s.infoPara)}>💡 This page demonstrates:</Text>
-        <ul {...props(s.list)}>
-          <li>
-            <strong>Prerendered:</strong> Page structure is built at build time
-          </li>
-          <li>
-            <strong>loader:</strong> RPC data is fetched at build time (SSG) or request time (SSR)
-          </li>
-          <li>
-            <strong>Client Refresh:</strong> RPC data can be re-fetched after hydration
-          </li>
-          <li>
-            <strong>Hono RPC:</strong> Type-safe API calls using hc() client
-          </li>
-        </ul>
-        <Text {...props(s.refreshPara)}>
-          🔄 Click "Refresh RPC Data" to fetch new data without page reload!
-        </Text>
-      </div>
-    </div>
+            <Text
+              as="p"
+              {...props(s.heroLead)}
+            >
+              A typed request surface that refreshes without leaving the route.
+            </Text>
+
+            <p {...props(s.heroBody)}>
+              The initial response comes through the route loader, then the same endpoint can be
+              revalidated on the client through the Hono RPC client.
+            </p>
+
+            <div {...props(s.heroActions)}>
+              <Link
+                to="/"
+                {...props(s.ctaSecondary)}
+              >
+                <IconArrowLeft {...props(iconStyles.base)} />
+                <span>Back home</span>
+              </Link>
+
+              <div {...props(s.actionShell)}>{action}</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div {...props(s.routesInner)}>
+          <Text
+            as="h2"
+            {...props(s.routesTitle)}
+          >
+            The response is live and re-fetchable.
+          </Text>
+
+          <p {...props(s.routesIntro)}>
+            The same typed endpoint powers the initial route load and the in-page refresh action.
+          </p>
+
+          <div {...props(s.routesList)}>
+            <div {...props(s.rowRow)}>
+              <div {...props(s.rowPanel)}>
+                <span {...props(s.rowNumber)}>01</span>
+
+                <div {...props(s.rowContent)}>
+                  <Text
+                    as="h3"
+                    {...props(s.rowTitle)}
+                  >
+                    RPC response
+                  </Text>
+                  <p {...props(s.rowBody)}>
+                    Values returned from `GET /api/rpc/hello`, rendered first by the loader and then
+                    refreshed on demand.
+                  </p>
+                </div>
+
+                <dl {...props(s.dataList)}>
+                  <RpcResponseRow
+                    isLoading={isLoading}
+                    label="Message"
+                    styles={s.skeletonMessage}
+                    value={response.message}
+                  />
+                  <RpcResponseRow
+                    isLoading={isLoading}
+                    label="Server"
+                    styles={s.skeletonServer}
+                    value={response.server}
+                  />
+                  <RpcResponseRow
+                    isLoading={isLoading}
+                    label="Timestamp"
+                    styles={s.skeletonTimestamp}
+                    value={response.timestamp}
+                  />
+                </dl>
+              </div>
+            </div>
+
+            <div {...props(s.rowRow)}>
+              <div {...props(s.rowPanel)}>
+                <span {...props(s.rowNumber)}>02</span>
+
+                <div {...props(s.rowContent)}>
+                  <Text
+                    as="h3"
+                    {...props(s.rowTitle)}
+                  >
+                    Endpoint contract
+                  </Text>
+                  <p {...props(s.rowBody)}>
+                    The route and API stay connected through the generated Hono client instead of
+                    manual fetch strings.
+                  </p>
+                </div>
+
+                <dl {...props(s.dataList)}>
+                  <div>
+                    <dt {...props(s.dataLabel)}>Endpoint</dt>
+                    <dd {...props(s.dataValue)}>GET /api/rpc/hello</dd>
+                  </div>
+                  <div>
+                    <dt {...props(s.dataLabel)}>Implementation</dt>
+                    <dd {...props(s.dataValue)}>app/apis/mod.ts</dd>
+                  </div>
+                  <div>
+                    <dt {...props(s.dataLabel)}>Initial source</dt>
+                    <dd {...props(s.dataValue)}>Route loader / clientLoader hydration</dd>
+                  </div>
+                  <div>
+                    <dt {...props(s.dataLabel)}>Refresh path</dt>
+                    <dd {...props(s.dataValue)}>useRevalidator() → Hono RPC client</dd>
+                  </div>
+                </dl>
+              </div>
+            </div>
+
+            <div {...props(s.rowRow)}>
+              <div {...props(s.rowPanel)}>
+                <span {...props(s.rowNumber)}>03</span>
+
+                <div {...props(s.rowContent)}>
+                  <Text
+                    as="h3"
+                    {...props(s.rowTitle)}
+                  >
+                    What this demonstrates
+                  </Text>
+                  <p {...props(s.rowBody)}>
+                    The page is built to show where SSG, hydration, revalidation, and typed API
+                    calls intersect.
+                  </p>
+                </div>
+
+                <dl {...props(s.dataList)}>
+                  <div>
+                    <dt {...props(s.dataLabel)}>Prerendered shell</dt>
+                    <dd {...props(s.dataValue)}>
+                      The route can ship static structure at build time.
+                    </dd>
+                  </div>
+                  <div>
+                    <dt {...props(s.dataLabel)}>Hydrated data</dt>
+                    <dd {...props(s.dataValue)}>
+                      clientLoader replaces build-time placeholders in the browser.
+                    </dd>
+                  </div>
+                  <div>
+                    <dt {...props(s.dataLabel)}>Client refresh</dt>
+                    <dd {...props(s.dataValue)}>
+                      Revalidation fetches fresh RPC data without reloading the page.
+                    </dd>
+                  </div>
+                  <div>
+                    <dt {...props(s.dataLabel)}>Typed boundary</dt>
+                    <dd {...props(s.dataValue)}>
+                      The `hc()` client keeps route code aligned with the API contract.
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
   );
 }
 
@@ -430,7 +740,7 @@ function HydrateFallback(): JSX.Element {
 function HonoRpcDemo({ loaderData }: Route.ComponentProps): JSX.Element {
   const { revalidate, state } = useRevalidator();
   const isLoading = state === 'loading';
-  const buttonText = isLoading ? 'Refreshing...' : 'Refresh RPC Data';
+  const buttonText = isLoading ? 'Refreshing…' : 'Refresh RPC data';
 
   return (
     <HonoRpcView
@@ -439,7 +749,7 @@ function HonoRpcDemo({ loaderData }: Route.ComponentProps): JSX.Element {
           disabled={isLoading}
           onClick={revalidate}
           type="button"
-          {...props(s.button, isLoading ? s.buttonLoading : s.buttonActive)}
+          {...props(s.actionButton, isLoading && s.actionButtonLoading)}
         >
           {buttonText}
         </button>
@@ -450,27 +760,14 @@ function HonoRpcDemo({ loaderData }: Route.ComponentProps): JSX.Element {
   );
 }
 
-function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
+function ErrorBoundary({ error }: Route.ErrorBoundaryProps): JSX.Element {
   return (
-    <div {...props(s.page)}>
-      <div {...props(s.backLinkContainer)}>
-        <Link
-          to="/"
-          {...props(s.link)}
-        >
-          ← Back to Home
-        </Link>
-      </div>
+    <div {...props(s.errorPage)}>
       <div {...props(s.errorBox)}>
         <strong>Error:</strong> {error instanceof Error ? error.message : 'Unknown error'}
       </div>
-      <Text {...props(s.infoText)}>
-        <a
-          href="/hono-rpc"
-          {...props(s.retryLink)}
-        >
-          Try reloading the page
-        </a>
+      <Text {...props(s.routesIntro)}>
+        <a href="/hono-rpc">Try reloading the Hono RPC page</a>
       </Text>
     </div>
   );
