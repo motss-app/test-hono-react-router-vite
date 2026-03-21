@@ -2,7 +2,7 @@ import { create, keyframes, props } from '@stylexjs/stylex';
 import type { JSX } from 'react';
 
 import { Link } from '../components/Link.tsx';
-import { Text } from '../components/Text.tsx';
+import { Text } from '../components/text.tsx';
 import {
   IconArrowLeft,
   IconBolt,

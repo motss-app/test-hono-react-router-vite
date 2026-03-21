@@ -3,7 +3,7 @@ import type { JSX } from 'react';
 import { isRouteErrorResponse, useParams, useRouteError } from 'react-router';
 
 import { Link } from '../components/Link.tsx';
-import { Text } from '../components/Text.tsx';
+import { Text } from '../components/text.tsx';
 import { IconArrowLeft, IconCircleInfo, IconHome } from '../icons.ts';
 import { iconStyles } from '../styles/icon.stylex.ts';
 import { colorTokens, fontWeightTokens, themeConditions } from '../styles/tokens.stylex.ts';

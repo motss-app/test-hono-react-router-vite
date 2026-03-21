@@ -87,8 +87,7 @@
   "css": {
     "parser": {
       "allowWrongLineComments": true,
-      "cssModules": true,
-      "tailwindDirectives": true
+      "cssModules": true
     }
   },
   "files": {
@@ -221,8 +220,7 @@
         "**/vite.config.ts",
         "**/vite.*.config.ts",
         "react-router.config.ts",
-        "app/routes.ts",
-        "tailwind.config.ts"
+        "app/routes.ts"
       ],
       "linter": {
         "rules": {

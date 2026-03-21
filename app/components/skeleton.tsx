@@ -1,4 +1,4 @@
-import { create, keyframes, props, type StyleXStyles } from '@stylexjs/stylex';
+import { create, keyframes, props } from '@stylexjs/stylex';
 import { type ComponentProps, type JSX, useEffect, useRef, useState } from 'react';
 
 const DELAY_BEFORE_SHOWING_SKELETON_MS = 100;
@@ -53,12 +53,17 @@ const s = create({
   },
 });
 
-interface SkeletonProps extends Omit<ComponentProps<'span'>, 'style' | 'className'> {
+interface SkeletonProps extends ComponentProps<'span'> {
   isLoading?: boolean;
-  styles?: StyleXStyles;
 }
 
-export function Skeleton({ children, isLoading, styles, ...rest }: SkeletonProps): JSX.Element {
+export function Skeleton({
+  children,
+  className,
+  isLoading,
+  style,
+  ...rest
+}: SkeletonProps): JSX.Element {
   const loading = isLoading !== false;
   const [shouldRenderSkeleton, setShouldRenderSkeleton] = useState(loading);
   const lastShowTime = useRef<number>(loading ? performance.now() : 0);
@@ -93,10 +98,21 @@ export function Skeleton({ children, isLoading, styles, ...rest }: SkeletonProps
     return <>{children}</>;
   }
 
+  const skeletonProps = props(s.base);
+  const mergedClassName = `${skeletonProps.className || ''} ${className || ''}`.trim() || undefined;
+  const mergedStyle =
+    skeletonProps.style || style
+      ? {
+          ...skeletonProps.style,
+          ...style,
+        }
+      : undefined;
+
   return (
     <span
-      {...props(s.base, styles)}
       {...rest}
+      className={mergedClassName}
+      style={mergedStyle}
     >
       &nbsp;
     </span>

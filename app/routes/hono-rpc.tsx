@@ -1,12 +1,12 @@
-import { create, keyframes, props, type StyleXStyles } from '@stylexjs/stylex';
+import { create, keyframes, props } from '@stylexjs/stylex';
 import { hc } from 'hono/client';
-import type { JSX, ReactNode } from 'react';
+import type { ComponentProps, JSX, ReactNode } from 'react';
 import { useRevalidator } from 'react-router';
 
 import type { ApiAppType } from '../apis/mod.ts';
 import { Link } from '../components/Link.tsx';
 import { Skeleton } from '../components/skeleton.tsx';
-import { Text } from '../components/Text.tsx';
+import { Text } from '../components/text.tsx';
 import { IconArrowLeft } from '../icons.ts';
 import { iconStyles } from '../styles/icon.stylex.ts';
 import { colorTokens, fontWeightTokens, themeConditions } from '../styles/tokens.stylex.ts';
@@ -496,20 +496,28 @@ const s = create({
 });
 
 interface RpcResponseRowProps {
+  className?: ComponentProps<typeof Skeleton>['className'];
   isLoading: boolean;
   label: string;
-  styles?: StyleXStyles;
+  style?: ComponentProps<typeof Skeleton>['style'];
   value: string;
 }
 
-function RpcResponseRow({ isLoading, label, styles, value }: RpcResponseRowProps): JSX.Element {
+function RpcResponseRow({
+  className,
+  isLoading,
+  label,
+  style,
+  value,
+}: RpcResponseRowProps): JSX.Element {
   return (
     <div>
       <dt {...props(s.dataLabel)}>{label}</dt>
       <dd {...props(s.dataValue)}>
         <Skeleton
+          className={className}
           isLoading={isLoading}
-          styles={styles}
+          style={style}
         >
           {value}
         </Skeleton>
@@ -609,19 +617,19 @@ function HonoRpcView({ action, isLoading, response }: HonoRpcViewProps): JSX.Ele
                   <RpcResponseRow
                     isLoading={isLoading}
                     label="Message"
-                    styles={s.skeletonMessage}
+                    {...props(s.skeletonMessage)}
                     value={response.message}
                   />
                   <RpcResponseRow
                     isLoading={isLoading}
                     label="Server"
-                    styles={s.skeletonServer}
+                    {...props(s.skeletonServer)}
                     value={response.server}
                   />
                   <RpcResponseRow
                     isLoading={isLoading}
                     label="Timestamp"
-                    styles={s.skeletonTimestamp}
+                    {...props(s.skeletonTimestamp)}
                     value={response.timestamp}
                   />
                 </dl>
