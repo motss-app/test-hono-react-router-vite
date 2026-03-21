@@ -26,6 +26,7 @@ export const globalStyles = create({
   },
   global: {
     boxSizing: 'border-box',
+    fontSize: '16px',
     margin: 0,
     padding: 0,
   },
