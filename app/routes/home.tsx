@@ -6,84 +6,95 @@ import { Link } from '../components/Link.tsx';
 import { Text } from '../components/Text.tsx';
 import { IconHome, IconInfo, IconServer, IconTriangleExclamation } from '../icons.ts';
 import { iconStyles } from '../styles/icon.stylex.ts';
-import { themeConditions, tokens } from '../styles/tokens.stylex.ts';
+import { colorTokens, fontWeightTokens, themeConditions } from '../styles/tokens.stylex.ts';
 import type { Route } from './+types/home.ts';
 
 const s = create({
   heading: {
-    color: 'oklch(92.9% .013 255.508)',
-    fontSize: tokens.fontSize4xl,
-    fontWeight: tokens.fontWeightBold,
-    marginBottom: tokens.spacing8,
-    textAlign: tokens.textAlign,
+    color: {
+      [themeConditions.dataThemeDark]: colorTokens.slate200,
+      default: colorTokens.slate900,
+    },
+    fontSize: '2.25rem',
+    fontWeight: fontWeightTokens.fontWeightBold,
+    marginBottom: '2rem',
+    textAlign: 'center',
   },
   linkBlue: {
     ':hover': {
-      color: 'oklch(70.7% .165 254.624)',
+      color: {
+        [themeConditions.dataThemeDark]: '#bfdbfe',
+        default: colorTokens.infoHover,
+      },
     },
     alignItems: 'center',
     color: {
-      [themeConditions.prefersDarkMode]: 'oklch(70.7% .165 254.624)',
-      [themeConditions.dataThemeDark]: 'oklch(70.7% .165 254.624)',
-      default: 'oklch(42.4% .199 265.638)',
+      [themeConditions.dataThemeDark]: '#93c5fd',
+      default: colorTokens.info,
     },
     display: 'flex',
-    fontWeight: tokens.fontWeightSemibold,
-    gap: tokens.spacing2,
+    fontWeight: fontWeightTokens.fontWeightSemibold,
+    gap: '0.5rem',
     textDecoration: 'none',
-    transition: tokens.transitionColors,
+    transition: 'color 0.15s ease-in-out',
   },
   linkGreen: {
     ':hover': {
-      color: 'oklch(79.2% .209 151.711)',
+      color: {
+        [themeConditions.dataThemeDark]: '#bbf7d0',
+        default: colorTokens.successHover,
+      },
     },
     alignItems: 'center',
     color: {
-      [themeConditions.prefersDarkMode]: 'oklch(79.2% .209 151.711)',
-      [themeConditions.dataThemeDark]: 'oklch(79.2% .209 151.711)',
-      default: 'oklch(62.7% .194 149.214)',
+      [themeConditions.dataThemeDark]: '#86efac',
+      default: colorTokens.success,
     },
     display: 'flex',
-    fontWeight: tokens.fontWeightSemibold,
-    gap: tokens.spacing2,
+    fontWeight: fontWeightTokens.fontWeightSemibold,
+    gap: '0.5rem',
     textDecoration: 'none',
-    transition: tokens.transitionColors,
+    transition: 'color 0.15s ease-in-out',
   },
   linkPurple: {
     ':hover': {
-      color: 'oklch(71.4% .203 305.504)',
+      color: {
+        [themeConditions.dataThemeDark]: '#e9d5ff',
+        default: colorTokens.purpleHover,
+      },
     },
     alignItems: 'center',
     color: {
-      [themeConditions.prefersDarkMode]: 'oklch(71.4% .203 305.504)',
-      [themeConditions.dataThemeDark]: 'oklch(71.4% .203 305.504)',
-      default: 'oklch(55.8% .288 302.321)',
+      [themeConditions.dataThemeDark]: '#d8b4fe',
+      default: colorTokens.purple,
     },
     display: 'flex',
-    fontWeight: tokens.fontWeightSemibold,
-    gap: tokens.spacing2,
+    fontWeight: fontWeightTokens.fontWeightSemibold,
+    gap: '0.5rem',
     textDecoration: 'none',
-    transition: tokens.transitionColors,
+    transition: 'color 0.15s ease-in-out',
   },
   linkRed: {
     ':hover': {
-      color: 'oklch(70.4% .191 22.216)',
+      color: {
+        [themeConditions.dataThemeDark]: '#fecaca',
+        default: colorTokens.errorHover,
+      },
     },
     alignItems: 'center',
     color: {
-      [themeConditions.prefersDarkMode]: 'oklch(70.4% .191 22.216)',
-      [themeConditions.dataThemeDark]: 'oklch(70.4% .191 22.216)',
-      default: 'oklch(57.7% .245 27.325)',
+      [themeConditions.dataThemeDark]: '#fca5a5',
+      default: colorTokens.error,
     },
     display: 'flex',
-    fontWeight: tokens.fontWeightSemibold,
-    gap: tokens.spacing2,
+    fontWeight: fontWeightTokens.fontWeightSemibold,
+    gap: '0.5rem',
     textDecoration: 'none',
-    transition: tokens.transitionColors,
+    transition: 'color 0.15s ease-in-out',
   },
   navList: {
     display: 'grid',
-    gap: tokens.spacing4,
+    gap: '1rem',
     listStyle: 'none',
     margin: 0,
     padding: 0,
@@ -91,17 +102,20 @@ const s = create({
   navRoot: {
     marginLeft: 'auto',
     marginRight: 'auto',
-    padding: tokens.spacing8,
+    padding: '2rem',
     width: 'fit-content',
   },
   paragraph: {
-    color: 'oklch(70.4% .04 256.788)',
-    fontSize: tokens.fontSizeXl,
-    lineHeight: tokens.lineHeightRelaxed,
+    color: {
+      [themeConditions.dataThemeDark]: colorTokens.slate300,
+      default: colorTokens.slate700,
+    },
+    fontSize: '1.25rem',
+    lineHeight: '1.625',
     marginLeft: 'auto',
     marginRight: 'auto',
-    maxWidth: tokens.maxWidth2xl,
-    textAlign: tokens.textAlign,
+    maxWidth: '42rem',
+    textAlign: 'center',
   },
 });
 

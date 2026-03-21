@@ -2,13 +2,13 @@ import { create, props } from '@stylexjs/stylex';
 import type { JSX } from 'react/jsx-runtime';
 import { data, Link } from 'react-router';
 
-import { tokens } from '../styles/tokens.stylex.ts';
+import { colorTokens, themeConditions } from '../styles/tokens.stylex.ts';
 import type { Route } from './+types/$.ts';
 
 const s = create({
   container: {
     fontFamily: 'system-ui',
-    padding: tokens.spacing8,
+    padding: '2rem',
     textAlign: 'center',
   },
   h1: {
@@ -17,13 +17,17 @@ const s = create({
   },
   link: {
     color: {
-      ':hover': '#004499',
-      default: '#0066cc',
+      ':hover': {
+        [themeConditions.dataThemeDark]: '#bfdbfe',
+        default: '#004499',
+      },
+      [themeConditions.dataThemeDark]: '#93c5fd',
+      default: colorTokens.info,
     },
     textDecoration: 'none',
   },
   marginTop: {
-    marginTop: tokens.spacing8,
+    marginTop: '2rem',
   },
 });
 

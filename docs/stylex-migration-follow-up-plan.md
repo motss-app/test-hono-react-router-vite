@@ -28,7 +28,7 @@ The branch is broadly healthy (`deno task check`, `deno task lint`, and `deno ta
 - [ ] Normalize dark-mode styling across migrated routes
   - Audit `app/routes/about.tsx`, `app/routes/errors.tsx`, and any other migrated route using hard-coded "dark" colors or Tailwind-era comments.
   - Replace duplicated raw dark-mode values with `tokens` and `themeConditions` where appropriate.
-  - Standardize on the repo's chosen dark-mode pattern so `prefers-color-scheme` and `data-theme="dark"` behave consistently.
+  - Standardize on the repo’s chosen dark-mode pattern so StyleX styles key off `data-theme="dark"` only, with the bootstrap script resolving the effective theme up front.
   - Remove stale Tailwind migration comments once the equivalent StyleX rules are clear.
 
 - [ ] Clean up StyleX token/theme primitives

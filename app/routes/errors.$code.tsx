@@ -2,14 +2,13 @@ import { create, props } from '@stylexjs/stylex';
 import type { JSX } from 'react';
 import { Link } from 'react-router';
 
-import { themeConditions, tokens } from '../styles/tokens.stylex.ts';
+import { colorTokens, fontWeightTokens, themeConditions } from '../styles/tokens.stylex.ts';
 import type { Route } from './+types/errors.$code.ts';
 
 const s = create({
   code: {
     backgroundColor: {
-      [themeConditions.prefersDarkMode]: '#334155', // bg-slate-700
-      [themeConditions.dataThemeDark]: '#334155', // bg-slate-700
+      [themeConditions.dataThemeDark]: colorTokens.slate600,
       default: '#e2e8f0', // bg-slate-200
     },
     borderRadius: '0.25rem', // rounded
@@ -18,80 +17,77 @@ const s = create({
   },
   h1: {
     fontSize: '3.75rem', // text-6xl
-    fontWeight: tokens.fontWeightBold,
+    fontWeight: fontWeightTokens.fontWeightBold,
     lineHeight: 1,
     margin: 0,
   },
   h2: {
     color: {
-      [themeConditions.prefersDarkMode]: '#ffffff', // text-white
       [themeConditions.dataThemeDark]: '#ffffff', // text-white
       default: '#0f172a', // text-slate-900
     },
     fontSize: '1.5rem', // text-2xl
-    fontWeight: tokens.fontWeightSemibold,
-    marginTop: tokens.spacing4,
+    fontWeight: fontWeightTokens.fontWeightSemibold,
+    marginTop: '1rem',
   },
   h3: {
     color: {
-      [themeConditions.prefersDarkMode]: '#ffffff', // text-white
       [themeConditions.dataThemeDark]: '#ffffff', // text-white
       default: '#0f172a', // text-slate-900
     },
     fontSize: '1.17em',
-    fontWeight: tokens.fontWeightBold,
+    fontWeight: fontWeightTokens.fontWeightBold,
     marginTop: 0,
   },
   infoBox: {
     backgroundColor: {
-      [themeConditions.prefersDarkMode]: '#1e293b', // bg-slate-800
       [themeConditions.dataThemeDark]: '#1e293b', // bg-slate-800
-      default: '#f8fafc', // bg-slate-50
+      default: '#f1f5f9', // bg-slate-100
+    },
+    borderColor: {
+      [themeConditions.dataThemeDark]: colorTokens.slate600,
+      default: '#cbd5e1',
     },
     borderRadius: '0.5rem', // rounded-lg
-    marginTop: tokens.spacing8,
-    padding: tokens.spacing16,
+    borderStyle: 'solid',
+    borderWidth: '1px',
+    marginTop: '2rem',
+    padding: '4rem',
     textAlign: 'left',
   },
   link: {
     color: {
       ':hover': '#1e40af', // hover:text-blue-800
-      [themeConditions.prefersDarkMode]: {
-        ':hover': '#93c5fd', // hover:text-blue-300
-        default: '#60a5fa', // text-blue-400
-      },
       [themeConditions.dataThemeDark]: {
-        ':hover': '#93c5fd', // hover:text-blue-300
-        default: '#60a5fa', // text-blue-400
+        ':hover': '#bfdbfe',
+        default: '#93c5fd',
       },
       default: '#2563eb', // text-blue-600
     },
-    marginLeft: tokens.spacing4,
-    marginRight: tokens.spacing4,
+    marginLeft: '1rem',
+    marginRight: '1rem',
     textDecoration: 'none',
   },
   links: {
-    marginTop: tokens.spacing8,
+    marginTop: '2rem',
   },
   p: {
     color: {
-      [themeConditions.prefersDarkMode]: '#cbd5e1', // text-slate-300
-      [themeConditions.dataThemeDark]: '#cbd5e1', // text-slate-300
-      default: '#475569', // text-slate-600
+      [themeConditions.dataThemeDark]: colorTokens.slate200,
+      default: '#334155', // text-slate-700
     },
-    marginBottom: tokens.spacing4,
+    marginBottom: '1rem',
   },
   page: {
     margin: '0 auto',
     maxWidth: '48rem', // max-w-3xl
-    padding: tokens.spacing8,
+    padding: '2rem',
     textAlign: 'center',
   },
   ul: {
     color: {
-      [themeConditions.prefersDarkMode]: '#cbd5e1', // text-slate-300
-      [themeConditions.dataThemeDark]: '#cbd5e1', // text-slate-300
-      default: '#475569', // text-slate-600
+      [themeConditions.dataThemeDark]: colorTokens.slate200,
+      default: '#334155', // text-slate-700
     },
     listStyleType: 'disc',
     marginBottom: 0,
@@ -102,14 +98,12 @@ const s = create({
 const statusColors = create({
   amber: {
     color: {
-      [themeConditions.prefersDarkMode]: '#fbbf24', // text-amber-400
       [themeConditions.dataThemeDark]: '#fbbf24', // text-amber-400
       default: '#d97706', // text-amber-600
     },
   },
   red: {
     color: {
-      [themeConditions.prefersDarkMode]: '#f87171', // text-red-400
       [themeConditions.dataThemeDark]: '#f87171', // text-red-400
       default: '#dc2626', // text-red-600
     },

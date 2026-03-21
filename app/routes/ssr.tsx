@@ -4,7 +4,7 @@ import { data, Link } from 'react-router';
 
 import { Text } from '../components/Text.tsx';
 import { HonoContext } from '../router-context.ts';
-import { themeConditions, tokens } from '../styles/tokens.stylex.ts';
+import { colorTokens, fontWeightTokens, themeConditions } from '../styles/tokens.stylex.ts';
 import type { HonoEnv } from '../types/hono.types.ts';
 import type { Route } from './+types/ssr.ts';
 
@@ -13,105 +13,129 @@ const SIMULATION_DELAY_MS = 5;
 const s = create({
   backLink: {
     ':hover': {
-      color: tokens.infoHover,
+      color: {
+        [themeConditions.dataThemeDark]: '#bfdbfe',
+        default: colorTokens.infoHover,
+      },
     },
     color: {
-      [themeConditions.prefersDarkMode]: '#60a5fa',
-      [themeConditions.dataThemeDark]: '#60a5fa',
-      default: tokens.info,
+      [themeConditions.dataThemeDark]: '#93c5fd',
+      default: colorTokens.info,
     },
     textDecoration: 'none',
-    transition: tokens.transitionColors,
+    transition: 'color 0.15s ease-in-out',
   },
   backLinkWrapper: {
-    marginTop: tokens.spacing8,
+    marginTop: '2rem',
   },
   cardAmber: {
-    backgroundColor: '#fef3c7',
-    borderColor: tokens.amber200,
-    borderRadius: tokens.borderRadiusLg,
+    backgroundColor: {
+      [themeConditions.dataThemeDark]: '#78350f',
+      default: '#fef3c7',
+    },
+    borderColor: {
+      [themeConditions.dataThemeDark]: colorTokens.amber200,
+      default: '#fcd34d',
+    },
+    borderRadius: '0.5rem',
     borderStyle: 'solid',
     borderWidth: '1px',
-    color: tokens.slate900,
-    marginBottom: tokens.spacing6,
-    padding: tokens.spacing6,
+    color: {
+      [themeConditions.dataThemeDark]: colorTokens.slate100,
+      default: colorTokens.slate900,
+    },
+    marginBottom: '1.5rem',
+    padding: '1.5rem',
   },
   cardIndigo: {
-    backgroundColor: '#eef2ff',
-    borderColor: '#6366f1',
-    borderRadius: tokens.borderRadiusLg,
+    backgroundColor: {
+      [themeConditions.dataThemeDark]: '#312e81',
+      default: '#eef2ff',
+    },
+    borderColor: {
+      [themeConditions.dataThemeDark]: '#818cf8',
+      default: '#6366f1',
+    },
+    borderRadius: '0.5rem',
     borderStyle: 'solid',
     borderWidth: '1px',
-    color: tokens.slate900,
-    marginBottom: tokens.spacing6,
-    padding: tokens.spacing6,
+    color: {
+      [themeConditions.dataThemeDark]: colorTokens.slate100,
+      default: colorTokens.slate900,
+    },
+    marginBottom: '1.5rem',
+    padding: '1.5rem',
   },
   dataRow: {
-    color: tokens.slate700,
-    marginBottom: tokens.spacing2,
+    color: {
+      [themeConditions.dataThemeDark]: colorTokens.slate200,
+      default: colorTokens.slate700,
+    },
+    marginBottom: '0.5rem',
   },
   footer: {
     color: {
-      [themeConditions.prefersDarkMode]: tokens.slate400,
-      [themeConditions.dataThemeDark]: tokens.slate400,
-      default: tokens.slate500,
+      [themeConditions.dataThemeDark]: colorTokens.slate300,
+      default: colorTokens.slate700,
     },
-    fontSize: tokens.fontSizeSm,
-    marginTop: tokens.spacing8,
+    fontSize: '0.875rem',
+    marginTop: '2rem',
   },
   footerPara: {
-    marginBottom: tokens.spacing4,
+    marginBottom: '1rem',
   },
   h1: {
     color: {
-      [themeConditions.prefersDarkMode]: tokens.slate300,
-      [themeConditions.dataThemeDark]: tokens.slate300,
-      default: tokens.slate400,
+      [themeConditions.dataThemeDark]: colorTokens.slate100,
+      default: colorTokens.slate900,
     },
-    fontSize: tokens.fontSize4xl,
-    fontWeight: tokens.fontWeightBold,
-    marginBottom: tokens.spacing6,
+    fontSize: '2.25rem',
+    fontWeight: fontWeightTokens.fontWeightBold,
+    marginBottom: '1.5rem',
   },
   h2: {
     color: {
-      [themeConditions.prefersDarkMode]: tokens.slate300,
-      [themeConditions.dataThemeDark]: tokens.slate300,
-      default: tokens.slate400,
+      [themeConditions.dataThemeDark]: colorTokens.slate100,
+      default: colorTokens.slate900,
     },
-    fontSize: tokens.fontSize2xl,
-    fontWeight: tokens.fontWeightSemibold,
-    marginBottom: tokens.spacing4,
+    fontSize: '1.5rem',
+    fontWeight: fontWeightTokens.fontWeightSemibold,
+    marginBottom: '1rem',
   },
   h2Card: {
-    color: tokens.slate500,
+    color: {
+      [themeConditions.dataThemeDark]: colorTokens.slate200,
+      default: colorTokens.slate700,
+    },
   },
   infoText: {
-    color: tokens.slate600,
-    fontSize: tokens.fontSizeSm,
-    marginTop: tokens.spacing4,
+    color: {
+      [themeConditions.dataThemeDark]: colorTokens.slate200,
+      default: colorTokens.slate700,
+    },
+    fontSize: '0.875rem',
+    marginTop: '1rem',
   },
   list: {
     color: {
-      [themeConditions.prefersDarkMode]: tokens.slate300,
-      [themeConditions.dataThemeDark]: tokens.slate300,
-      default: tokens.slate600,
+      [themeConditions.dataThemeDark]: colorTokens.slate200,
+      default: colorTokens.slate700,
     },
     listStylePosition: 'inside',
     listStyleType: 'disc',
-    marginBottom: tokens.spacing2,
-    marginTop: tokens.spacing2,
+    marginBottom: '0.5rem',
+    marginTop: '0.5rem',
   },
   p: {
     color: {
-      [themeConditions.prefersDarkMode]: tokens.slate400,
-      [themeConditions.dataThemeDark]: tokens.slate400,
-      default: tokens.slate600,
+      [themeConditions.dataThemeDark]: colorTokens.slate200,
+      default: colorTokens.slate700,
     },
-    fontSize: tokens.fontSizeXl,
-    marginBottom: tokens.spacing8,
+    fontSize: '1.25rem',
+    marginBottom: '2rem',
   },
   page: {
-    padding: tokens.spacing8,
+    padding: '2rem',
   },
 });
 

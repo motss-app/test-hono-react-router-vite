@@ -1,6 +1,6 @@
 import { create } from '@stylexjs/stylex';
 
-import { themeConditions, tokens } from './styles/tokens.stylex.ts';
+import { colorTokens, fontWeightTokens, themeConditions } from './styles/tokens.stylex.ts';
 
 const vendorPrefixFontSmoothing = {
   mozOsxFontSmoothing: '-moz-osx-font-smoothing',
@@ -11,108 +11,113 @@ export const globalStyles = create({
   body: {
     fontFamily: "'Open Sans Variable', 'Open Sans', sans-serif",
     margin: 0,
+    minHeight: '100vh',
     [vendorPrefixFontSmoothing.mozOsxFontSmoothing]: 'grayscale',
     [vendorPrefixFontSmoothing.webkitFontSmoothing]: 'antialiased',
     backgroundColor: {
-      [themeConditions.dataThemeDark]: tokens.backgroundDark,
-      [themeConditions.prefersDarkMode]: tokens.backgroundDark,
-      default: tokens.backgroundLight,
+      [themeConditions.dataThemeDark]: colorTokens.backgroundDark,
+      default: colorTokens.backgroundLight,
     },
     color: {
-      [themeConditions.dataThemeDark]: tokens.slate200,
-      [themeConditions.prefersDarkMode]: tokens.slate200,
-      default: tokens.textColor,
+      [themeConditions.dataThemeDark]: colorTokens.slate200,
+      default: colorTokens.textColor,
     },
   },
-  global: {
+  html: {
     boxSizing: 'border-box',
     fontSize: '16px',
+    fontWeight: 400,
+    lineHeight: 1.5,
     margin: 0,
     padding: 0,
+    textRendering: 'optimizeLegibility',
   },
 });
 
 export const errorStyles = create({
   container: {
-    backgroundColor: tokens.backgroundDark,
-    borderRadius: tokens.borderRadius2xl,
+    backgroundColor: colorTokens.backgroundDark,
+    borderRadius: '1rem',
     boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
-    maxWidth: tokens.maxWidth2xl,
-    padding: tokens.spacing8,
-    textAlign: tokens.textAlign,
+    maxWidth: '42rem',
+    padding: '2rem',
+    textAlign: 'center',
     width: '100%',
   },
   details: {
-    color: tokens.slate200,
-    fontSize: tokens.fontSizeXl,
-    marginBottom: tokens.spacing8,
+    color: colorTokens.slate200,
+    fontSize: '1.25rem',
+    marginBottom: '2rem',
   },
   icon: {
     fontSize: '3.75rem',
-    marginBottom: tokens.spacing4,
+    marginBottom: '1rem',
   },
   iconBug: {
     color: '#f87171',
   },
   iconClientError: {
-    color: tokens.warning,
+    color: colorTokens.warning,
   },
   iconServerError: {
-    color: tokens.error,
+    color: colorTokens.error,
   },
   link: {
     alignItems: 'center',
-    backgroundColor: tokens.info,
-    borderRadius: tokens.borderRadiusLg,
-    color: tokens.white,
+    backgroundColor: colorTokens.info,
+    borderRadius: '0.5rem',
+    color: colorTokens.white,
     display: 'inline-flex',
-    fontWeight: tokens.fontWeightSemibold,
-    gap: tokens.spacing2,
+    fontWeight: fontWeightTokens.fontWeightSemibold,
+    gap: '0.5rem',
     padding: '0.75rem 1.5rem',
     textDecoration: 'none',
   },
   main: {
     alignItems: 'center',
-    backgroundColor: tokens.backgroundDark,
+    backgroundColor: colorTokens.backgroundDark,
     display: 'flex',
     justifyContent: 'center',
-    padding: tokens.spacing4,
+    padding: '1rem',
   },
   stackDetails: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderRadius: tokens.borderRadiusSm,
-    marginBottom: tokens.spacing8,
-    padding: tokens.spacing4,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderColor: colorTokens.slate700,
+    borderRadius: '0.125rem',
+    borderStyle: 'solid',
+    borderWidth: '1px',
+    marginBottom: '2rem',
+    padding: '1rem',
     textAlign: 'left',
   },
   stackPre: {
-    backgroundColor: tokens.slate800,
-    borderRadius: tokens.borderRadius,
-    color: tokens.slate200,
+    backgroundColor: colorTokens.slate800,
+    borderRadius: '0.25rem',
+    color: colorTokens.slate200,
     fontFamily: 'monospace',
-    fontSize: tokens.fontSizeSm,
+    fontSize: '0.875rem',
     overflow: 'auto',
-    padding: tokens.spacing4,
+    padding: '1rem',
   },
   stackSummary: {
     alignItems: 'center',
-    color: tokens.slate200,
+    color: colorTokens.slate200,
     cursor: 'pointer',
     display: 'flex',
-    fontWeight: tokens.fontWeightSemibold,
-    gap: tokens.spacing2,
-    marginBottom: tokens.spacing4,
+    fontWeight: fontWeightTokens.fontWeightSemibold,
+    gap: '0.5rem',
+    marginBottom: '1rem',
   },
   title: {
-    fontSize: tokens.fontSize4xl,
-    fontWeight: tokens.fontWeightBold,
-    marginBottom: tokens.spacing4,
+    fontSize: '2.25rem',
+    fontWeight: fontWeightTokens.fontWeightBold,
+    marginBottom: '1rem',
   },
   titleClientError: {
-    color: tokens.warning,
+    color: colorTokens.warning,
   },
   titleServerError: {
-    color: tokens.error,
+    color: colorTokens.error,
   },
 });
 
@@ -128,9 +133,9 @@ export const utilities = create({
     marginBlockStart: '0px',
     marginLeft: 'auto',
     marginRight: 'auto',
-    maxWidth: tokens.maxWidth2xl,
+    maxWidth: '42rem',
   },
   paragraphSpacing: {
-    marginBlock: tokens.spacing2,
+    marginBlock: '0.5rem',
   },
 });

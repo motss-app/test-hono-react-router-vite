@@ -1,3 +1,4 @@
+import criticalCss from './critical/app.css?raw';
 import '@fontsource-variable/open-sans/wght.css';
 
 import { themeBootstrapIntegrity, themeBootstrapSrc } from 'virtual:theme-bootstrap';
@@ -54,7 +55,7 @@ export function Layout({ children }: PropsWithChildren): JSX.Element {
     <html
       lang="en"
       suppressHydrationWarning
-      {...props(globalStyles.global)}
+      {...props(globalStyles.html)}
     >
       <head>
         <meta charSet="utf-8" />
@@ -63,6 +64,9 @@ export function Layout({ children }: PropsWithChildren): JSX.Element {
           name="viewport"
         />
         <Meta />
+
+        <style>{criticalCss}</style>
+
         {/* External bootstrap keeps theme initialization early without adding another inline script. */}
         <script
           crossOrigin="anonymous"
@@ -70,7 +74,7 @@ export function Layout({ children }: PropsWithChildren): JSX.Element {
           src={themeBootstrapSrc}
         />
         <Links />
-        {/* body/global styles are applied via StyleX `globalStyles` */}
+        {/* Base reset lives in critical CSS; theme/body styles are applied via StyleX `globalStyles`. */}
 
         {import.meta.env.DEV ? (
           <>

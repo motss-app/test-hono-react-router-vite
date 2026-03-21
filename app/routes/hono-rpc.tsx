@@ -6,7 +6,7 @@ import { Link, useRevalidator } from 'react-router';
 import type { ApiAppType } from '../apis/mod.ts';
 import { Skeleton } from '../components/skeleton.tsx';
 import { Text } from '../components/Text.tsx';
-import { themeConditions, tokens } from '../styles/tokens.stylex.ts';
+import { colorTokens, fontWeightTokens, themeConditions } from '../styles/tokens.stylex.ts';
 import type { Route } from './+types/hono-rpc.ts';
 
 // Define the expected response type
@@ -73,204 +73,204 @@ clientLoader.hydrate = true;
 
 const s = create({
   actionContainer: {
-    marginBlockEnd: tokens.spacing2,
-    marginBlockStart: tokens.spacing2,
+    marginBlockEnd: '0.5rem',
+    marginBlockStart: '0.5rem',
   },
   apiInfoCard: {
-    backgroundColor: '#312e81',
-    borderColor: '#6366f1',
-    borderRadius: tokens.borderRadiusLg,
+    backgroundColor: {
+      [themeConditions.dataThemeDark]: '#312e81',
+      default: '#eef2ff',
+    },
+    borderColor: {
+      [themeConditions.dataThemeDark]: '#a5b4fc',
+      default: '#6366f1',
+    },
+    borderRadius: '0.5rem',
     borderStyle: 'solid',
     borderWidth: '1px',
-    marginBottom: tokens.spacing4,
-    padding: tokens.spacing4,
+    marginBottom: '1rem',
+    padding: '1rem',
   },
   apiText: {
     color: {
-      [themeConditions.prefersDarkMode]: tokens.slate200,
-      [themeConditions.dataThemeDark]: tokens.slate200,
-      default: tokens.slate700,
+      [themeConditions.dataThemeDark]: colorTokens.slate200,
+      default: colorTokens.slate800,
     },
-    marginBottom: tokens.spacing2,
+    marginBottom: '0.5rem',
   },
   backLinkContainer: {
-    margin: `${tokens.spacing4} 0`,
+    margin: '1rem 0',
   },
   button: {
     border: 'none',
-    borderRadius: tokens.borderRadiusLg,
-    fontWeight: tokens.fontWeightMedium,
+    borderRadius: '0.5rem',
+    fontWeight: fontWeightTokens.fontWeightMedium,
     outline: 'none',
     padding: '0.75rem 1rem',
-    transition: tokens.transitionColors,
+    transition: 'color 0.15s ease-in-out',
     width: '100%',
   },
   buttonActive: {
     backgroundColor: {
       ':hover': '#1e3a8a',
-      default: tokens.infoHover,
+      default: colorTokens.infoHover,
     },
-    color: tokens.white,
+    color: colorTokens.white,
     cursor: 'pointer',
   },
   buttonLoading: {
-    backgroundColor: tokens.slate500,
-    color: tokens.slate100,
+    backgroundColor: colorTokens.slate500,
+    color: colorTokens.slate100,
     cursor: 'not-allowed',
   },
   codeBlock: {
     backgroundColor: {
-      [themeConditions.prefersDarkMode]: '#3730a3',
       [themeConditions.dataThemeDark]: '#3730a3',
       default: '#e0e7ff',
     },
     borderColor: {
-      [themeConditions.prefersDarkMode]: '#818cf8',
       [themeConditions.dataThemeDark]: '#818cf8',
       default: '#6366f1',
     },
-    borderRadius: tokens.borderRadius,
+    borderRadius: '0.25rem',
     borderStyle: 'solid',
     borderWidth: '1px',
     fontFamily: 'monospace',
-    fontSize: tokens.fontSizeSm,
+    fontSize: '0.875rem',
     padding: '0.25rem 0.5rem',
   },
   errorBox: {
     backgroundColor: {
-      [themeConditions.prefersDarkMode]: '#7f1d1d',
       [themeConditions.dataThemeDark]: '#7f1d1d',
       default: '#fef2f2',
     },
     borderColor: {
-      [themeConditions.prefersDarkMode]: tokens.error,
-      [themeConditions.dataThemeDark]: tokens.error,
+      [themeConditions.dataThemeDark]: colorTokens.error,
       default: '#ef4444',
     },
-    borderRadius: tokens.borderRadiusLg,
+    borderRadius: '0.5rem',
     borderStyle: 'solid',
     borderWidth: '1px',
     color: {
-      [themeConditions.prefersDarkMode]: '#fca5a5',
       [themeConditions.dataThemeDark]: '#fca5a5',
       default: '#b91c1c',
     },
-    marginBottom: tokens.spacing4,
-    padding: tokens.spacing4,
+    marginBottom: '1rem',
+    padding: '1rem',
   },
   h1: {
     color: {
-      [themeConditions.prefersDarkMode]: tokens.white,
-      [themeConditions.dataThemeDark]: tokens.white,
-      default: tokens.slate900,
+      [themeConditions.dataThemeDark]: colorTokens.white,
+      default: colorTokens.slate900,
     },
-    fontSize: tokens.fontSize4xl,
-    fontWeight: tokens.fontWeightBold,
-    marginBottom: tokens.spacing6,
+    fontSize: '2.25rem',
+    fontWeight: fontWeightTokens.fontWeightBold,
+    marginBottom: '1.5rem',
   },
   h2: {
     color: {
-      [themeConditions.prefersDarkMode]: tokens.white,
-      [themeConditions.dataThemeDark]: tokens.white,
-      default: tokens.slate900,
+      [themeConditions.dataThemeDark]: colorTokens.white,
+      default: colorTokens.slate900,
     },
-    fontSize: tokens.fontSize2xl,
-    fontWeight: tokens.fontWeightSemibold,
-    marginBottom: tokens.spacing4,
+    fontSize: '1.5rem',
+    fontWeight: fontWeightTokens.fontWeightSemibold,
+    marginBottom: '1rem',
   },
   infoContainer: {
-    color: tokens.slate500,
-    fontSize: tokens.fontSizeSm,
+    color: {
+      [themeConditions.dataThemeDark]: colorTokens.slate300,
+      default: colorTokens.slate700,
+    },
+    fontSize: '0.875rem',
   },
   infoPara: {
-    marginBottom: tokens.spacing4,
+    marginBottom: '1rem',
   },
   infoText: {
     color: {
-      [themeConditions.prefersDarkMode]: tokens.slate300,
-      [themeConditions.dataThemeDark]: tokens.slate300,
-      default: tokens.slate600,
+      [themeConditions.dataThemeDark]: colorTokens.slate200,
+      default: colorTokens.slate700,
     },
-    fontSize: tokens.fontSizeSm,
-    marginTop: tokens.spacing4,
+    fontSize: '0.875rem',
+    marginTop: '1rem',
   },
   link: {
     ':hover': {
-      color: tokens.infoHover,
+      color: {
+        [themeConditions.dataThemeDark]: '#bfdbfe',
+        default: colorTokens.infoHover,
+      },
     },
     color: {
-      [themeConditions.prefersDarkMode]: '#60a5fa',
-      [themeConditions.dataThemeDark]: '#60a5fa',
-      default: tokens.info,
+      [themeConditions.dataThemeDark]: '#93c5fd',
+      default: colorTokens.info,
     },
     textDecoration: 'underline',
-    transition: tokens.transitionColors,
+    transition: 'color 0.15s ease-in-out',
   },
   list: {
     color: {
-      [themeConditions.prefersDarkMode]: tokens.slate300,
-      [themeConditions.dataThemeDark]: tokens.slate300,
-      default: tokens.slate600,
+      [themeConditions.dataThemeDark]: colorTokens.slate200,
+      default: colorTokens.slate700,
     },
     listStylePosition: 'inside',
     listStyleType: 'disc',
-    marginBottom: tokens.spacing2,
-    marginTop: tokens.spacing2,
+    marginBottom: '0.5rem',
+    marginTop: '0.5rem',
   },
   p: {
     color: {
-      [themeConditions.prefersDarkMode]: tokens.slate300,
-      [themeConditions.dataThemeDark]: tokens.slate300,
-      default: tokens.slate600,
+      [themeConditions.dataThemeDark]: colorTokens.slate200,
+      default: colorTokens.slate700,
     },
-    fontSize: tokens.fontSizeXl,
-    marginBottom: tokens.spacing8,
+    fontSize: '1.25rem',
+    marginBottom: '2rem',
   },
   page: {
     display: 'flex',
     flexDirection: 'column',
-    gap: tokens.spacing2,
-    padding: tokens.spacing8,
+    gap: '0.5rem',
+    padding: '2rem',
   },
   refreshPara: {
-    marginTop: tokens.spacing4,
+    marginTop: '1rem',
   },
   responseCard: {
-    backgroundColor: '#14532d',
+    backgroundColor: {
+      [themeConditions.dataThemeDark]: '#14532d',
+      default: '#ecfdf5',
+    },
     borderColor: {
-      [themeConditions.prefersDarkMode]: '#4ade80',
       [themeConditions.dataThemeDark]: '#4ade80',
       default: '#22c55e',
     },
-    borderRadius: tokens.borderRadiusLg,
+    borderRadius: '0.5rem',
     borderStyle: 'solid',
     borderWidth: '1px',
-    padding: tokens.spacing4,
+    padding: '1rem',
   },
   retryLink: {
     color: {
       ':hover': {
-        [themeConditions.prefersDarkMode]: tokens.white,
-        [themeConditions.dataThemeDark]: tokens.white,
-        default: tokens.slate900,
+        [themeConditions.dataThemeDark]: colorTokens.white,
+        default: colorTokens.slate900,
       },
     },
     textDecoration: 'underline',
   },
   row: {
     color: {
-      [themeConditions.prefersDarkMode]: tokens.slate200,
-      [themeConditions.dataThemeDark]: tokens.slate200,
-      default: tokens.slate700,
+      [themeConditions.dataThemeDark]: colorTokens.slate200,
+      default: colorTokens.slate700,
     },
-    marginBottom: tokens.spacing2,
+    marginBottom: '0.5rem',
   },
   rowLoading: {
     alignItems: 'center',
     display: 'flex',
   },
   skeletonAction: {
-    borderRadius: tokens.borderRadiusLg,
+    borderRadius: '0.5rem',
     height: '7.5rem',
     width: '100%',
   },

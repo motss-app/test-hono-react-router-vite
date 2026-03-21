@@ -13,85 +13,132 @@ import {
   IconShield,
 } from '../icons.ts';
 import { iconStyles } from '../styles/icon.stylex.ts';
-import { tokens } from '../styles/tokens.stylex.ts';
+import { colorTokens, fontWeightTokens, themeConditions } from '../styles/tokens.stylex.ts';
 import type { Route } from './+types/about.ts';
 
 const s = create({
   backLink: {
     ':hover': {
-      color: '#93c5fd',
+      color: {
+        [themeConditions.dataThemeDark]: '#93c5fd',
+        default: colorTokens.infoHover,
+      },
     },
-    color: '#60a5fa',
+    color: {
+      [themeConditions.dataThemeDark]: '#93c5fd',
+      default: colorTokens.info,
+    },
     textDecoration: 'none',
-    transition: tokens.transitionColors,
+    transition: 'color 0.15s ease-in-out',
   },
   backLinkWrapper: {
-    marginBlockStart: tokens.spacing8,
+    marginBlockStart: '2rem',
   },
   card: {
-    backgroundColor: '#1e293b', // dark:bg-slate-800
-    borderRadius: tokens.borderRadiusXl,
+    backgroundColor: {
+      [themeConditions.dataThemeDark]: colorTokens.slate800,
+      default: colorTokens.slate100,
+    },
+    borderRadius: '0.75rem',
     boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
-    padding: tokens.spacing8,
+    padding: '2rem',
   },
   cardIcon: {
-    fontSize: tokens.fontSize3xl,
+    fontSize: '1.875rem',
+  },
+  cardIconSvg: {
+    height: '1.875rem',
+    width: '1.875rem',
   },
   container: {
     marginLeft: 'auto',
     marginRight: 'auto',
-    maxWidth: tokens.maxWidth4xl,
-    paddingBottom: tokens.spacing16,
-    paddingLeft: tokens.spacing4,
-    paddingRight: tokens.spacing4,
-    paddingTop: tokens.spacing16,
+    maxWidth: '56rem',
+    paddingBottom: '4rem',
+    paddingLeft: '1rem',
+    paddingRight: '1rem',
+    paddingTop: '4rem',
     width: '100%',
   },
   ctaSection: {
-    backgroundColor: tokens.slate900,
-    borderRadius: tokens.borderRadius2xl,
-    color: tokens.white,
-    padding: tokens.spacing12,
-    textAlign: tokens.textAlign,
+    backgroundColor: {
+      [themeConditions.dataThemeDark]: colorTokens.slate900,
+      default: '#eff6ff',
+    },
+    borderColor: {
+      [themeConditions.dataThemeDark]: colorTokens.slate800,
+      default: '#bfdbfe',
+    },
+    borderRadius: '1rem',
+    borderStyle: 'solid',
+    borderWidth: '1px',
+    boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.08)',
+    color: {
+      [themeConditions.dataThemeDark]: colorTokens.white,
+      default: colorTokens.slate900,
+    },
+    padding: '3rem',
+    textAlign: 'center',
   },
   ctaText: {
-    color: tokens.white,
-    fontSize: tokens.fontSizeXl,
-    marginBottom: tokens.spacing8,
-    opacity: 0.9,
+    color: {
+      [themeConditions.dataThemeDark]: colorTokens.slate200,
+      default: colorTokens.slate700,
+    },
+    fontSize: '1.25rem',
+    marginBottom: '2rem',
   },
   ctaTitle: {
-    color: tokens.white,
-    fontSize: tokens.fontSize3xl,
-    fontWeight: tokens.fontWeightBold,
-    marginBottom: tokens.spacing4,
+    color: {
+      [themeConditions.dataThemeDark]: colorTokens.white,
+      default: colorTokens.slate900,
+    },
+    fontSize: '1.875rem',
+    fontWeight: fontWeightTokens.fontWeightBold,
+    marginBottom: '1rem',
   },
   featureCard: {
-    padding: tokens.spacing6,
-    textAlign: tokens.textAlign,
+    padding: '1.5rem',
+    textAlign: 'center',
   },
   featureIconBase: {
-    fontSize: tokens.fontSize4xl,
-    marginBottom: tokens.spacing4,
+    fontSize: '2.25rem',
+    marginBottom: '1rem',
   },
   featureIconPurple: {
-    color: tokens.purple,
+    color: {
+      [themeConditions.dataThemeDark]: '#c084fc',
+      default: colorTokens.purple,
+    },
+  },
+  featureIconSvg: {
+    height: '2.25rem',
+    width: '2.25rem',
   },
   featureIconYellow: {
-    color: '#fbbf24', // amber-400
+    color: {
+      [themeConditions.dataThemeDark]: '#fbbf24',
+      default: colorTokens.warning,
+    },
   },
   featureText: {
-    color: '#94a3b8', // dark:text-slate-400
+    color: {
+      [themeConditions.dataThemeDark]: colorTokens.slate300,
+      default: colorTokens.slate700,
+    },
   },
   featureTitle: {
-    color: '#ffffff', // dark:text-white
-    fontSize: tokens.fontSizeXl,
-    fontWeight: tokens.fontWeightSemibold,
+    color: {
+      [themeConditions.dataThemeDark]: colorTokens.white,
+      default: colorTokens.slate900,
+    },
+    fontSize: '1.25rem',
+    fontWeight: fontWeightTokens.fontWeightSemibold,
     marginBottom: '0.75rem',
   },
   grid2: {
     display: 'grid',
-    gap: tokens.spacing8,
+    gap: '2rem',
     gridTemplateColumns: {
       '@media (min-width: 768px)': '1fr 1fr',
       default: '1fr',
@@ -99,78 +146,110 @@ const s = create({
   },
   grid3: {
     display: 'grid',
-    gap: tokens.spacing6,
+    gap: '1.5rem',
     gridTemplateColumns: {
       '@media (min-width: 768px)': 'repeat(3, 1fr)',
       default: '1fr',
     },
   },
   h1: {
-    color: '#ffffff', // dark:text-white
+    color: {
+      [themeConditions.dataThemeDark]: colorTokens.white,
+      default: colorTokens.slate900,
+    },
     fontSize: {
       '@media (min-width: 768px)': '3rem',
-      default: tokens.fontSize4xl,
+      default: '2.25rem',
     },
-    fontWeight: tokens.fontWeightBold,
-    marginBottom: tokens.spacing6,
+    fontWeight: fontWeightTokens.fontWeightBold,
+    marginBottom: '1.5rem',
   },
   h2: {
-    color: '#ffffff', // dark:text-white
-    fontSize: tokens.fontSize3xl,
-    fontWeight: tokens.fontWeightBold,
-    marginBottom: tokens.spacing12,
-    textAlign: tokens.textAlign,
+    color: {
+      [themeConditions.dataThemeDark]: colorTokens.white,
+      default: colorTokens.slate900,
+    },
+    fontSize: '1.875rem',
+    fontWeight: fontWeightTokens.fontWeightBold,
+    marginBottom: '3rem',
+    textAlign: 'center',
   },
   h3: {
     alignItems: 'center',
-    color: '#ffffff', // dark:text-white
+    color: {
+      [themeConditions.dataThemeDark]: colorTokens.white,
+      default: colorTokens.slate900,
+    },
     display: 'flex',
-    fontSize: tokens.fontSize2xl,
-    fontWeight: tokens.fontWeightSemibold,
-    gap: tokens.spacing3,
-    marginBottom: tokens.spacing4,
+    fontSize: '1.5rem',
+    fontWeight: fontWeightTokens.fontWeightSemibold,
+    gap: '0.75rem',
+    marginBottom: '1rem',
+  },
+  heroIconSvg: {
+    height: '3rem',
+    width: '3rem',
   },
   heroIconWrapper: {
-    color: '#60a5fa', // dark:text-blue-400
+    color: {
+      [themeConditions.dataThemeDark]: '#93c5fd',
+      default: colorTokens.info,
+    },
     fontSize: '3.75rem',
-    marginBottom: tokens.spacing6,
+    marginBottom: '1.5rem',
   },
   heroSection: {
-    marginBottom: tokens.spacing16,
-    textAlign: tokens.textAlign,
+    marginBottom: '4rem',
+    textAlign: 'center',
   },
   list: {
-    color: '#94a3b8', // dark:text-slate-400
+    color: {
+      [themeConditions.dataThemeDark]: colorTokens.slate300,
+      default: colorTokens.slate700,
+    },
     display: 'flex',
     flexDirection: 'column',
-    gap: tokens.spacing3,
+    gap: '0.75rem',
     listStyle: 'none',
     margin: 0,
     padding: 0,
   },
+  listIconSvg: {
+    height: '1.125rem',
+    width: '1.125rem',
+  },
   listItem: {
     alignItems: 'center',
     display: 'flex',
-    gap: tokens.spacing2,
+    gap: '0.5rem',
   },
   p: {
-    color: '#94a3b8', // dark:text-slate-400
-    fontSize: tokens.fontSizeXl,
+    color: {
+      [themeConditions.dataThemeDark]: colorTokens.slate300,
+      default: colorTokens.slate700,
+    },
+    fontSize: '1.25rem',
     marginLeft: 'auto',
     marginRight: 'auto',
-    maxWidth: tokens.maxWidth2xl,
+    maxWidth: '42rem',
   },
   pageWrapper: {
-    padding: tokens.spacing8,
+    padding: '2rem',
   },
   section: {
-    marginBottom: tokens.spacing16,
+    marginBottom: '4rem',
   },
   textBlue: {
-    color: '#60a5fa', // dark:text-blue-400
+    color: {
+      [themeConditions.dataThemeDark]: '#93c5fd',
+      default: colorTokens.info,
+    },
   },
   textGreen: {
-    color: '#4ade80', // dark:text-green-400
+    color: {
+      [themeConditions.dataThemeDark]: '#4ade80',
+      default: colorTokens.success,
+    },
   },
 });
 
@@ -202,7 +281,7 @@ export default function About(): JSX.Element {
         {/* Header */}
         <div {...props(s.heroSection)}>
           <div {...props(s.heroIconWrapper)}>
-            <IconCircleInfo {...props(iconStyles.base)} />
+            <IconCircleInfo {...props(iconStyles.base, s.heroIconSvg)} />
           </div>
           <Text
             as="h1"
@@ -232,32 +311,32 @@ export default function About(): JSX.Element {
                 {...props(s.h3)}
               >
                 <span {...props(s.cardIcon, s.textBlue)}>
-                  <IconGears {...props(iconStyles.base)} />
+                  <IconGears {...props(iconStyles.base, s.cardIconSvg)} />
                 </span>
                 <span>Frontend</span>
               </Text>
               <ul {...props(s.list)}>
                 <li {...props(s.listItem)}>
                   <span {...props(s.textGreen)}>
-                    <IconCheck {...props(iconStyles.base)} />
+                    <IconCheck {...props(iconStyles.base, s.listIconSvg)} />
                   </span>
                   <span>React 19 with TypeScript</span>
                 </li>
                 <li {...props(s.listItem)}>
                   <span {...props(s.textGreen)}>
-                    <IconCheck {...props(iconStyles.base)} />
+                    <IconCheck {...props(iconStyles.base, s.listIconSvg)} />
                   </span>
                   <span>React Router 7 for routing</span>
                 </li>
                 <li {...props(s.listItem)}>
                   <span {...props(s.textGreen)}>
-                    <IconCheck {...props(iconStyles.base)} />
+                    <IconCheck {...props(iconStyles.base, s.listIconSvg)} />
                   </span>
                   <span>StyleX for styling</span>
                 </li>
                 <li {...props(s.listItem)}>
                   <span {...props(s.textGreen)}>
-                    <IconCheck {...props(iconStyles.base)} />
+                    <IconCheck {...props(iconStyles.base, s.listIconSvg)} />
                   </span>
                   <span>Iconify with FontAwesome 7</span>
                 </li>
@@ -270,32 +349,32 @@ export default function About(): JSX.Element {
                 {...props(s.h3)}
               >
                 <span {...props(s.cardIcon, s.textGreen)}>
-                  <IconServer {...props(iconStyles.base)} />
+                  <IconServer {...props(iconStyles.base, s.cardIconSvg)} />
                 </span>
                 <span>Backend</span>
               </Text>
               <ul {...props(s.list)}>
                 <li {...props(s.listItem)}>
                   <span {...props(s.textGreen)}>
-                    <IconCheck {...props(iconStyles.base)} />
+                    <IconCheck {...props(iconStyles.base, s.listIconSvg)} />
                   </span>
                   <span>Hono web framework</span>
                 </li>
                 <li {...props(s.listItem)}>
                   <span {...props(s.textGreen)}>
-                    <IconCheck {...props(iconStyles.base)} />
+                    <IconCheck {...props(iconStyles.base, s.listIconSvg)} />
                   </span>
                   <span>Node.js runtime</span>
                 </li>
                 <li {...props(s.listItem)}>
                   <span {...props(s.textGreen)}>
-                    <IconCheck {...props(iconStyles.base)} />
+                    <IconCheck {...props(iconStyles.base, s.listIconSvg)} />
                   </span>
                   <span>TypeScript support</span>
                 </li>
                 <li {...props(s.listItem)}>
                   <span {...props(s.textGreen)}>
-                    <IconCheck {...props(iconStyles.base)} />
+                    <IconCheck {...props(iconStyles.base, s.listIconSvg)} />
                   </span>
                   <span>RPC capabilities</span>
                 </li>
@@ -316,7 +395,7 @@ export default function About(): JSX.Element {
           <div {...props(s.grid3)}>
             <div {...props(s.featureCard)}>
               <div {...props(s.featureIconBase, s.featureIconYellow)}>
-                <IconBolt {...props(iconStyles.base)} />
+                <IconBolt {...props(iconStyles.base, s.featureIconSvg)} />
               </div>
               <Text
                 as="h3"
@@ -331,7 +410,7 @@ export default function About(): JSX.Element {
 
             <div {...props(s.featureCard)}>
               <div {...props(s.featureIconBase, s.textBlue)}>
-                <IconShield {...props(iconStyles.base)} />
+                <IconShield {...props(iconStyles.base, s.featureIconSvg)} />
               </div>
               <Text
                 as="h3"
@@ -346,7 +425,7 @@ export default function About(): JSX.Element {
 
             <div {...props(s.featureCard)}>
               <div {...props(s.featureIconBase, s.featureIconPurple)}>
-                <IconMobile {...props(iconStyles.base)} />
+                <IconMobile {...props(iconStyles.base, s.featureIconSvg)} />
               </div>
               <Text
                 as="h3"
