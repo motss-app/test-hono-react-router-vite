@@ -1,5 +1,6 @@
 import '@fontsource-variable/open-sans/wght.css';
 
+import { themeBootstrapIntegrity, themeBootstrapSrc } from 'virtual:theme-bootstrap';
 import openSansLatinWghtNormalWoff2 from '@fontsource-variable/open-sans/files/open-sans-latin-wght-normal.woff2';
 import openSansMathWghtNormalWoff2 from '@fontsource-variable/open-sans/files/open-sans-math-wght-normal.woff2';
 import openSansSymbolsWghtNormalWoff2 from '@fontsource-variable/open-sans/files/open-sans-symbols-wght-normal.woff2';
@@ -17,7 +18,6 @@ import {
 
 import type { Route } from './+types/root.ts';
 import { errorStyles, globalStyles } from './app.styles.ts';
-import { ThemeBootstrap } from './critical/theme-bootstrap/theme-bootstrap.ts';
 import { IconArrowLeft, IconBug, IconExclamationTriangle } from './icons.ts';
 import { iconStyles } from './styles/icon.stylex.ts';
 
@@ -53,6 +53,7 @@ export function Layout({ children }: PropsWithChildren): JSX.Element {
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       {...props(globalStyles.global)}
     >
       <head>
@@ -62,6 +63,12 @@ export function Layout({ children }: PropsWithChildren): JSX.Element {
           name="viewport"
         />
         <Meta />
+        {/* External bootstrap keeps theme initialization early without adding another inline script. */}
+        <script
+          crossOrigin="anonymous"
+          integrity={themeBootstrapIntegrity}
+          src={themeBootstrapSrc}
+        />
         <Links />
         {/* body/global styles are applied via StyleX `globalStyles` */}
 
@@ -79,8 +86,6 @@ export function Layout({ children }: PropsWithChildren): JSX.Element {
             />
           </>
         ) : null}
-
-        <ThemeBootstrap />
       </head>
       <body {...props(globalStyles.body)}>
         {children}

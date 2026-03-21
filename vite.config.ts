@@ -4,6 +4,8 @@ import { reactRouter } from '@react-router/dev/vite';
 import stylex from '@stylexjs/unplugin';
 import { defineConfig } from 'vite';
 
+import { themeBuildPlugin } from './vite-plugins/theme-bootstrap/plugin.ts';
+
 const isRegExpImport = /\?import$/;
 const isRegExpRouteImport = /\/app\/routes\/.*\?import$/;
 
@@ -12,6 +14,7 @@ export default defineConfig(config => {
 
   return {
     plugins: [
+      themeBuildPlugin(),
       honoDevServer({
         adapter: nodeAdapter(),
         entry: './app/server.ts',

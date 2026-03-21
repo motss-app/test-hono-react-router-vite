@@ -158,7 +158,7 @@
       "complexity": "error",
       "correctness": "error",
       "nursery": {
-        "useExplicitType": "error"
+        "useExplicitType": "off"
       },
       "performance": "error",
       "recommended": true,
@@ -191,9 +191,6 @@
           "correctness": {
             "noNodejsModules": "off",
             "useImportExtensions": "off"
-          },
-          "nursery": {
-            "useExplicitType": "off"
           },
           "security": {
             "noSecrets": "off"
@@ -238,13 +235,12 @@
     },
     {
       "includes": [
-        "**/apis/**/*.ts",
-        "app/app.ts"
+        "vite-plugins/**/*.ts"
       ],
       "linter": {
         "rules": {
-          "nursery": {
-            "useExplicitType": "off"
+          "correctness": {
+            "noNodejsModules": "off"
           }
         }
       }
@@ -272,9 +268,6 @@
         "rules": {
           "correctness": {
             "noNodejsModules": "off"
-          },
-          "nursery": {
-            "useExplicitType": "off"
           },
           "style": {
             "noDefaultExport": "off"
@@ -362,19 +355,6 @@
                 ]
               }
             }
-          }
-        }
-      }
-    },
-    {
-      "includes": [
-        "**/*.styles.ts",
-        "**/*.stylex.ts"
-      ],
-      "linter": {
-        "rules": {
-          "nursery": {
-            "useExplicitType": "off"
           }
         }
       }

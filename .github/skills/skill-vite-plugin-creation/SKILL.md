@@ -31,7 +31,7 @@ Template and recommended implementation
 Below is a practical template covering both dev and build modes. Adapt `entryRel`, `outDir` and `outFile` for your use case.
 
 ```ts
-// vite-plugins/theme-build.ts
+// vite-plugins/theme-bootstrap.ts
 import path from 'node:path';
 import { build as viteBuild, type Plugin, type ViteDevServer } from 'vite';
 // Optionally: import esbuild from 'esbuild' if you prefer fast dev builds

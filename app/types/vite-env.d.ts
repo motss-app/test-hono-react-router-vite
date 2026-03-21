@@ -6,3 +6,8 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+declare module 'virtual:theme-bootstrap' {
+  export const themeBootstrapIntegrity: string | undefined;
+  export const themeBootstrapSrc: string;
+}

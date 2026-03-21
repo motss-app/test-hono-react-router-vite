@@ -27,7 +27,8 @@
     "verbatimModuleSyntax": true
   },
   "include": [
+    "./*.ts",
     "app/**/*",
-    "./*.ts"
+    "vite-plugins/**/*.ts"
   ]
 }

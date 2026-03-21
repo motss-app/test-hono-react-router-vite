@@ -3,6 +3,7 @@ import stylex from '@stylexjs/unplugin';
 import { defineConfig } from 'vite';
 
 import { headersCopyPlugin } from './vite-plugins/copy-headers.ts';
+import { themeBuildPlugin } from './vite-plugins/theme-bootstrap/plugin.ts';
 
 export default defineConfig(({ mode }) => {
   const isDev = mode === 'development';
@@ -14,6 +15,7 @@ export default defineConfig(({ mode }) => {
     plugins: isDev
       ? []
       : [
+          themeBuildPlugin(),
           stylex.vite({
             useCSSLayers: true,
           }),

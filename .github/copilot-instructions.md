@@ -31,6 +31,13 @@ This repository is a **Deno-first** project using **Hono** and **React Router v7
 
 ## Coding Style
 - Prefer TypeScript.
+- Prefer `satisfies` for object literals that must conform to a type instead of
+  annotating the variable with `const value: SomeType = ...`, unless an explicit
+  variable annotation is required for a specific reason.
+- Do not export values, functions, types, or interfaces unless they are actually
+  consumed outside the file. Keep file-local helpers private.
+- Prefer exporting values, functions, types, and interfaces at their declaration
+  sites instead of using trailing `export { ... }` blocks at the end of a file.
 - Use `import.meta.env` for environment variables.
 - **Comments**:
   - Use `//` for single-line comments.
