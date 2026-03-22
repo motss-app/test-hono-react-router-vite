@@ -1,25 +1,16 @@
-import criticalCss from './critical/app.css?raw';
 import '@fontsource-variable/open-sans/wght.css';
 
-import { themeBootstrapSrc } from 'virtual:theme-bootstrap';
 import openSansLatinWghtNormalWoff2 from '@fontsource-variable/open-sans/files/open-sans-latin-wght-normal.woff2';
 import openSansMathWghtNormalWoff2 from '@fontsource-variable/open-sans/files/open-sans-math-wght-normal.woff2';
 import openSansSymbolsWghtNormalWoff2 from '@fontsource-variable/open-sans/files/open-sans-symbols-wght-normal.woff2';
 import { props } from '@stylexjs/stylex';
 import type { JSX, PropsWithChildren } from 'react';
-import {
-  isRouteErrorResponse,
-  Link,
-  Links,
-  Meta,
-  Outlet,
-  Scripts,
-  ScrollRestoration,
-  useRouteLoaderData,
-} from 'react-router';
+import { isRouteErrorResponse, Link, Outlet, useRouteLoaderData } from 'react-router';
 
 import type { Route } from './+types/root.ts';
 import { errorStyles, globalStyles } from './app.styles.ts';
+import { RootDocumentHead } from './components/root-document-head.tsx';
+import { RootDocumentScripts } from './components/root-document-scripts.tsx';
 import { IconArrowLeft, IconBug, IconExclamationTriangle } from './icons.ts';
 import { iconStyles } from './styles/icon.stylex.ts';
 import { csp } from './utils/csp.ts';
@@ -69,43 +60,11 @@ export function Layout({ children }: PropsWithChildren): JSX.Element {
       {...props(globalStyles.html)}
     >
       <head>
-        <meta charSet="utf-8" />
-        <meta
-          content="width=device-width, initial-scale=1"
-          name="viewport"
-        />
-        <Meta />
-
-        <style nonce={cspNonce}>{criticalCss}</style>
-
-        {/* External bootstrap keeps theme initialization early without adding another inline script. */}
-        <link
-          as="script"
-          href={themeBootstrapSrc}
-          rel="preload"
-        />
-        <script src={themeBootstrapSrc} />
-        <Links />
-        {/* Base reset lives in critical CSS; theme/body styles are applied via StyleX `globalStyles`. */}
-
-        {import.meta.env.DEV ? (
-          <>
-            {/* Reference: https://stylexjs.com/docs/api/configuration/unplugin#vite */}
-            <link
-              href="/virtual:stylex.css"
-              rel="stylesheet"
-            />
-            <script
-              src="/@id/virtual:stylex:runtime"
-              type="module"
-            />
-          </>
-        ) : null}
+        <RootDocumentHead cspNonce={cspNonce} />
       </head>
       <body {...props(globalStyles.body)}>
         {children}
-        <ScrollRestoration nonce={cspNonce} />
-        <Scripts nonce={cspNonce} />
+        <RootDocumentScripts cspNonce={cspNonce} />
       </body>
     </html>
   );

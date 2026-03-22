@@ -3,10 +3,11 @@
 // ============================================================================
 
 interface ContentSecurityPolicyOptions {
-  connectSrc?: string[];
+  connectSrc?: string[] | null;
   nonce?: string | null;
-  scriptHashes?: string[];
-  styleHashes?: string[];
+  scriptSrc?: string[] | null;
+  scriptHashes?: string[] | null;
+  styleHashes?: string[] | null;
 }
 
 interface CspResult {
@@ -25,6 +26,14 @@ const cspDigestAlgorithm = 'SHA-384';
 const cspNonceByteLength = 16;
 const base64ChunkSize = 0x80_00;
 const cspNonceRequestHeader = 'x-internal-csp-nonce';
+const defaultConnectSrc = [
+  "'self'",
+  'https://cloudflareinsights.com',
+];
+const defaultScriptSrc = [
+  "'self'",
+  'https://static.cloudflareinsights.com',
+];
 
 // ============================================================================
 // Functions
@@ -69,22 +78,20 @@ function setNonce(headers: Headers, nonce: string | null | undefined): void {
   }
 }
 
-function buildPolicy({
-  connectSrc = [
-    "'self'",
-  ],
-  nonce,
-  scriptHashes = [],
-  styleHashes = [],
-}: ContentSecurityPolicyOptions): string {
+function buildPolicy(options: ContentSecurityPolicyOptions): string {
+  const resolvedConnectSrc = options.connectSrc ?? defaultConnectSrc;
+  const resolvedScriptSrc = options.scriptSrc ?? defaultScriptSrc;
+  const resolvedScriptHashes = options.scriptHashes ?? [];
+  const resolvedStyleHashes = options.styleHashes ?? [];
+  const nonce = options.nonce ?? undefined;
   const scriptSources = uniqueSources([
-    "'self'",
+    ...resolvedScriptSrc,
     ...(nonce
       ? [
           `'nonce-${nonce}'`,
         ]
       : []),
-    ...scriptHashes,
+    ...resolvedScriptHashes,
   ]);
   const styleSources = uniqueSources([
     "'self'",
@@ -93,7 +100,7 @@ function buildPolicy({
           `'nonce-${nonce}'`,
         ]
       : []),
-    ...styleHashes,
+    ...resolvedStyleHashes,
   ]);
 
   return [
@@ -106,7 +113,7 @@ function buildPolicy({
     `style-src ${styleSources.join(' ')}`,
     `font-src 'self'`,
     `img-src 'self' data:`,
-    `connect-src ${uniqueSources(connectSrc).join(' ')}`,
+    `connect-src ${uniqueSources(resolvedConnectSrc).join(' ')}`,
   ].join('; ');
 }
 
