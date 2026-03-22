@@ -19,6 +19,8 @@ import { renderToReadableStream } from 'react-dom/server';
 import type { AppLoadContext, EntryContext } from 'react-router';
 import { ServerRouter } from 'react-router';
 
+import { csp } from './utils/csp.ts';
+
 const HTTP_STATUS_INTERNAL_SERVER_ERROR = 500;
 
 export default async function handleRequest(
@@ -31,25 +33,29 @@ export default async function handleRequest(
   let shellRendered = false;
   let status = responseStatusCode;
   const userAgent = request.headers.get('user-agent');
+  const nonce = csp.getNonce(request);
+  const serverRouterProps = nonce
+    ? {
+        context: routerContext,
+        nonce,
+        url: request.url,
+      }
+    : {
+        context: routerContext,
+        url: request.url,
+      };
 
-  const body = await renderToReadableStream(
-    <ServerRouter
-      context={routerContext}
-      nonce={crypto.randomUUID()}
-      url={request.url}
-    />,
-    {
-      onError(error: unknown) {
-        status = HTTP_STATUS_INTERNAL_SERVER_ERROR;
-        // Log streaming rendering errors from inside the shell. Don't log
-        // errors encountered during initial shell rendering since they'll
-        // reject and get logged in handleDocumentRequest.
-        if (shellRendered) {
-          console.error(error);
-        }
-      },
-    }
-  );
+  const body = await renderToReadableStream(<ServerRouter {...serverRouterProps} />, {
+    onError(error: unknown) {
+      status = HTTP_STATUS_INTERNAL_SERVER_ERROR;
+      // Log streaming rendering errors from inside the shell. Don't log
+      // errors encountered during initial shell rendering since they'll
+      // reject and get logged in handleDocumentRequest.
+      if (shellRendered) {
+        console.error(error);
+      }
+    },
+  });
   shellRendered = true;
 
   if ((userAgent && isbot(userAgent)) || routerContext.isSpaMode) {

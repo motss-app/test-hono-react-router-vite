@@ -1,6 +1,10 @@
 const EXTENSION_REGEX = /\.(tsx|ts|jsx|js)$/;
+const prerenderExcludedRoutes = [
+  '/ssr',
+  '/home',
+];
 
-export function discoverStaticRoutes(options: { exclude?: string[] } = {}): string[] {
+function discoverStaticRoutes(options: { exclude?: string[] } = {}): string[] {
   const routesDir = './app/routes';
   const routes: string[] = [];
   const { exclude = [] } = options;
@@ -54,6 +58,20 @@ export function discoverStaticRoutes(options: { exclude?: string[] } = {}): stri
     // biome-ignore lint/suspicious/noConsole: Build script logging
     console.error(`Error: Failed to scan routes directory: ${routesDir}`);
     throw error;
+  }
+
+  return routes;
+}
+
+export function discoverPrerenderRoutes(): string[] {
+  const routes = discoverStaticRoutes({
+    exclude: prerenderExcludedRoutes,
+  });
+
+  // Explicitly add the index route since discoverStaticRoutes relies on file names
+  // and doesn't know that home.tsx is mapped to /
+  if (!routes.includes('/')) {
+    routes.push('/');
   }
 
   return routes;

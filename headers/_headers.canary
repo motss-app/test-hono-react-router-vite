@@ -34,19 +34,5 @@
   ! Cache-Control
   Cache-Control: public, max-age=2592000, s-maxage=31536000, stale-while-revalidate=86400, immutable
 
-# SSG Pages
-/about
-  ! Cache-Control
-  Cache-Control: public, max-age=600, s-maxage=3600, stale-while-revalidate=180, must-revalidate
-
-/errors
-  ! Cache-Control
-  Cache-Control: public, max-age=600, s-maxage=3600, stale-while-revalidate=180, must-revalidate
-
-/hono-rpc
-  ! Cache-Control
-  Cache-Control: public, max-age=600, s-maxage=3600, stale-while-revalidate=180, must-revalidate
-
-/
-  ! Cache-Control
-  Cache-Control: public, max-age=600, s-maxage=3600, stale-while-revalidate=180, must-revalidate
+# Static SSG route headers are generated during the build so each page
+# gets a route-specific CSP based on its final inline scripts and styles.

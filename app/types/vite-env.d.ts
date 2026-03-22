@@ -8,6 +8,5 @@ interface ImportMeta {
 }
 
 declare module 'virtual:theme-bootstrap' {
-  export const themeBootstrapIntegrity: string | undefined;
   export const themeBootstrapSrc: string;
 }
