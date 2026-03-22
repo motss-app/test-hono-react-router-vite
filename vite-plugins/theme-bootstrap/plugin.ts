@@ -9,18 +9,14 @@ import {
 import { configureThemeBuildServer } from './dev-server.ts';
 import type { BuildArtifact, ThemeBuildServerState } from './types.ts';
 
-function loadModule(id: string, integrity: string, src: string): string | null {
+function loadModule(id: string, src: string): string | null {
   if (id !== RESOLVED_VIRTUAL_THEME_BOOTSTRAP_ID) {
     return null;
   }
 
-  const integrityStr = JSON.stringify(integrity);
   const srcStr = JSON.stringify(src);
 
-  return [
-    `export const themeBootstrapIntegrity = ${integrityStr};`,
-    `export const themeBootstrapSrc = ${srcStr};`,
-  ].join('\n');
+  return `export const themeBootstrapSrc = ${srcStr};`;
 }
 
 const resolveId = ((id: string): string | null => {
@@ -45,7 +41,7 @@ export function themeBuildPlugin(): Plugin[] {
         await configureThemeBuildServer(server, serverState);
       },
       load(id: string): string | null {
-        return loadModule(id, '', DEV_THEME_BOOTSTRAP_REQUEST_PATH);
+        return loadModule(id, DEV_THEME_BOOTSTRAP_REQUEST_PATH);
       },
       name: 'vite:theme-bootstrap:serve',
       resolveId,
@@ -65,7 +61,7 @@ export function themeBuildPlugin(): Plugin[] {
       },
       load(id: string): string | null {
         if (buildArtifact) {
-          return loadModule(id, buildArtifact.integrity, buildArtifact.src);
+          return loadModule(id, buildArtifact.src);
         }
 
         return null;

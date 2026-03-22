@@ -1,6 +1,5 @@
 export interface BuildArtifact {
   code: string;
-  integrity: string;
   src: string;
 }
 

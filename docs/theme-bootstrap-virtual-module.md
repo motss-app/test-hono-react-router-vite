@@ -5,12 +5,11 @@ This document explains how `themeBuildPlugin()` turns the theme bootstrap entry 
 - a stable dev-only script endpoint
 - a hashed production asset
 - a virtual module that tells the app which script URL to load
-- an SRI value for the production asset
 
 The app imports:
 
 ```ts
-import { themeBootstrapIntegrity, themeBootstrapSrc } from 'virtual:theme-bootstrap';
+import { themeBootstrapSrc } from 'virtual:theme-bootstrap';
 ```
 
 and the plugin decides what those values should be in dev versus build.
@@ -43,7 +42,7 @@ and the plugin decides what those values should be in dev versus build.
 ```text
 app/root.tsx
     |
-    | import { themeBootstrapSrc, themeBootstrapIntegrity }
+    | import { themeBootstrapSrc }
     v
 virtual:theme-bootstrap
     |
@@ -53,7 +52,7 @@ themeBuildPlugin()
     |
     +--> DEV:   returns /~virtual:theme-bootstrap.js
     |
-    \--> BUILD: returns /assets/theme-bootstrap-<hash>.js + sha384-...
+    \--> BUILD: returns /assets/theme-bootstrap-<hash>.js
 ```
 
 ## Why use a virtual module?
@@ -62,13 +61,11 @@ The app wants to render this:
 
 ```tsx
 <script
-  crossOrigin="anonymous"
-  integrity={themeBootstrapIntegrity}
   src={themeBootstrapSrc}
 />
 ```
 
-In production the final `src` is not known ahead of time, because the asset filename is hashed by Rolldown. A virtual module lets the plugin inject the final `src` and `integrity` values at build time while keeping application imports stable.
+In production the final `src` is not known ahead of time, because the asset filename is hashed by Rolldown. A virtual module lets the plugin inject the final `src` value at build time while keeping application imports stable.
 
 ## Development mode
 
@@ -94,10 +91,9 @@ Nothing is written to `public/` during dev.
 
 ### What the virtual module returns in dev
 
-In dev, the plugin returns the stable dev URL and no meaningful production integrity metadata:
+In dev, the plugin returns the stable dev URL:
 
 ```ts
-export const themeBootstrapIntegrity = '';
 export const themeBootstrapSrc = '/~virtual:theme-bootstrap.js';
 ```
 
@@ -109,7 +105,7 @@ The bootstrap script is not part of the normal client HMR graph. It is served as
 
 ## Production build mode
 
-In production, the plugin optimizes for immutable assets and correct metadata.
+In production, the plugin optimizes for immutable assets and correct asset URLs.
 
 ### What happens in build
 
@@ -136,26 +132,18 @@ That artifact is created by `buildThemeBootstrap()` in `bundle.ts`.
 5. uses the chunk:
    - `code` for the emitted asset content
    - `fileName` to derive `src`
-6. computes a SHA-384 digest of `code` for the SRI value
-
-This means there are two distinct pieces of metadata:
-
-- Rolldown's `[hash]` for the asset filename
-- SHA-384 for the `integrity` attribute
+6. uses the emitted file name to expose the final public asset URL
 
 ### What the virtual module returns in build
 
 In build mode, the virtual module returns metadata like:
 
 ```ts
-export const themeBootstrapIntegrity =
-  'sha384-...';
-
 export const themeBootstrapSrc =
   '/assets/theme-bootstrap-<hash>.js';
 ```
 
-The app can then render the final `<script>` tag in SSR/SSG HTML with the correct URL and matching SRI value.
+The app can then render the final `<script>` tag in SSR/SSG HTML with the correct URL.
 
 ### Why emit only in the client environment?
 
@@ -215,7 +203,7 @@ Because the plugin needs both:
 before the app can safely render:
 
 ```tsx
-<script integrity={themeBootstrapIntegrity} src={themeBootstrapSrc} />
+<script src={themeBootstrapSrc} />
 ```
 
 By building in memory first, the plugin can:
@@ -257,7 +245,6 @@ The virtual module should only return metadata:
 
 ```ts
 export const themeBootstrapSrc = '...';
-export const themeBootstrapIntegrity = '...';
 ```
 
 It should not contain the actual bootstrap logic.
@@ -273,7 +260,6 @@ Dev should optimize for:
 Build should optimize for:
 
 - hashed asset names
-- integrity metadata
 - deterministic output
 
 ### 4. Watch the real entry file
@@ -290,10 +276,10 @@ The stable dev URL keeps the browser request path simple:
 
 ### 6. Let the bundler own filename hashing
 
-Now that the asset filename comes from Rolldown's `[hash]`, the plugin only needs to compute SRI itself. That keeps responsibilities clearer:
+Now that the asset filename comes from Rolldown's `[hash]`, the plugin only needs to expose the final asset path. That keeps responsibilities clearer:
 
 - bundler owns output naming
-- plugin owns `integrity`
+- plugin owns virtual-module metadata
 
 ## What this does **not** solve
 
@@ -309,7 +295,7 @@ So this plugin specifically gives you:
 
 - no custom inline theme bootstrap
 - a hashed production bootstrap asset
-- an explicit SRI value for that asset
+- a stable way to reference that asset from the app
 
 ## Quick checklist
 
@@ -319,7 +305,6 @@ Use this checklist if you change `themeBuildPlugin()`:
 - Dev HTML still points at the stable dev script path
 - Build still emits `build/client/assets/theme-bootstrap-<hash>.js`
 - Build HTML still includes the final hashed `src`
-- Build HTML still includes matching `integrity`
 - `app/root.tsx` still imports from `virtual:theme-bootstrap`
 - `app/types/vite-env.d.ts` still declares the virtual module
 

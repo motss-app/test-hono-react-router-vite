@@ -72,14 +72,9 @@ async function buildThemeBootstrapCode(): Promise<{
 
 export async function buildThemeBootstrap(): Promise<BuildArtifact> {
   const { code, src } = await buildThemeBootstrapCode();
-  const digest = new Uint8Array(
-    await crypto.subtle.digest('SHA-384', new TextEncoder().encode(code))
-  );
-  const integrityBase64 = btoa(String.fromCharCode(...digest));
 
   return {
     code,
-    integrity: `sha384-${integrityBase64}`,
     src,
   };
 }

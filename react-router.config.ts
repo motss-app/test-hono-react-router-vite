@@ -1,6 +1,6 @@
 import type { Config } from '@react-router/dev/config';
 
-import { discoverStaticRoutes } from './app/utils/route-discovery.ts';
+import { discoverPrerenderRoutes } from './app/utils/route-discovery.ts';
 
 export default {
   future: {
@@ -11,20 +11,7 @@ export default {
     v8_viteEnvironmentApi: true,
   },
   prerender(): string[] {
-    const routes = discoverStaticRoutes({
-      exclude: [
-        '/ssr',
-        '/home', // home.tsx is the index route (/), not /home
-      ],
-    });
-
-    // Explicitly add the index route since discoverStaticRoutes relies on file names
-    // and doesn't know that home.tsx is mapped to /
-    if (!routes.includes('/')) {
-      routes.push('/');
-    }
-
-    return routes;
+    return discoverPrerenderRoutes();
   },
   ssr: true,
 } satisfies Config;
