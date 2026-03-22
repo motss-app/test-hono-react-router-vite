@@ -5,18 +5,30 @@
     "directory": "./build/client",
     "html_handling": "drop-trailing-slash"
   },
-  "compatibility_date": "2024-11-30",
+  "compatibility_date": "2026-03-23",
   "compatibility_flags": [
-    "nodejs_compat"
+    "enable_request_signal",
+    "enable_workers_observability_tracing",
+    "nodejs_als",
+    "nodejs_compat",
+    "pedantic_wpt",
+    "request_signal_passthrough"
   ],
   "env": {
     "canary": {
-      "name": "test-hono-react-router-vite-canary"
+      "name": "test-hono-react-router-vite-canary",
+      "routes": [
+        {
+          "custom_domain": true,
+          "pattern": "hono-react-router-vite-canary.motss.fyi"
+        }
+      ]
     },
     "production": {
       "name": "test-hono-react-router-vite"
     }
   },
+  "logpush": true,
   "main": "./build/worker.js",
   "name": "test-hono-react-router-vite",
   "observability": {
@@ -26,6 +38,11 @@
       "enabled": true,
       "head_sampling_rate": 1.0,
       "invocation_logs": true
+    },
+    "traces": {
+      "enabled": true,
+      "head_sampling_rate": 1.0,
+      "persist": true
     }
   },
   "placement": {
