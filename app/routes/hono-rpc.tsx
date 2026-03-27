@@ -1,24 +1,35 @@
+import { flush, logger, metrics, startNewTrace, startSpan } from '@sentry/react-router';
 import { create, keyframes, props } from '@stylexjs/stylex';
+import type { InferResponseType } from 'hono';
 import { hc } from 'hono/client';
-import type { ComponentProps, JSX, ReactNode } from 'react';
-import { useRevalidator } from 'react-router';
+import {
+  type ComponentProps,
+  type JSX,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 
 import type { ApiAppType } from '../apis/mod.ts';
 import { Link } from '../components/Link.tsx';
 import { Skeleton } from '../components/skeleton.tsx';
 import { Text } from '../components/text.tsx';
 import { IconArrowLeft } from '../icons.ts';
+import {
+  createRequestMetricAttributes,
+  isDevelopmentSentryMode,
+  sentryMetricNames,
+} from '../monitoring/sentry.ts';
 import { iconStyles } from '../styles/icon.stylex.ts';
 import { colorTokens, fontWeightTokens, themeConditions } from '../styles/tokens.stylex.ts';
 import type { Route } from './+types/hono-rpc.ts';
 
-interface HelloResponse {
-  message: string;
-  timestamp: string;
-  server: string;
-}
+type HelloResponse = InferResponseType<typeof client.rpc.hello.$get>;
 
 const client = hc<ApiAppType>('/api');
+const honoRpcHelloPath = '/api/rpc/hello';
+const isDevSentryMode = isDevelopmentSentryMode(import.meta.env.MODE);
 
 const heroReveal = keyframes({
   '0%': {
@@ -43,7 +54,7 @@ const artworkDrift = keyframes({
   },
 });
 
-function meta(): Route.MetaDescriptors {
+export function meta(): Route.MetaDescriptors {
   return [
     {
       title: 'Hono RPC Demo',
@@ -55,35 +66,98 @@ function meta(): Route.MetaDescriptors {
   ];
 }
 
-async function loader(): Promise<HelloResponse> {
-  if (import.meta.env.SSR && !import.meta.env.VITE_DENO_DEPLOYMENT_ID) {
-    return {
-      message: '',
-      server: '',
-      timestamp: '',
-    };
-  }
-
-  const res = await client.rpc.hello.$get();
-
-  if (res.ok) {
-    return await res.json();
-  }
-
-  throw new Error(`HTTP error! status: ${res.status}`);
+export function loader(): HelloResponse {
+  return {
+    message: 'Hello, World!',
+    server: 'Hono RPC',
+    timestamp: new Date().toISOString(),
+  };
 }
 
-async function clientLoader(): Promise<HelloResponse> {
-  const res = await client.rpc.hello.$get();
+async function fetchHelloResponse(): Promise<HelloResponse> {
+  const requestStartedAt = performance.now();
+  let response: Awaited<ReturnType<typeof client.rpc.hello.$get>>;
 
-  if (res.ok) {
-    return await res.json();
+  try {
+    response = await client.rpc.hello.$get();
+  } catch (error) {
+    const duration = performance.now() - requestStartedAt;
+    const metricAttributes = createRequestMetricAttributes({
+      method: 'GET',
+      pathname: honoRpcHelloPath,
+      runtime: 'browser',
+    });
+
+    logger.error('Unhandled browser RPC request error', {
+      method: 'GET',
+      pathname: honoRpcHelloPath,
+    });
+    metrics.count(sentryMetricNames.browserRequestError, 1, {
+      attributes: metricAttributes,
+    });
+    metrics.distribution(sentryMetricNames.browserRequestDuration, duration, {
+      attributes: metricAttributes,
+      unit: 'millisecond',
+    });
+
+    if (isDevSentryMode) {
+      flush(2000);
+    }
+
+    throw error;
   }
 
-  throw new Error(`HTTP error! status: ${res.status}`);
+  const duration = performance.now() - requestStartedAt;
+  const metricAttributes = createRequestMetricAttributes({
+    method: 'GET',
+    pathname: honoRpcHelloPath,
+    runtime: 'browser',
+    statusCode: response.status,
+  });
+
+  metrics.count(sentryMetricNames.browserRequestCount, 1, {
+    attributes: metricAttributes,
+  });
+  metrics.distribution(sentryMetricNames.browserRequestDuration, duration, {
+    attributes: metricAttributes,
+    unit: 'millisecond',
+  });
+
+  if (!response.ok) {
+    logger.error('Browser RPC request failed', {
+      durationMs: Math.round(duration),
+      method: 'GET',
+      pathname: honoRpcHelloPath,
+      statusCode: response.status,
+    });
+    metrics.count(sentryMetricNames.browserRequestError, 1, {
+      attributes: metricAttributes,
+    });
+
+    if (isDevSentryMode) {
+      flush(2000);
+    }
+
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  logger.info('Handled browser RPC request', {
+    durationMs: Math.round(duration),
+    method: 'GET',
+    pathname: honoRpcHelloPath,
+    statusCode: response.status,
+  });
+
+  if (isDevSentryMode) {
+    flush(2000);
+  }
+
+  return await response.json();
 }
 
-clientLoader.hydrate = true;
+export async function clientLoader(): Promise<HelloResponse> {
+  return await fetchHelloResponse();
+}
 
 const s = create({
   actionButton: {
@@ -664,11 +738,11 @@ function HonoRpcView({ action, isLoading, response }: HonoRpcViewProps): JSX.Ele
                   </div>
                   <div>
                     <dt {...props(s.dataLabel)}>Initial source</dt>
-                    <dd {...props(s.dataValue)}>Route loader / clientLoader hydration</dd>
+                    <dd {...props(s.dataValue)}>Route loader / shared API response factory</dd>
                   </div>
                   <div>
                     <dt {...props(s.dataLabel)}>Refresh path</dt>
-                    <dd {...props(s.dataValue)}>useRevalidator() → Hono RPC client</dd>
+                    <dd {...props(s.dataValue)}>Action button → Hono RPC client</dd>
                   </div>
                 </dl>
               </div>
@@ -701,13 +775,14 @@ function HonoRpcView({ action, isLoading, response }: HonoRpcViewProps): JSX.Ele
                   <div>
                     <dt {...props(s.dataLabel)}>Hydrated data</dt>
                     <dd {...props(s.dataValue)}>
-                      clientLoader replaces build-time placeholders in the browser.
+                      The initial server-rendered response stays visible while the client can fetch
+                      fresh data on demand.
                     </dd>
                   </div>
                   <div>
                     <dt {...props(s.dataLabel)}>Client refresh</dt>
                     <dd {...props(s.dataValue)}>
-                      Revalidation fetches fresh RPC data without reloading the page.
+                      The button fetches fresh RPC data without reloading the page.
                     </dd>
                   </div>
                   <div>
@@ -726,49 +801,7 @@ function HonoRpcView({ action, isLoading, response }: HonoRpcViewProps): JSX.Ele
   );
 }
 
-function HydrateFallback(): JSX.Element {
-  return (
-    <HonoRpcView
-      action={
-        <Skeleton
-          isLoading
-          {...props(s.skeletonAction)}
-        />
-      }
-      isLoading
-      response={{
-        message: '',
-        server: '',
-        timestamp: '',
-      }}
-    />
-  );
-}
-
-function HonoRpcDemo({ loaderData }: Route.ComponentProps): JSX.Element {
-  const { revalidate, state } = useRevalidator();
-  const isLoading = state === 'loading';
-  const buttonText = isLoading ? 'Refreshing…' : 'Refresh RPC data';
-
-  return (
-    <HonoRpcView
-      action={
-        <button
-          disabled={isLoading}
-          onClick={revalidate}
-          type="button"
-          {...props(s.actionButton, isLoading && s.actionButtonLoading)}
-        >
-          {buttonText}
-        </button>
-      }
-      isLoading={isLoading}
-      response={loaderData}
-    />
-  );
-}
-
-function ErrorBoundary({ error }: Route.ErrorBoundaryProps): JSX.Element {
+export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): JSX.Element {
   return (
     <div {...props(s.errorPage)}>
       <div {...props(s.errorBox)}>
@@ -781,5 +814,68 @@ function ErrorBoundary({ error }: Route.ErrorBoundaryProps): JSX.Element {
   );
 }
 
-export { clientLoader, ErrorBoundary, HydrateFallback, loader, meta };
-export default HonoRpcDemo;
+export default function HonoRpcDemo({ loaderData }: Route.ComponentProps): JSX.Element {
+  const [response, setResponse] = useState(loaderData);
+  const [refreshError, setRefreshError] = useState<Error | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const buttonText = isLoading ? 'Refreshing…' : 'Refresh RPC data';
+
+  useEffect(() => {
+    setResponse(loaderData);
+  }, [
+    loaderData,
+  ]);
+
+  const refresh = useCallback(async () => {
+    setIsLoading(true);
+    setRefreshError(null);
+
+    try {
+      const nextResponse = await startNewTrace(() =>
+        startSpan(
+          {
+            attributes: {
+              'http.request.method': 'GET',
+              'http.route': honoRpcHelloPath,
+              'ui.action.target': 'refresh-rpc-data',
+              'url.path': honoRpcHelloPath,
+            },
+            forceTransaction: true,
+            name: 'Refresh Hono RPC data',
+            op: 'ui.action.click',
+          },
+          fetchHelloResponse
+        )
+      );
+
+      setResponse(nextResponse);
+    } catch (error) {
+      setRefreshError(
+        error instanceof Error ? error : new Error('Failed to refresh the Hono RPC response.')
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  if (refreshError) {
+    throw refreshError;
+  }
+
+  return (
+    <HonoRpcView
+      action={
+        <button
+          disabled={isLoading}
+          onClick={refresh}
+          type="button"
+          {...props(s.actionButton, isLoading && s.actionButtonLoading)}
+        >
+          {buttonText}
+        </button>
+      }
+      isLoading={isLoading}
+      response={response}
+    />
+  );
+}

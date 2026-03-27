@@ -32,7 +32,7 @@ const artworkDrift = keyframes({
   },
 });
 
-function meta(): Route.MetaDescriptors {
+export function meta(): Route.MetaDescriptors {
   return [
     {
       title: 'Error Handling Demo',
@@ -686,5 +686,3 @@ export default function ErrorsDemo(): JSX.Element {
     </main>
   );
 }
-
-export { meta };

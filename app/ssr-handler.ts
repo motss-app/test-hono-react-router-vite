@@ -4,6 +4,11 @@ import type { ServerBuild } from 'react-router';
 import { createRequestHandler, RouterContextProvider } from 'react-router';
 
 import type { App } from './app.ts';
+import {
+  isSentryToolbarEnabled,
+  sentryOrigin,
+  sentryToolbarCdnOrigin,
+} from './monitoring/sentry.ts';
 import { HonoContext } from './router-context.ts';
 import type { HonoEnv } from './types/hono.types.ts';
 import { csp } from './utils/csp.ts';
@@ -28,56 +33,92 @@ async function createRouterRequest(request: Request, nonce: string | null): Prom
   });
 }
 
+function setHonoData(c: Context<HonoEnv>): void {
+  startTime(c, 'hono-compute');
+  c.set('honoData', {
+    computedValue: crypto.randomUUID(),
+    meta: {
+      requestId: crypto.randomUUID(),
+      requestUrl: c.req.url,
+    },
+    serverTimestamp: new Date().toISOString(),
+  } satisfies HonoEnv['Variables']['honoData']);
+  endTime(c, 'hono-compute');
+}
+
+function createRouterContext(c: Context<HonoEnv>): RouterContextProvider {
+  return new RouterContextProvider(
+    new Map([
+      [
+        HonoContext,
+        c.var,
+      ],
+    ])
+  );
+}
+
+function applySsrResponseHeaders(
+  c: Context<HonoEnv>,
+  responseHeaders: Headers,
+  cspNonce: string | null
+): void {
+  const honoTiming = c.res.headers.get('Server-Timing');
+
+  if (honoTiming) {
+    responseHeaders.append('Server-Timing', honoTiming);
+  }
+
+  if (!(import.meta.env.PROD && responseHeaders.get('Content-Type')?.includes('text/html'))) {
+    return;
+  }
+
+  responseHeaders.set(
+    'Content-Security-Policy',
+    csp.buildPolicy({
+      ...(isSentryToolbarEnabled(import.meta.env.MODE)
+        ? {
+            frameSrc: [
+              sentryOrigin,
+            ],
+            scriptSrc: [
+              sentryToolbarCdnOrigin,
+            ],
+          }
+        : {}),
+      nonce: cspNonce,
+    })
+  );
+}
+
+async function handleSsrRequest(
+  c: Context<HonoEnv>,
+  handler: ReturnType<typeof createRequestHandler>
+): Promise<Response> {
+  setHonoData(c);
+
+  startTime(c, 'react-router-ssr');
+  const cspNonce = import.meta.env.PROD ? csp.createNonce() : null;
+  const response = await handler(
+    await createRouterRequest(c.req.raw, cspNonce),
+    createRouterContext(c)
+  );
+  endTime(c, 'react-router-ssr');
+
+  const responseHeaders = new Headers(response.headers);
+
+  applySsrResponseHeaders(c, responseHeaders, cspNonce);
+
+  return new Response(response.body, {
+    headers: responseHeaders,
+    status: response.status,
+    statusText: response.statusText,
+  });
+}
+
 export function createSsrHandler(app: App): void {
   const handler = createRequestHandler(loadServerBuild, import.meta.env.MODE);
 
-  app.use('*', async (c: Context<HonoEnv>) => {
-    startTime(c, 'hono-compute');
-    c.set('honoData', {
-      computedValue: crypto.randomUUID(),
-      meta: {
-        requestId: crypto.randomUUID(),
-        requestUrl: c.req.url,
-      },
-      serverTimestamp: new Date().toISOString(),
-    } satisfies HonoEnv['Variables']['honoData']);
-    endTime(c, 'hono-compute');
-
-    startTime(c, 'react-router-ssr');
-    const cspNonce = import.meta.env.PROD ? csp.createNonce() : null;
-    const response = await handler(
-      await createRouterRequest(c.req.raw, cspNonce),
-      new RouterContextProvider(
-        new Map([
-          [
-            HonoContext,
-            c.var,
-          ],
-        ])
-      )
-    );
-    endTime(c, 'react-router-ssr');
-
-    const responseHeaders = new Headers(response.headers);
-    const honoTiming = c.res.headers.get('Server-Timing');
-
-    if (honoTiming) {
-      responseHeaders.append('Server-Timing', honoTiming);
-    }
-
-    if (import.meta.env.PROD && responseHeaders.get('Content-Type')?.includes('text/html')) {
-      responseHeaders.set(
-        'Content-Security-Policy',
-        csp.buildPolicy({
-          nonce: cspNonce,
-        })
-      );
-    }
-
-    return new Response(response.body, {
-      headers: responseHeaders,
-      status: response.status,
-      statusText: response.statusText,
-    });
+  app.use('*', (c: Context<HonoEnv>) => {
+    return handleSsrRequest(c, handler);
   });
 }

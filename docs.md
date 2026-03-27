@@ -6,7 +6,7 @@ A modern full-stack web application using React Router v7, Hono, and Vite with h
 
 ```bash
 deno install
-deno task dev      # Development at http://localhost:5173
+deno task dev      # App + API + Spotlight at http://localhost:5173
 deno task build && deno task start  # Production at http://localhost:3000
 ```
 
@@ -14,9 +14,10 @@ deno task build && deno task start  # Production at http://localhost:3000
 
 ### Development Mode
 - **Port**: 5173
-- **Server**: Vite dev server with HMR
+- **Server**: Vite dev server with HMR + Spotlight sidecar
 - **API**: Hono handles `/api/*` routes
 - **Pages**: React Router handles all other routes
+- **Worker parity**: use `deno task preview:worker` when you want to run the app and API inside local Cloudflare `workerd` instead of the Deno dev server
 
 ### Production Mode
 - **Port**: 3000

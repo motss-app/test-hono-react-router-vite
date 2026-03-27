@@ -41,7 +41,7 @@ const artworkDrift = keyframes({
   },
 });
 
-function meta(): Route.MetaDescriptors {
+export function meta(): Route.MetaDescriptors {
   return [
     {
       title: 'Error Case Demo',
@@ -68,7 +68,7 @@ function throwRouteResponse(
   });
 }
 
-function loader({ params }: Route.LoaderArgs) {
+export function loader({ params }: Route.LoaderArgs) {
   const start = performance.now();
   const scenario = getErrorScenario(params.code);
 
@@ -88,7 +88,7 @@ function loader({ params }: Route.LoaderArgs) {
   );
 }
 
-function headers({ loaderHeaders, parentHeaders }: Route.HeadersArgs): Headers {
+export function headers({ loaderHeaders, parentHeaders }: Route.HeadersArgs): Headers {
   const timing = loaderHeaders.get('X-Route-Timing') || '0';
   const newTiming = `error-code-loader;dur=${timing};desc="Error Code Route Loader"`;
 
@@ -1035,23 +1035,7 @@ function ErrorIncidentView({
   );
 }
 
-function ErrorCode({ params }: Route.ComponentProps): JSX.Element {
-  const routeCode = params.code;
-  const scenario = getErrorScenario(routeCode);
-
-  return (
-    <ErrorIncidentView
-      errorType="Pending Error"
-      message="This route is designed to throw before the normal component renders"
-      routeCode={routeCode}
-      scenario={scenario}
-      statusCode={500}
-      statusText="Intentional Error Route"
-    />
-  );
-}
-
-function ErrorBoundary(): JSX.Element {
+export function ErrorBoundary(): JSX.Element {
   const error = useRouteError();
   const params = useParams<'code'>();
   const routeCode = params.code;
@@ -1089,5 +1073,18 @@ function ErrorBoundary(): JSX.Element {
   );
 }
 
-export { ErrorBoundary, headers, loader, meta };
-export default ErrorCode;
+export default function ErrorCode({ params }: Route.ComponentProps): JSX.Element {
+  const routeCode = params.code;
+  const scenario = getErrorScenario(routeCode);
+
+  return (
+    <ErrorIncidentView
+      errorType="Pending Error"
+      message="This route is designed to throw before the normal component renders"
+      routeCode={routeCode}
+      scenario={scenario}
+      statusCode={500}
+      statusText="Intentional Error Route"
+    />
+  );
+}

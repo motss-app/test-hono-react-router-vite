@@ -1,19 +1,20 @@
 import { Hono } from 'hono';
 
 const rpcApp = new Hono().get('/hello', c => {
-  const timestamp = new Date().toISOString();
-  return c.json({
+  const response = {
     message: 'Hello, World!',
     server: 'Hono RPC',
-    timestamp,
-  });
+    timestamp: new Date().toISOString(),
+  } as const;
+
+  return c.json(response);
 });
 
-const testApp = new Hono().get('/', c =>
-  c.json({
+const testApp = new Hono().get('/', c => {
+  return c.json({
     message: 'Hello from /api/test endpoint!',
-  })
-);
+  } as const);
+});
 
 export const apiApp = new Hono().route('/rpc', rpcApp).route('/test', testApp);
 

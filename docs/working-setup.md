@@ -51,7 +51,7 @@ Custom middleware intercepts `/api/*` → Hono, else → React Router
 
 ## Testing
 
-- **Dev**: `deno task dev` → http://localhost:5173
+- **Dev**: `deno task dev` → app + API + Spotlight on http://localhost:5173
 - **Prod**: `deno task build && deno task start` → http://localhost:3000
 - **API**: Visit `/api/test` in both modes
 

@@ -16,6 +16,12 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     name: Deploy
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      SENTRY_DSN: ${{ vars.SENTRY_DSN }}
+      SENTRY_RELEASE: ${{ github.sha }}
+      VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
     steps:
       - uses: actions/checkout@v4
 
@@ -45,9 +51,6 @@ jobs:
           cat deploy-canary.log
           URL=$(grep -oE 'https://[^ ]*workers\.dev' deploy-canary.log | head -n 1)
           echo "CANARY_URL=$URL" >> $GITHUB_ENV
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-
       - name: Build & Deploy Production
         if: github.ref == 'refs/heads/main'
         id: deploy-production
@@ -61,9 +64,6 @@ jobs:
           cat deploy-prod.log
           URL=$(grep -oE 'https://[^ ]*workers\.dev' deploy-prod.log | head -n 1)
           echo "PROD_URL=$URL" >> $GITHUB_ENV
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-
       - name: Summary
         run: |
           echo "### 🚀 Deployment Successful" >> $GITHUB_STEP_SUMMARY

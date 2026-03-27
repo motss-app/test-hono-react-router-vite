@@ -14,14 +14,24 @@
  * 3. SEO & Performance: It handles bot detection (isbot) to ensure crawlers see the
  *    full content immediately.
  */
+import { createSentryHandleError, createSentryServerInstrumentation } from '@sentry/react-router';
 import { isbot } from 'isbot';
 import { renderToReadableStream } from 'react-dom/server';
-import type { AppLoadContext, EntryContext } from 'react-router';
+import type { AppLoadContext, EntryContext, HandleErrorFunction } from 'react-router';
 import { ServerRouter } from 'react-router';
 
+import { isDevelopmentSentryMode } from './monitoring/sentry.ts';
 import { csp } from './utils/csp.ts';
 
 const HTTP_STATUS_INTERNAL_SERVER_ERROR = 500;
+
+export const handleError: HandleErrorFunction = createSentryHandleError({
+  logErrors: isDevelopmentSentryMode(import.meta.env.MODE),
+});
+
+export const unstable_instrumentations = [
+  createSentryServerInstrumentation(),
+];
 
 export default async function handleRequest(
   request: Request,

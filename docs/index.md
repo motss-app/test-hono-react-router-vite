@@ -7,6 +7,7 @@ This project combines React Router v7, Hono, and Vite for a modern full-stack we
 ### 🚀 Setup and Configuration
 - **[Setup Guide](setup.md)** - Complete setup for React Router + Hono + Vite integration
 - **[Build Setup](build-setup.md)** - Production build configuration and Docker deployment
+- **[Sentry Setup Guide](sentry-setup.md)** - Sentry, Spotlight, Deno, and Cloudflare Worker wiring
 - **[Theme Bootstrap Virtual Module](theme-bootstrap-virtual-module.md)** - How the theme bootstrap virtual module works in dev and build
 - **[Working Setup](working-setup.md)** - Final working architecture summary
 
@@ -29,7 +30,7 @@ This project combines React Router v7, Hono, and Vite for a modern full-stack we
 ## Quick Start
 
 1. **Install dependencies**: `deno task install`
-2. **Start development**: `deno task dev` (opens http://localhost:5173)
+2. **Start development**: `deno task dev` (app + API + Spotlight at http://localhost:5173)
 3. **Test API**: Visit http://localhost:5173/api/test
 4. **Build for production**: `deno task build && deno task start`
 

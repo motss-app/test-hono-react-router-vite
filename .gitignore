@@ -1,5 +1,9 @@
 .DS_Store
 .env
+.env.local
+.env.sentry-build-plugin
+.dev.vars
+.dev.vars.*
 .wrangler/
 /node_modules/
 

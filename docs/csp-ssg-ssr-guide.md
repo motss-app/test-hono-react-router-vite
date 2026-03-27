@@ -143,7 +143,7 @@ Then add external hosts only where needed.
 - `app/root.tsx`
 - `app/entry.server.tsx`
 - `app/ssr-handler.ts`
-- `app/utils/route-discovery.ts`
+- `vite-utils/route-discovery.ts`
 - `vite-plugins/copy-headers.ts`
 - `headers/_headers.production`
 - `headers/_headers.canary`

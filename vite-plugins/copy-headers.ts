@@ -2,7 +2,7 @@ import { dirname, join, resolve } from '@std/path';
 import type { Plugin } from 'vite';
 
 import { csp } from '../app/utils/csp.ts';
-import { discoverPrerenderRoutes } from '../app/utils/route-discovery.ts';
+import { discoverPrerenderRoutes } from '../vite-utils/route-discovery.ts';
 
 interface HeadersCopyPluginOptions {
   dest: string;

@@ -2,6 +2,7 @@
   "allowScripts": {
     "allow": [
       "npm:sharp@0.33.5",
+      "npm:@sentry/cli",
       "npm:workerd",
       "npm:workerd@1.20251202.0"
     ],
@@ -55,6 +56,9 @@
     "useUnknownInCatchVariables": true,
     "verbatimModuleSyntax": true
   },
+  "exclude": [
+    ".wrangler"
+  ],
   "imports": {
     "@std/path": "jsr:@std/path@1.1.4",
     "react-dom/server": "npm:react-dom@19.2.4/server.edge"
@@ -95,14 +99,16 @@
     "build:worker:canary": "deno run -P npm:@react-router/dev build --config ./vite.react-router.config.ts --mode canary && deno run -P npm:vite build --config ./vite.worker.config.ts --mode canary",
     "check": " deno run -P npm:@react-router/dev typegen && deno check --unstable-tsgo",
     "convert-fa-pro": "deno run -P=env scripts/convert-fa-pro.ts",
-    "dev": "deno run -P npm:vite",
+    "dev": "deno run -A scripts/dev-spotlight.ts",
+    "dev:app": "deno run -A scripts/run-deno-with-optional-env.ts -P npm:vite",
     "format": "deno run -P=format npm:@biomejs/biome format --write .",
     "format:check": "deno run -P=format npm:@biomejs/biome format .",
     "lint": "deno lint && deno run -P=lint npm:@biomejs/biome check .",
     "lint:fix": "deno run -P=lint npm:@biomejs/biome check --write .",
     "preview": "deno task build && deno task start",
     "preview:worker": "deno task build:worker && deno run -A npm:wrangler dev",
-    "start": "deno run -P=start ./build/server.js"
+    "spotlight": "pnpm dlx @spotlightjs/spotlight",
+    "start": "deno run -A scripts/run-deno-with-optional-env.ts -P=start ./build/server.js"
   },
   "unstable": [
     "bare-node-builtins",
