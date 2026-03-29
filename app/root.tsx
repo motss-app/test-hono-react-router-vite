@@ -12,7 +12,6 @@ import type { Route } from './+types/root.ts';
 import { errorStyles, globalStyles } from './app.styles.ts';
 import { RootDocumentHead } from './components/root-document-head.tsx';
 import { RootDocumentScripts } from './components/root-document-scripts.tsx';
-import { SentryToolbar } from './components/sentry-toolbar.tsx';
 import { IconArrowLeft, IconBug, IconExclamationTriangle } from './icons.ts';
 import { iconStyles } from './styles/icon.stylex.ts';
 import { csp } from './utils/csp.ts';
@@ -66,7 +65,6 @@ export function Layout({ children }: PropsWithChildren): JSX.Element {
       </head>
       <body {...props(globalStyles.body)}>
         {children}
-        <SentryToolbar />
         <RootDocumentScripts cspNonce={cspNonce} />
       </body>
     </html>

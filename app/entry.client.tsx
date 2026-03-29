@@ -27,24 +27,6 @@ import {
   type SpotlightBrowserTransportOptions,
 } from './monitoring/sentry-spotlight-browser.ts';
 
-function loadOptionalBrowserIntegrationsDeferred(): void {
-  const load = async () => {
-    try {
-      const lazyLoadedSentry = await import('@sentry/react-router');
-      addIntegration(lazyLoadedSentry.browserProfilingIntegration());
-      addIntegration(lazyLoadedSentry.replayIntegration());
-    } catch (error) {
-      console.error('[entry.client] Failed to lazy-load optional Sentry integrations', error);
-    }
-  };
-
-  if (globalThis.requestIdleCallback) {
-    globalThis.requestIdleCallback(load);
-  } else {
-    globalThis.setTimeout(load, 0);
-  }
-}
-
 const isDevSentryMode = isDevelopmentSentryMode(import.meta.env.MODE);
 const spotlightSidecarUrl = getSpotlightSidecarUrl(import.meta.env.VITE_SENTRY_SPOTLIGHT);
 // Get the current app session ID for tagging Sentry events
@@ -139,4 +121,27 @@ startTransition(() => {
   );
 });
 
+function loadOptionalBrowserIntegrationsDeferred(): void {
+  const load = async () => {
+    try {
+      const lazyLoadedSentry = await import('@sentry/react-router');
+      addIntegration(lazyLoadedSentry.browserProfilingIntegration());
+      // Don't load the Replay integration in development when we're sending
+      // envelopes to the local Spotlight sidecar — Spotlight's envelope parser
+      // can choke on replay recordings. Only enable Replay outside of
+      // development mode.
+      if (!isDevSentryMode) {
+        addIntegration(lazyLoadedSentry.replayIntegration());
+      }
+    } catch (error) {
+      console.error('[entry.client] Failed to lazy-load optional Sentry integrations', error);
+    }
+  };
+
+  if (globalThis.requestIdleCallback) {
+    globalThis.requestIdleCallback(load);
+  } else {
+    globalThis.setTimeout(load, 0);
+  }
+}
 loadOptionalBrowserIntegrationsDeferred();

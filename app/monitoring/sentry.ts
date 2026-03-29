@@ -7,7 +7,6 @@ export const sentrySpotlightSidecarDefaultUrl = 'http://localhost:8969/stream';
 export const sentryOrganization = 'ipohjs';
 export const sentryOrigin = 'https://sentry.io';
 export const sentryProject = 'hono-react-router-vite';
-export const sentryToolbarCdnOrigin = 'https://browser.sentry-cdn.com';
 const tracesSampleRate = 1.0;
 const profilesSampleRate = 1.0;
 const replaysSessionSampleRate = 0.1;
@@ -32,9 +31,7 @@ export function isDevelopmentSentryMode(mode: RuntimeMode): boolean {
   return mode === 'development';
 }
 
-export function isSentryToolbarEnabled(mode: RuntimeMode): boolean {
-  return mode !== 'production';
-}
+// Toolbar removed: no-op placeholders removed.
 
 function readEnvironmentVariable(name: string): string | undefined {
   if (typeof Deno !== 'undefined') {

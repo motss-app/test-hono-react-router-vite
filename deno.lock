@@ -20,7 +20,6 @@
     "npm:@sentry/cloudflare@^10.45.0": "10.45.0_@cloudflare+workers-types@4.20260317.1",
     "npm:@sentry/deno@^10.45.0": "10.45.0",
     "npm:@sentry/react-router@^10.45.0": "10.45.0_@react-router+node@7.13.1__react-router@7.13.1___react@19.2.4___react-dom@19.2.4____react@19.2.4__typescript@5.9.3__react@19.2.4__react-dom@19.2.4___react@19.2.4_react@19.2.4_react-router@7.13.1__react@19.2.4__react-dom@19.2.4___react@19.2.4_rollup@4.60.0",
-    "npm:@sentry/toolbar@^1.0.0-beta.11": "1.0.0-beta.11_react@19.2.4",
     "npm:@sentry/vite-plugin@^5.1.1": "5.1.1_rollup@4.60.0",
     "npm:@stylexjs/stylex@~0.18.1": "0.18.1",
     "npm:@stylexjs/unplugin@~0.18.1": "0.18.1_unplugin@2.3.11",
@@ -1659,12 +1658,6 @@
         "rollup"
       ]
     },
-    "@sentry/toolbar@1.0.0-beta.11_react@19.2.4": {
-      "integrity": "sha512-7xImSt+R2v/rkWQfvjQEi7EBC/UfogmAVnGfb2iTs9IjvGlF1iQn/aRQZhU64Ve09aswRiFfUUJIbLIG05yG7A==",
-      "dependencies": [
-        "react"
-      ]
-    },
     "@sentry/vite-plugin@5.1.1_rollup@4.60.0": {
       "integrity": "sha512-i6NWUDi2SDikfSUeMJvJTRdwEKYSfTd+mvBO2Ja51S1YK+hnickBuDfD+RvPerIXLuyRu3GamgNPbNqgCGUg/Q==",
       "dependencies": [
@@ -2647,7 +2640,6 @@
         "npm:@sentry/cloudflare@^10.45.0",
         "npm:@sentry/deno@^10.45.0",
         "npm:@sentry/react-router@^10.45.0",
-        "npm:@sentry/toolbar@^1.0.0-beta.11",
         "npm:@sentry/vite-plugin@^5.1.1",
         "npm:@stylexjs/stylex@~0.18.1",
         "npm:@stylexjs/unplugin@~0.18.1",

@@ -4,11 +4,6 @@ import type { ServerBuild } from 'react-router';
 import { createRequestHandler, RouterContextProvider } from 'react-router';
 
 import type { App } from './app.ts';
-import {
-  isSentryToolbarEnabled,
-  sentryOrigin,
-  sentryToolbarCdnOrigin,
-} from './monitoring/sentry.ts';
 import { HonoContext } from './router-context.ts';
 import type { HonoEnv } from './types/hono.types.ts';
 import { csp } from './utils/csp.ts';
@@ -75,16 +70,6 @@ function applySsrResponseHeaders(
   responseHeaders.set(
     'Content-Security-Policy',
     csp.buildPolicy({
-      ...(isSentryToolbarEnabled(import.meta.env.MODE)
-        ? {
-            frameSrc: [
-              sentryOrigin,
-            ],
-            scriptSrc: [
-              sentryToolbarCdnOrigin,
-            ],
-          }
-        : {}),
       nonce: cspNonce,
     })
   );
