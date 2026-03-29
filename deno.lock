@@ -12,7 +12,8 @@
     "npm:@iconify-react/fa7-brands@1.0.0": "1.0.0_react@19.2.4",
     "npm:@iconify-react/fa7-regular@1.0.0": "1.0.0_react@19.2.4",
     "npm:@iconify-react/fa7-solid@1.0.0": "1.0.0_react@19.2.4",
-    "npm:@react-router/dev@7.13.2": "7.13.2_react-router@7.13.2__react@19.2.4__react-dom@19.2.4___react@19.2.4_typescript@5.9.3_vite@8.0.3__@emnapi+core@1.9.1__@emnapi+runtime@1.9.1_wrangler@4.78.0__@cloudflare+workers-types@4.20260329.1_@cloudflare+workers-types@4.20260329.1_@emnapi+core@1.9.1_@emnapi+runtime@1.9.1_react@19.2.4_react-dom@19.2.4__react@19.2.4",
+    "npm:@react-router/dev@*": "7.13.2_react-router@7.13.2__react@19.2.4__react-dom@19.2.4___react@19.2.4_typescript@5.9.3_vite@8.0.3__@emnapi+core@1.9.1__@emnapi+runtime@1.9.1_wrangler@4.78.0__@cloudflare+workers-types@4.20260329.1",
+    "npm:@react-router/dev@7.13.2": "7.13.2_react-router@7.13.2__react@19.2.4__react-dom@19.2.4___react@19.2.4_typescript@5.9.3_vite@8.0.3__@emnapi+core@1.9.1__@emnapi+runtime@1.9.1_wrangler@4.78.0__@cloudflare+workers-types@4.20260329.1",
     "npm:@react-router/node@7.13.2": "7.13.2_react-router@7.13.2__react@19.2.4__react-dom@19.2.4___react@19.2.4_typescript@5.9.3_react@19.2.4_react-dom@19.2.4__react@19.2.4",
     "npm:@sentry/browser@10.46.0": "10.46.0",
     "npm:@sentry/cloudflare@^10.46.0": "10.46.0_@cloudflare+workers-types@4.20260329.1",
@@ -30,6 +31,7 @@
     "npm:react-router@7.13.2": "7.13.2_react@19.2.4_react-dom@19.2.4__react@19.2.4",
     "npm:react@19.2.4": "19.2.4",
     "npm:typescript@5.9.3": "5.9.3",
+    "npm:vite@*": "8.0.3_@emnapi+core@1.9.1_@emnapi+runtime@1.9.1",
     "npm:vite@8.0.3": "8.0.3_@emnapi+core@1.9.1_@emnapi+runtime@1.9.1",
     "npm:wrangler@4.78.0": "4.78.0_@cloudflare+workers-types@4.20260329.1"
   },
@@ -1154,7 +1156,7 @@
         "@opentelemetry/instrumentation@0.207.0_@opentelemetry+api@1.9.1"
       ]
     },
-    "@react-router/dev@7.13.2_react-router@7.13.2__react@19.2.4__react-dom@19.2.4___react@19.2.4_typescript@5.9.3_vite@8.0.3__@emnapi+core@1.9.1__@emnapi+runtime@1.9.1_wrangler@4.78.0__@cloudflare+workers-types@4.20260329.1_@cloudflare+workers-types@4.20260329.1_@emnapi+core@1.9.1_@emnapi+runtime@1.9.1_react@19.2.4_react-dom@19.2.4__react@19.2.4": {
+    "@react-router/dev@7.13.2_react-router@7.13.2__react@19.2.4__react-dom@19.2.4___react@19.2.4_typescript@5.9.3_vite@8.0.3__@emnapi+core@1.9.1__@emnapi+runtime@1.9.1_wrangler@4.78.0__@cloudflare+workers-types@4.20260329.1": {
       "integrity": "sha512-8Lgf+WCEIPDhp22YB3fyoiWnNyM39sjkfWnSxAwy+Sg83OHxnQFQg0OK1oPM9lm1n/hxJe4lLYOPNwDSyeGiog==",
       "dependencies": [
         "@babel/core",
