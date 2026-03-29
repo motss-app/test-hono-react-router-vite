@@ -229,7 +229,13 @@ Starts the normal local dev stack. This uses:
 deno task spotlight
 ```
 
-Starts Spotlight by itself.
+Starts Spotlight by itself (MCP mode).
+
+For local native Spotlight or blocked npm registry environments:
+
+```bash
+SPOTLIGHT_BINARY=spotlight SPOTLIGHT_MCP=1 deno task spotlight
+```
 
 ```bash
 deno task preview:worker

@@ -1,4 +1,4 @@
-import { flush, logger, metrics, startNewTrace, startSpan } from '@sentry/react-router';
+import { flush, logger, metrics, startSpan } from '@sentry/react-router';
 import { create, keyframes, props } from '@stylexjs/stylex';
 import type { InferResponseType } from 'hono';
 import { hc } from 'hono/client';
@@ -831,21 +831,19 @@ export default function HonoRpcDemo({ loaderData }: Route.ComponentProps): JSX.E
     setRefreshError(null);
 
     try {
-      const nextResponse = await startNewTrace(() =>
-        startSpan(
-          {
-            attributes: {
-              'http.request.method': 'GET',
-              'http.route': honoRpcHelloPath,
-              'ui.action.target': 'refresh-rpc-data',
-              'url.path': honoRpcHelloPath,
-            },
-            forceTransaction: true,
-            name: 'Refresh Hono RPC data',
-            op: 'ui.action.click',
+      const nextResponse = await startSpan(
+        {
+          attributes: {
+            'http.request.method': 'GET',
+            'http.route': honoRpcHelloPath,
+            'ui.action.target': 'refresh-rpc-data',
+            'url.path': honoRpcHelloPath,
           },
-          fetchHelloResponse
-        )
+          forceTransaction: true,
+          name: 'Refresh Hono RPC data',
+          op: 'ui.action.click',
+        },
+        fetchHelloResponse
       );
 
       setResponse(nextResponse);

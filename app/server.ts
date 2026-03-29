@@ -63,7 +63,7 @@ const app = createApp();
 function handleAppRequest(request: Request): Promise<Response> {
   const pathname = new URL(request.url).pathname;
 
-  if (!(import.meta.env.DEV && isServerSentryEnabled && pathname.startsWith('/api/'))) {
+  if (!(isServerSentryEnabled && pathname.startsWith('/api/'))) {
     return PromiseFrom(app.fetch(request));
   }
 
@@ -102,7 +102,7 @@ function handleFetch(request: Request): Promise<Response> {
       shouldSetAppSessionCookie
     );
 
-  if (!(import.meta.env.DEV && isServerSentryEnabled)) {
+  if (!isServerSentryEnabled) {
     if (appSessionId && isServerSentryEnabled) {
       setTag(appSessionIdTagName, appSessionId);
     }

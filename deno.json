@@ -107,7 +107,7 @@
     "lint:fix": "deno run -P=lint npm:@biomejs/biome check --write .",
     "preview": "deno task build && deno task start",
     "preview:worker": "deno task build:worker && deno run -A npm:wrangler dev",
-    "spotlight": "pnpm dlx @spotlightjs/spotlight",
+    "spotlight": "pnpm dlx @spotlightjs/spotlight mcp",
     "start": "deno run -A scripts/run-deno-with-optional-env.ts -P=start ./build/server.js"
   },
   "unstable": [

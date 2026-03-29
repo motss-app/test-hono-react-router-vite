@@ -66,10 +66,16 @@ Start the app, API, and Spotlight together with:
 deno task dev
 ```
 
-If you only want the Spotlight sidecar:
+If you only want the Spotlight sidecar (MCP mode per https://spotlightjs.com/docs/mcp/):
 
 ```bash
 deno task spotlight
+```
+
+Or run with local Spotlight binary and explicit MCP in env:
+
+```bash
+SPOTLIGHT_BINARY=spotlight SPOTLIGHT_MCP=1 deno task spotlight
 ```
 
 By default the app sends dev telemetry to `http://localhost:8969/stream`. You can override that with:
