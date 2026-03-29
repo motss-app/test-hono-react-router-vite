@@ -1,0 +1,55 @@
+{
+  "skills": {
+    "sentry-cloudflare-sdk": {
+      "computedHash": "43f7e56e20405aff1349d9f1a55164bcd4e1c9fbf0005c08d7aa4f09dccd4616",
+      "source": "getsentry/sentry-for-ai",
+      "sourceType": "github"
+    },
+    "sentry-code-review": {
+      "computedHash": "3f2134bdeffc92ac7cd1d8561f056006cd1908ea87590182cefefdab441ed472",
+      "source": "getsentry/sentry-for-ai",
+      "sourceType": "github"
+    },
+    "sentry-create-alert": {
+      "computedHash": "05f78a17a70f3e38d283fef4f97b013024a01093ef436b96df12d51e2f1a7b00",
+      "source": "getsentry/sentry-for-ai",
+      "sourceType": "github"
+    },
+    "sentry-fix-issues": {
+      "computedHash": "0ef2103f20d698acc56d856a07a372a0a68cb02bad654d0dacb4e2ffe87e98b5",
+      "source": "getsentry/sentry-for-ai",
+      "sourceType": "github"
+    },
+    "sentry-node-sdk": {
+      "computedHash": "e8557b22ab56842c409cc5678dc12e37079849303db3ea32b6a672a8ffb7f4d2",
+      "source": "getsentry/sentry-for-ai",
+      "sourceType": "github"
+    },
+    "sentry-otel-exporter-setup": {
+      "computedHash": "4bc876a5e0a65c123027992061a638859f7211177e377110c2551e4bc8b48442",
+      "source": "getsentry/sentry-for-ai",
+      "sourceType": "github"
+    },
+    "sentry-pr-code-review": {
+      "computedHash": "50d60bad66edd86ebda5302b67fb2980396b942fb125f70858f103c5a7692eb7",
+      "source": "getsentry/sentry-for-ai",
+      "sourceType": "github"
+    },
+    "sentry-react-sdk": {
+      "computedHash": "1906567519bda70bed4d0576ea5f4c7313f373cc23a505758b241d48934009d7",
+      "source": "getsentry/sentry-for-ai",
+      "sourceType": "github"
+    },
+    "sentry-sdk-upgrade": {
+      "computedHash": "ef1881ddfe80380e6814cc2dcd072c6c238783ebc3985acc46d3141b2c3fdf6b",
+      "source": "getsentry/sentry-for-ai",
+      "sourceType": "github"
+    },
+    "sentry-setup-ai-monitoring": {
+      "computedHash": "84a098eadb988507c2a004d759c4d963dbca02c2960b37a5d7c59845236e754c",
+      "source": "getsentry/sentry-for-ai",
+      "sourceType": "github"
+    }
+  },
+  "version": 1
+}
