@@ -4,6 +4,7 @@ import {
   consoleLoggingIntegration,
   flush,
   init,
+  lazyLoadIntegration,
   logger,
   reactRouterTracingIntegration,
   setTag,
@@ -105,6 +106,7 @@ if (isDevSentryMode) {
   captureMessage('entry.client initialized', {
     level: 'info',
   });
+
   flush(2000);
 }
 
@@ -121,27 +123,25 @@ startTransition(() => {
   );
 });
 
-function loadOptionalBrowserIntegrationsDeferred(): void {
-  const load = async () => {
-    try {
-      const lazyLoadedSentry = await import('@sentry/react-router');
-      addIntegration(lazyLoadedSentry.browserProfilingIntegration());
-      // Don't load the Replay integration in development when we're sending
-      // envelopes to the local Spotlight sidecar — Spotlight's envelope parser
-      // can choke on replay recordings. Only enable Replay outside of
-      // development mode.
-      if (!isDevSentryMode) {
-        addIntegration(lazyLoadedSentry.replayIntegration());
-      }
-    } catch (error) {
-      console.error('[entry.client] Failed to lazy-load optional Sentry integrations', error);
-    }
-  };
+/**
+ * Lazy-load optional Sentry integrations that aren't needed for initial page load.
+ */
+globalThis.requestIdleCallback(async function lazyLoadBrowserIntegration() {
+  try {
+    const browserProfilingIntegration = await lazyLoadIntegration('browserProfilingIntegration');
 
-  if (globalThis.requestIdleCallback) {
-    globalThis.requestIdleCallback(load);
-  } else {
-    globalThis.setTimeout(load, 0);
+    addIntegration(browserProfilingIntegration());
+
+    // Don't load the Replay integration in development when we're sending
+    // envelopes to the local Spotlight sidecar — Spotlight's envelope parser
+    // can choke on replay recordings. Only enable Replay outside of
+    // development mode.
+    if (!isDevSentryMode) {
+      const replayIntegration = await lazyLoadIntegration('replayIntegration');
+
+      addIntegration(replayIntegration());
+    }
+  } catch (error) {
+    console.error('[entry.client] Failed to lazy-load optional Sentry integrations', error);
   }
-}
-loadOptionalBrowserIntegrationsDeferred();
+});
