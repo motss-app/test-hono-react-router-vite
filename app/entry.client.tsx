@@ -4,7 +4,6 @@ import {
   consoleLoggingIntegration,
   flush,
   init,
-  lazyLoadIntegration,
   logger,
   reactRouterTracingIntegration,
   setTag,
@@ -128,18 +127,25 @@ startTransition(() => {
  */
 globalThis.requestIdleCallback(async function lazyLoadBrowserIntegration() {
   try {
-    const browserProfilingIntegration = await lazyLoadIntegration('browserProfilingIntegration');
+    const lazyBrowserIntegrations = [
+      {
+        enabled: true,
+        loader: () => import('@sentry/react-router').then(mod => mod.browserProfilingIntegration),
+      },
+      // {
+      //   // Don't load the Replay integration in development when we're sending
+      //   // envelopes to the local Spotlight sidecar — Spotlight's envelope parser
+      //   // can choke on replay recordings. Only enable Replay outside of
+      //   // development mode.
+      //   enabled: !isDevSentryMode,
+      //   loader: () => import('@sentry/react-router').then(mod => mod.replayIntegration),
+      // },
+    ].filter(n => n.enabled);
 
-    addIntegration(browserProfilingIntegration());
+    for await (const { loader } of lazyBrowserIntegrations) {
+      const integration = await loader();
 
-    // Don't load the Replay integration in development when we're sending
-    // envelopes to the local Spotlight sidecar — Spotlight's envelope parser
-    // can choke on replay recordings. Only enable Replay outside of
-    // development mode.
-    if (!isDevSentryMode) {
-      const replayIntegration = await lazyLoadIntegration('replayIntegration');
-
-      addIntegration(replayIntegration());
+      addIntegration(integration());
     }
   } catch (error) {
     console.error('[entry.client] Failed to lazy-load optional Sentry integrations', error);
