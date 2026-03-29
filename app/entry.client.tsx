@@ -146,6 +146,8 @@ globalThis.requestIdleCallback(async function lazyLoadBrowserIntegration() {
       const integration = await loader();
 
       addIntegration(integration());
+
+      console.info('[entry.client] Lazy-loaded Sentry browser integration', integration.name);
     }
   } catch (error) {
     console.error('[entry.client] Failed to lazy-load optional Sentry integrations', error);
