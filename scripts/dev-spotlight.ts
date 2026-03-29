@@ -163,6 +163,6 @@ for (const signal of [
   }
 }
 
-if (!appStatus.success) {
+if (!appStatus.success && appStatus.code !== 1) {
   throw new Error(`App exited with code ${appStatus.code ?? 'unknown'}`);
 }

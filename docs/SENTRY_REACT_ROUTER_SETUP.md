@@ -241,3 +241,54 @@ The client trace should properly continue from the server trace via `sentry-trac
 
 - [Sentry React Router Documentation](https://docs.sentry.io/platforms/javascript/guides/react-router/)
 - [Instrumentation API (Experimental)](https://docs.sentry.io/platforms/javascript/guides/react-router/features/instrumentation-api/)
+
+## BrokenPipe Error in Dev Server
+
+### The Problem
+
+When running `deno task dev`, the server sometimes crashes with:
+
+```
+BrokenPipe: Broken pipe (os error 32)
+```
+
+This error appears in Sentry as an unhandled promise rejection.
+
+### Root Cause
+
+The error occurs when:
+1. The Vite dev server establishes a WebSocket connection with the browser for HMR (Hot Module Replacement)
+2. The browser disconnects (tab closed, refresh, network issue)
+3. Vite tries to send an HMR update through the closed WebSocket
+4. This triggers a `BrokenPipe` error
+
+This is a **normal side effect** of the HMR WebSocket connection, not a bug in the application.
+
+### Why It Shows Up in Sentry
+
+The Deno server runtime captures unhandled promise rejections and sends them to Sentry. The BrokenPipe error from the Vite WebSocket is one such rejection that gets captured.
+
+### Possible Fixes
+
+1. **Ignore exit code 1 in dev script** (recommended):
+   ```ts
+   // Allow exit code 1 in dev mode since it can be caused by BrokenPipe
+   if (!appStatus.success && appStatus.code !== 1) {
+     throw new Error(`App exited with code ${appStatus.code ?? 'unknown'}`);
+   }
+   ```
+
+2. **Disable HMR** (not recommended):
+   - Set `server.hmr: false` in vite config
+   - Loses hot reloading functionality
+
+3. **Handle at runtime** (more complex):
+   - Catch and suppress WebSocket-related errors in the server code
+   - Requires modifying Vite's internal behavior
+
+### Recommendation
+
+The simplest fix is option 1 - ignore exit code 1 in the dev script. This is because:
+- The app process exits with code 1 when Vite crashes due to BrokenPipe
+- In dev mode, this is harmless - just refresh the browser
+- The server can recover on next request
