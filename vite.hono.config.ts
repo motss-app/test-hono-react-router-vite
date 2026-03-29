@@ -27,6 +27,7 @@ export default defineConfig(({ mode }) => {
       ...(sentryVitePluginOptions ? sentryVitePlugin(sentryVitePluginOptions) : []),
     ],
     resolve: {
+      conditions: ['node'],
       tsconfigPaths: true,
     },
   };
