@@ -31,8 +31,6 @@ export function isDevelopmentSentryMode(mode: RuntimeMode): boolean {
   return mode === 'development';
 }
 
-// Toolbar removed: no-op placeholders removed.
-
 function readEnvironmentVariable(name: string): string | undefined {
   if (typeof Deno !== 'undefined') {
     return Deno.env.get(name) ?? undefined;
@@ -66,6 +64,7 @@ function createBaseOptions(mode: RuntimeMode, dsn?: string) {
           dsn,
         }
       : {}),
+    debug: isDevelopmentSentryMode(mode),
     enableLogs: true,
     environment: getSentryEnvironment(mode),
     sendDefaultPii: true,

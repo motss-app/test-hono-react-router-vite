@@ -63,9 +63,15 @@ const app = createApp();
 function handleAppRequest(request: Request): Promise<Response> {
   const pathname = new URL(request.url).pathname;
 
-  if (!(isServerSentryEnabled && pathname.startsWith('/api/'))) {
+  const isApiRoute = pathname.startsWith('/api/');
+  const isStaticAsset = pathname.startsWith('/assets/') || pathname.includes('.');
+
+  if (!isServerSentryEnabled || isStaticAsset) {
     return PromiseFrom(app.fetch(request));
   }
+
+  const spanName = isApiRoute ? `${request.method} ${pathname}` : `page load`;
+  const spanOp = isApiRoute ? 'http.server' : 'pageload';
 
   return startSpan(
     {
@@ -75,8 +81,8 @@ function handleAppRequest(request: Request): Promise<Response> {
         'url.path': pathname,
       },
       forceTransaction: true,
-      name: `${request.method} ${pathname}`,
-      op: 'http.server',
+      name: spanName,
+      op: spanOp,
     },
     async span => {
       const response = await PromiseFrom(app.fetch(request));

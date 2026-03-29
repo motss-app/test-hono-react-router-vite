@@ -60,6 +60,7 @@
     ".wrangler"
   ],
   "imports": {
+    "@sentry/browser": "npm:@sentry/browser@10.46.0",
     "@std/path": "jsr:@std/path@1.1.4",
     "react-dom/server": "npm:react-dom@19.2.4/server.edge"
   },
@@ -107,7 +108,7 @@
     "lint:fix": "deno run -P=lint npm:@biomejs/biome check --write .",
     "preview": "deno task build && deno task start",
     "preview:worker": "deno task build:worker && deno run -A npm:wrangler dev",
-    "spotlight": "pnpm dlx @spotlightjs/spotlight mcp",
+    "spotlight": "pnpm dlx @spotlightjs/spotlight",
     "start": "deno run -A scripts/run-deno-with-optional-env.ts -P=start ./build/server.js"
   },
   "unstable": [

@@ -1,7 +1,6 @@
 import {
   addIntegration,
   captureMessage,
-  consoleLoggingIntegration,
   flush,
   init,
   logger,
@@ -52,26 +51,17 @@ init({
       }
     : {}),
   integrations: [
-    {
-      enabled: isDevSentryMode,
-      integration: () =>
-        consoleLoggingIntegration({
-          levels: [
-            'log',
-            'info',
-            'warn',
-            'error',
-            'debug',
-          ],
-        }),
-    },
-    {
-      enabled: true,
-      integration: () => tracing,
-    },
-  ]
-    .filter(n => n.enabled)
-    .map(n => n.integration),
+    // consoleLoggingIntegration({
+    //   levels: [
+    //     'log',
+    //     'info',
+    //     'warn',
+    //     'error',
+    //     'debug',
+    //   ],
+    // }),
+    tracing,
+  ],
   ...(isDevSentryMode
     ? {
         transport: (options: SpotlightBrowserTransportOptions) =>
