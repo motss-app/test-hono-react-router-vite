@@ -34,7 +34,11 @@ export default defineConfig(({ mode }) => {
       ...(sentryVitePluginOptions ? sentryVitePlugin(sentryVitePluginOptions) : []),
     ],
     resolve: {
-      conditions: ['worker', 'browser'],
+      conditions: [
+        'node',
+        'worker',
+        'browser',
+      ],
       tsconfigPaths: true,
     },
   };
