@@ -1,4 +1,4 @@
-import { dirname, join, resolve } from '@std/path';
+import { dirname, join, resolve } from 'node:path';
 import type { Plugin } from 'vite';
 
 import { csp } from '../app/utils/csp.ts';
