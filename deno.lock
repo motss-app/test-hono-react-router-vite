@@ -8,21 +8,19 @@
     "npm:@cloudflare/workers-types@4.20260331.1": "4.20260331.1",
     "npm:@fontsource-variable/open-sans@5.2.7": "5.2.7",
     "npm:@hono/node-server@1.19.12": "1.19.12_hono@4.12.9",
-    "npm:@hono/vite-dev-server@0.25.1": "0.25.1_hono@4.12.9_wrangler@4.79.0__@cloudflare+workers-types@4.20260331.1_@cloudflare+workers-types@4.20260331.1",
+    "npm:@hono/vite-dev-server@0.25.1": "0.25.1_hono@4.12.9_wrangler@4.79.0__@cloudflare+workers-types@4.20260331.1",
     "npm:@iconify-react/fa7-brands@1.0.0": "1.0.0_react@19.2.4",
     "npm:@iconify-react/fa7-regular@1.0.0": "1.0.0_react@19.2.4",
     "npm:@iconify-react/fa7-solid@1.0.0": "1.0.0_react@19.2.4",
-    "npm:@react-router/dev@*": "7.13.2_react-router@7.13.2__react@19.2.4__react-dom@19.2.4___react@19.2.4_typescript@5.9.3_vite@8.0.3__@emnapi+core@1.9.1__@emnapi+runtime@1.9.1_wrangler@4.79.0__@cloudflare+workers-types@4.20260331.1_@cloudflare+workers-types@4.20260331.1",
-    "npm:@react-router/dev@7.13.2": "7.13.2_react-router@7.13.2__react@19.2.4__react-dom@19.2.4___react@19.2.4_typescript@5.9.3_vite@8.0.3__@emnapi+core@1.9.1__@emnapi+runtime@1.9.1_wrangler@4.79.0__@cloudflare+workers-types@4.20260331.1_@cloudflare+workers-types@4.20260331.1",
+    "npm:@react-router/dev@7.13.2": "7.13.2_react-router@7.13.2__react@19.2.4__react-dom@19.2.4___react@19.2.4_typescript@5.9.3_vite@8.0.3__@emnapi+core@1.9.1__@emnapi+runtime@1.9.1_wrangler@4.79.0__@cloudflare+workers-types@4.20260331.1",
     "npm:@react-router/node@7.13.2": "7.13.2_react-router@7.13.2__react@19.2.4__react-dom@19.2.4___react@19.2.4_typescript@5.9.3_react@19.2.4_react-dom@19.2.4__react@19.2.4",
     "npm:@sentry/browser@10.47.0": "10.47.0",
-    "npm:@sentry/cloudflare@^10.47.0": "10.47.0_@cloudflare+workers-types@4.20260331.1",
-    "npm:@sentry/deno@^10.47.0": "10.47.0",
-    "npm:@sentry/react-router@^10.47.0": "10.47.0_@react-router+node@7.13.2__react-router@7.13.2___react@19.2.4___react-dom@19.2.4____react@19.2.4__typescript@5.9.3__react@19.2.4__react-dom@19.2.4___react@19.2.4_react@19.2.4_react-router@7.13.2__react@19.2.4__react-dom@19.2.4___react@19.2.4_rollup@4.60.1",
-    "npm:@sentry/toolbar@^1.0.0-beta.11": "1.0.0-beta.11_react@19.2.4",
-    "npm:@sentry/vite-plugin@^5.1.1": "5.1.1_rollup@4.60.1",
-    "npm:@stylexjs/stylex@~0.18.2": "0.18.2",
-    "npm:@stylexjs/unplugin@~0.18.2": "0.18.2_unplugin@2.3.11",
+    "npm:@sentry/cloudflare@10.47.0": "10.47.0_@cloudflare+workers-types@4.20260331.1",
+    "npm:@sentry/deno@10.47.0": "10.47.0",
+    "npm:@sentry/react-router@10.47.0": "10.47.0_@react-router+node@7.13.2__react-router@7.13.2___react@19.2.4___react-dom@19.2.4____react@19.2.4__typescript@5.9.3__react@19.2.4__react-dom@19.2.4___react@19.2.4_react@19.2.4_react-router@7.13.2__react@19.2.4__react-dom@19.2.4___react@19.2.4_rollup@4.60.1",
+    "npm:@sentry/vite-plugin@5.1.1": "5.1.1_rollup@4.60.1",
+    "npm:@stylexjs/stylex@0.18.2": "0.18.2",
+    "npm:@stylexjs/unplugin@0.18.2": "0.18.2_unplugin@2.3.11",
     "npm:@types/react-dom@19.2.3": "19.2.3_@types+react@19.2.14",
     "npm:@types/react@19.2.14": "19.2.14",
     "npm:hono@4.12.9": "4.12.9",
@@ -564,7 +562,7 @@
         "@opentelemetry/core",
         "@opentelemetry/instrumentation@0.212.0_@opentelemetry+api@1.9.1",
         "@opentelemetry/semantic-conventions",
-        "minimatch@10.2.4"
+        "minimatch@10.2.5"
       ]
     },
     "@floating-ui/core@1.7.5": {
@@ -600,7 +598,7 @@
         "hono"
       ]
     },
-    "@hono/vite-dev-server@0.25.1_hono@4.12.9_wrangler@4.79.0__@cloudflare+workers-types@4.20260331.1_@cloudflare+workers-types@4.20260331.1": {
+    "@hono/vite-dev-server@0.25.1_hono@4.12.9_wrangler@4.79.0__@cloudflare+workers-types@4.20260331.1": {
       "integrity": "sha512-H6EqoPtCV+uH1fu8nKyRy5Wh3LU012QxloEYMlUcyMjjEfVFiRXPjHx/0TQiiRi140Vu8San5A4XQWyElKFKaw==",
       "dependencies": [
         "@hono/node-server",
@@ -1149,7 +1147,7 @@
         "@opentelemetry/instrumentation@0.207.0_@opentelemetry+api@1.9.1"
       ]
     },
-    "@react-router/dev@7.13.2_react-router@7.13.2__react@19.2.4__react-dom@19.2.4___react@19.2.4_typescript@5.9.3_vite@8.0.3__@emnapi+core@1.9.1__@emnapi+runtime@1.9.1_wrangler@4.79.0__@cloudflare+workers-types@4.20260331.1_@cloudflare+workers-types@4.20260331.1": {
+    "@react-router/dev@7.13.2_react-router@7.13.2__react@19.2.4__react-dom@19.2.4___react@19.2.4_typescript@5.9.3_vite@8.0.3__@emnapi+core@1.9.1__@emnapi+runtime@1.9.1_wrangler@4.79.0__@cloudflare+workers-types@4.20260331.1": {
       "integrity": "sha512-8Lgf+WCEIPDhp22YB3fyoiWnNyM39sjkfWnSxAwy+Sg83OHxnQFQg0OK1oPM9lm1n/hxJe4lLYOPNwDSyeGiog==",
       "dependencies": [
         "@babel/core",
@@ -1653,12 +1651,6 @@
         "rollup"
       ]
     },
-    "@sentry/toolbar@1.0.0-beta.11_react@19.2.4": {
-      "integrity": "sha512-7xImSt+R2v/rkWQfvjQEi7EBC/UfogmAVnGfb2iTs9IjvGlF1iQn/aRQZhU64Ve09aswRiFfUUJIbLIG05yG7A==",
-      "dependencies": [
-        "react"
-      ]
-    },
     "@sentry/vite-plugin@5.1.1_rollup@4.60.1": {
       "integrity": "sha512-i6NWUDi2SDikfSUeMJvJTRdwEKYSfTd+mvBO2Ja51S1YK+hnickBuDfD+RvPerIXLuyRu3GamgNPbNqgCGUg/Q==",
       "dependencies": [
@@ -1958,7 +1950,7 @@
     "glob@13.0.6": {
       "integrity": "sha512-Wjlyrolmm8uDpm/ogGyXZXb1Z+Ca2B8NbJwqBVg0axK9GbBeoS7yGV6vjXnYdGm6X53iehEuxxbyiKp8QmN4Vw==",
       "dependencies": [
-        "minimatch@10.2.4",
+        "minimatch@10.2.5",
         "minipass",
         "path-scurry"
       ]
@@ -2134,8 +2126,8 @@
       ],
       "bin": true
     },
-    "minimatch@10.2.4": {
-      "integrity": "sha512-oRjTw/97aTBN0RHbYCdtF1MQfvusSIBQM0IZEgzl6426+8jSC0nF1a/GmnVLpfB9yyr6g6FTqWqiZVbxrtaCIg==",
+    "minimatch@10.2.5": {
+      "integrity": "sha512-MULkVLfKGYDFYejP07QOurDLLQpcjk7Fw+7jXS2R2czRQzR56yHRveU5NDJEOviH+hETZKSkIk5c+T23GjFUMg==",
       "dependencies": [
         "brace-expansion@5.0.5"
       ]
@@ -2632,13 +2624,12 @@
         "npm:@react-router/dev@7.13.2",
         "npm:@react-router/node@7.13.2",
         "npm:@sentry/browser@10.47.0",
-        "npm:@sentry/cloudflare@^10.47.0",
-        "npm:@sentry/deno@^10.47.0",
-        "npm:@sentry/react-router@^10.47.0",
-        "npm:@sentry/toolbar@^1.0.0-beta.11",
-        "npm:@sentry/vite-plugin@^5.1.1",
-        "npm:@stylexjs/stylex@~0.18.2",
-        "npm:@stylexjs/unplugin@~0.18.2",
+        "npm:@sentry/cloudflare@10.47.0",
+        "npm:@sentry/deno@10.47.0",
+        "npm:@sentry/react-router@10.47.0",
+        "npm:@sentry/vite-plugin@5.1.1",
+        "npm:@stylexjs/stylex@0.18.2",
+        "npm:@stylexjs/unplugin@0.18.2",
         "npm:@types/react-dom@19.2.3",
         "npm:@types/react@19.2.14",
         "npm:hono@4.12.9",

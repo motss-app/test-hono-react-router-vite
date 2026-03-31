@@ -17,6 +17,7 @@ export default {
   },
   future: {
     unstable_optimizeDeps: true,
+    unstable_passThroughRequests: true,
     unstable_previewServerPrerendering: true,
     unstable_subResourceIntegrity: true,
     unstable_trailingSlashAwareDataRequests: true,
