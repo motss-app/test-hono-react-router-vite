@@ -60,6 +60,16 @@ jobs:
           cat deploy-prod.log
           URL=$(grep -oE 'https://[^ ]*workers\.dev' deploy-prod.log | head -n 1)
           echo "PROD_URL=$URL" >> $GITHUB_ENV
+
+      - name: Purge Cloudflare Cache
+        if: github.ref == 'refs/heads/main'
+        run: |
+          curl -X DELETE "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/cache/purge" \
+            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything": true}'
+          echo "✅ Cloudflare cache purged"
+
       - name: Summary
         run: |
           echo "### 🚀 Deployment Successful" >> $GITHUB_STEP_SUMMARY
