@@ -35,11 +35,6 @@ jobs:
         with:
           deno-version: v2.x
 
-      - name: Clear Deno Cache
-        run: |
-          deno cache clean
-          rm -rf node_modules/.deno node_modules/.cache
-
       - name: Install Dependencies
         run: deno install
 
