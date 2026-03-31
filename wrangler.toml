@@ -1,8 +1,0 @@
-name = "hono-react-router-vite"
-compatibility_date = "2024-01-01"
-
-[env.canary]
-name = "hono-react-router-vite-canary"
-
-[env.production]
-name = "hono-react-router-vite-production"

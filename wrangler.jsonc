@@ -15,7 +15,6 @@
   ],
   "env": {
     "canary": {
-      "name": "test-hono-react-router-vite-canary",
       "routes": [
         {
           "custom_domain": true,
@@ -27,7 +26,12 @@
       }
     },
     "production": {
-      "name": "test-hono-react-router-vite",
+      "routes": [
+        {
+          "custom_domain": true,
+          "pattern": "hono-react-router-vite.motss.fyi"
+        }
+      ],
       "vars": {
         "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
       }
