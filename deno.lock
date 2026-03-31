@@ -12,6 +12,7 @@
     "npm:@iconify-react/fa7-brands@1.0.0": "1.0.0_react@19.2.4",
     "npm:@iconify-react/fa7-regular@1.0.0": "1.0.0_react@19.2.4",
     "npm:@iconify-react/fa7-solid@1.0.0": "1.0.0_react@19.2.4",
+    "npm:@react-router/dev@*": "7.13.2_react-router@7.13.2__react@19.2.4__react-dom@19.2.4___react@19.2.4_typescript@5.9.3_vite@8.0.3__@emnapi+core@1.9.1__@emnapi+runtime@1.9.1_wrangler@4.79.0__@cloudflare+workers-types@4.20260331.1",
     "npm:@react-router/dev@7.13.2": "7.13.2_react-router@7.13.2__react@19.2.4__react-dom@19.2.4___react@19.2.4_typescript@5.9.3_vite@8.0.3__@emnapi+core@1.9.1__@emnapi+runtime@1.9.1_wrangler@4.79.0__@cloudflare+workers-types@4.20260331.1",
     "npm:@react-router/node@7.13.2": "7.13.2_react-router@7.13.2__react@19.2.4__react-dom@19.2.4___react@19.2.4_typescript@5.9.3_react@19.2.4_react-dom@19.2.4__react@19.2.4",
     "npm:@sentry/browser@10.47.0": "10.47.0",

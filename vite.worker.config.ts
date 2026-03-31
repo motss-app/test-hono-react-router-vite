@@ -34,12 +34,11 @@ export default defineConfig(({ mode }) => {
       ...(sentryVitePluginOptions ? sentryVitePlugin(sentryVitePluginOptions) : []),
     ],
     resolve: {
-      conditions: [
-        'node',
-        'worker',
-        'browser',
-      ],
+      conditions: ['node'],
       tsconfigPaths: true,
+    },
+    ssr: {
+      noExternal: ['@sentry/react-router'],
     },
   };
 });
