@@ -38,6 +38,9 @@ jobs:
       - name: Install Dependencies
         run: deno install
 
+      - name: Clean stale temp files
+        run: rm -f *.timestamp-*.mjs
+
       - name: Build & Deploy Canary
         id: deploy-canary
         run: |
