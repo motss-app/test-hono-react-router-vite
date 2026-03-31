@@ -29,12 +29,10 @@ jobs:
         uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
+          cache: true
 
       - name: Install Dependencies
         run: deno install
-
-      - name: Clean stale temp files
-        run: rm -f *.timestamp-*.mjs
 
       - name: Build & Deploy Canary
         id: deploy-canary
