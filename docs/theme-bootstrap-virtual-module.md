@@ -225,7 +225,34 @@ That means the `<html>` element can legitimately differ between SSR HTML and the
 
 to tell React that this root-level attribute difference is intentional.
 
+## SRI and CSP notes
+
+The theme bootstrap asset itself is built as an **external** JavaScript file, so it is eligible for integrity protection in principle.
+
+However, React Router's `unstable_subResourceIntegrity` only auto-manages assets that React Router knows about in the generated build/manifest flow. The current `app/root.tsx` inserts the theme bootstrap tag manually, so it does **not** get automatic RR7 SRI decoration just because the asset exists.
+
+Practical consequences:
+
+- inline `<style>` or `<script>` blocks in `root.tsx` are **not** SRI-protected; use a CSP nonce for those
+- externally loaded assets like the theme bootstrap script can use SRI, but you must either let the framework manage the tag or add integrity yourself
+- if you keep the current manual `<script src={themeBootstrapSrc} />` pattern, treat it as an external asset load and rely on the plugin's hashed output plus CSP, not on automatic RR7 SRI
+
 ## Practical guidelines
+
+### Recommended choice for this repo
+
+Inline it if your top priority is to run the theme bootstrap the moment the parser reaches `<head>`.
+
+Why:
+
+- it executes immediately when the parser reaches the script tag, with no network round trip first
+- it is tiny, so the inline cost is low
+- it is isolated from the React app, so the logic still stays in its own source file
+- it avoids the cold-load delay that even a parser-blocking external script still has
+
+Use an external `script src` if you value caching and asset separation more than immediate execution. If you do that, keep it as a plain head script with no `async` or `defer`, because that is what makes it parser-blocking and ensures it runs before later HTML. But it will still wait for the network first.
+
+If you inline it, manage it with a CSP nonce or hash.
 
 If you reuse this pattern elsewhere:
 

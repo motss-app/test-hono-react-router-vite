@@ -7,7 +7,12 @@ import { loadConfigEnvironment } from './vite-utils/load-env.ts';
 export default defineConfig(({ mode }) => {
   loadConfigEnvironment(mode);
 
-  const sentryVitePluginOptions = createSentryVitePluginOptions();
+  const sentryVitePluginOptions = createSentryVitePluginOptions({
+    createRelease: false,
+    filesToDeleteAfterUpload: './build/server.js.map',
+    finalizeRelease: true,
+    uploadLegacySourcemaps: './build/server.js',
+  });
 
   return {
     build: {
@@ -27,7 +32,6 @@ export default defineConfig(({ mode }) => {
       ...(sentryVitePluginOptions ? sentryVitePlugin(sentryVitePluginOptions) : []),
     ],
     resolve: {
-      conditions: ['node'],
       tsconfigPaths: true,
     },
   };

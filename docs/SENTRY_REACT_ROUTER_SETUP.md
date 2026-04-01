@@ -4,6 +4,8 @@
 
 This document describes the Sentry tracing setup for a React Router Framework Mode application using Hono for API routes, running on Deno in development and Cloudflare Workers in production.
 
+For build-time Sentry source-map upload and the SRI-safe deployment flow, see `docs/sentry-setup.md`. That guide explains why this repo uses legacy sourcemap upload instead of the modern debug-ID injection path.
+
 ## Architecture
 
 - **Client**: React Router 7 Framework Mode with `@sentry/react-router`
@@ -89,6 +91,15 @@ function handleAppRequest(request: Request): Promise<Response> {
 ```
 
 ## Common Issues
+
+### Build output and SRI-safe uploads
+
+If you are working on the build pipeline, do not reintroduce `sentryOnBuildEnd` or any post-build JS mutation that changes emitted client chunks after hashing.
+
+This repo uses legacy sourcemap upload so React Router's integrity hashes stay valid during Cloudflare deployment.
+
+The repo also keeps `unstable_previewServerPrerendering` off because that flag was the trigger for the React Router preview-server watcher race on temporary `vite.react-router.config.ts.timestamp-*.mjs` files.
+In practice, the preview server was started during prerendering, generated a temp config module, and the watcher occasionally raced with the file disappearing in GitHub Actions.
 
 ### 1. Using `useInstrumentationAPI: true`
 

@@ -39,7 +39,11 @@ const tracing = reactRouterTracingIntegration({
 });
 
 init({
-  ...createBrowserSentryOptions(import.meta.env.MODE, import.meta.env.VITE_SENTRY_DSN),
+  ...createBrowserSentryOptions(
+    import.meta.env.MODE,
+    import.meta.env.VITE_SENTRY_DSN,
+    import.meta.env.SENTRY_RELEASE
+  ),
   beforeSendSpan: span => applyAppSessionIdToSpan(span, appSessionId),
   ...(appSessionId
     ? {

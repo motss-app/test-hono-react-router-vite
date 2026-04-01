@@ -2,14 +2,19 @@ import { sentryVitePlugin } from '@sentry/vite-plugin';
 import { defineConfig } from 'vite';
 
 import { createSentryVitePluginOptions } from './app/monitoring/sentry.ts';
+import { getRequiredEnv } from './vite-utils/get-required-env.ts';
+import { createImportMetaEnvDefine } from './vite-utils/import-meta-env.ts';
 import { loadConfigEnvironment } from './vite-utils/load-env.ts';
 
 export default defineConfig(({ mode }) => {
   loadConfigEnvironment(mode);
 
-  const sentryVitePluginOptions = createSentryVitePluginOptions();
-  const workerRelease = Deno.env.get('SENTRY_RELEASE') ?? '';
-
+  const sentryVitePluginOptions = createSentryVitePluginOptions({
+    createRelease: false,
+    filesToDeleteAfterUpload: './build/worker.js.map',
+    finalizeRelease: true,
+    uploadLegacySourcemaps: './build/worker.js',
+  });
   return {
     build: {
       emptyOutDir: false,
@@ -27,18 +32,21 @@ export default defineConfig(({ mode }) => {
       sourcemap: 'hidden',
       ssr: true,
     },
-    define: {
-      'import.meta.env.SENTRY_RELEASE': JSON.stringify(workerRelease),
-    },
+    define: createImportMetaEnvDefine({
+      SENTRY_RELEASE: getRequiredEnv('SENTRY_RELEASE', {
+        source: 'vite.worker.config.ts',
+      }),
+    }),
     plugins: [
       ...(sentryVitePluginOptions ? sentryVitePlugin(sentryVitePluginOptions) : []),
     ],
     resolve: {
-      conditions: ['node'],
       tsconfigPaths: true,
     },
     ssr: {
-      noExternal: ['@sentry/react-router'],
+      noExternal: [
+        '@sentry/react-router',
+      ],
     },
   };
 });

@@ -23,6 +23,13 @@ interface RequestMetricAttributesOptions {
   statusCode?: number;
 }
 
+interface LegacySourcemapUploadOptions {
+  filesToDeleteAfterUpload: string | string[];
+  createRelease?: boolean;
+  finalizeRelease?: boolean;
+  uploadLegacySourcemaps: string | string[];
+}
+
 export function getSentryEnvironment(mode: RuntimeMode): string {
   return mode === 'canary' || mode === 'production' ? mode : 'development';
 }
@@ -90,18 +97,18 @@ function createSharedBuildOptions() {
           release,
         }
       : {}),
-    sourcemaps: {
-      filesToDeleteAfterUpload: [
-        './build/**/*.map',
-      ],
-    },
     telemetry: true,
   };
 }
 
-export function createBrowserSentryOptions(mode: RuntimeMode, dsn?: string) {
+export function createBrowserSentryOptions(mode: RuntimeMode, dsn?: string, release?: string) {
   return {
     ...createBaseOptions(mode, dsn),
+    ...(release
+      ? {
+          release,
+        }
+      : {}),
     profilesSampleRate,
     replaysOnErrorSampleRate,
     replaysSessionSampleRate,
@@ -170,8 +177,36 @@ export function createSentryBuildOptions(): SentryReactRouterBuildOptions | null
   };
 }
 
-export function createSentryVitePluginOptions(): SentryVitePluginOptions | null {
-  return createSharedBuildOptions();
+export function createSentryVitePluginOptions(
+  options: LegacySourcemapUploadOptions
+): SentryVitePluginOptions | null {
+  const sharedBuildOptions = createSharedBuildOptions();
+
+  if (!sharedBuildOptions) {
+    return null;
+  }
+
+  const {
+    createRelease = true,
+    finalizeRelease = true,
+    filesToDeleteAfterUpload,
+    uploadLegacySourcemaps,
+  } = options;
+
+  return {
+    ...sharedBuildOptions,
+    release: {
+      ...sharedBuildOptions.release,
+      create: createRelease,
+      finalize: finalizeRelease,
+      inject: false,
+      uploadLegacySourcemaps,
+    },
+    sourcemaps: {
+      disable: true,
+      filesToDeleteAfterUpload,
+    },
+  };
 }
 
 export const sentryMetricNames = {
