@@ -32,6 +32,7 @@
     "npm:typescript@5.9.3": "5.9.3",
     "npm:vite@*": "8.0.3_@emnapi+core@1.9.1_@emnapi+runtime@1.9.1",
     "npm:vite@8.0.3": "8.0.3_@emnapi+core@1.9.1_@emnapi+runtime@1.9.1",
+    "npm:wrangler@*": "4.79.0_@cloudflare+workers-types@4.20260331.1",
     "npm:wrangler@4.79.0": "4.79.0_@cloudflare+workers-types@4.20260331.1"
   },
   "jsr": {

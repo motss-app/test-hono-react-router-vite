@@ -21,5 +21,8 @@ export default {
   prerender(): string[] {
     return discoverPrerenderRoutes();
   },
+  routeDiscovery: {
+    mode: 'lazy',
+  },
   ssr: true,
 } satisfies Config;

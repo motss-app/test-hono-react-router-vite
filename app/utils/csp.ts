@@ -13,6 +13,7 @@ interface ContentSecurityPolicyOptions {
 
 interface CspResult {
   buildPolicy(options: ContentSecurityPolicyOptions): string;
+  buildDocumentPolicy(): string;
   createDigestToken(value: string): Promise<string>;
   createNonce(): string;
   getNonce(request: Request): string | undefined;
@@ -38,6 +39,7 @@ const defaultScriptSrc = [
   "'self'",
   'https://static.cloudflareinsights.com',
 ];
+const documentPolicy = 'js-profiling';
 
 // ============================================================================
 // Functions
@@ -70,6 +72,10 @@ function createNonce(): string {
   return toBase64(crypto.getRandomValues(new Uint8Array(cspNonceByteLength)));
 }
 
+function buildDocumentPolicy(): string {
+  return documentPolicy;
+}
+
 function getNonce(request: Request): string | undefined {
   return request.headers.get(cspNonceRequestHeader) ?? undefined;
 }
@@ -83,7 +89,10 @@ function setNonce(headers: Headers, nonce: string | null | undefined): void {
 }
 
 function buildPolicy(options: ContentSecurityPolicyOptions): string {
-  const resolvedConnectSrc = options.connectSrc ?? defaultConnectSrc;
+  const resolvedConnectSrc = uniqueSources([
+    ...defaultConnectSrc,
+    ...(options.connectSrc ?? []),
+  ]);
   const resolvedFrameSrc = options.frameSrc ?? defaultFrameSrc;
   const resolvedScriptSrc = options.scriptSrc ?? defaultScriptSrc;
   const resolvedScriptHashes = options.scriptHashes ?? [];
@@ -128,6 +137,7 @@ function buildPolicy(options: ContentSecurityPolicyOptions): string {
 // ============================================================================
 
 export const csp = {
+  buildDocumentPolicy,
   buildPolicy,
   createDigestToken,
   createNonce,

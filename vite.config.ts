@@ -31,7 +31,7 @@ export default defineConfig(async config => {
 
   loadConfigEnvironment(mode);
 
-  const sentryBuildOptions = createSentryBuildOptions() ?? undefined;
+  const sentryBuildOptions = createSentryBuildOptions(mode) ?? undefined;
   const sentryPlugins = await sentryReactRouter(sentryBuildOptions, config);
 
   return {

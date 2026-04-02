@@ -3,6 +3,8 @@ import type { DenoOptions } from '@sentry/deno';
 import type { SentryReactRouterBuildOptions } from '@sentry/react-router';
 import type { SentryVitePluginOptions } from '@sentry/vite-plugin';
 
+import { readRequiredEnv } from '../../vite-utils/get-required-env.ts';
+
 export const sentrySpotlightSidecarDefaultUrl = 'http://localhost:8969/stream';
 export const sentryOrganization = 'ipohjs';
 export const sentryOrigin = 'https://sentry.io';
@@ -38,30 +40,42 @@ export function isDevelopmentSentryMode(mode: RuntimeMode): boolean {
   return mode === 'development';
 }
 
-function readEnvironmentVariable(name: string): string | undefined {
-  if (typeof Deno !== 'undefined') {
-    return Deno.env.get(name) ?? undefined;
+function getRequiredRuntimeRelease(mode: RuntimeMode, release?: string): string | undefined {
+  if (isDevelopmentSentryMode(mode)) {
+    return;
   }
 
-  return;
+  if (release) {
+    return release;
+  }
+
+  throw new Error(`SENTRY_RELEASE must be defined for ${mode} mode.`);
+}
+
+function getDsnOrigin(dsn?: string): string | undefined {
+  if (!dsn) {
+    return;
+  }
+
+  try {
+    return new URL(dsn).origin;
+  } catch {
+    return;
+  }
 }
 
 export function getSpotlightSidecarUrl(spotlight?: string): string {
   return spotlight && spotlight !== '1' ? spotlight : sentrySpotlightSidecarDefaultUrl;
 }
 
-function createReleaseOption():
-  | {
-      name: string;
-    }
-  | undefined {
-  const release = readEnvironmentVariable('SENTRY_RELEASE');
+export function getSentryConnectSrc(dsn?: string): string[] {
+  const sentryOrigin = getDsnOrigin(dsn);
 
-  return release
-    ? {
-        name: release,
-      }
-    : undefined;
+  return sentryOrigin
+    ? [
+        sentryOrigin,
+      ]
+    : [];
 }
 
 function createBaseOptions(mode: RuntimeMode, dsn?: string) {
@@ -79,34 +93,34 @@ function createBaseOptions(mode: RuntimeMode, dsn?: string) {
   };
 }
 
-function createSharedBuildOptions() {
-  const authToken = readEnvironmentVariable('SENTRY_AUTH_TOKEN');
-
-  if (!authToken) {
+function createSharedBuildOptions(mode: RuntimeMode) {
+  if (isDevelopmentSentryMode(mode)) {
     return null;
   }
 
-  const release = createReleaseOption();
-
   return {
-    authToken,
+    authToken: readRequiredEnv('SENTRY_AUTH_TOKEN', {
+      source: 'app/monitoring/sentry.ts',
+    }),
     org: sentryOrganization,
     project: sentryProject,
-    ...(release
-      ? {
-          release,
-        }
-      : {}),
+    release: {
+      name: readRequiredEnv('SENTRY_RELEASE', {
+        source: 'app/monitoring/sentry.ts',
+      }),
+    },
     telemetry: true,
   };
 }
 
 export function createBrowserSentryOptions(mode: RuntimeMode, dsn?: string, release?: string) {
+  const runtimeRelease = getRequiredRuntimeRelease(mode, release);
+
   return {
     ...createBaseOptions(mode, dsn),
-    ...(release
+    ...(runtimeRelease
       ? {
-          release,
+          release: runtimeRelease,
         }
       : {}),
     profilesSampleRate,
@@ -117,7 +131,7 @@ export function createBrowserSentryOptions(mode: RuntimeMode, dsn?: string, rele
 }
 
 export function createDenoSentryOptions(mode: RuntimeMode, dsn?: string): DenoOptions {
-  const release = readEnvironmentVariable('SENTRY_RELEASE');
+  const release = getRequiredRuntimeRelease(mode, Deno.env.get('SENTRY_RELEASE') ?? undefined);
 
   return {
     ...createBaseOptions(mode, dsn),
@@ -134,11 +148,13 @@ export function createCloudflareSentryOptions(
   dsn?: string,
   release?: string
 ): CloudflareOptions {
+  const runtimeRelease = getRequiredRuntimeRelease(mode, release);
+
   return {
     ...createBaseOptions(mode, dsn),
-    ...(release
+    ...(runtimeRelease
       ? {
-          release,
+          release: runtimeRelease,
         }
       : {}),
   };
@@ -162,8 +178,8 @@ export function createRequestMetricAttributes({
   };
 }
 
-export function createSentryBuildOptions(): SentryReactRouterBuildOptions | null {
-  const sharedBuildOptions = createSharedBuildOptions();
+export function createSentryBuildOptions(mode: RuntimeMode): SentryReactRouterBuildOptions | null {
+  const sharedBuildOptions = createSharedBuildOptions(mode);
 
   if (!sharedBuildOptions) {
     return null;
@@ -178,9 +194,10 @@ export function createSentryBuildOptions(): SentryReactRouterBuildOptions | null
 }
 
 export function createSentryVitePluginOptions(
+  mode: RuntimeMode,
   options: LegacySourcemapUploadOptions
 ): SentryVitePluginOptions | null {
-  const sharedBuildOptions = createSharedBuildOptions();
+  const sharedBuildOptions = createSharedBuildOptions(mode);
 
   if (!sharedBuildOptions) {
     return null;

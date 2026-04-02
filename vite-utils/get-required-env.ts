@@ -1,17 +1,15 @@
-export function getRequiredEnv(
-  name: string,
-  options: GetRequiredEnvOptions = {}
-): string | undefined {
-  const value = Deno.env.get(name);
-  const isDeploymentBuild = Deno.env.get('DEPLOYMENT_BUILD') === 'true';
+import { type ReadEnvOptions, readEnv } from './read-env.ts';
 
-  if (isDeploymentBuild && (value === undefined || value === '')) {
-    throw new Error(`${options.source ?? 'Environment'} requires ${name} to be defined.`);
-  }
-
-  return value ?? undefined;
+interface ReadRequiredEnvOptions extends ReadEnvOptions {
+  source: string;
 }
 
-interface GetRequiredEnvOptions {
-  source?: string;
+export function readRequiredEnv(name: string, options: ReadRequiredEnvOptions): string {
+  const value = readEnv(name, options);
+
+  if (value === undefined || value === '') {
+    throw new Error(`${options.source} requires ${name} to be defined.`);
+  }
+
+  return value;
 }

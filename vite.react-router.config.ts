@@ -6,9 +6,10 @@ import type { ConfigEnv } from 'vite';
 import { createSentryVitePluginOptions } from './app/monitoring/sentry.ts';
 import { headersCopyPlugin } from './vite-plugins/copy-headers.ts';
 import { themeBuildPlugin } from './vite-plugins/theme-bootstrap/plugin.ts';
-import { getRequiredEnv } from './vite-utils/get-required-env.ts';
+import { readRequiredEnv } from './vite-utils/get-required-env.ts';
 import { createImportMetaEnvDefine } from './vite-utils/import-meta-env.ts';
 import { loadConfigEnvironment } from './vite-utils/load-env.ts';
+import { sentryCodeSplittingGroup } from './vite-utils/sentry-chunking.ts';
 
 export default function createViteConfig(config: ConfigEnv) {
   const { mode } = config;
@@ -17,7 +18,7 @@ export default function createViteConfig(config: ConfigEnv) {
 
   const sentryVitePluginOptions = isDev
     ? null
-    : createSentryVitePluginOptions({
+    : createSentryVitePluginOptions(mode, {
         createRelease: true,
         filesToDeleteAfterUpload: './build/client/**/*.map',
         finalizeRelease: false,
@@ -28,10 +29,19 @@ export default function createViteConfig(config: ConfigEnv) {
   return {
     build: {
       cssCodeSplit: false,
+      rolldownOptions: {
+        output: {
+          codeSplitting: {
+            groups: [
+              sentryCodeSplittingGroup,
+            ],
+          },
+        },
+      },
       sourcemap: 'hidden',
     },
     define: createImportMetaEnvDefine({
-      SENTRY_RELEASE: getRequiredEnv('SENTRY_RELEASE', {
+      SENTRY_RELEASE: readRequiredEnv('SENTRY_RELEASE', {
         source: 'vite.react-router.config.ts',
       }),
     }),

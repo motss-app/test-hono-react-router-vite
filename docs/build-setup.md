@@ -50,6 +50,8 @@ What to keep on:
 - `unstable_subResourceIntegrity` should stay enabled so the build keeps protecting browser chunks
 - `unstable_optimizeDeps`, `unstable_passThroughRequests`, `unstable_trailingSlashAwareDataRequests`, `v8_middleware`, `v8_splitRouteModules`, and `v8_viteEnvironmentApi` can stay enabled unless a specific regression shows up
 
+The app uses lazy route discovery so the browser can discover additional routes through the runtime `/__manifest` endpoint during navigation.
+
 Rule of thumb: do not disable future flags preemptively; only turn one off if it directly causes a build or runtime problem.
 
 ## Configuration

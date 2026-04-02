@@ -3,7 +3,9 @@ import { endTime, startTime } from 'hono/timing';
 import type { ServerBuild } from 'react-router';
 import { createRequestHandler, RouterContextProvider } from 'react-router';
 
+import { readRequiredEnv } from '../vite-utils/get-required-env.ts';
 import type { App } from './app.ts';
+import { getSentryConnectSrc } from './monitoring/sentry.ts';
 import { HonoContext } from './router-context.ts';
 import type { HonoEnv } from './types/hono.types.ts';
 import { csp } from './utils/csp.ts';
@@ -67,12 +69,19 @@ function applySsrResponseHeaders(
     return;
   }
 
+  const sentryDsn = readRequiredEnv('SENTRY_DSN', {
+    env: c.env,
+    source: 'app/ssr-handler.ts',
+  });
+
   responseHeaders.set(
     'Content-Security-Policy',
     csp.buildPolicy({
+      connectSrc: getSentryConnectSrc(sentryDsn),
       nonce: cspNonce,
     })
   );
+  responseHeaders.set('Document-Policy', csp.buildDocumentPolicy());
 }
 
 async function handleSsrRequest(

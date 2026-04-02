@@ -2,14 +2,15 @@ import { sentryVitePlugin } from '@sentry/vite-plugin';
 import { defineConfig } from 'vite';
 
 import { createSentryVitePluginOptions } from './app/monitoring/sentry.ts';
-import { getRequiredEnv } from './vite-utils/get-required-env.ts';
+import { readRequiredEnv } from './vite-utils/get-required-env.ts';
 import { createImportMetaEnvDefine } from './vite-utils/import-meta-env.ts';
 import { loadConfigEnvironment } from './vite-utils/load-env.ts';
+import { sentryCodeSplittingGroup } from './vite-utils/sentry-chunking.ts';
 
 export default defineConfig(({ mode }) => {
   loadConfigEnvironment(mode);
 
-  const sentryVitePluginOptions = createSentryVitePluginOptions({
+  const sentryVitePluginOptions = createSentryVitePluginOptions(mode, {
     createRelease: false,
     filesToDeleteAfterUpload: './build/worker.js.map',
     finalizeRelease: true,
@@ -25,6 +26,11 @@ export default defineConfig(({ mode }) => {
       rolldownOptions: {
         input: './app/worker.ts',
         output: {
+          codeSplitting: {
+            groups: [
+              sentryCodeSplittingGroup,
+            ],
+          },
           entryFileNames: 'worker.js',
           format: 'esm',
         },
@@ -33,7 +39,7 @@ export default defineConfig(({ mode }) => {
       ssr: true,
     },
     define: createImportMetaEnvDefine({
-      SENTRY_RELEASE: getRequiredEnv('SENTRY_RELEASE', {
+      SENTRY_RELEASE: readRequiredEnv('SENTRY_RELEASE', {
         source: 'vite.worker.config.ts',
       }),
     }),

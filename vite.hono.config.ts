@@ -7,7 +7,7 @@ import { loadConfigEnvironment } from './vite-utils/load-env.ts';
 export default defineConfig(({ mode }) => {
   loadConfigEnvironment(mode);
 
-  const sentryVitePluginOptions = createSentryVitePluginOptions({
+  const sentryVitePluginOptions = createSentryVitePluginOptions(mode, {
     createRelease: false,
     filesToDeleteAfterUpload: './build/server.js.map',
     finalizeRelease: true,

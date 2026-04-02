@@ -83,16 +83,16 @@ VITE_SENTRY_SPOTLIGHT=http://localhost:8969/stream
 
 Recommended local setup:
 
-Create `.env` for app runtime + local builds for now:
+Create `.env` for app runtime and dev mode; add build-only credentials if you are doing a local build:
 
 ```bash
 VITE_SENTRY_DSN=https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400
 SENTRY_DSN=https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400
 SENTRY_SPOTLIGHT=1
 VITE_SENTRY_SPOTLIGHT=http://localhost:8969/stream
-SENTRY_AUTH_TOKEN=your-auth-token
-SENTRY_RELEASE=your-release-name
 ```
+
+If you are only running `deno task dev`, you can omit `SENTRY_AUTH_TOKEN` and `SENTRY_RELEASE`.
 
 The Deno server and build config now read `.env`, so `deno task dev` and `deno task build` both see the same temporary local Sentry settings.
 
@@ -102,7 +102,7 @@ Worker runtime setup:
 - local Deno dev uses `.env`
 - source map upload still needs local/CI env vars because Wrangler runtime vars are not available to the Vite/React Router build step
 
-For now, keep the auth/project settings in `.env` too.
+If you are running a local build, add `SENTRY_AUTH_TOKEN` and `SENTRY_RELEASE` to `.env` or export them in your shell; dev-only runs can omit them.
 
 Cloudflare Worker local parity workflow (follow-up):
 
@@ -125,10 +125,10 @@ Build-time source map upload uses:
 VITE_SENTRY_DSN=your-public-dsn
 SENTRY_DSN=your-public-dsn
 SENTRY_AUTH_TOKEN=your-auth-token
-SENTRY_RELEASE=your-release-name # optional
+SENTRY_RELEASE=your-release-name
 ```
 
-For the temporary setup, keep the auth token in `.env`; that file is ignored by git.
+For the temporary setup, keep the auth token and release in `.env` when you are building locally; that file is ignored by git.
 
 Browser profiling is enabled. Server-side profiling is not configured because this app runs on Deno and Cloudflare Workers rather than Node's profiling integration.
 

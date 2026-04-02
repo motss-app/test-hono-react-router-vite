@@ -1,7 +1,9 @@
 import { dirname, join, resolve } from 'node:path';
 import type { Plugin } from 'vite';
 
+import { getSentryConnectSrc } from '../app/monitoring/sentry.ts';
 import { csp } from '../app/utils/csp.ts';
+import { readRequiredEnv } from '../vite-utils/get-required-env.ts';
 import { discoverPrerenderRoutes } from '../vite-utils/route-discovery.ts';
 
 interface HeadersCopyPluginOptions {
@@ -53,10 +55,15 @@ function buildStaticRouteHeaders(routePath: string, cspDirective: string): strin
     '  ! Cache-Control',
     `  Cache-Control: ${staticPageCacheControl}`,
     `  Content-Security-Policy: ${cspDirective}`,
+    `  Document-Policy: ${csp.buildDocumentPolicy()}`,
   ].join('\n');
 }
 
-async function processStaticRoute(routePath: string, clientDir: string): Promise<string | null> {
+async function processStaticRoute(
+  routePath: string,
+  clientDir: string,
+  sentryDsn: string
+): Promise<string | null> {
   const htmlFile = htmlFilePathFromRoute(clientDir, routePath);
 
   if (!fileExists(htmlFile)) {
@@ -73,6 +80,7 @@ async function processStaticRoute(routePath: string, clientDir: string): Promise
   return buildStaticRouteHeaders(
     routePath,
     csp.buildPolicy({
+      connectSrc: getSentryConnectSrc(sentryDsn),
       scriptHashes,
       styleHashes,
     })
@@ -84,6 +92,9 @@ export function headersCopyPlugin(options: HeadersCopyPluginOptions): Plugin {
   const destPath = resolve(Deno.cwd(), options.dest);
   const clientDir = dirname(destPath);
   const mode = options.mode;
+  const sentryDsn = readRequiredEnv('SENTRY_DSN', {
+    source: 'vite-plugins/copy-headers.ts',
+  });
 
   return {
     apply: 'build',
@@ -101,7 +112,7 @@ export function headersCopyPlugin(options: HeadersCopyPluginOptions): Plugin {
       let headersText = await Deno.readTextFile(src);
       const prerenderRoutes = discoverPrerenderRoutes();
       const staticRouteHeadersResults = await Promise.all(
-        prerenderRoutes.map(routePath => processStaticRoute(routePath, clientDir))
+        prerenderRoutes.map(routePath => processStaticRoute(routePath, clientDir, sentryDsn))
       );
       const staticRouteHeaders = staticRouteHeadersResults.filter(
         (header): header is string => header !== null

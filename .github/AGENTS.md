@@ -18,4 +18,5 @@ When a task matches a skill's description, load the corresponding `SKILL.md` fil
 - **Package management**: Use `deno install` for dependencies, never `npm install`.
 - **Task execution**: Use `deno task [script-name]` to run scripts.
 - **Styling**: Use StyleX (`@stylexjs/stylex`). Never create global CSS files.
+- **Function signatures**: Avoid default parameter values. Do not use `= {}` or any other default parameter value; normalize options inside the function instead.
 - **Type checking**: Run `deno task check` after code changes.

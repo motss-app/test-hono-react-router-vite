@@ -32,6 +32,7 @@ This repository is a **Deno-first** project using **Hono** and **React Router v7
 - Do not export values, functions, types, or interfaces unless they are actually consumed outside the file.
 - Prefer exporting values, functions, types, and interfaces at their declaration sites instead of using trailing `export { ... }` blocks.
 - Use `import.meta.env` for environment variables.
+- Avoid default parameter values in function signatures. Do not use `= {}` or any other default parameter value; prefer explicit local normalization instead.
 - Use `//` for single-line comments and `/** */` for multi-line comments/JSDoc.
 
 ## Hono + React Router integration

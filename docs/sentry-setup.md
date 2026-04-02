@@ -202,9 +202,9 @@ Recommended local `.env` values:
 VITE_SENTRY_DSN=your-public-dsn
 SENTRY_DSN=your-public-dsn
 VITE_SENTRY_SPOTLIGHT=http://localhost:8969/stream
-SENTRY_AUTH_TOKEN=your-auth-token
-SENTRY_RELEASE=your-release-name
 ```
+
+If you are only running development, you can omit `SENTRY_AUTH_TOKEN` and `SENTRY_RELEASE`.
 
 What each one is used for:
 
@@ -213,8 +213,8 @@ What each one is used for:
 | `VITE_SENTRY_DSN` | browser build/runtime | browser SDK config |
 | `SENTRY_DSN` | Deno server runtime / Worker runtime | server SDK config |
 | `VITE_SENTRY_SPOTLIGHT` | browser and Deno dev runtime | Spotlight sidecar URL for dev transports |
-| `SENTRY_AUTH_TOKEN` | Vite Sentry plugins | source map upload |
-| `SENTRY_RELEASE` | build/runtime | release name for source map upload, Deno runtime, and embedded Worker runtime release |
+| `SENTRY_AUTH_TOKEN` | Vite Sentry plugins | source map upload during builds |
+| `SENTRY_RELEASE` | build/runtime | release name for source map upload and runtime release tagging outside development |
 
 Notes:
 
