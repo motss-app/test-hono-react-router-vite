@@ -2,10 +2,10 @@ import { sentryVitePlugin } from '@sentry/vite-plugin';
 import { defineConfig } from 'vite';
 
 import { createSentryVitePluginOptions } from './app/monitoring/sentry.ts';
-import { readEnv } from './vite-utils/read-env.ts';
 import { readRequiredEnv } from './vite-utils/get-required-env.ts';
 import { createImportMetaEnvDefine } from './vite-utils/import-meta-env.ts';
 import { loadConfigEnvironment } from './vite-utils/load-env.ts';
+import { readEnv } from './vite-utils/read-env.ts';
 import { sentryCodeSplittingGroup } from './vite-utils/sentry-chunking.ts';
 
 export default defineConfig(({ mode }) => {
@@ -50,9 +50,6 @@ export default defineConfig(({ mode }) => {
     plugins: [
       ...(sentryVitePluginOptions ? sentryVitePlugin(sentryVitePluginOptions) : []),
     ],
-    resolve: {
-      tsconfigPaths: true,
-    },
     ssr: {
       noExternal: [
         '@sentry/react-router',
