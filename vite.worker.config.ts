@@ -2,12 +2,14 @@ import { sentryVitePlugin } from '@sentry/vite-plugin';
 import { defineConfig } from 'vite';
 
 import { createSentryVitePluginOptions } from './app/monitoring/sentry.ts';
+import { readEnv } from './vite-utils/read-env.ts';
 import { readRequiredEnv } from './vite-utils/get-required-env.ts';
 import { createImportMetaEnvDefine } from './vite-utils/import-meta-env.ts';
 import { loadConfigEnvironment } from './vite-utils/load-env.ts';
 import { sentryCodeSplittingGroup } from './vite-utils/sentry-chunking.ts';
 
 export default defineConfig(({ mode }) => {
+  const isDeploymentBuild = Deno.env.get('DEPLOYMENT_BUILD') === 'true';
   loadConfigEnvironment(mode);
 
   const sentryVitePluginOptions = createSentryVitePluginOptions(mode, {
@@ -39,9 +41,11 @@ export default defineConfig(({ mode }) => {
       ssr: true,
     },
     define: createImportMetaEnvDefine({
-      SENTRY_RELEASE: readRequiredEnv('SENTRY_RELEASE', {
-        source: 'vite.worker.config.ts',
-      }),
+      SENTRY_RELEASE: isDeploymentBuild
+        ? readRequiredEnv('SENTRY_RELEASE', {
+            source: 'vite.worker.config.ts',
+          })
+        : readEnv('SENTRY_RELEASE'),
     }),
     plugins: [
       ...(sentryVitePluginOptions ? sentryVitePlugin(sentryVitePluginOptions) : []),

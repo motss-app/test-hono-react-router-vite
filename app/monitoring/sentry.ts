@@ -40,6 +40,10 @@ export function isDevelopmentSentryMode(mode: RuntimeMode): boolean {
   return mode === 'development';
 }
 
+function isDeploymentBuild(): boolean {
+  return Deno.env.get('DEPLOYMENT_BUILD') === 'true';
+}
+
 function getRequiredRuntimeRelease(mode: RuntimeMode, release?: string): string | undefined {
   if (isDevelopmentSentryMode(mode)) {
     return;
@@ -94,7 +98,7 @@ function createBaseOptions(mode: RuntimeMode, dsn?: string) {
 }
 
 function createSharedBuildOptions(mode: RuntimeMode) {
-  if (isDevelopmentSentryMode(mode)) {
+  if (isDevelopmentSentryMode(mode) || !isDeploymentBuild()) {
     return null;
   }
 
