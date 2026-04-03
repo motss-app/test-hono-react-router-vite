@@ -1,4 +1,4 @@
-import { flush, logger, metrics, startNewTrace, startSpan } from '@sentry/react-router';
+import { flush, logger, metrics, startNewTrace, startSpan } from '@sentry/react-router/cloudflare';
 import { create, keyframes, props } from '@stylexjs/stylex';
 import type { InferResponseType } from 'hono';
 import { hc } from 'hono/client';

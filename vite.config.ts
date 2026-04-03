@@ -46,21 +46,21 @@ export default defineConfig(async config => {
     },
     plugins: [
       themeBuildPlugin(),
-      honoDevServer({
-        adapter: nodeAdapter(),
-        entry: './app/server.ts',
-        exclude: [
-          ...defaultOptions.exclude,
-          // React Router dev server makes module requests with ?import; letting Hono see them returns HTML instead of JS
-          isRegExpImport,
-          // Raw app CSS requests should be served by Vite, not Hono SSR.
-          isRegExpAppCssAssetRequest,
-          // Route module requests (React Router lazy modules) must be handled by Vite, not Hono
-          isRegExpRouteImport,
-        ],
-      }),
       ...(isDev
         ? [
+            honoDevServer({
+              adapter: nodeAdapter(),
+              entry: './app/server.ts',
+              exclude: [
+                ...defaultOptions.exclude,
+                // React Router dev server makes module requests with ?import; letting Hono see them returns HTML instead of JS
+                isRegExpImport,
+                // Raw app CSS requests should be served by Vite, not Hono SSR.
+                isRegExpAppCssAssetRequest,
+                // Route module requests (React Router lazy modules) must be handled by Vite, not Hono
+                isRegExpRouteImport,
+              ],
+            }),
             /**
              * Stylex plugin is used to compile styles and provide HMR for styles.
              * It is configured to use CSS layers to ensure that styles are applied in

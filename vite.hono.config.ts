@@ -34,9 +34,7 @@ export default defineConfig(({ mode }) => {
       sourcemap: 'hidden',
       ssr: true,
     },
-    plugins: [
-      ...(sentryVitePluginOptions ? sentryVitePlugin(sentryVitePluginOptions) : []),
-    ],
+    plugins: sentryVitePluginOptions ? sentryVitePlugin(sentryVitePluginOptions) : [],
     resolve: {
       tsconfigPaths: true,
     },

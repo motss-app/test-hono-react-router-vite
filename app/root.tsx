@@ -3,7 +3,7 @@ import '@fontsource-variable/open-sans/wght.css';
 import openSansLatinWghtNormalWoff2 from '@fontsource-variable/open-sans/files/open-sans-latin-wght-normal.woff2';
 import openSansMathWghtNormalWoff2 from '@fontsource-variable/open-sans/files/open-sans-math-wght-normal.woff2';
 import openSansSymbolsWghtNormalWoff2 from '@fontsource-variable/open-sans/files/open-sans-symbols-wght-normal.woff2';
-import { captureException } from '@sentry/react-router';
+import { captureException } from '@sentry/react-router/cloudflare';
 import { props } from '@stylexjs/stylex';
 import type { JSX, PropsWithChildren } from 'react';
 import { isRouteErrorResponse, Link, Outlet, useRouteLoaderData } from 'react-router';

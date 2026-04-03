@@ -53,13 +53,6 @@ export default defineConfig(({ mode }) => {
           })
         : readEnv('SENTRY_RELEASE'),
     }),
-    plugins: [
-      ...(sentryVitePluginOptions ? sentryVitePlugin(sentryVitePluginOptions) : []),
-    ],
-    ssr: {
-      noExternal: [
-        '@sentry/react-router',
-      ],
-    },
+    plugins: sentryVitePluginOptions ? sentryVitePlugin(sentryVitePluginOptions) : [],
   };
 });

@@ -31,6 +31,12 @@ and the plugin decides what those values should be in dev versus build.
 - `vite-plugins/theme-bootstrap/constants.ts`
   Shared constants for virtual IDs, request paths, and watched entry paths.
 
+- `vite.config.ts`
+  Registers `themeBuildPlugin()` in development so SSR can resolve `virtual:theme-bootstrap` locally.
+
+- `vite.react-router.config.ts`
+  Registers `themeBuildPlugin()` in the production React Router build so the hashed asset is emitted.
+
 - `app/root.tsx`
   Imports the virtual module and renders the bootstrap `<script>` in `<head>`.
 
@@ -54,6 +60,15 @@ themeBuildPlugin()
     |
     \--> BUILD: returns /assets/theme-bootstrap-<hash>.js
 ```
+
+`themeBuildPlugin()` must stay enabled in both places above:
+
+- `vite.config.ts` in development so SSR can resolve `virtual:theme-bootstrap` while rendering `/`
+- `vite.react-router.config.ts` in production so the client build emits the hashed bootstrap asset
+
+If the plugin is missing in dev, Vite cannot resolve the virtual module and the app returns a 500
+for the root page. If the plugin is missing in the build config, production HTML has no emitted
+bootstrap asset to point at.
 
 ## Why use a virtual module?
 
@@ -88,6 +103,9 @@ The serve-only plugin calls `configureThemeBuildServer()` which:
 6. sends a full reload so the browser reruns the bootstrap script
 
 Nothing is written to `public/` during dev.
+
+This dev workflow only works when `themeBuildPlugin()` is registered in `vite.config.ts`, because
+`app/root.tsx` imports `virtual:theme-bootstrap` during SSR.
 
 ### What the virtual module returns in dev
 
@@ -158,6 +176,10 @@ if (this.environment.name === 'client') {
 ```
 
 The client build writes the file. The SSR build only reuses the already-built metadata.
+
+This production workflow only works when `themeBuildPlugin()` is registered in
+`vite.react-router.config.ts`, because that is the build that emits the final hashed asset consumed
+by the SSR HTML.
 
 ## How `resolveId()` and `load()` work together
 
@@ -328,8 +350,10 @@ So this plugin specifically gives you:
 
 Use this checklist if you change `themeBuildPlugin()`:
 
+- Dev Vite config still registers `themeBuildPlugin()`
 - Dev server still serves `/~virtual:theme-bootstrap.js` from memory
 - Dev HTML still points at the stable dev script path
+- Production React Router build config still registers `themeBuildPlugin()`
 - Build still emits `build/client/assets/theme-bootstrap-<hash>.js`
 - Build HTML still includes the final hashed `src`
 - `app/root.tsx` still imports from `virtual:theme-bootstrap`

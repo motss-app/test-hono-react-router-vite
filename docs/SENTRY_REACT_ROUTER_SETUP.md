@@ -19,9 +19,27 @@ For the broader build, environment-variable, and Spotlight setup, see
 | Surface | Package | Role |
 | --- | --- | --- |
 | Browser app | `@sentry/react-router` | Browser errors, tracing, replay, profiling, logs |
+| Shared SSR-included route modules | `@sentry/react-router/cloudflare` | `app/root.tsx`, `app/routes/hono-rpc.tsx`, and any other modules shared by the browser and Worker builds |
 | Deno local/runtime server | `@sentry/deno` | Local server/runtime ownership in Deno flows |
 | Cloudflare Worker runtime | `@sentry/cloudflare` | Single initialized server SDK for deployed Worker requests |
 | React Router SSR branch on Worker | `@sentry/react-router/cloudflare` | Worker-safe helper layer around `handleRequest`, trace meta tags, handled SSR error capture |
+
+Important nuance:
+
+- keep `@sentry/react-router` in browser-only client entrypoints like `app/entry.client.tsx`
+- use `@sentry/react-router/cloudflare` in route modules that are part of the SSR graph
+- this keeps the Worker build on the Worker-safe entrypoint while still working in the browser bundle
+
+## What about SSG-only pages?
+
+If a route is only prerendered at build time and never handles requests at runtime, there is no
+server/runtime Sentry SDK to initialize for that route.
+
+Use this rule of thumb:
+
+- if the SSG page hydrates on the client, keep the browser SDK in the client entrypoint
+- if the SSG page is truly static and never hydrates, you do not need a runtime Sentry package at all
+- build-time source map upload, if needed, still comes from the Vite Sentry plugins
 
 ## Request flow on the Worker
 
@@ -156,6 +174,14 @@ Even though React Router handles the non-API branch, those requests still arrive
 Worker `fetch` boundary first.
 
 That is why `/ssr` and `__manifest` still appear as Worker runtime traces.
+
+### 4. Importing the package root from shared route modules
+
+Do not import `@sentry/react-router` from modules that are included in both the browser bundle and
+the Worker/SSR build, such as `app/root.tsx` and `app/routes/hono-rpc.tsx`.
+
+Use `@sentry/react-router/cloudflare` there instead so the Worker build does not resolve the Node
+entrypoint and its build-time dependencies.
 
 ## Verification checklist
 

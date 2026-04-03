@@ -21,8 +21,18 @@ The current setup covers four different runtime/build surfaces:
 | React Router SSR branch | `@sentry/react-router/cloudflare` | `app/entry.server.tsx` | Worker-safe request wrapper, handled SSR error capture, and trace meta tags |
 | Deno server runtime | `@sentry/deno` | `app/server.ts` | Spotlight in dev, real Sentry outside dev |
 | Cloudflare Worker runtime | `@sentry/cloudflare` | `app/worker.ts` | Single initialized server SDK for deployed Worker requests |
+| SSG-only pages | `—` at runtime | `react-router.config.ts` prerender and/or client entry | No server/runtime SDK; use the browser SDK only if the prerendered page hydrates |
 
 Build-time source map upload is handled separately by Sentry Vite plugins in the Vite build configs.
+
+Shared SSR-included route modules like `app/root.tsx` and `app/routes/hono-rpc.tsx` also use
+`@sentry/react-router/cloudflare`. That keeps the Worker/server build on the Worker-safe entrypoint
+while still working in the browser bundle, because the cloudflare subpath re-exports the browser
+helpers those modules need.
+
+For SSG-only pages, there is no request-time server owner at all. If the prerendered page hydrates,
+keep the browser SDK in the client entrypoint; if the page is truly static and never hydrates, you
+do not need a runtime Sentry SDK.
 
 ## File map
 
@@ -41,6 +51,12 @@ These are the key files involved in the current setup:
   - React Router tracing
   - Replay, profiling, logs
   - dev Spotlight browser transport
+- `app/root.tsx`
+  - shared route root
+  - uses `@sentry/react-router/cloudflare` so the Worker build does not resolve the Node entrypoint
+- `app/routes/hono-rpc.tsx`
+  - shared route module
+  - uses `@sentry/react-router/cloudflare` for browser metrics/tracing helpers in the shared SSR graph
 - `app/entry.server.tsx`
   - Worker-safe React Router SSR wrapper
   - handled SSR error capture
@@ -60,8 +76,10 @@ These are the key files involved in the current setup:
   - the actual development Vite config
   - dev React Router plugin wiring
   - dev Sentry React Router plugin wiring
+  - `themeBuildPlugin()` so `virtual:theme-bootstrap` resolves during local SSR
 - `vite.react-router.config.ts`
   - production React Router build config
+  - `themeBuildPlugin()` so the hashed theme bootstrap asset is emitted
 - `vite.hono.config.ts`
   - production Deno server build config
 - `vite.worker.config.ts`
@@ -76,6 +94,10 @@ These are the key files involved in the current setup:
 ### Browser runtime
 
 The browser SDK is initialized in `app/entry.client.tsx` with `@sentry/react-router`.
+
+Shared route modules like `app/root.tsx` and `app/routes/hono-rpc.tsx` deliberately use
+`@sentry/react-router/cloudflare` instead, because they are included in the Worker/server build as
+well as the browser bundle.
 
 Current behavior:
 
@@ -95,6 +117,7 @@ Important detail:
 - the React Router tracing integration stays eager because `HydratedRouter` needs its client instrumentation during hydration
 - we intentionally keep the Framework Mode client instrumentation wiring in `app/entry.client.tsx` for future React Router support, even though Sentry currently says those client hooks are not invoked yet
 - the optional browser integrations (`replayIntegration()` and `browserProfilingIntegration()`) are loaded with `import()` and added later via `addIntegration(...)` to keep the initial browser bundle smaller
+- browser-side Sentry tracing is still owned by `@sentry/react-router`; the cloudflare subpath only applies to shared route modules and Worker-side helper code
 
 ### React Router server rendering
 
@@ -106,6 +129,11 @@ Important detail:
 
 This layer enriches the React Router SSR branch inside the active request that was already opened by
 `@sentry/cloudflare` in `app/worker.ts`.
+
+Shared route modules that are part of the SSR graph, such as `app/root.tsx` and
+`app/routes/hono-rpc.tsx`, also import from `@sentry/react-router/cloudflare` so the Worker build
+does not resolve the Node-only package root. That still works in the browser bundle because the
+cloudflare subpath re-exports the browser-facing helpers needed by those modules.
 
 Important details:
 

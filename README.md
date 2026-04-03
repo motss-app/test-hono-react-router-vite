@@ -62,6 +62,9 @@ For the Worker-specific React Router split, see [`docs/SENTRY_REACT_ROUTER_SETUP
 On Cloudflare Workers, the deployed server/runtime owner is `@sentry/cloudflare` in `app/worker.ts`.
 `app/entry.server.tsx` now uses the Worker-safe `@sentry/react-router/cloudflare` helper layer for
 the React Router SSR branch instead of initializing a second server SDK.
+`app/root.tsx` and other SSR-included route modules also use `@sentry/react-router/cloudflare`
+so the Worker build stays on the Worker-safe entrypoint, while `app/entry.client.tsx` continues to
+use `@sentry/react-router` for browser tracing, replay, profiling, and logs.
 
 In local development, the browser SDK now targets Spotlight instead of real Sentry, and the Deno server uses a local Spotlight transport.
 
@@ -100,6 +103,15 @@ VITE_SENTRY_SPOTLIGHT=http://localhost:8969/stream
 If you are only running `deno task dev`, you can omit `SENTRY_AUTH_TOKEN` and `SENTRY_RELEASE`.
 
 The Deno server and build config now read `.env`, so `deno task dev` and `deno task build` both see the same temporary local Sentry settings.
+
+The theme bootstrap plugin is also part of the dev/build wiring:
+
+- `vite.config.ts` keeps `themeBuildPlugin()` enabled so `virtual:theme-bootstrap` resolves during local SSR
+- `vite.react-router.config.ts` keeps `themeBuildPlugin()` enabled so the production build emits the hashed bootstrap asset
+
+For SSG-only pages, there is no server/runtime Sentry SDK to initialize. If the prerendered page
+hydrates, keep the browser SDK in the client entrypoint; if it stays fully static, runtime Sentry
+is optional and build-time source maps remain the only Sentry-related setup you need.
 
 Worker runtime setup:
 
