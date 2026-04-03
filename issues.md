@@ -152,3 +152,95 @@
   }
 }
 ```
+
+
+## Build issue in Github Actions
+
+```sh
+Run echo "🚀 Building Canary..."
+🚀 Building Canary...
+Task build:worker:canary deno run -P npm:@react-router/dev build --config ./vite.react-router.config.ts --mode canary && deno run -P npm:vite build --config ./vite.worker.config.ts --mode canary
+Warning Permissions in the config file is an experimental feature and may change in the future.
+11:30:33 AM [vite] warning: `esbuild` option was specified by "react-router" plugin. This option is deprecated, please use `oxc` instead.
+[sentry-vite-plugin] Info: Sending telemetry data on issues and performance to Sentry. To disable telemetry, set `options.telemetry` to `false`.
+Using Vite Environment API (experimental)
+vite v8.0.3 building client environment for canary...
+[sentry-vite-plugin] Info: Sending telemetry data on issues and performance to Sentry. To disable telemetry, set `options.telemetry` to `false`.
+
+transforming...✓ 319 modules transformed.
+[plugin vite:copy-headers] Generated static CSP headers for 0 prerendered route(s) at /home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/build/client/_headers
+✗ Build failed in 3.24s
+[plugin vite:copy-headers] Generated static CSP headers for 0 prerendered route(s) at /home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/build/client/_headers
+Build failed with 8 errors:
+
+[plugin react-router:build-client-route] /home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/app/routes/$.tsx?__react-router-build-client-route
+Error: Failed to recover `TsconfigCache` type from napi value
+    at transformSync (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/rolldown@1.0.0-rc.12/node_modules/rolldown/dist/shared/resolve-tsconfig-DJjTYbYr.mjs:83:58)
+    at transformWithOxc (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/vite@8.0.3/node_modules/vite/dist/node/chunks/node.js:3703:17)
+    at TransformPluginContext.transform (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/vite@8.0.3/node_modules/vite/dist/node/chunks/node.js:3788:26)
+    at EnvironmentPluginContainer.transform (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/vite@8.0.3/node_modules/vite/dist/node/chunks/node.js:30048:51)
+    at compileRouteFile (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/@react-router+dev@7.13.2/node_modules/@react-router/dev/dist/vite.js:2972:21)
+    at getRouteModuleExports (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/@react-router+dev@7.13.2/node_modules/@react-router/dev/dist/vite.js:2979:14)
+    at TransformPluginContextImpl.transform (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/@react-router+dev@7.13.2/node_modules/@react-router/dev/dist/vite.js:4040:29)
+    at plugin (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/rolldown@1.0.0-rc.12/node_modules/rolldown/dist/shared/bindingify-input-options-e7ze4hPR.mjs:1129:16)
+    at plugin.<computed> (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/rolldown@1.0.0-rc.12/node_modules/rolldown/dist/shared/bindingify-input-options-e7ze4hPR.mjs:1593:12)
+[plugin react-router:build-client-route] /home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/app/root.tsx?__react-router-build-client-route
+Error: Failed to recover `TsconfigCache` type from napi value
+    at transformSync (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/rolldown@1.0.0-rc.12/node_modules/rolldown/dist/shared/resolve-tsconfig-DJjTYbYr.mjs:83:58)
+    at transformWithOxc (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/vite@8.0.3/node_modules/vite/dist/node/chunks/node.js:3703:17)
+    at TransformPluginContext.transform (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/vite@8.0.3/node_modules/vite/dist/node/chunks/node.js:3788:26)
+    at EnvironmentPluginContainer.transform (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/vite@8.0.3/node_modules/vite/dist/node/chunks/node.js:30048:51)
+    at compileRouteFile (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/@react-router+dev@7.13.2/node_modules/@react-router/dev/dist/vite.js:2972:21)
+    at getRouteModuleExports (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/@react-router+dev@7.13.2/node_modules/@react-router/dev/dist/vite.js:2979:14)
+    at TransformPluginContextImpl.transform (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/@react-router+dev@7.13.2/node_modules/@react-router/dev/dist/vite.js:4040:29)
+    at plugin (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/rolldown@1.0.0-rc.12/node_modules/rolldown/dist/shared/bindingify-input-options-e7ze4hPR.mjs:1129:16)
+    at plugin.<computed> (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/rolldown@1.0.0-rc.12/node_modules/rolldown/dist/shared/bindingify-input-options-e7ze4hPR.mjs:1593:12)
+[plugin react-router:build-client-route] /home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/app/routes/about.tsx?__react-router-build-client-route
+Error: Failed to recover `TsconfigCache` type from napi value
+    at transformSync (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/rolldown@1.0.0-rc.12/node_modules/rolldown/dist/shared/resolve-tsconfig-DJjTYbYr.mjs:83:58)
+    at transformWithOxc (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/vite@8.0.3/node_modules/vite/dist/node/chunks/node.js:3703:17)
+    at TransformPluginContext.transform (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/vite@8.0.3/node_modules/vite/dist/node/chunks/node.js:3788:26)
+    at EnvironmentPluginContainer.transform (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/vite@8.0.3/node_modules/vite/dist/node/chunks/node.js:30048:51)
+    at compileRouteFile (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/@react-router+dev@7.13.2/node_modules/@react-router/dev/dist/vite.js:2972:21)
+    at getRouteModuleExports (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/@react-router+dev@7.13.2/node_modules/@react-router/dev/dist/vite.js:2979:14)
+    at TransformPluginContextImpl.transform (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/@react-router+dev@7.13.2/node_modules/@react-router/dev/dist/vite.js:4040:29)
+    at plugin (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/rolldown@1.0.0-rc.12/node_modules/rolldown/dist/shared/bindingify-input-options-e7ze4hPR.mjs:1129:16)
+    at plugin.<computed> (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/rolldown@1.0.0-rc.12/node_modules/rolldown/dist/shared/bindingify-input-options-e7ze4hPR.mjs:1593:12)
+[plugin react-router:build-client-route] /home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/app/routes/hono-rpc.tsx?__react-router-build-client-route
+Error: Failed to recover `TsconfigCache` type from napi value
+    at transformSync (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/rolldown@1.0.0-rc.12/node_modules/rolldown/dist/shared/resolve-tsconfig-DJjTYbYr.mjs:83:58)
+    at transformWithOxc (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/vite@8.0.3/node_modules/vite/dist/node/chunks/node.js:3703:17)
+    at TransformPluginContext.transform (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/vite@8.0.3/node_modules/vite/dist/node/chunks/node.js:3788:26)
+    at EnvironmentPluginContainer.transform (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/vite@8.0.3/node_modules/vite/dist/node/chunks/node.js:30048:51)
+    at compileRouteFile (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/@react-router+dev@7.13.2/node_modules/@react-router/dev/dist/vite.js:2972:21)
+    at getRouteModuleExports (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/@react-router+dev@7.13.2/node_modules/@react-router/dev/dist/vite.js:2979:14)
+    at TransformPluginContextImpl.transform (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/@react-router+dev@7.13.2/node_modules/@react-router/dev/dist/vite.js:4040:29)
+    at plugin (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/rolldown@1.0.0-rc.12/node_modules/rolldown/dist/shared/bindingify-input-options-e7ze4hPR.mjs:1129:16)
+    at plugin.<computed> (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/rolldown@1.0.0-rc.12/node_modules/rolldown/dist/shared/bindingify-input-options-e7ze4hPR.mjs:1593:12)
+[plugin react-router:build-client-route] /home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/app/routes/errors.tsx?__react-router-build-client-route
+Error: Failed to recover `TsconfigCache` type from napi value
+    at transformSync (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/rolldown@1.0.0-rc.12/node_modules/rolldown/dist/shared/resolve-tsconfig-DJjTYbYr.mjs:83:58)
+    at transformWithOxc (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/vite@8.0.3/node_modules/vite/dist/node/chunks/node.js:3703:17)
+    at TransformPluginContext.transform (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/vite@8.0.3/node_modules/vite/dist/node/chunks/node.js:3788:26)
+    at EnvironmentPluginContainer.transform (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/vite@8.0.3/node_modules/vite/dist/node/chunks/node.js:30048:51)
+    at compileRouteFile (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/@react-router+dev@7.13.2/node_modules/@react-router/dev/dist/vite.js:2972:21)
+    at getRouteModuleExports (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/@react-router+dev@7.13.2/node_modules/@react-router/dev/dist/vite.js:2979:14)
+    at TransformPluginContextImpl.transform (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/@react-router+dev@7.13.2/node_modules/@react-router/dev/dist/vite.js:4040:29)
+    at plugin (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/rolldown@1.0.0-rc.12/node_modules/rolldown/dist/shared/bindingify-input-options-e7ze4hPR.mjs:1129:16)
+    at plugin.<computed> (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/rolldown@1.0.0-rc.12/node_modules/rolldown/dist/shared/bindingify-input-options-e7ze4hPR.mjs:1593:12)
+...
+    at aggregateBindingErrorsIntoJsError (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/rolldown@1.0.0-rc.12/node_modules/rolldown/dist/shared/error-BLhcSyeg.mjs:48:18)
+    at unwrapBindingResult (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/rolldown@1.0.0-rc.12/node_modules/rolldown/dist/shared/error-BLhcSyeg.mjs:18:128)
+    at RolldownBuild.#build (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/rolldown@1.0.0-rc.12/node_modules/rolldown/dist/shared/rolldown-build-CPrIX9V6.mjs:3313:34)
+    at buildEnvironment (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/vite@8.0.3/node_modules/vite/dist/node/chunks/node.js:32849:64)
+    at Object.build (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/vite@8.0.3/node_modules/vite/dist/node/chunks/node.js:33271:19)
+    at Object.buildApp (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/@react-router+dev@7.13.2/node_modules/@react-router/dev/dist/vite.js:3569:17)
+    at Object.buildApp (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/vite@8.0.3/node_modules/vite/dist/node/chunks/node.js:33267:38)
+    at viteAppBuild (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/@react-router+dev@7.13.2/node_modules/@react-router/dev/dist/cli/index.js:2011:3)
+    at build (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/@react-router+dev@7.13.2/node_modules/@react-router/dev/dist/cli/index.js:1952:10)
+    at build2 (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/@react-router+dev@7.13.2/node_modules/@react-router/dev/dist/cli/index.js:2290:5)
+    at run2 (/home/runner/work/test-hono-react-router-vite/test-hono-react-router-vite/node_modules/.deno/@react-router+dev@7.13.2/node_modules/@react-router/dev/dist/cli/index.js:2595:7) {
+  errors: [Getter/Setter]
+}
+Error: Process completed with exit code 1.
+```
