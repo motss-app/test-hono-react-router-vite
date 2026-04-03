@@ -5,6 +5,7 @@ import { getSentryConnectSrc } from '../app/monitoring/sentry.ts';
 import { csp } from '../app/utils/csp.ts';
 import { readRequiredEnv } from '../vite-utils/get-required-env.ts';
 import { discoverPrerenderRoutes } from '../vite-utils/route-discovery.ts';
+import { createBuildSentryEnvSnapshot } from '../vite-utils/sentry-env-log.ts';
 
 interface HeadersCopyPluginOptions {
   dest: string;
@@ -98,6 +99,11 @@ export function headersCopyPlugin(options: HeadersCopyPluginOptions): Plugin {
   const mode = options.mode;
   const staticPageCacheControl =
     'public, max-age=600, s-maxage=3600, stale-while-revalidate=180, must-revalidate';
+  Deno.stderr.writeSync(
+    new TextEncoder().encode(
+      `[vite-plugins/copy-headers.ts] Sentry env snapshot ${JSON.stringify(createBuildSentryEnvSnapshot('vite-plugins/copy-headers.ts', mode))}\n`
+    )
+  );
   const sentryDsn = readRequiredEnv('SENTRY_DSN', {
     source: 'vite-plugins/copy-headers.ts',
   });

@@ -9,6 +9,7 @@ import {
   withIsolationScope,
 } from '@sentry/deno';
 
+import { logSentryEnvSnapshot } from '../vite-utils/sentry-env-log.ts';
 import {
   applyAppSessionIdToSpan,
   appSessionIdTagName,
@@ -29,6 +30,25 @@ import { PromiseFrom } from './utils/promise-from.ts';
 
 const isDevSentryMode = isDevelopmentSentryMode(import.meta.env.MODE);
 const sentryDsn = Deno.env.get('SENTRY_DSN') ?? undefined;
+
+console.info(
+  '[app/server.ts] Sentry env snapshot',
+  logSentryEnvSnapshot({
+    deploymentBuild: import.meta.env.PROD,
+    mode: import.meta.env.MODE,
+    phase: 'deno',
+    source: 'app/server.ts',
+    values: {
+      port: import.meta.env.PORT,
+      sentryAuthToken: undefined,
+      sentryDsn,
+      sentryRelease: Deno.env.get('SENTRY_RELEASE') ?? undefined,
+      sentrySpotlight: Deno.env.get('SENTRY_SPOTLIGHT') ?? undefined,
+      viteSentryDsn: undefined,
+      viteSentrySpotlight: Deno.env.get('VITE_SENTRY_SPOTLIGHT') ?? undefined,
+    },
+  })
+);
 
 if (sentryDsn) {
   const spotlightSidecarUrl = getSpotlightSidecarUrl(

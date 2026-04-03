@@ -322,3 +322,50 @@ Error: Failed to recover `TsconfigCache` type from napi value
 }
 Error: Process completed with exit code 1.
 ```
+
+---
+
+# Fix suggested by OpenAI Codex using GPT5.4 xhigh
+
+## Summary
+- Append one new final section to [`issues.md`](/Users/rongsen/motss/test-hono-react-router-vite/issues.md) only.
+- Do not edit or restructure any existing sections above it.
+- The new section should be titled `## fix plan` to match the document’s current incident-note style.
+
+## Content to Append
+- Add `### 1. fix the worker SSR sentry runtime boundary`
+  - State that the Worker SSR failure is caused by the server-side import path in `app/entry.server.tsx` pulling the bare `@sentry/react-router` server entry into the Worker bundle.
+  - State that this causes Worker-incompatible runtime code to be bundled, including `@sentry/vite-plugin`, Rolldown CommonJS helpers, and `createRequire(...)`.
+  - State that the fix is to move Worker SSR server-side Sentry usage behind a Worker-safe import path/helper layer so the Worker bundle no longer includes Node-only build-time code.
+- Add `### 2. restore SSR pages and manifest patch loading`
+  - State that `/ssr` and `/__manifest` are the confirmed failing paths in the Worker runtime.
+  - State that `/hono-rpc` should be described as indirectly affected by manifest patch failures, not as the primary reproduced SSR 500.
+  - State that once the Sentry import boundary is fixed, React Router server-build loading should succeed again and manifest patch requests should stop returning 500.
+- Add `### 3. improve sentry visibility for SSR failures`
+  - State that current Worker-level Sentry capture only records a generic failed request for these SSR crashes.
+  - State that the follow-up fix should ensure SSR initialization/render failures are captured with exception details and stack traces before they collapse into a generic 500 event.
+- Add `### 4. treat the GitHub Actions failure as a separate tooling regression`
+  - State that the `TsconfigCache` / Rolldown N-API crash in Ubuntu CI is separate from the Worker SSR runtime issue.
+  - State that the plan is to address it independently by pinning or rolling back the React Router/Vite/Rolldown toolchain to a Linux-stable combination first.
+  - State that only if pinning is blocked should the repo use a narrower fallback such as disabling the Oxc/Rolldown path for the React Router build.
+
+## Wording Requirements
+- Use future-looking planning language, not implementation-complete language.
+- Keep the section concise and actionable: short paragraphs or flat bullets only.
+- Include the concrete runtime evidence already established:
+  - `createRequire(... Received 'undefined')`
+  - `Cannot convert undefined or null to object`
+  - `/ssr` and `/__manifest` failing in Worker runtime
+- Do not mention or reference any new file besides `issues.md`.
+- Do not refer to `20260404-issues-fix.md`.
+
+## Acceptance Criteria
+- [`issues.md`](/Users/rongsen/motss/test-hono-react-router-vite/issues.md) ends with a new `## fix plan` section.
+- Existing incident logs and error excerpts remain unchanged.
+- The appended section clearly separates:
+  - Worker SSR runtime/Sentry bundling fixes
+  - manifest/SSR recovery
+  - Sentry observability improvements
+  - the separate CI build regression
+
+---

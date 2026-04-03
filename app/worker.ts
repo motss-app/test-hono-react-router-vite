@@ -1,5 +1,6 @@
 import { getIsolationScope, logger, metrics, setTag, withSentry } from '@sentry/cloudflare';
 
+import { logSentryEnvSnapshot } from '../vite-utils/sentry-env-log.ts';
 import { createApp } from './app.ts';
 import {
   applyAppSessionIdToSpan,
@@ -20,6 +21,7 @@ import { PromiseFrom } from './utils/promise-from.ts';
 
 const app = createApp();
 const isDevSentryMode = isDevelopmentSentryMode(import.meta.env.MODE);
+let hasLoggedWorkerEnvSnapshot = false;
 
 // Production: Serve React Router SSR
 if (import.meta.env.PROD) {
@@ -115,18 +117,43 @@ function recordWorkerRequestError(
 }
 
 export default withSentry<HonoEnv['Bindings']>(
-  env => ({
-    ...createCloudflareSentryOptions(
-      import.meta.env.MODE,
-      env.SENTRY_DSN,
-      import.meta.env.SENTRY_RELEASE
-    ),
-    beforeSendSpan: span =>
-      applyAppSessionIdToSpan(
-        span,
-        getIsolationScope().getScopeData().tags[appSessionIdTagName] as string | undefined
+  env => {
+    if (!hasLoggedWorkerEnvSnapshot) {
+      hasLoggedWorkerEnvSnapshot = true;
+
+      console.info(
+        '[app/worker.ts] Sentry env snapshot',
+        logSentryEnvSnapshot({
+          deploymentBuild: import.meta.env.PROD,
+          mode: import.meta.env.MODE,
+          phase: 'worker',
+          source: 'app/worker.ts',
+          values: {
+            port: undefined,
+            sentryAuthToken: undefined,
+            sentryDsn: env.SENTRY_DSN,
+            sentryRelease: import.meta.env.SENTRY_RELEASE,
+            sentrySpotlight: undefined,
+            viteSentryDsn: undefined,
+            viteSentrySpotlight: undefined,
+          },
+        })
+      );
+    }
+
+    return {
+      ...createCloudflareSentryOptions(
+        import.meta.env.MODE,
+        env.SENTRY_DSN,
+        import.meta.env.SENTRY_RELEASE
       ),
-  }),
+      beforeSendSpan: span =>
+        applyAppSessionIdToSpan(
+          span,
+          getIsolationScope().getScopeData().tags[appSessionIdTagName] as string | undefined
+        ),
+    };
+  },
   {
     async fetch(
       request: Request,

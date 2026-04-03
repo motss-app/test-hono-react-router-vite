@@ -3,9 +3,15 @@ import { defineConfig } from 'vite';
 
 import { loadConfigEnvironment } from './vite-utils/load-env.ts';
 import { createSentryVitePluginOptions } from './vite-utils/sentry-build.ts';
+import { createBuildSentryEnvSnapshot } from './vite-utils/sentry-env-log.ts';
 
 export default defineConfig(({ mode }) => {
   loadConfigEnvironment(mode);
+  Deno.stderr.writeSync(
+    new TextEncoder().encode(
+      `[vite.hono.config.ts] Sentry env snapshot ${JSON.stringify(createBuildSentryEnvSnapshot('vite.hono.config.ts', mode))}\n`
+    )
+  );
 
   const sentryVitePluginOptions = createSentryVitePluginOptions(mode, {
     createRelease: false,

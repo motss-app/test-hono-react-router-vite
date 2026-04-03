@@ -8,6 +8,7 @@ import { defineConfig } from 'vite';
 import { themeBuildPlugin } from './vite-plugins/theme-bootstrap/plugin.ts';
 import { loadConfigEnvironment } from './vite-utils/load-env.ts';
 import { createSentryBuildOptions } from './vite-utils/sentry-build.ts';
+import { createBuildSentryEnvSnapshot } from './vite-utils/sentry-env-log.ts';
 
 const isRegExpImport = /\?import$/;
 const isRegExpRouteImport = /\/app\/routes\/.*\?import$/;
@@ -30,6 +31,11 @@ export default defineConfig(async config => {
   const isDev = mode === 'development';
 
   loadConfigEnvironment(mode);
+  Deno.stderr.writeSync(
+    new TextEncoder().encode(
+      `[vite.config.ts] Sentry env snapshot ${JSON.stringify(createBuildSentryEnvSnapshot('vite.config.ts', mode))}\n`
+    )
+  );
 
   const sentryBuildOptions = createSentryBuildOptions(mode) ?? undefined;
   const sentryPlugins = await sentryReactRouter(sentryBuildOptions, config);

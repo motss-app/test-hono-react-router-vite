@@ -4,11 +4,14 @@ import type { ServerBuild } from 'react-router';
 import { createRequestHandler, RouterContextProvider } from 'react-router';
 
 import { readRequiredEnv } from '../vite-utils/get-required-env.ts';
+import { logSentryEnvSnapshot } from '../vite-utils/sentry-env-log.ts';
 import type { App } from './app.ts';
 import { getSentryConnectSrc } from './monitoring/sentry.ts';
 import { HonoContext } from './router-context.ts';
 import type { HonoEnv } from './types/hono.types.ts';
 import { csp } from './utils/csp.ts';
+
+let hasLoggedSsrEnvSnapshot = false;
 
 function loadServerBuild(): Promise<ServerBuild> {
   return import.meta.env.PROD
@@ -67,6 +70,32 @@ function applySsrResponseHeaders(
 
   if (!(import.meta.env.PROD && responseHeaders.get('Content-Type')?.includes('text/html'))) {
     return;
+  }
+
+  if (!hasLoggedSsrEnvSnapshot) {
+    hasLoggedSsrEnvSnapshot = true;
+
+    Deno.stderr.writeSync(
+      new TextEncoder().encode(
+        `[app/ssr-handler.ts] Sentry env snapshot ${JSON.stringify(
+          logSentryEnvSnapshot({
+            deploymentBuild: import.meta.env.PROD,
+            mode: import.meta.env.MODE,
+            phase: 'ssr',
+            source: 'app/ssr-handler.ts',
+            values: {
+              port: undefined,
+              sentryAuthToken: undefined,
+              sentryDsn: c.env.SENTRY_DSN,
+              sentryRelease: import.meta.env.SENTRY_RELEASE,
+              sentrySpotlight: undefined,
+              viteSentryDsn: undefined,
+              viteSentrySpotlight: undefined,
+            },
+          })
+        )}\n`
+      )
+    );
   }
 
   const sentryDsn = readRequiredEnv('SENTRY_DSN', {

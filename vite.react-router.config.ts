@@ -11,12 +11,18 @@ import { loadConfigEnvironment } from './vite-utils/load-env.ts';
 import { readEnv } from './vite-utils/read-env.ts';
 import { createSentryVitePluginOptions } from './vite-utils/sentry-build.ts';
 import { sentryCodeSplittingGroup } from './vite-utils/sentry-chunking.ts';
+import { createBuildSentryEnvSnapshot } from './vite-utils/sentry-env-log.ts';
 
 export default function createViteConfig(config: ConfigEnv) {
   const { mode } = config;
   const isDev = mode === 'development';
   const isDeploymentBuild = Deno.env.get('DEPLOYMENT_BUILD') === 'true';
   loadConfigEnvironment(mode);
+  Deno.stderr.writeSync(
+    new TextEncoder().encode(
+      `[vite.react-router.config.ts] Sentry env snapshot ${JSON.stringify(createBuildSentryEnvSnapshot('vite.react-router.config.ts', mode))}\n`
+    )
+  );
 
   const sentryVitePluginOptions = isDev
     ? null

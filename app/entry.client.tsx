@@ -11,6 +11,7 @@ import { StrictMode, startTransition } from 'react';
 import { hydrateRoot } from 'react-dom/client';
 import { HydratedRouter } from 'react-router/dom';
 
+import { logSentryEnvSnapshot } from '../vite-utils/sentry-env-log.ts';
 import {
   applyAppSessionIdToSpan,
   appSessionIdTagName,
@@ -33,6 +34,25 @@ const appSessionId = getBrowserAppSessionId();
 const browserWindow = window as Window & {
   __appEntryClientLoadedAt__?: string;
 };
+
+console.info(
+  '[app/entry.client.tsx] Sentry env snapshot',
+  logSentryEnvSnapshot({
+    deploymentBuild: import.meta.env.PROD,
+    mode: import.meta.env.MODE,
+    phase: 'browser',
+    source: 'app/entry.client.tsx',
+    values: {
+      port: undefined,
+      sentryAuthToken: undefined,
+      sentryDsn: import.meta.env.VITE_SENTRY_DSN,
+      sentryRelease: import.meta.env.SENTRY_RELEASE,
+      sentrySpotlight: undefined,
+      viteSentryDsn: undefined,
+      viteSentrySpotlight: import.meta.env.VITE_SENTRY_SPOTLIGHT,
+    },
+  })
+);
 
 // Keep the Framework Mode client instrumentation wiring for future React Router support.
 // Sentry currently notes HydratedRouter doesn't invoke these hooks yet, but the official

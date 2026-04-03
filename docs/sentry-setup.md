@@ -126,6 +126,19 @@ Current behavior:
 - does not use a manual `http.server` request span wrapper
 - does not reintroduce the removed Deno-side request logging
 
+### Environment snapshot logging
+
+To make SSR/build failures easier to diagnose, the repo now logs a sanitized Sentry env snapshot in the places that actually consume those values:
+
+- build configs: `vite.config.ts`, `vite.hono.config.ts`, `vite.react-router.config.ts`, `vite.worker.config.ts`
+- browser runtime: `app/entry.client.tsx`
+- Deno runtime: `app/server.ts`
+- Cloudflare Worker runtime: `app/worker.ts`
+- SSR response header path: `app/ssr-handler.ts`
+- build-time header copying: `vite-plugins/copy-headers.ts`
+
+Secrets such as `SENTRY_AUTH_TOKEN` are redacted. DSNs are summarized so we can confirm the host and path without dumping the full token value into logs.
+
 ### Cloudflare Worker runtime
 
 The Worker runtime is initialized in `app/worker.ts` with `withSentry` from `@sentry/cloudflare`.
