@@ -1,8 +1,4 @@
 {
-  "chat.tools.terminal.autoApprove": {
-    "git commit": true,
-    "git push": true
-  },
   "deno.enable": true,
   "editor.codeActionsOnSave": {
     "source.addMissingImports.ts": "explicit",
