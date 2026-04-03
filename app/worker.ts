@@ -23,11 +23,6 @@ const app = createApp();
 const isDevSentryMode = isDevelopmentSentryMode(import.meta.env.MODE);
 let hasLoggedWorkerEnvSnapshot = false;
 
-// Production: Serve React Router SSR
-if (import.meta.env.PROD) {
-  createSsrHandler(app);
-}
-
 function getWorkerAppSessionState(request: Request) {
   const existingAppSessionId = getAppSessionIdFromCookieString(
     request.headers.get('cookie') ?? undefined
@@ -114,6 +109,11 @@ function recordWorkerRequestError(
     attributes: metricAttributes,
     unit: 'millisecond',
   });
+}
+
+// Production: Serve React Router SSR
+if (import.meta.env.PROD) {
+  createSsrHandler(app);
 }
 
 export default withSentry<HonoEnv['Bindings']>(
