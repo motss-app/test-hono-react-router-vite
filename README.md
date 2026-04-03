@@ -57,6 +57,11 @@ This project now ships with Sentry wired for:
 - build-time source map upload when Sentry build credentials are configured
 
 For the full stack-specific setup guide, see [`docs/sentry-setup.md`](docs/sentry-setup.md).
+For the Worker-specific React Router split, see [`docs/SENTRY_REACT_ROUTER_SETUP.md`](docs/SENTRY_REACT_ROUTER_SETUP.md).
+
+On Cloudflare Workers, the deployed server/runtime owner is `@sentry/cloudflare` in `app/worker.ts`.
+`app/entry.server.tsx` now uses the Worker-safe `@sentry/react-router/cloudflare` helper layer for
+the React Router SSR branch instead of initializing a second server SDK.
 
 In local development, the browser SDK now targets Spotlight instead of real Sentry, and the Deno server uses a local Spotlight transport.
 
@@ -99,6 +104,9 @@ The Deno server and build config now read `.env`, so `deno task dev` and `deno t
 Worker runtime setup:
 
 - Cloudflare Worker runtime DSN now comes from Wrangler `vars.SENTRY_DSN`
+- deployed Worker request ownership stays in `app/worker.ts` via `@sentry/cloudflare`
+- the React Router SSR branch in `app/entry.server.tsx` uses `@sentry/react-router/cloudflare`
+  helpers such as `wrapSentryHandleRequest()` and `injectTraceMetaTags()`
 - local Deno dev uses `.env`
 - source map upload still needs local/CI env vars because Wrangler runtime vars are not available to the Vite/React Router build step
 

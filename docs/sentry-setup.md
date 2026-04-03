@@ -18,9 +18,9 @@ The current setup covers four different runtime/build surfaces:
 | Surface | Package | Entry/config | Current destination |
 | --- | --- | --- | --- |
 | Browser app | `@sentry/react-router` | `app/entry.client.tsx` | Spotlight in dev, real Sentry outside dev |
-| React Router server rendering | `@sentry/react-router` | `app/entry.server.tsx` | Used by SSR/loader/action instrumentation |
+| React Router SSR branch | `@sentry/react-router/cloudflare` | `app/entry.server.tsx` | Worker-safe request wrapper, handled SSR error capture, and trace meta tags |
 | Deno server runtime | `@sentry/deno` | `app/server.ts` | Spotlight in dev, real Sentry outside dev |
-| Cloudflare Worker runtime | `@sentry/cloudflare` | `app/worker.ts` | Real Sentry via Wrangler runtime vars |
+| Cloudflare Worker runtime | `@sentry/cloudflare` | `app/worker.ts` | Single initialized server SDK for deployed Worker requests |
 
 Build-time source map upload is handled separately by Sentry Vite plugins in the Vite build configs.
 
@@ -42,8 +42,9 @@ These are the key files involved in the current setup:
   - Replay, profiling, logs
   - dev Spotlight browser transport
 - `app/entry.server.tsx`
-  - React Router server instrumentation
-  - error handling integration
+  - Worker-safe React Router SSR wrapper
+  - handled SSR error capture
+  - trace meta tag injection
 - `app/server.ts`
   - Deno server entry
   - Deno SDK init
@@ -81,8 +82,6 @@ Current behavior:
 - uses `reactRouterTracingIntegration({ useInstrumentationAPI: true })`
 - lazy-loads browser profiling after startup
 - lazy-loads replay after startup
-- enables the Sentry Toolbar outside production via `@sentry/toolbar`
-- enables console logging integration in development
 - reads the session-scoped `app_session_id` cookie and creates a new session cookie in the browser only when one is missing before tagging browser telemetry with `app.session_id`
 - stamps `app.session_id` onto emitted browser span data via `beforeSendSpan`
 - uses `VITE_SENTRY_DSN` for the browser config
@@ -96,17 +95,24 @@ Important detail:
 - the React Router tracing integration stays eager because `HydratedRouter` needs its client instrumentation during hydration
 - we intentionally keep the Framework Mode client instrumentation wiring in `app/entry.client.tsx` for future React Router support, even though Sentry currently says those client hooks are not invoked yet
 - the optional browser integrations (`replayIntegration()` and `browserProfilingIntegration()`) are loaded with `import()` and added later via `addIntegration(...)` to keep the initial browser bundle smaller
-- the Sentry Toolbar uses the hardcoded org/project pair `ipohjs` / `hono-react-router-vite`
-- production CSP now allows the Toolbar CDN script and Sentry frame origin so canary/staging-style builds can render it
 
 ### React Router server rendering
 
-`app/entry.server.tsx` wires the React Router server integration:
+`app/entry.server.tsx` uses the Worker-safe React Router helper layer from `@sentry/react-router/cloudflare`:
 
-- `createSentryHandleError({})`
-- `createSentryServerInstrumentation()`
+- `wrapSentryHandleRequest(...)`
+- `injectTraceMetaTags(...)`
+- `captureException(...)` from the exported `handleError`
 
-This is the React Router SSR side of the setup. It is separate from the Deno server runtime and the Cloudflare Worker runtime.
+This layer enriches the React Router SSR branch inside the active request that was already opened by
+`@sentry/cloudflare` in `app/worker.ts`.
+
+Important details:
+
+- for Cloudflare Worker deploys, do not use the Node-only React Router server helpers such as
+  `createSentryHandleError({})` or `createSentryServerInstrumentation()`
+- `/api/*`, `/ssr`, document/data requests, and `__manifest` all still enter the Worker first
+- server/runtime ownership on the deployed Worker stays with `@sentry/cloudflare`
 
 ### Deno server runtime
 
@@ -147,15 +153,20 @@ Current behavior:
 
 - runtime DSN comes from `env.SENTRY_DSN`
 - release comes from the Worker build-time `SENTRY_RELEASE` value so runtime events match uploaded source maps
+- all deployed requests enter `withSentry(...)` in `app/worker.ts` before Hono dispatches `/api/*` or the React Router catch-all
+- non-API routes like `/ssr`, document/data requests, and `__manifest` are therefore still captured as Worker runtime traces
 - reads or creates an `app_session_id` session cookie before request handling so deployed Worker SSR/API requests share the same `app.session_id` as the browser
 - tags Worker telemetry with `app.session_id`
 - stamps `app.session_id` onto emitted Worker span data via `beforeSendSpan`
 - request metrics and logs are recorded for Worker requests
+- the React Router SSR branch uses `wrapSentryHandleRequest(...)` inside that same request path rather than initializing a second server SDK
 
 Important detail:
 
 - Worker runtime config comes from Wrangler bindings/vars
 - it does **not** rely on `.env` for deployed Worker runtime values
+- `@sentry/react-router/cloudflare` should only be used as a helper layer inside the Worker path;
+  `@sentry/cloudflare` remains the single initialized server/runtime SDK
 
 ### Build-time source maps
 
@@ -313,9 +324,9 @@ Build the Deno server or Worker targets with Sentry source map upload enabled wh
 For this project, the intended setup is:
 
 1. Browser app uses `@sentry/react-router`.
-2. React Router server entry uses React Router's Sentry server instrumentation.
+2. React Router SSR on Workers uses `@sentry/react-router/cloudflare` helpers only.
 3. Deno server runtime uses `@sentry/deno`.
-4. Cloudflare Worker runtime uses `@sentry/cloudflare`.
+4. Cloudflare Worker runtime uses `@sentry/cloudflare` as the single initialized server SDK.
 5. Dev browser and Deno server telemetry go to Spotlight with custom transports.
 6. Worker runtime uses Wrangler runtime vars and sends to real Sentry.
 7. Build-time source maps are uploaded by Sentry Vite plugins when credentials exist.
@@ -435,5 +446,6 @@ As of the current setup:
 - browser non-dev -> real Sentry
 - Deno dev `/api/*` routes -> explicit server transactions in Spotlight
 - Worker runtime -> real Sentry with `app_session_id` correlation
+- Worker SSR branch -> `@sentry/react-router/cloudflare` helper wrapping inside the same Worker request
 - build-time source maps -> uploaded when Sentry build credentials are present
 - Worker-specific Spotlight routing -> not implemented yet

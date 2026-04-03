@@ -14,10 +14,14 @@
  * 3. SEO & Performance: It handles bot detection (isbot) to ensure crawlers see the
  *    full content immediately.
  */
-import { createSentryHandleError, createSentryServerInstrumentation } from '@sentry/react-router';
+import {
+  captureException,
+  injectTraceMetaTags,
+  wrapSentryHandleRequest,
+} from '@sentry/react-router/cloudflare';
 import { isbot } from 'isbot';
 import { renderToReadableStream } from 'react-dom/server';
-import type { AppLoadContext, EntryContext, HandleErrorFunction } from 'react-router';
+import type { EntryContext, HandleErrorFunction } from 'react-router';
 import { ServerRouter } from 'react-router';
 
 import { isDevelopmentSentryMode } from './monitoring/sentry.ts';
@@ -25,20 +29,21 @@ import { csp } from './utils/csp.ts';
 
 const HTTP_STATUS_INTERNAL_SERVER_ERROR = 500;
 
-export const handleError: HandleErrorFunction = createSentryHandleError({
-  logErrors: isDevelopmentSentryMode(import.meta.env.MODE),
-});
+export const handleError: HandleErrorFunction = error => {
+  if (error instanceof Error) {
+    captureException(error);
+  }
 
-export const unstable_instrumentations = [
-  createSentryServerInstrumentation(),
-];
+  if (isDevelopmentSentryMode(import.meta.env.MODE)) {
+    console.error(error);
+  }
+};
 
-export default async function handleRequest(
+export default wrapSentryHandleRequest(async function handleRequest(
   request: Request,
   responseStatusCode: number,
   responseHeaders: Headers,
-  routerContext: EntryContext,
-  _loadContext: AppLoadContext
+  routerContext: EntryContext
 ) {
   let shellRendered = false;
   let status = responseStatusCode;
@@ -74,8 +79,8 @@ export default async function handleRequest(
 
   responseHeaders.set('Content-Type', 'text/html');
 
-  return new Response(body, {
+  return new Response(injectTraceMetaTags(body), {
     headers: responseHeaders,
     status,
   });
-}
+});

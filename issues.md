@@ -473,3 +473,37 @@ Error: Process completed with exit code 1.
   - the separate CI build regression
 
 ---
+
+## fix plan
+
+### 1. fix the worker SSR sentry runtime boundary
+
+The Worker SSR failure should be treated as an import-boundary problem first. The current Worker-side
+stack shows `createRequire(... Received 'undefined')`, which points to Node-only runtime code still
+being pulled into the Worker bundle.
+
+The next step should be to keep Worker SSR Sentry usage behind a Worker-safe helper path so the Worker
+bundle no longer includes Node-only build-time code such as Rolldown CommonJS helpers or related
+`@sentry/vite-plugin` runtime paths.
+
+### 2. restore SSR pages and manifest patch loading
+
+We should treat `/ssr` and `/__manifest` as the confirmed failing Worker runtime paths, with
+`/hono-rpc` considered indirectly affected because manifest patch loading is breaking first. Once the
+Sentry import boundary is fixed, React Router server-build loading should succeed again and manifest
+patch requests should stop returning 500.
+
+### 3. improve sentry visibility for SSR failures
+
+Current Worker-level Sentry capture only records a generic failed request when these SSR crashes happen.
+The follow-up fix should ensure SSR initialization/render failures are captured with exception details
+and stack traces before they collapse into an opaque 500 event.
+
+### 4. treat the GitHub Actions failure as a separate tooling regression
+
+The Ubuntu CI crash involving `TsconfigCache` / Rolldown N-API is separate from the Worker SSR runtime
+issue. The plan should be to address it independently by pinning or rolling back the React Router/Vite/
+Rolldown toolchain to a Linux-stable combination first.
+
+Only if pinning is blocked should the repo use a narrower fallback such as disabling the Oxc/Rolldown
+path for the React Router build.

@@ -1,307 +1,186 @@
-# Sentry + React Router Framework Mode + Hono Setup Guide
+# Sentry + React Router Framework Mode on Cloudflare Workers
 
 ## Overview
 
-This document describes the Sentry tracing setup for a React Router Framework Mode application using Hono for API routes, running on Deno in development and Cloudflare Workers in production.
+This document explains the Sentry package split used by this repo when React Router Framework Mode
+runs behind Hono on Cloudflare Workers.
 
-For build-time Sentry source-map upload and the SRI-safe deployment flow, see `docs/sentry-setup.md`. That guide explains why this repo uses legacy sourcemap upload instead of the modern debug-ID injection path.
+Use this document when you need to answer any of these questions:
 
-## Architecture
+- which SDK owns server-side request tracing on the Worker
+- whether React Router Framework Mode should initialize a second server SDK
+- which React Router Sentry package is safe to use in `entry.server.tsx`
 
-- **Client**: React Router 7 Framework Mode with `@sentry/react-router`
-- **Server**: Hono for API routes + React Router SSR
-- **Runtime**: Deno (dev) / Cloudflare Workers (prod)
+For the broader build, environment-variable, and Spotlight setup, see
+[`docs/sentry-setup.md`](docs/sentry-setup.md).
 
-## Root Cause: Missing Client Transactions
+## Recommended package split
 
-### The Problem
+| Surface | Package | Role |
+| --- | --- | --- |
+| Browser app | `@sentry/react-router` | Browser errors, tracing, replay, profiling, logs |
+| Deno local/runtime server | `@sentry/deno` | Local server/runtime ownership in Deno flows |
+| Cloudflare Worker runtime | `@sentry/cloudflare` | Single initialized server SDK for deployed Worker requests |
+| React Router SSR branch on Worker | `@sentry/react-router/cloudflare` | Worker-safe helper layer around `handleRequest`, trace meta tags, handled SSR error capture |
 
-In React Router Framework Mode, the Sentry SDK's `reactRouterTracingIntegration()` has a known limitation:
+## Request flow on the Worker
 
-1. The integration sets `instrumentNavigation: false` internally because it expects the instrumentation API to handle navigation
-2. The instrumentation API hooks (`unstable_instrumentations`) are NOT invoked by `HydratedRouter` in Framework Mode
-3. This results in **no client transactions** being created
+In production, request ownership looks like this:
 
-### The Solution
+1. `@sentry/cloudflare` wraps the exported Worker handler in `app/worker.ts`.
+2. Hono dispatches `/api/*` routes first.
+3. Non-API requests fall through to the React Router catch-all in `app/ssr-handler.ts`.
+4. `app/entry.server.tsx` wraps the React Router SSR branch with `wrapSentryHandleRequest(...)`.
 
-Use `reactRouterTracingIntegration()` **without** `useInstrumentationAPI: true` and **without** `unstable_instrumentations`:
+That means:
 
-```tsx
-// entry.client.tsx
-import * as Sentry from '@sentry/react-router';
+- `/api/*` is handled by Hono route handlers
+- `/ssr`, `__manifest`, document requests, and data requests are handled by React Router
+- all of those requests still belong to the same Worker runtime request that started in `app/worker.ts`
 
-Sentry.init({
-  integrations: [
-    Sentry.reactRouterTracingIntegration(),
-  ],
-});
-```
+The important distinction is route ownership versus runtime ownership:
 
-The SDK will use its built-in `instrumentHydratedRouter()` which patches the router after hydration to create navigation transactions.
+- React Router owns the non-API branch
+- `@sentry/cloudflare` still owns the deployed server/runtime request
 
-## Server-Side Tracing
+## What this means for the instrumentation API
 
-### The Problem
+The generic React Router instrumentation API docs do not map 1:1 to the Worker server build.
 
-By default, server instrumentation only traces specific routes. We need to create proper pageload transactions for SSR pages.
+Current repo guidance:
 
-### The Solution
+- browser-side React Router tracing can keep the client instrumentation wiring in `app/entry.client.tsx`
+- Worker deploys should not use the Node-only React Router server helpers
+- React Router SSR on the Worker should use `@sentry/react-router/cloudflare` helper exports only
 
-Create explicit transactions for page loads:
+Do not use these Node-oriented helpers in the Worker build:
 
-```tsx
-// server.ts
-function handleAppRequest(request: Request): Promise<Response> {
-  const pathname = new URL(request.url).pathname;
-  const isApiRoute = pathname.startsWith('/api/');
-  const isStaticAsset = pathname.startsWith('/assets/') || pathname.includes('.');
+- `createSentryHandleError(...)`
+- `createSentryServerInstrumentation()`
 
-  if (!isServerSentryEnabled || isStaticAsset) {
-    return PromiseFrom(app.fetch(request));
-  }
+Use these Worker-safe helpers instead:
 
-  if (isApiRoute) {
-    return startSpan(
-      {
-        forceTransaction: true,
-        name: `${request.method} ${pathname}`,
-        op: 'http.server',
-      },
-      async span => {
-        const response = await PromiseFrom(app.fetch(request));
-        setHttpStatus(span, response.status);
-        return response;
-      }
-    );
-  }
+- `wrapSentryHandleRequest(...)`
+- `injectTraceMetaTags(...)`
+- `captureException(...)` for handled SSR errors
 
-  return startSpan(
-    {
-      forceTransaction: true,
-      name: `page load`,
-      op: 'pageload',
+## Current repo pattern
+
+`app/worker.ts` remains the single initialized server SDK boundary:
+
+```ts
+import { withSentry } from '@sentry/cloudflare';
+
+export default withSentry(
+  env => ({
+    dsn: env.SENTRY_DSN,
+  }),
+  {
+    async fetch(request, env, ctx) {
+      return app.fetch(request, env, ctx);
     },
-    async span => {
-      const response = await PromiseFrom(app.fetch(request));
-      setHttpStatus(span, response.status);
-      return response;
-    }
-  );
-}
+  }
+);
 ```
 
-## Common Issues
+`app/entry.server.tsx` uses the Worker-safe React Router helper layer instead of a second server
+SDK init:
 
-### Build output and SRI-safe uploads
+```ts
+import {
+  captureException,
+  injectTraceMetaTags,
+  wrapSentryHandleRequest,
+} from '@sentry/react-router/cloudflare';
 
-If you are working on the build pipeline, do not reintroduce `sentryOnBuildEnd` or any post-build JS mutation that changes emitted client chunks after hashing.
+export const handleError = error => {
+  if (error instanceof Error) {
+    captureException(error);
+  }
+};
 
-This repo uses legacy sourcemap upload so React Router's integrity hashes stay valid during Cloudflare deployment.
+export default wrapSentryHandleRequest(async function handleRequest(
+  request,
+  responseStatusCode,
+  responseHeaders,
+  routerContext,
+  loadContext
+) {
+  const body = await renderToReadableStream(<ServerRouter context={routerContext} url={request.url} />);
 
-The repo also keeps `unstable_previewServerPrerendering` off because that flag was the trigger for the React Router preview-server watcher race on temporary `vite.react-router.config.ts.timestamp-*.mjs` files.
-In practice, the preview server was started during prerendering, generated a temp config module, and the watcher occasionally raced with the file disappearing in GitHub Actions.
+  responseHeaders.set('Content-Type', 'text/html');
 
-### 1. Keeping `useInstrumentationAPI: true` in Framework Mode
-
-```tsx
-// Keep this wiring for future Framework Mode support.
-const tracing = reactRouterTracingIntegration({
-  useInstrumentationAPI: true,
+  return new Response(injectTraceMetaTags(body), {
+    headers: responseHeaders,
+    status: responseStatusCode,
+  });
 });
 ```
 
-Sentry currently notes that `HydratedRouter` doesn't invoke the client-side instrumentation hooks in Framework Mode yet, so this is future-facing wiring that we intentionally keep in the repo.
+## Expected trace ownership
 
-### 2. Keeping `unstable_instrumentations` on `HydratedRouter`
+On deployed Cloudflare Workers:
 
-```tsx
-// Keep this prop wiring for future Framework Mode support.
-<HydratedRouter
-  unstable_instrumentations={[
-    tracing.clientInstrumentation,
-  ]}
-/>
-```
+- `/api/*` -> Worker runtime traces from `@sentry/cloudflare`
+- `/ssr`, `__manifest`, document requests, and data requests -> Worker runtime traces from `@sentry/cloudflare`, enriched by the React Router Worker helper layer
+- browser navigations and UI actions -> browser traces from `@sentry/react-router`
 
-Keep this prop alongside the tracing integration so the client setup matches the official Framework Mode example and is ready when the SDK starts invoking the hooks in Framework Mode.
+So it is expected to see Worker runtime traces for both:
 
-### 3. Using `startNewTrace` for user interactions
+- Hono API routes
+- React Router SSR/document/data requests
 
-```tsx
-// CORRECT - creates separate trace for each user interaction
-const result = await startNewTrace(() =>
-  startSpan({ name: 'my-span' }, async () => { /* ... */ })
-);
-```
+That does not mean the setup is conflicting. It means the server/runtime owner is the Worker.
 
-Use `startNewTrace` when you want each user interaction (button clicks, form submissions) to create its own separate trace, completely independent from the initial page load trace.
+## Common mistakes
 
-Without `startNewTrace`, the span would be appended to the active transaction, causing "multiple root transactions" in the same trace.
+### 1. Initializing a second server SDK in `entry.server.tsx`
 
-### 4. Using `forceTransaction: true` for API calls that should be separate traces
+Do not call `Sentry.init(...)`, `withSentry(...)`, or any equivalent runtime initialization inside
+`app/entry.server.tsx` or `app/ssr-handler.ts`.
 
-```tsx
-// Use when you want a new root transaction for an API call
-const result = await startSpan(
-  {
-    forceTransaction: true,
-    name: 'My API call',
-    op: 'http.server',
-  },
-  async () => { /* ... */ }
-);
-```
+On the Worker path, the runtime client is already initialized in `app/worker.ts`.
 
-Note: For Hono RPC calls, prefer `startNewTrace` over `forceTransaction: true` because `forceTransaction: true` alone still appends the server call to the existing client trace.
+### 2. Importing Node-only React Router server helpers in the Worker build
 
-### 4. Using `forceTransaction: true` in route handlers
+Do not use:
 
-```tsx
-// WRONG - creates new root transaction instead of child span
-const result = await startSpan(
-  {
-    forceTransaction: true,
-    name: 'My action',
-    op: 'ui.action.click',
-  },
-  async () => { /* ... */ }
-);
+- `createSentryHandleError(...)`
+- `createSentryServerInstrumentation()`
 
-// CORRECT - creates child span under existing transaction
-const result = await startSpan(
-  {
-    name: 'My action',
-    op: 'ui.action.click',
-  },
-  async () => { /* ... */ }
-);
-```
+Those belong to the Node/server export path, not the Worker-safe helper export.
 
-Using `forceTransaction: true` creates a new root transaction (trace) instead of a child span. This causes "multiple root transactions" issues when making API calls after initial page load.
+### 3. Assuming React Router route ownership equals runtime ownership
 
-### 5. Using `consoleLoggingIntegration` with tracing
+Even though React Router handles the non-API branch, those requests still arrive through the same
+Worker `fetch` boundary first.
 
-```tsx
-// WRONG - causes multiple root transactions for client traces
-Sentry.init({
-  integrations: [
-    Sentry.consoleLoggingIntegration(),
-    Sentry.reactRouterTracingIntegration(),
-  ],
-});
+That is why `/ssr` and `__manifest` still appear as Worker runtime traces.
 
-// CORRECT - disable console logging in production or don't use with tracing
-Sentry.init({
-  integrations: [
-    Sentry.reactRouterTracingIntegration(),
-  ],
-});
-```
+## Verification checklist
 
-**Why `consoleLoggingIntegration` causes issues:**
+When changing the Worker-side React Router Sentry setup, verify locally:
 
-What `consoleLoggingIntegration` does:
-- Intercepts `console.log`, `console.warn`, `console.error`, etc.
-- Captures these messages and sends them to Sentry as events
-- Uses `captureEvent` internally to send logs
+- `deno task build:worker`
+- `app/worker.ts` remains the only place that initializes the Worker runtime SDK
+- `app/entry.server.tsx` only uses Worker-safe React Router helper imports
+- no Node-only React Router server helpers remain in the Worker path
 
-Why it causes multiple root transactions:
-1. When it captures console calls, it creates Sentry events
-2. The event capture process interacts with the current scope/transaction context
-3. This interferes with the tracing integration's transaction management
-4. Each console call resets or creates new transaction contexts
+## Follow-up TODOs
 
-Observed behavior:
-- Multiple root transactions appear in client traces
-- The transaction context gets corrupted or reset unexpectedly
+These are not urgent blockers, but revisit them if SSR observability starts to drift or if we decide
+to enforce a stricter "Cloudflare SDK only on the server" rule:
 
-**Recommendation:**
-- Only use `consoleLoggingIntegration` when actively debugging
-- Disable it in production or when using tracing
-
-### 6. Wrong server trace continuation condition
-
-```tsx
-// WRONG - only continues trace in dev
-if (!(import.meta.env.DEV && isServerSentryEnabled)) {
-  // ... 
-}
-
-// CORRECT - always continue trace when enabled
-if (!isServerSentryEnabled) {
-  // ... 
-}
-```
-
-## Expected Trace Behavior
-
-After the fix, you should see:
-
-1. **Server pageload**: `server; page load` - SSR of the page
-2. **Server API calls**: `server; GET /api/...` - Hono API routes  
-3. **Client navigation**: `client; <route-name>` - After hydration, client creates proper navigation spans
-
-The client trace should properly continue from the server trace via `sentry-trace` and `baggage` headers.
-
-## Files Modified
-
-- `app/entry.client.tsx` - Client Sentry init with `reactRouterTracingIntegration()`
-- `app/server.ts` - Server-side tracing with explicit pageload transactions
-- `app/monitoring/sentry.ts` - Sentry configuration
-- `app/root.tsx` - Removed SentryToolbar (causes errors)
+- confirm whether `app/entry.server.tsx` should keep using `@sentry/react-router/cloudflare` as a
+  helper layer, or whether we want to replace it with a custom wrapper that only leans on
+  `@sentry/cloudflare`
+- restore the old `handleError` behavior if we start missing SSR errors again: skip aborted
+  requests, capture non-`Error` throwables, and flush in serverless contexts
+- keep browser/client tracing on `@sentry/react-router`; do not move browser-only telemetry to
+  `@sentry/cloudflare`
 
 ## References
 
-- [Sentry React Router Documentation](https://docs.sentry.io/platforms/javascript/guides/react-router/)
-- [Instrumentation API (Experimental)](https://docs.sentry.io/platforms/javascript/guides/react-router/features/instrumentation-api/)
-
-## BrokenPipe Error in Dev Server
-
-### The Problem
-
-When running `deno task dev`, the server sometimes crashes with:
-
-```
-BrokenPipe: Broken pipe (os error 32)
-```
-
-This error appears in Sentry as an unhandled promise rejection.
-
-### Root Cause
-
-The error occurs when:
-1. The Vite dev server establishes a WebSocket connection with the browser for HMR (Hot Module Replacement)
-2. The browser disconnects (tab closed, refresh, network issue)
-3. Vite tries to send an HMR update through the closed WebSocket
-4. This triggers a `BrokenPipe` error
-
-This is a **normal side effect** of the HMR WebSocket connection, not a bug in the application.
-
-### Why It Shows Up in Sentry
-
-The Deno server runtime captures unhandled promise rejections and sends them to Sentry. The BrokenPipe error from the Vite WebSocket is one such rejection that gets captured.
-
-### Possible Fixes
-
-1. **Ignore exit code 1 in dev script** (recommended):
-   ```ts
-   // Allow exit code 1 in dev mode since it can be caused by BrokenPipe
-   if (!appStatus.success && appStatus.code !== 1) {
-     throw new Error(`App exited with code ${appStatus.code ?? 'unknown'}`);
-   }
-   ```
-
-2. **Disable HMR** (not recommended):
-   - Set `server.hmr: false` in vite config
-   - Loses hot reloading functionality
-
-3. **Handle at runtime** (more complex):
-   - Catch and suppress WebSocket-related errors in the server code
-   - Requires modifying Vite's internal behavior
-
-### Recommendation
-
-The simplest fix is option 1 - ignore exit code 1 in the dev script. This is because:
-- The app process exits with code 1 when Vite crashes due to BrokenPipe
-- In dev mode, this is harmless - just refresh the browser
-- The server can recover on next request
+- [`docs/sentry-setup.md`](docs/sentry-setup.md)
+- [Sentry for Cloudflare](https://docs.sentry.dev/platforms/javascript/guides/cloudflare/)
+- [Sentry for React Router](https://docs.sentry.io/platforms/javascript/guides/react-router/)
