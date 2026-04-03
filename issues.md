@@ -153,6 +153,84 @@
 }
 ```
 
+## manifest fail to load with error in all pages being SSR-ed
+
+```sh
+installHook.js:1 Failed to fetch manifest patches Error: 500 
+    at ua (jsx-runtime-BtOxbToQ.js:12:7239)
+    at async s (jsx-runtime-BtOxbToQ.js:12:6465)
+overrideMethod	@	installHook.js:1
+(anonymous)	@	sentry-CWLY89RK.js:4
+s	@	jsx-runtime-BtOxbToQ.js:12
+await in s		
+(anonymous)	@	jsx-runtime-BtOxbToQ.js:12
+Gc	@	entry.client-DIMETfXL.js:9
+Ol	@	entry.client-DIMETfXL.js:9
+Dl	@	entry.client-DIMETfXL.js:9
+Ol	@	entry.client-DIMETfXL.js:9
+Dl	@	entry.client-DIMETfXL.js:9
+Ol	@	entry.client-DIMETfXL.js:9
+Uu	@	entry.client-DIMETfXL.js:9
+(anonymous)	@	entry.client-DIMETfXL.js:9
+ae	@	entry.client-DIMETfXL.js:2
+```
+
+### errors in Sentry
+
+```json
+{
+
+arguments: [
+
+{
+code: ERR_INVALID_ARG_VALUE,
+message: The argument 'path' The argument must be a file URL object, a file URL string, or an absolute path string.. Received 'undefined',
+name: TypeError,
+stack:
+TypeError: The argument 'path' The argument must be a file URL object, a file URL string, or an absolute path string.. Received 'undefined'
+    at createRequire (node:module:34:15)
+    at build/assets/rolldown-runtime-UXURtaUH.js (worker.js:10459:33)
+    at __init (worker.js:9:56)
+    at build/assets/sentry-DExeKB6Y.js (worker.js:12760:5)
+    at __init (worker.js:9:56)
+    at build/assets/server-ZVAD7kzc.js (worker.js:34035:5)
+    at __init (worker.js:9:56)
+    at worker.js:47648:40
+    at async requestHandler (worker.js:10353:48)
+    at async handleSsrRequest (worker.js:47698:20)
+,
+toString: [Function: <anonymous>]
+}
+],
+logger: console
+}
+```
+
+```json
+{
+
+arguments: [
+
+{
+message: Cannot convert undefined or null to object,
+name: TypeError,
+stack:
+TypeError: Cannot convert undefined or null to object
+    at Object.values (<anonymous>)
+    at groupRoutesByParentId (worker.js:9202:10)
+    at createRoutes (worker.js:9213:67)
+    at derive (worker.js:9735:17)
+    at requestHandler (worker.js:10355:25)
+    at async handleSsrRequest (worker.js:47698:20)
+    at async dispatch (worker.js:45451:17)
+    at async timing2 (worker.js:47357:5)
+    at async dispatch (worker.js:45451:17)
+    at async worker.js:46589:26
+}
+],
+logger: console
+}
+```
 
 ## Build issue in Github Actions
 
