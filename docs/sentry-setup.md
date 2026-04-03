@@ -94,6 +94,7 @@ Important detail:
 - instead, it uses a custom transport in `app/monitoring/sentry-spotlight-browser.ts`
 - this avoids browser requests to fake endpoints like `https://local/api/0/envelope/...`
 - the React Router tracing integration stays eager because `HydratedRouter` needs its client instrumentation during hydration
+- we intentionally keep the Framework Mode client instrumentation wiring in `app/entry.client.tsx` for future React Router support, even though Sentry currently says those client hooks are not invoked yet
 - the optional browser integrations (`replayIntegration()` and `browserProfilingIntegration()`) are loaded with `import()` and added later via `addIntegration(...)` to keep the initial browser bundle smaller
 - the Sentry Toolbar uses the hardcoded org/project pair `ipohjs` / `hono-react-router-vite`
 - production CSP now allows the Toolbar CDN script and Sentry frame origin so canary/staging-style builds can render it
@@ -145,7 +146,7 @@ Important detail:
 
 ### Build-time source maps
 
-Build-time Sentry plugin options are created in `app/monitoring/sentry.ts`:
+Build-time Sentry plugin options are created in `vite-utils/sentry-build.ts`:
 
 - `createSentryBuildOptions()` for React Router builds
 - `createSentryVitePluginOptions()` for server/worker builds

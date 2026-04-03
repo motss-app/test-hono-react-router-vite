@@ -5,9 +5,9 @@ import { sentryReactRouter } from '@sentry/react-router';
 import stylex from '@stylexjs/unplugin';
 import { defineConfig } from 'vite';
 
-import { createSentryBuildOptions } from './app/monitoring/sentry.ts';
 import { themeBuildPlugin } from './vite-plugins/theme-bootstrap/plugin.ts';
 import { loadConfigEnvironment } from './vite-utils/load-env.ts';
+import { createSentryBuildOptions } from './vite-utils/sentry-build.ts';
 
 const isRegExpImport = /\?import$/;
 const isRegExpRouteImport = /\/app\/routes\/.*\?import$/;

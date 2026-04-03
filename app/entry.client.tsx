@@ -34,6 +34,9 @@ const browserWindow = window as Window & {
   __appEntryClientLoadedAt__?: string;
 };
 
+// Keep the Framework Mode client instrumentation wiring for future React Router support.
+// Sentry currently notes HydratedRouter doesn't invoke these hooks yet, but the official
+// Framework Mode docs still show this setup, so we intentionally keep it here.
 const tracing = reactRouterTracingIntegration({
   useInstrumentationAPI: true,
 });
@@ -107,6 +110,7 @@ startTransition(() => {
   hydrateRoot(
     document,
     <StrictMode>
+      {/* Keep this prop wiring for future Framework Mode support; do not remove it lightly. */}
       <HydratedRouter
         unstable_instrumentations={[
           tracing.clientInstrumentation,

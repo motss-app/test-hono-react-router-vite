@@ -109,10 +109,6 @@ function handleFetch(request: Request): Promise<Response> {
     );
 
   if (!isServerSentryEnabled) {
-    if (appSessionId && isServerSentryEnabled) {
-      setTag(appSessionIdTagName, appSessionId);
-    }
-
     return handleRequest();
   }
 

@@ -3,13 +3,13 @@ import { sentryVitePlugin } from '@sentry/vite-plugin';
 import stylex from '@stylexjs/unplugin';
 import type { ConfigEnv } from 'vite';
 
-import { createSentryVitePluginOptions } from './app/monitoring/sentry.ts';
 import { headersCopyPlugin } from './vite-plugins/copy-headers.ts';
 import { themeBuildPlugin } from './vite-plugins/theme-bootstrap/plugin.ts';
 import { readRequiredEnv } from './vite-utils/get-required-env.ts';
 import { createImportMetaEnvDefine } from './vite-utils/import-meta-env.ts';
 import { loadConfigEnvironment } from './vite-utils/load-env.ts';
 import { readEnv } from './vite-utils/read-env.ts';
+import { createSentryVitePluginOptions } from './vite-utils/sentry-build.ts';
 import { sentryCodeSplittingGroup } from './vite-utils/sentry-chunking.ts';
 
 export default function createViteConfig(config: ConfigEnv) {

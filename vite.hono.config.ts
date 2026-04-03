@@ -1,8 +1,8 @@
 import { sentryVitePlugin } from '@sentry/vite-plugin';
 import { defineConfig } from 'vite';
 
-import { createSentryVitePluginOptions } from './app/monitoring/sentry.ts';
 import { loadConfigEnvironment } from './vite-utils/load-env.ts';
+import { createSentryVitePluginOptions } from './vite-utils/sentry-build.ts';
 
 export default defineConfig(({ mode }) => {
   loadConfigEnvironment(mode);

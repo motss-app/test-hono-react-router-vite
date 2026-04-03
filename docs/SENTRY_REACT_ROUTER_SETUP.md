@@ -101,27 +101,29 @@ This repo uses legacy sourcemap upload so React Router's integrity hashes stay v
 The repo also keeps `unstable_previewServerPrerendering` off because that flag was the trigger for the React Router preview-server watcher race on temporary `vite.react-router.config.ts.timestamp-*.mjs` files.
 In practice, the preview server was started during prerendering, generated a temp config module, and the watcher occasionally raced with the file disappearing in GitHub Actions.
 
-### 1. Using `useInstrumentationAPI: true`
+### 1. Keeping `useInstrumentationAPI: true` in Framework Mode
 
 ```tsx
-// WRONG - doesn't work in Framework Mode
+// Keep this wiring for future Framework Mode support.
 const tracing = reactRouterTracingIntegration({
   useInstrumentationAPI: true,
 });
 ```
 
-This doesn't work because `HydratedRouter` doesn't invoke the instrumentation hooks in Framework Mode.
+Sentry currently notes that `HydratedRouter` doesn't invoke the client-side instrumentation hooks in Framework Mode yet, so this is future-facing wiring that we intentionally keep in the repo.
 
-### 2. Adding `unstable_instrumentations` to HydratedRouter
+### 2. Keeping `unstable_instrumentations` on `HydratedRouter`
 
 ```tsx
-// WRONG - not needed and doesn't help
+// Keep this prop wiring for future Framework Mode support.
 <HydratedRouter
-  unstable_instrumentations={[tracing.clientInstrumentation]}
+  unstable_instrumentations={[
+    tracing.clientInstrumentation,
+  ]}
 />
 ```
 
-This is not needed when `useInstrumentationAPI: false`.
+Keep this prop alongside the tracing integration so the client setup matches the official Framework Mode example and is ready when the SDK starts invoking the hooks in Framework Mode.
 
 ### 3. Using `startNewTrace` for user interactions
 

@@ -15,14 +15,6 @@ interface HeadersCopyPluginOptions {
 const inlineScriptPattern = /<script\b(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g;
 const inlineStylePattern = /<style\b[^>]*>([\s\S]*?)<\/style>/g;
 
-function getStaticPageCacheControl(mode: string): string {
-  if (mode === 'canary') {
-    return 'public, max-age=0, s-maxage=0, stale-while-revalidate=0, must-revalidate';
-  }
-
-  return 'public, max-age=600, s-maxage=3600, stale-while-revalidate=180, must-revalidate';
-}
-
 function fileExists(path: string): boolean {
   try {
     Deno.statSync(path);
@@ -104,7 +96,8 @@ export function headersCopyPlugin(options: HeadersCopyPluginOptions): Plugin {
   const destPath = resolve(Deno.cwd(), options.dest);
   const clientDir = dirname(destPath);
   const mode = options.mode;
-  const staticPageCacheControl = getStaticPageCacheControl(mode);
+  const staticPageCacheControl =
+    'public, max-age=600, s-maxage=3600, stale-while-revalidate=180, must-revalidate';
   const sentryDsn = readRequiredEnv('SENTRY_DSN', {
     source: 'vite-plugins/copy-headers.ts',
   });
