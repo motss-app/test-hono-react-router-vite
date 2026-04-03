@@ -325,6 +325,110 @@ Error: Process completed with exit code 1.
 
 ---
 
+## TypeError [ERR_INVALID_ARG_VALUE]: The argument 'path' The argument must be a file URL object, a file URL string, or an absolute path string.. Received 'undefined'
+
+### Log from CF Worker
+
+```json
+{
+  "level": "error",
+  "message": "TypeError [ERR_INVALID_ARG_VALUE]: The argument 'path' The argument must be a file URL object, a file URL string, or an absolute path string.. Received 'undefined'",
+  "$workers": {
+    "truncated": false,
+    "event": {
+      "request": {
+        "url": "https://test-hono-react-router-vite-canary.motss.workers.dev/ssr",
+        "method": "GET",
+        "path": "/ssr"
+      }
+    },
+    "outcome": "ok",
+    "scriptName": "test-hono-react-router-vite-canary",
+    "eventType": "fetch",
+    "executionModel": "stateless",
+    "scriptVersion": {
+      "id": "efab5b67-8119-4fa8-b7c9-a4e573e3f5b0"
+    },
+    "requestId": "9e696aa16b816f98"
+  },
+  "$metadata": {
+    "id": "01KNA2FRA1G9M6BDNWT7J11PVZ",
+    "requestId": "9e696aa16b816f98",
+    "trigger": "GET /ssr",
+    "service": "test-hono-react-router-vite-canary",
+    "level": "error",
+    "error": "TypeError [ERR_INVALID_ARG_VALUE]: The argument 'path' The argument must be a file URL object, a file URL string, or an absolute path string.. Received 'undefined'",
+    "message": "TypeError [ERR_INVALID_ARG_VALUE]: The argument 'path' The argument must be a file URL object, a file URL string, or an absolute path string.. Received 'undefined'",
+    "account": "7597e72b9a5347db09ec37e501eb675a",
+    "type": "cf-worker",
+    "fingerprint": "e93aa1387327ee0df0f3de90bfe621ac",
+    "origin": "fetch",
+    "messageTemplate": "TypeError [ERR_INVALID_ARG_VALUE]: The argument 'path' The argument must be a file URL object, a file URL string, or an absolute path string.. Received 'undefined'"
+  }
+}
+```
+
+### Sentry env snapshot
+
+```json
+{
+  "deploymentBuild": true,
+  "values": {
+    "SENTRY_DSN": {
+      "present": true,
+      "origin": "https://o237444.ingest.us.sentry.io",
+      "pathname": "/4511078663782400"
+    },
+    "VITE_SENTRY_DSN": {
+      "present": false
+    },
+    "PORT": "[missing]",
+    "SENTRY_AUTH_TOKEN": "[missing]",
+    "SENTRY_RELEASE": "7c5535d6e9e28ffeede1c62e4c0d6f3be3d864b3",
+    "SENTRY_SPOTLIGHT": "[missing]",
+    "VITE_SENTRY_SPOTLIGHT": "[missing]"
+  },
+  "level": "info",
+  "message": "[app/worker.ts] Sentry env snapshot",
+  "mode": "canary",
+  "phase": "worker",
+  "$workers": {
+    "truncated": false,
+    "event": {
+      "request": {
+        "url": "https://test-hono-react-router-vite-canary.motss.workers.dev/ssr",
+        "method": "GET",
+        "path": "/ssr"
+      }
+    },
+    "outcome": "ok",
+    "scriptName": "test-hono-react-router-vite-canary",
+    "eventType": "fetch",
+    "executionModel": "stateless",
+    "scriptVersion": {
+      "id": "efab5b67-8119-4fa8-b7c9-a4e573e3f5b0"
+    },
+    "requestId": "9e696aa16b816f98"
+  },
+  "$metadata": {
+    "id": "01KNA2FRA1G9M6BDNWT7J11PVY",
+    "requestId": "9e696aa16b816f98",
+    "trigger": "GET /ssr",
+    "service": "test-hono-react-router-vite-canary",
+    "level": "info",
+    "message": "[app/worker.ts] Sentry env snapshot",
+    "account": "7597e72b9a5347db09ec37e501eb675a",
+    "type": "cf-worker",
+    "fingerprint": "0eb0f059aca1b239c47753a5f49e6c7d",
+    "origin": "fetch",
+    "messageTemplate": "[app/<DOMAIN>] Sentry env snapshot"
+  }
+}
+```
+
+
+---
+
 # Fix suggested by OpenAI Codex using GPT5.4 xhigh
 
 ## Summary
