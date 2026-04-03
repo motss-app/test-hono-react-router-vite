@@ -48,6 +48,16 @@ jobs:
           cat deploy-canary.log
           URL=$(grep -oE 'https://[^ ]*workers\.dev' deploy-canary.log | head -n 1)
           echo "CANARY_URL=$URL" >> $GITHUB_ENV
+
+      - name: Purge Cloudflare Cache for Canary
+        if: steps.deploy-canary.outcome == 'success'
+        run: |
+          curl -X DELETE "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/cache/purge" \
+            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data '{"hosts":["hono-react-router-vite-canary.motss.fyi"]}'
+          echo "✅ Canary Cloudflare cache purged"
+
       - name: Build & Deploy Production
         if: github.ref == 'refs/heads/main'
         id: deploy-production
@@ -68,7 +78,7 @@ jobs:
           curl -X DELETE "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/cache/purge" \
             -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
             -H "Content-Type: application/json" \
-            --data '{"purge_everything": true}'
+            --data '{"hosts":["hono-react-router-vite.motss.fyi"]}'
           echo "✅ Cloudflare cache purged"
 
       - name: Summary

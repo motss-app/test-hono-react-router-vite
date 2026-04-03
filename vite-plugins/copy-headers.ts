@@ -12,10 +12,16 @@ interface HeadersCopyPluginOptions {
   mode: string;
 }
 
-const staticPageCacheControl =
-  'public, max-age=600, s-maxage=3600, stale-while-revalidate=180, must-revalidate';
 const inlineScriptPattern = /<script\b(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g;
 const inlineStylePattern = /<style\b[^>]*>([\s\S]*?)<\/style>/g;
+
+function getStaticPageCacheControl(mode: string): string {
+  if (mode === 'canary') {
+    return 'public, max-age=0, s-maxage=0, stale-while-revalidate=0, must-revalidate';
+  }
+
+  return 'public, max-age=600, s-maxage=3600, stale-while-revalidate=180, must-revalidate';
+}
 
 function fileExists(path: string): boolean {
   try {
@@ -49,7 +55,11 @@ function htmlFilePathFromRoute(clientDir: string, routePath: string): string {
   return join(clientDir, routePath.slice(1), 'index.html');
 }
 
-function buildStaticRouteHeaders(routePath: string, cspDirective: string): string {
+function buildStaticRouteHeaders(
+  routePath: string,
+  cspDirective: string,
+  staticPageCacheControl: string
+): string {
   return [
     routePath,
     '  ! Cache-Control',
@@ -62,7 +72,8 @@ function buildStaticRouteHeaders(routePath: string, cspDirective: string): strin
 async function processStaticRoute(
   routePath: string,
   clientDir: string,
-  sentryDsn: string
+  sentryDsn: string,
+  staticPageCacheControl: string
 ): Promise<string | null> {
   const htmlFile = htmlFilePathFromRoute(clientDir, routePath);
 
@@ -83,7 +94,8 @@ async function processStaticRoute(
       connectSrc: getSentryConnectSrc(sentryDsn),
       scriptHashes,
       styleHashes,
-    })
+    }),
+    staticPageCacheControl
   );
 }
 
@@ -92,6 +104,7 @@ export function headersCopyPlugin(options: HeadersCopyPluginOptions): Plugin {
   const destPath = resolve(Deno.cwd(), options.dest);
   const clientDir = dirname(destPath);
   const mode = options.mode;
+  const staticPageCacheControl = getStaticPageCacheControl(mode);
   const sentryDsn = readRequiredEnv('SENTRY_DSN', {
     source: 'vite-plugins/copy-headers.ts',
   });
@@ -112,7 +125,9 @@ export function headersCopyPlugin(options: HeadersCopyPluginOptions): Plugin {
       let headersText = await Deno.readTextFile(src);
       const prerenderRoutes = discoverPrerenderRoutes();
       const staticRouteHeadersResults = await Promise.all(
-        prerenderRoutes.map(routePath => processStaticRoute(routePath, clientDir, sentryDsn))
+        prerenderRoutes.map(routePath =>
+          processStaticRoute(routePath, clientDir, sentryDsn, staticPageCacheControl)
+        )
       );
       const staticRouteHeaders = staticRouteHeadersResults.filter(
         (header): header is string => header !== null
