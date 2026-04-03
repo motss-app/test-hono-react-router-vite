@@ -70,5 +70,8 @@ export default function createViteConfig(config: ConfigEnv) {
           }),
           ...sentryPlugins,
         ],
+    resolve: {
+      tsconfigPaths: true,
+    },
   };
 }
