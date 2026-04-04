@@ -33,7 +33,7 @@ Current source-map glob layout:
 
 Each build surface now uses its own explicit glob pattern set instead of a broad `build/**/*.map` sweep.
 
-The deployment Vite configs (`vite.react-router.config.ts`, `vite.hono.config.ts`, and `vite.worker.config.ts`) now set `build.minify: true`, and the Worker deploy keeps `wrangler.jsonc` on `"no_bundle": true` so Wrangler does not re-bundle the already-built `worker.js` after the source maps are uploaded. That keeps the deployed runtime aligned with the exact bytes Sentry indexed.
+The deployment Vite configs (`vite.react-router.config.ts`, `vite.hono.config.ts`, and `vite.worker.config.ts`) now set `build.minify: true`, and the Worker deploy keeps `wrangler.jsonc` on `"no_bundle": true` plus `"preserve_file_names": true` so Wrangler does not re-bundle or rename the already-built `worker.js` after the source maps are uploaded. That keeps the deployed runtime aligned with the exact bytes Sentry indexed.
 
 Shared SSR-included route modules like `app/root.tsx` and `app/routes/hono-rpc.tsx` also use
 `@sentry/react-router/cloudflare`. That keeps the Worker/server build on the Worker-safe entrypoint
@@ -202,7 +202,7 @@ Current behavior:
 - stamps `app.session_id` onto emitted Worker span data via `beforeSendSpan`
 - request metrics and logs are recorded for Worker requests
 - the React Router SSR branch uses `wrapSentryHandleRequest(...)` inside that same request path rather than initializing a second server SDK
-- Vite minifies the Worker bundle in `vite.worker.config.ts`, and `wrangler.jsonc` keeps `"no_bundle": true` with `minify: false` so Wrangler deploys the already-built Worker as-is. That keeps the runtime file name and line numbers aligned with the Vite output that was uploaded to Sentry; if Wrangler re-bundles the Worker, the deployed `worker.js` no longer matches the uploaded `worker.js.map`, and Sentry will keep showing unmapped stack frames even though the artifact exists.
+- Vite minifies the Worker bundle in `vite.worker.config.ts`, and `wrangler.jsonc` keeps `"no_bundle": true`, `"preserve_file_names": true`, and `minify: false` so Wrangler deploys the already-built Worker as-is. That keeps the runtime file name and line numbers aligned with the Vite output that was uploaded to Sentry; if Wrangler re-bundles or renames the Worker, the deployed `worker.js` no longer matches the uploaded `worker.js.map`, and Sentry will keep showing unmapped stack frames even though the artifact exists.
 
 Important detail:
 
@@ -215,8 +215,15 @@ Important detail:
 
 Build-time Sentry plugin options are created in `vite-utils/sentry-build.ts`:
 
-- `createSentryBuildOptions()` for React Router builds
-- `createSentryVitePluginOptions()` for server/worker builds
+- `createSentryBuildOptions(mode, dist)` for React Router builds
+- `createSentryVitePluginOptions(mode, { dist, ... })` for server/worker builds
+
+Each build config passes its own explicit Sentry dist into those helpers:
+
+- `vite.config.ts` uses `react-router-dev`
+- `vite.react-router.config.ts` uses `react-router`
+- `vite.hono.config.ts` uses `hono`
+- `vite.worker.config.ts` uses `worker`
 
 These are used by:
 
@@ -230,7 +237,7 @@ Source map upload only happens when the required Sentry build credentials are pr
 Current deployment-build behavior:
 
 - `vite.react-router.config.ts`, `vite.hono.config.ts`, and `vite.worker.config.ts` each upload only the source maps they own using explicit glob patterns
-- canary and production Worker builds derive Sentry `dist` from the Vite mode (`canary` or `production`) so the same release SHA stays separated by deployment lane
+- the build configs pass explicit Sentry `dist` values at the call site, so release attribution stays stable even when the build mode changes
 
 ### Why the canary build log looks noisy
 
@@ -358,7 +365,7 @@ SPOTLIGHT_BINARY=spotlight SPOTLIGHT_MCP=1 deno task spotlight
 deno task preview:worker
 ```
 
-Builds the Worker and runs local Wrangler dev. This is the closest local Worker parity workflow.
+Builds the Worker and runs local Wrangler dev using a bundled Wrangler `preview` env so the generated chunk graph can resolve locally. Production deploys still keep `wrangler.jsonc` on `no_bundle: true`.
 
 ```bash
 deno task build

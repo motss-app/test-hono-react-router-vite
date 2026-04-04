@@ -106,7 +106,7 @@
     "lint": "deno lint && deno run -P=lint npm:@biomejs/biome check .",
     "lint:fix": "deno run -P=lint npm:@biomejs/biome check --write .",
     "preview": "deno task build && deno task start",
-    "preview:worker": "deno task build:worker && deno run -A npm:wrangler dev",
+    "preview:worker": "deno task build:worker && deno run -A npm:wrangler dev --env preview",
     "spotlight": "pnpm dlx @spotlightjs/spotlight",
     "start": "deno run -A scripts/run-deno-with-optional-env.ts -P=start ./build/server.js"
   },

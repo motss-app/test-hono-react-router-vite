@@ -25,6 +25,13 @@
         "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
       }
     },
+    "preview": {
+      "minify": false,
+      "no_bundle": false,
+      "vars": {
+        "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
+      }
+    },
     "production": {
       "routes": [
         {
@@ -62,6 +69,7 @@
   "placement": {
     "mode": "smart"
   },
+  "preserve_file_names": true,
   "preview_urls": true,
   "upload_source_maps": true,
   "vars": {

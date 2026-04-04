@@ -56,9 +56,9 @@ This project now ships with Sentry wired for:
 - Cloudflare Worker error monitoring, tracing, logs, and metrics
 - build-time source map upload when Sentry build credentials are configured
 
-For deployment builds, each Vite config now uploads only the source maps it owns with explicit glob patterns: React Router covers `./build/client/**/*.map` and `./build/server/**/*.map`, Deno/Hono covers `./build/assets/**/*.map` and `./build/server.js.map`, and the Worker covers `./build/assets/**/*.map` and `./build/worker.js.map`. Canary and production Worker builds also derive Sentry `dist` from the build mode so the same release SHA stays separated by deployment lane.
+For deployment builds, each Vite config now uploads only the source maps it owns with explicit glob patterns: React Router covers `./build/client/**/*.map` and `./build/server/**/*.map`, Deno/Hono covers `./build/assets/**/*.map` and `./build/server.js.map`, and the Worker covers `./build/assets/**/*.map` and `./build/worker.js.map`. Each build config passes its own explicit Sentry `dist` into `vite-utils/sentry-build.ts` (`react-router-dev`, `react-router`, `hono`, and `worker`), so release attribution stays stable and predictable across build modes.
 
-The deployment build configs minify in Vite, and `wrangler.jsonc` keeps `"no_bundle": true` with `minify: false` so Cloudflare deploys the exact Worker artifact that produced the uploaded `worker.js.map`.
+The deployment build configs minify in Vite, and `wrangler.jsonc` keeps `"no_bundle": true`, `"preserve_file_names": true`, and `minify: false` so Cloudflare deploys the exact Worker artifact that produced the uploaded `worker.js.map`.
 
 The browser trace now also includes a short-lived `Client bootstrap` span around hydration, plus a `Lazy browser integrations` span for the deferred profiling/replay setup work, so startup gaps show up in Sentry instead of remaining as `No Instrumentation`.
 
@@ -123,7 +123,7 @@ Worker runtime setup:
 
 - Cloudflare Worker runtime DSN now comes from Wrangler `vars.SENTRY_DSN`
 - deployed Worker request ownership stays in `app/worker.ts` via `@sentry/cloudflare`
-- `wrangler.jsonc` keeps `"no_bundle": true` so the deployed Worker stays aligned with the Vite-built `build/worker.js`
+- `wrangler.jsonc` keeps `"no_bundle": true` and `"preserve_file_names": true` so the deployed Worker stays aligned with the Vite-built `build/worker.js`
 - the React Router SSR branch in `app/entry.server.tsx` uses `@sentry/react-router/cloudflare`
   helpers such as `wrapSentryHandleRequest()` and `injectTraceMetaTags()`
 - local Deno dev uses `.env`
@@ -133,7 +133,7 @@ If you are running a local build, add `SENTRY_AUTH_TOKEN` and `SENTRY_RELEASE` t
 
 Cloudflare Worker local parity workflow (follow-up):
 
-- use `deno task preview:worker` when you want to exercise the app and API inside local `workerd` instead of the Deno dev server
+- use `deno task preview:worker` when you want to exercise the app and API inside local `workerd` instead of the Deno dev server; it uses a bundled Wrangler `preview` env so local module resolution works, while deploys still keep `no_bundle: true`
 - keep Spotlight running separately with `deno task spotlight`
 - keep Worker runtime env in Wrangler config or local Wrangler env files rather than `.env`
 - browser-side Spotlight is already wired today

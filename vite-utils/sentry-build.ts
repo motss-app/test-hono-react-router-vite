@@ -15,10 +15,10 @@ interface LegacySourcemapUploadOptions {
 
 interface SharedBuildOptions {
   authToken: string;
-  dist?: string;
   org: string;
   project: string;
   release: {
+    dist: string;
     name: string;
   };
   telemetry: boolean;
@@ -35,7 +35,7 @@ function isDevelopmentSentryMode(mode: RuntimeMode): boolean {
   return mode === 'development';
 }
 
-function createSharedBuildOptions(mode: RuntimeMode): SharedBuildOptions | null {
+function createSharedBuildOptions(mode: RuntimeMode, dist: string): SharedBuildOptions | null {
   if (isDevelopmentSentryMode(mode) || !isDeploymentBuild()) {
     return null;
   }
@@ -47,6 +47,7 @@ function createSharedBuildOptions(mode: RuntimeMode): SharedBuildOptions | null 
     org: sentryOrganization,
     project: sentryProject,
     release: {
+      dist,
       name: readRequiredEnv('SENTRY_RELEASE', {
         source: 'vite-utils/sentry-build.ts',
       }),
@@ -55,28 +56,25 @@ function createSharedBuildOptions(mode: RuntimeMode): SharedBuildOptions | null 
   } satisfies SharedBuildOptions;
 }
 
-export function createSentryBuildOptions(mode: RuntimeMode): SentryReactRouterBuildOptions | null {
-  const sharedBuildOptions = createSharedBuildOptions(mode);
+export function createSentryBuildOptions(
+  mode: RuntimeMode,
+  dist: string
+): SentryReactRouterBuildOptions | null {
+  const sharedBuildOptions = createSharedBuildOptions(mode, dist);
 
   if (!sharedBuildOptions) {
     return null;
   }
 
-  const { dist, ...buildOptions } = sharedBuildOptions;
-
   return {
-    ...buildOptions,
-    ...(dist
-      ? {
-          unstable_sentryVitePluginOptions: {
-            release: {
-              dist,
-            },
-          },
-        }
-      : {}),
+    ...sharedBuildOptions,
     reactComponentAnnotation: {
       enabled: true,
+    },
+    unstable_sentryVitePluginOptions: {
+      release: {
+        dist,
+      },
     },
   };
 }
@@ -85,13 +83,11 @@ export function createSentryVitePluginOptions(
   mode: RuntimeMode,
   options: LegacySourcemapUploadOptions
 ): SentryVitePluginOptions | null {
-  const sharedBuildOptions = createSharedBuildOptions(mode);
+  const sharedBuildOptions = createSharedBuildOptions(mode, options.dist);
 
   if (!sharedBuildOptions) {
     return null;
   }
-
-  const { dist, ...buildOptions } = sharedBuildOptions;
 
   const {
     createRelease = true,
@@ -101,14 +97,9 @@ export function createSentryVitePluginOptions(
   } = options;
 
   return {
-    ...buildOptions,
+    ...sharedBuildOptions,
     release: {
-      ...buildOptions.release,
-      ...(dist
-        ? {
-            dist,
-          }
-        : {}),
+      ...sharedBuildOptions.release,
       create: createRelease,
       finalize: finalizeRelease,
       inject: false,

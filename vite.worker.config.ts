@@ -66,5 +66,9 @@ export default defineConfig(({ mode }) => {
     resolve: {
       tsconfigPaths: true,
     },
+    ssr: {
+      noExternal: true,
+      target: 'webworker',
+    },
   };
 });

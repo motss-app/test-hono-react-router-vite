@@ -37,7 +37,7 @@ Source-map upload for this stack is split by build surface, not by a catch-all `
 - Deno/Hono build: `./build/assets/**/*.map` and `./build/server.js.map`
 - Worker build: `./build/assets/**/*.map` and `./build/worker.js.map`
 
-Those build outputs are minified in the deployment Vite configs, and the Worker deploy keeps `wrangler.jsonc` on `"no_bundle": true` so the deployed `worker.js` stays identical to the asset whose source map Sentry indexes.
+Those build outputs are minified in the deployment Vite configs, and the Worker deploy keeps `wrangler.jsonc` on `"no_bundle": true` plus `"preserve_file_names": true` so the deployed `worker.js` stays identical to the asset whose source map Sentry indexes.
 
 ## What about SSG-only pages?
 
@@ -197,10 +197,10 @@ entrypoint and its build-time dependencies.
 When changing the Worker-side React Router Sentry setup, verify locally:
 
 - `vite.hono.config.ts`, `vite.react-router.config.ts`, and `vite.worker.config.ts` keep `build.minify: true`
-- `wrangler.jsonc` keeps `"no_bundle": true` and `minify: false` so Wrangler does not re-bundle the Worker after source maps are uploaded
+- `wrangler.jsonc` keeps `"no_bundle": true`, `"preserve_file_names": true`, and `minify: false` so Wrangler does not re-bundle or rename the Worker after source maps are uploaded
 - `vite.react-router.config.ts`, `vite.hono.config.ts`, and `vite.worker.config.ts` each keep their own explicit source-map glob patterns
 - the Worker build uploads `./build/assets/**/*.map` plus `./build/worker.js.map`, not a broad `build/**/*.map` glob
-- canary and production Worker builds derive Sentry `dist` from the build mode so release SHAs stay separated by deployment lane
+- the build configs pass explicit Sentry dist strings at the callsite (`react-router-dev`, `react-router`, `hono`, and `worker`), so release attribution is stable across build modes
 - `app/worker.ts` remains the only place that initializes the Worker runtime SDK
 - `app/entry.server.tsx` only uses Worker-safe React Router helper imports
 - no Node-only React Router server helpers remain in the Worker path
