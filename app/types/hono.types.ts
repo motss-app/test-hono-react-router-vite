@@ -4,6 +4,7 @@ export interface HonoEnv {
   Bindings: {
     ASSETS: Fetcher;
     SENTRY_DSN?: string;
+    TURNSTILE_SECRET_KEY?: string;
   };
   Variables: {
     honoData: {

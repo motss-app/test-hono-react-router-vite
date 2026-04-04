@@ -3,6 +3,7 @@ interface ImportMetaEnv {
   SENTRY_RELEASE?: string;
   VITE_SENTRY_DSN?: string;
   VITE_SENTRY_SPOTLIGHT?: string;
+  VITE_TURNSTILE_SITE_KEY?: string;
 }
 
 interface ImportMeta {

@@ -28,16 +28,19 @@ const cspDigestAlgorithm = 'SHA-384';
 const cspNonceByteLength = 16;
 const base64ChunkSize = 0x80_00;
 const cspNonceRequestHeader = 'x-internal-csp-nonce';
+const cloudflareTurnstileOrigin = 'https://challenges.cloudflare.com';
 const defaultConnectSrc = [
   "'self'",
   'https://cloudflareinsights.com',
 ];
 const defaultFrameSrc = [
   "'self'",
+  cloudflareTurnstileOrigin,
 ];
 const defaultScriptSrc = [
   "'self'",
   'https://static.cloudflareinsights.com',
+  cloudflareTurnstileOrigin,
 ];
 export const cloudflareAnalyticsStyleHashes = [
   "'sha256-yA3qHWL4K3kukdLY/T+1vlN/z6FrxQQRjp6/L8l7snM='",
