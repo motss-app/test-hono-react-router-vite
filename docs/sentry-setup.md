@@ -153,10 +153,17 @@ Important detail:
 - `wrapSentryHandleRequest(...)`
 - `injectTraceMetaTags(...)`
 - `captureException(...)` from the exported `handleError`
-- `unstable_instrumentations` from the same file when we want React Router loader/action/middleware/lazy spans
 
 This layer enriches the React Router SSR branch inside the active request that was already opened by
 `@sentry/cloudflare` in `app/worker.ts`.
+
+Recent change note:
+
+- `c2c30333769ea7c3161765ca1b30edb2dc4a487e` switched `app/entry.client.tsx` to the
+  `@sentry/react-router/cloudflare` re-export surface and made `app/entry.server.tsx`
+  `handleError` request-aware so aborted requests are skipped before `captureException(...)`.
+- We kept the runtime demo logging in `handleError` so the intentional error still has a stable
+  `app.session_id` breadcrumb when it is useful.
 
 Shared route modules that are part of the SSR graph, such as `app/root.tsx` and
 `app/routes/hono-rpc.tsx`, also import from `@sentry/react-router/cloudflare` so the Worker build
@@ -168,9 +175,16 @@ Important details:
 - for Cloudflare Worker deploys, do not use the Node-only React Router server helpers such as
   `createSentryHandleError({})` or `createSentryServerInstrumentation()`
 - do not create a separate Node preload file like `instrument.server.mjs` for the Worker path
-- if you need the React Router instrumentation API, export `unstable_instrumentations` from `app/entry.server.tsx` and keep it route-level so the Worker still owns the top-level request span
 - `/api/*`, `/ssr`, document/data requests, and `__manifest` all still enter the Worker first
 - server/runtime ownership on the deployed Worker stays with `@sentry/cloudflare`
+
+Future-watch:
+
+- we tried a route-level `unstable_instrumentations` experiment in `app/entry.server.tsx`, but it
+  added noise and did not improve the current Cloudflare Worker setup enough to keep
+- keep an eye on React Router's Cloudflare Worker instrumentation story; if a Worker-safe server
+  instrumentation export lands later and actually reduces noise, we can revisit it then
+- for now, the current lean Worker-safe helper path is enough and avoids extra span noise
 
 ### Deno server runtime
 

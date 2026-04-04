@@ -93,21 +93,17 @@ Current repo guidance:
 - browser-side React Router tracing can keep the client instrumentation wiring in `app/entry.client.tsx`
 - Worker deploys should not use the Node-only React Router server helpers
 - React Router SSR on the Worker should use `@sentry/react-router/cloudflare` helper exports only
-- if you want loader/action/middleware/lazy spans from React Router's instrumentation API, export `unstable_instrumentations` from `app/entry.server.tsx`
-- keep that instrumentation route-level only; `@sentry/cloudflare` already owns the top-level Worker request span in `app/worker.ts`, so avoid a second request-handler wrapper there
 
 Do not use these Node-oriented helpers in the Worker build:
 
 - `createSentryHandleError(...)`
 - `createSentryServerInstrumentation()`
-- `instrument.server.mjs` as a Worker bootstrap file
 
 Use these Worker-safe helpers instead:
 
 - `wrapSentryHandleRequest(...)`
 - `injectTraceMetaTags(...)`
 - `captureException(...)` for handled SSR errors
-- `unstable_instrumentations` from `app/entry.server.tsx` for route-level spans
 
 ## Current repo pattern
 
@@ -137,9 +133,6 @@ import {
   injectTraceMetaTags,
   wrapSentryHandleRequest,
 } from '@sentry/react-router/cloudflare';
-
-// Export route-level instrumentation here if you need React Router loader/action spans.
-// Keep request ownership in app/worker.ts to avoid duplicate server spans.
 
 export const handleError = error => {
   if (error instanceof Error) {
@@ -225,7 +218,6 @@ When changing the Worker-side React Router Sentry setup, verify locally:
 - the build configs pass explicit Sentry dist strings at the callsite (`react-router-dev`, `react-router`, `hono`, and `worker`), so release attribution is stable across build modes
 - `app/worker.ts` remains the only place that initializes the Worker runtime SDK
 - `app/entry.server.tsx` only uses Worker-safe React Router helper imports
-- `app/entry.server.tsx` exports Worker-safe `unstable_instrumentations` for route-level spans when needed
 - no Node-only React Router server helpers remain in the Worker path
 
 ## Follow-up TODOs
@@ -233,8 +225,13 @@ When changing the Worker-side React Router Sentry setup, verify locally:
 These are not urgent blockers, but revisit them if SSR observability starts to drift or if we decide
 to enforce a stricter "Cloudflare SDK only on the server" rule:
 
+- we already tried a route-level `unstable_instrumentations` approach in `app/entry.server.tsx`,
+  but it was noisy and did not buy us enough to keep
 - restore the old `handleError` behavior if we start missing SSR errors again: skip aborted
   requests, capture non-`Error` throwables, and flush in serverless contexts
+- keep an eye on React Router's Cloudflare Worker instrumentation support; revisit only if they add
+  a Worker-safe server instrumentation path that does not duplicate the Worker request owner or add
+  span noise
 
 ## References
 
