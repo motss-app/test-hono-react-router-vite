@@ -56,7 +56,7 @@ This project now ships with Sentry wired for:
 - Cloudflare Worker error monitoring, tracing, logs, and metrics
 - build-time source map upload when Sentry build credentials are configured
 
-For deployment builds, the React Router pass now clears the shared `build/` tree first (`emptyOutDir: true`), then the Worker pass uploads all source maps under `build/`. Canary and production Worker builds also derive Sentry `dist` from the build mode so the same release SHA stays separated by deployment lane.
+For deployment builds, each Vite config now uploads only the source maps it owns with explicit glob patterns: React Router covers `./build/client/**/*.map` and `./build/server/**/*.map`, Deno/Hono covers `./build/assets/**/*.map` and `./build/server.js.map`, and the Worker covers `./build/assets/**/*.map` and `./build/worker.js.map`. Canary and production Worker builds also derive Sentry `dist` from the build mode so the same release SHA stays separated by deployment lane.
 
 The browser trace now also includes a short-lived `Client bootstrap` span around hydration, plus a `Lazy browser integrations` span for the deferred profiling/replay setup work, so startup gaps show up in Sentry instead of remaining as `No Instrumentation`.
 

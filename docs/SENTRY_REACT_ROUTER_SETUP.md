@@ -31,6 +31,12 @@ Important nuance:
 - this keeps the Worker build on the Worker-safe entrypoint while still working in the browser bundle
 - `app/entry.client.tsx` also wraps hydration in a short-lived `Client bootstrap` span so browser startup shows up explicitly in traces
 
+Source-map upload for this stack is split by build surface, not by a catch-all `build/**/*.map` glob:
+
+- React Router build: `./build/client/**/*.map` and `./build/server/**/*.map`
+- Deno/Hono build: `./build/assets/**/*.map` and `./build/server.js.map`
+- Worker build: `./build/assets/**/*.map` and `./build/worker.js.map`
+
 ## What about SSG-only pages?
 
 If a route is only prerendered at build time and never handles requests at runtime, there is no
@@ -188,8 +194,8 @@ entrypoint and its build-time dependencies.
 
 When changing the Worker-side React Router Sentry setup, verify locally:
 
-- `deno task build:worker` and `deno task build:worker:canary` start from a clean React Router output tree (`emptyOutDir: true`) before the Worker build runs
-- `vite.worker.config.ts` uploads the full `build/` source-map tree, not just the Worker entry file and split chunks
+- `vite.react-router.config.ts`, `vite.hono.config.ts`, and `vite.worker.config.ts` each keep their own explicit source-map glob patterns
+- the Worker build uploads `./build/assets/**/*.map` plus `./build/worker.js.map`, not a broad `build/**/*.map` glob
 - canary and production Worker builds derive Sentry `dist` from the build mode so release SHAs stay separated by deployment lane
 - `app/worker.ts` remains the only place that initializes the Worker runtime SDK
 - `app/entry.server.tsx` only uses Worker-safe React Router helper imports

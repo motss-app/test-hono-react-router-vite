@@ -1,5 +1,11 @@
 {
-  "allowScripts": ["npm:@sentry/cli", "npm:sharp", "npm:sharp@0.33.5", "npm:workerd", "npm:workerd@1.20251202.0"],
+  "allowScripts": [
+    "npm:@sentry/cli",
+    "npm:sharp",
+    "npm:sharp@0.33.5",
+    "npm:workerd",
+    "npm:workerd@1.20251202.0"
+  ],
   "compilerOptions": {
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
@@ -87,9 +93,10 @@
   },
   "tasks": {
     "bench": "ulimit -n 9998999 && deno run build && ./http-bench --target 'deno:PORT=3000 deno run --v8-flags=\"--max-old-space-size=8192\" start' --duration 30 --connections 7999 --url http://localhost:3000/api/test",
-    "build": "deno run -P npm:@react-router/dev build --config ./vite.react-router.config.ts --mode production && deno run -P npm:vite build --config ./vite.hono.config.ts --mode production",
-    "build:worker": "deno run -P npm:@react-router/dev build --config ./vite.react-router.config.ts --mode production && deno run -P npm:vite build --config ./vite.worker.config.ts --mode production",
-    "build:worker:canary": "deno run -P npm:@react-router/dev build --config ./vite.react-router.config.ts --mode canary && deno run -P npm:vite build --config ./vite.worker.config.ts --mode canary",
+    "build": "rm -rf build/ && deno run build:react-router --mode production && deno run -P npm:vite build --config ./vite.hono.config.ts --mode production",
+    "build:react-router": "deno run -P npm:@react-router/dev build --config ./vite.react-router.config.ts",
+    "build:worker": "deno run build:react-router --mode production && deno run -P npm:vite build --config ./vite.worker.config.ts --mode production",
+    "build:worker:canary": "deno run build:react-router --mode canary && deno run -P npm:vite build --config ./vite.worker.config.ts --mode canary",
     "check": " deno run -P npm:@react-router/dev typegen && deno check --unstable-tsgo",
     "convert-fa-pro": "deno run -P=env scripts/convert-fa-pro.ts",
     "dev": "deno run -A scripts/dev-spotlight.ts",

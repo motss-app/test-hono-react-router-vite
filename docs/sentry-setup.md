@@ -25,6 +25,14 @@ The current setup covers four different runtime/build surfaces:
 
 Build-time source map upload is handled separately by Sentry Vite plugins in the Vite build configs.
 
+Current source-map glob layout:
+
+- `vite.react-router.config.ts` uploads `./build/client/**/*.map` and `./build/server/**/*.map`
+- `vite.hono.config.ts` uploads `./build/assets/**/*.map` and `./build/server.js.map`
+- `vite.worker.config.ts` uploads `./build/assets/**/*.map` and `./build/worker.js.map`
+
+Each build surface now uses its own explicit glob pattern set instead of a broad `build/**/*.map` sweep.
+
 Shared SSR-included route modules like `app/root.tsx` and `app/routes/hono-rpc.tsx` also use
 `@sentry/react-router/cloudflare`. That keeps the Worker/server build on the Worker-safe entrypoint
 while still working in the browser bundle, because the cloudflare subpath re-exports the browser
@@ -218,8 +226,7 @@ Source map upload only happens when the required Sentry build credentials are pr
 
 Current deployment-build behavior:
 
-- `deno task build:worker` and `deno task build:worker:canary` start with the React Router build, and `vite.react-router.config.ts` now uses `emptyOutDir: true` to clear `build/` before regenerating the shared client/server output
-- `vite.worker.config.ts` uploads every source map under `build/`, so the Worker entry, split chunks, and any other emitted maps are all covered together
+- `vite.react-router.config.ts`, `vite.hono.config.ts`, and `vite.worker.config.ts` each upload only the source maps they own using explicit glob patterns
 - canary and production Worker builds derive Sentry `dist` from the Vite mode (`canary` or `production`) so the same release SHA stays separated by deployment lane
 
 ### Why the canary build log looks noisy

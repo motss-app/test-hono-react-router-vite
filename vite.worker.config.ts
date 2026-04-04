@@ -9,6 +9,13 @@ import { createSentryVitePluginOptions } from './vite-utils/sentry-build.ts';
 import { sentryCodeSplittingGroup } from './vite-utils/sentry-chunking.ts';
 import { createBuildSentryEnvSnapshot } from './vite-utils/sentry-env-log.ts';
 
+function getSentrySourceMapsGlobPatterns() {
+  return [
+    './build/assets/**/*.map',
+    './build/worker.js.map',
+  ];
+}
+
 export default defineConfig(({ mode }) => {
   const isDeploymentBuild = Deno.env.get('DEPLOYMENT_BUILD') === 'true';
   loadConfigEnvironment(mode);
@@ -20,11 +27,9 @@ export default defineConfig(({ mode }) => {
 
   const sentryVitePluginOptions = createSentryVitePluginOptions(mode, {
     createRelease: false,
-    filesToDeleteAfterUpload: [
-      './build/**/*.map',
-    ],
+    filesToDeleteAfterUpload: getSentrySourceMapsGlobPatterns(),
     finalizeRelease: true,
-    uploadLegacySourcemaps: './build',
+    uploadLegacySourcemaps: getSentrySourceMapsGlobPatterns(),
   });
   return {
     build: {

@@ -5,6 +5,13 @@ import { loadConfigEnvironment } from './vite-utils/load-env.ts';
 import { createSentryVitePluginOptions } from './vite-utils/sentry-build.ts';
 import { createBuildSentryEnvSnapshot } from './vite-utils/sentry-env-log.ts';
 
+function getSentrySourceMapsGlobPatterns() {
+  return [
+    './build/assets/**/*.map',
+    './build/server.js.map',
+  ];
+}
+
 export default defineConfig(({ mode }) => {
   loadConfigEnvironment(mode);
   Deno.stderr.writeSync(
@@ -15,9 +22,9 @@ export default defineConfig(({ mode }) => {
 
   const sentryVitePluginOptions = createSentryVitePluginOptions(mode, {
     createRelease: false,
-    filesToDeleteAfterUpload: './build/server.js.map',
+    filesToDeleteAfterUpload: getSentrySourceMapsGlobPatterns(),
     finalizeRelease: true,
-    uploadLegacySourcemaps: './build/server.js',
+    uploadLegacySourcemaps: getSentrySourceMapsGlobPatterns(),
   });
 
   return {
