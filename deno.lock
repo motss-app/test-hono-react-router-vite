@@ -6,18 +6,18 @@
     "npm:@base-ui/react@1.3.0": "1.3.0_@types+react@19.2.14_react@19.2.4_react-dom@19.2.4__react@19.2.4",
     "npm:@biomejs/biome@*": "2.4.10",
     "npm:@biomejs/biome@2.4.10": "2.4.10",
-    "npm:@cloudflare/workers-types@4.20260403.1": "4.20260403.1",
+    "npm:@cloudflare/workers-types@4.20260404.1": "4.20260404.1",
     "npm:@fontsource-variable/open-sans@5.2.7": "5.2.7",
     "npm:@hono/node-server@1.19.12": "1.19.12_hono@4.12.10",
-    "npm:@hono/vite-dev-server@0.25.1": "0.25.1_hono@4.12.10_wrangler@4.80.0__@cloudflare+workers-types@4.20260403.1",
+    "npm:@hono/vite-dev-server@0.25.1": "0.25.1_hono@4.12.10_wrangler@4.80.0__@cloudflare+workers-types@4.20260404.1_@cloudflare+workers-types@4.20260404.1",
     "npm:@iconify-react/fa7-brands@1.0.0": "1.0.0_react@19.2.4",
     "npm:@iconify-react/fa7-regular@1.0.0": "1.0.0_react@19.2.4",
     "npm:@iconify-react/fa7-solid@1.0.0": "1.0.0_react@19.2.4",
-    "npm:@react-router/dev@*": "7.14.0_react-router@7.14.0__react@19.2.4__react-dom@19.2.4___react@19.2.4_typescript@5.9.3_vite@8.0.3__@emnapi+core@1.9.1__@emnapi+runtime@1.9.1_wrangler@4.80.0__@cloudflare+workers-types@4.20260403.1_react@19.2.4_react-dom@19.2.4__react@19.2.4",
-    "npm:@react-router/dev@7.14.0": "7.14.0_react-router@7.14.0__react@19.2.4__react-dom@19.2.4___react@19.2.4_typescript@5.9.3_vite@8.0.3__@emnapi+core@1.9.1__@emnapi+runtime@1.9.1_wrangler@4.80.0__@cloudflare+workers-types@4.20260403.1_react@19.2.4_react-dom@19.2.4__react@19.2.4",
+    "npm:@react-router/dev@*": "7.14.0_react-router@7.14.0__react@19.2.4__react-dom@19.2.4___react@19.2.4_typescript@5.9.3_vite@8.0.3__@emnapi+core@1.9.1__@emnapi+runtime@1.9.1_wrangler@4.80.0__@cloudflare+workers-types@4.20260404.1_@cloudflare+workers-types@4.20260404.1",
+    "npm:@react-router/dev@7.14.0": "7.14.0_react-router@7.14.0__react@19.2.4__react-dom@19.2.4___react@19.2.4_typescript@5.9.3_vite@8.0.3__@emnapi+core@1.9.1__@emnapi+runtime@1.9.1_wrangler@4.80.0__@cloudflare+workers-types@4.20260404.1_@cloudflare+workers-types@4.20260404.1",
     "npm:@react-router/node@7.14.0": "7.14.0_react-router@7.14.0__react@19.2.4__react-dom@19.2.4___react@19.2.4_typescript@5.9.3_react@19.2.4_react-dom@19.2.4__react@19.2.4",
     "npm:@sentry/browser@10.47.0": "10.47.0",
-    "npm:@sentry/cloudflare@10.47.0": "10.47.0_@cloudflare+workers-types@4.20260403.1",
+    "npm:@sentry/cloudflare@10.47.0": "10.47.0_@cloudflare+workers-types@4.20260404.1",
     "npm:@sentry/deno@10.47.0": "10.47.0",
     "npm:@sentry/react-router@10.47.0": "10.47.0_@react-router+node@7.14.0__react-router@7.14.0___react@19.2.4___react-dom@19.2.4____react@19.2.4__typescript@5.9.3__react@19.2.4__react-dom@19.2.4___react@19.2.4_react@19.2.4_react-router@7.14.0__react@19.2.4__react-dom@19.2.4___react@19.2.4_react-dom@19.2.4__react@19.2.4_typescript@5.9.3",
     "npm:@sentry/vite-plugin@5.1.1": "5.1.1_rollup@4.60.1",
@@ -33,8 +33,8 @@
     "npm:typescript@6.0.2": "6.0.2",
     "npm:vite@*": "8.0.3_@emnapi+core@1.9.1_@emnapi+runtime@1.9.1",
     "npm:vite@8.0.3": "8.0.3_@emnapi+core@1.9.1_@emnapi+runtime@1.9.1",
-    "npm:wrangler@*": "4.80.0_@cloudflare+workers-types@4.20260403.1",
-    "npm:wrangler@4.80.0": "4.80.0_@cloudflare+workers-types@4.20260403.1"
+    "npm:wrangler@*": "4.80.0_@cloudflare+workers-types@4.20260404.1",
+    "npm:wrangler@4.80.0": "4.80.0_@cloudflare+workers-types@4.20260404.1"
   },
   "jsr": {
     "@std/internal@1.0.12": {
@@ -397,8 +397,8 @@
       "os": ["win32"],
       "cpu": ["x64"]
     },
-    "@cloudflare/workers-types@4.20260403.1": {
-      "integrity": "sha512-p6oSNt3yUwcxSoXZ7qCog7+kgQbkSx1Beoci7TMb/xbRF05VR0cO/p1XUE2SLHZ7IgSIc3tNMpFKa0L0fa3Lzg=="
+    "@cloudflare/workers-types@4.20260404.1": {
+      "integrity": "sha512-jfZfktdn3D0ceA59i4lkMgPUR9p5Wd6trtNLQR1RTgF59iVt9/yegkiEZv0TQvJPXlmQOU1D0pAYz7cMztqErg=="
     },
     "@cspotcode/source-map-support@0.8.1": {
       "integrity": "sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==",
@@ -601,7 +601,7 @@
         "hono"
       ]
     },
-    "@hono/vite-dev-server@0.25.1_hono@4.12.10_wrangler@4.80.0__@cloudflare+workers-types@4.20260403.1": {
+    "@hono/vite-dev-server@0.25.1_hono@4.12.10_wrangler@4.80.0__@cloudflare+workers-types@4.20260404.1_@cloudflare+workers-types@4.20260404.1": {
       "integrity": "sha512-H6EqoPtCV+uH1fu8nKyRy5Wh3LU012QxloEYMlUcyMjjEfVFiRXPjHx/0TQiiRi140Vu8San5A4XQWyElKFKaw==",
       "dependencies": [
         "@hono/node-server",
@@ -1150,7 +1150,7 @@
         "@opentelemetry/instrumentation@0.207.0_@opentelemetry+api@1.9.1"
       ]
     },
-    "@react-router/dev@7.14.0_react-router@7.14.0__react@19.2.4__react-dom@19.2.4___react@19.2.4_typescript@5.9.3_vite@8.0.3__@emnapi+core@1.9.1__@emnapi+runtime@1.9.1_wrangler@4.80.0__@cloudflare+workers-types@4.20260403.1_react@19.2.4_react-dom@19.2.4__react@19.2.4": {
+    "@react-router/dev@7.14.0_react-router@7.14.0__react@19.2.4__react-dom@19.2.4___react@19.2.4_typescript@5.9.3_vite@8.0.3__@emnapi+core@1.9.1__@emnapi+runtime@1.9.1_wrangler@4.80.0__@cloudflare+workers-types@4.20260404.1_@cloudflare+workers-types@4.20260404.1": {
       "integrity": "sha512-/1ElF4lDTEIZ/rbEdlj6MmRY9ERRDyaTswWes+3pbqEKF2r/ixSzACueHWIfV9ULg/x5/weCvSexDD9f16ObwA==",
       "dependencies": [
         "@babel/core",
@@ -1523,7 +1523,7 @@
       "scripts": true,
       "bin": true
     },
-    "@sentry/cloudflare@10.47.0_@cloudflare+workers-types@4.20260403.1": {
+    "@sentry/cloudflare@10.47.0_@cloudflare+workers-types@4.20260404.1": {
       "integrity": "sha512-R5noxsP8M/L0TKoaOr2UYNgDitruGxknJJ4kcxHyjA3cpvvqUnDiMG8+E4SDosVFCWizHv+uVKIrPjXx03ruLg==",
       "dependencies": [
         "@cloudflare/workers-types",
@@ -2560,7 +2560,7 @@
       "scripts": true,
       "bin": true
     },
-    "wrangler@4.80.0_@cloudflare+workers-types@4.20260403.1": {
+    "wrangler@4.80.0_@cloudflare+workers-types@4.20260404.1": {
       "integrity": "sha512-2ZKF7uPeOZy65BGk3YfvqBCPo/xH1MrAlMmH9mVP+tCNBrTUMnwOHSj1HrZHgR8LttkAqhko0fGz+I4ax1rzyQ==",
       "dependencies": [
         "@cloudflare/kv-asset-handler",
@@ -2621,7 +2621,7 @@
       "dependencies": [
         "npm:@base-ui/react@1.3.0",
         "npm:@biomejs/biome@2.4.10",
-        "npm:@cloudflare/workers-types@4.20260403.1",
+        "npm:@cloudflare/workers-types@4.20260404.1",
         "npm:@fontsource-variable/open-sans@5.2.7",
         "npm:@hono/node-server@1.19.12",
         "npm:@hono/vite-dev-server@0.25.1",
