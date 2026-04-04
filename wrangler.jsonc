@@ -49,7 +49,6 @@
   // Include the Vite-emitted Worker chunks as ES modules so worker.js can import
   // the generated runtime files during no-bundle deploys.
   "find_additional_modules": true,
-  "logpush": true,
   "main": "./build/worker.js",
   "minify": false,
   "name": "test-hono-react-router-vite",
