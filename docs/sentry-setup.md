@@ -212,6 +212,12 @@ These are used by:
 
 Source map upload only happens when the required Sentry build credentials are present.
 
+Current deployment-build behavior:
+
+- `deno task build:worker` and `deno task build:worker:canary` start with the React Router build, and `vite.react-router.config.ts` now uses `emptyOutDir: true` to clear `build/` before regenerating the shared client/server output
+- `vite.worker.config.ts` uploads every source map under `build/`, so the Worker entry, split chunks, and any other emitted maps are all covered together
+- canary and production Worker builds derive Sentry `dist` from the Vite mode (`canary` or `production`) so the same release SHA stays separated by deployment lane
+
 ### Why the canary build log looks noisy
 
 The `deno run build:worker:canary` output mixes several different kinds of messages:

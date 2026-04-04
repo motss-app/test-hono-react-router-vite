@@ -56,6 +56,8 @@ This project now ships with Sentry wired for:
 - Cloudflare Worker error monitoring, tracing, logs, and metrics
 - build-time source map upload when Sentry build credentials are configured
 
+For deployment builds, the React Router pass now clears the shared `build/` tree first (`emptyOutDir: true`), then the Worker pass uploads all source maps under `build/`. Canary and production Worker builds also derive Sentry `dist` from the build mode so the same release SHA stays separated by deployment lane.
+
 For the full stack-specific setup guide, see [`docs/sentry-setup.md`](docs/sentry-setup.md).
 For the Worker-specific React Router split, see [`docs/SENTRY_REACT_ROUTER_SETUP.md`](docs/SENTRY_REACT_ROUTER_SETUP.md).
 

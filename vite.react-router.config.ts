@@ -37,6 +37,7 @@ export default function createViteConfig(config: ConfigEnv) {
   return {
     build: {
       cssCodeSplit: false,
+      emptyOutDir: true,
       rolldownOptions: {
         output: {
           codeSplitting: {

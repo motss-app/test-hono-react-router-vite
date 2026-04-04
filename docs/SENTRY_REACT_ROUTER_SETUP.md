@@ -187,7 +187,9 @@ entrypoint and its build-time dependencies.
 
 When changing the Worker-side React Router Sentry setup, verify locally:
 
-- `deno task build:worker`
+- `deno task build:worker` and `deno task build:worker:canary` start from a clean React Router output tree (`emptyOutDir: true`) before the Worker build runs
+- `vite.worker.config.ts` uploads the full `build/` source-map tree, not just the Worker entry file and split chunks
+- canary and production Worker builds derive Sentry `dist` from the build mode so release SHAs stay separated by deployment lane
 - `app/worker.ts` remains the only place that initializes the Worker runtime SDK
 - `app/entry.server.tsx` only uses Worker-safe React Router helper imports
 - no Node-only React Router server helpers remain in the Worker path

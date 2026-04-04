@@ -20,9 +20,11 @@ export default defineConfig(({ mode }) => {
 
   const sentryVitePluginOptions = createSentryVitePluginOptions(mode, {
     createRelease: false,
-    filesToDeleteAfterUpload: './build/worker.js.map',
+    filesToDeleteAfterUpload: [
+      './build/**/*.map',
+    ],
     finalizeRelease: true,
-    uploadLegacySourcemaps: './build/worker.js',
+    uploadLegacySourcemaps: './build',
   });
   return {
     build: {
