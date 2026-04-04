@@ -82,7 +82,7 @@ export default defineConfig(async config => {
         : []),
     ],
     resolve: {
-      tsconfigPaths: true,
+      tsconfigPaths: false,
     },
     server: {
       port: 5173,

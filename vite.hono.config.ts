@@ -45,7 +45,7 @@ export default defineConfig(({ mode }) => {
     },
     plugins: sentryVitePluginOptions ? sentryVitePlugin(sentryVitePluginOptions) : [],
     resolve: {
-      tsconfigPaths: true,
+      tsconfigPaths: false,
     },
   };
 });
