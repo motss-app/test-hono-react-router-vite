@@ -30,7 +30,6 @@ export default defineConfig(({ mode }) => {
     dist: 'worker',
     filesToDeleteAfterUpload: getSentrySourceMapsGlobPatterns(),
     finalizeRelease: true,
-    uploadLegacySourcemaps: getSentrySourceMapsGlobPatterns(),
     useModernDebugIdUpload: true,
   });
   return {

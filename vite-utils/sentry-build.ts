@@ -5,14 +5,20 @@ import { readRequiredEnv } from './get-required-env.ts';
 
 type RuntimeMode = 'canary' | 'development' | 'production' | string;
 
-interface SentryVitePluginUploadOptions {
+type SentryVitePluginUploadOptions = {
   createRelease?: boolean;
   dist: string;
   filesToDeleteAfterUpload: string | string[];
   finalizeRelease?: boolean;
-  uploadLegacySourcemaps: string | string[];
-  useModernDebugIdUpload?: boolean;
-}
+} & (
+  | {
+      useModernDebugIdUpload: true;
+    }
+  | {
+      uploadLegacySourcemaps: string | string[];
+      useModernDebugIdUpload?: false;
+    }
+);
 
 interface SharedBuildOptions {
   authToken: string;
@@ -93,8 +99,23 @@ export function createSentryVitePluginOptions(
   const createRelease = options.createRelease ?? true;
   const finalizeRelease = options.finalizeRelease ?? true;
   const filesToDeleteAfterUpload = options.filesToDeleteAfterUpload;
+
+  if (options.useModernDebugIdUpload) {
+    return {
+      ...sharedBuildOptions,
+      release: {
+        ...sharedBuildOptions.release,
+        create: createRelease,
+        finalize: finalizeRelease,
+        inject: false,
+      },
+      sourcemaps: {
+        filesToDeleteAfterUpload,
+      },
+    };
+  }
+
   const uploadLegacySourcemaps = options.uploadLegacySourcemaps;
-  const useModernDebugIdUpload = options.useModernDebugIdUpload ?? false;
 
   return {
     ...sharedBuildOptions,
@@ -109,14 +130,9 @@ export function createSentryVitePluginOptions(
           }
         : {}),
     },
-    sourcemaps: useModernDebugIdUpload
-      ? {
-          assets: uploadLegacySourcemaps,
-          filesToDeleteAfterUpload,
-        }
-      : {
-          disable: true,
-          filesToDeleteAfterUpload,
-        },
+    sourcemaps: {
+      disable: true,
+      filesToDeleteAfterUpload,
+    },
   };
 }

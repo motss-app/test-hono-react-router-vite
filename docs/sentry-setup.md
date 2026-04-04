@@ -36,13 +36,15 @@ Current source-map glob layout:
 
 - `vite.react-router.config.ts` uploads `./build/client/**/*.map` and `./build/server/**/*.map`
 - `vite.hono.config.ts` uploads `./build/assets/**/*.map` and `./build/server.js.map`
-- `vite.worker.config.ts` uploads `./build/assets/**/*.map` and `./build/worker.js.map`
+- `vite.worker.config.ts` uses `useModernDebugIdUpload: true` and keeps `./build/assets/**/*.map` and `./build/worker.js.map` in `filesToDeleteAfterUpload`
+
+The Worker build does not pass `uploadLegacySourcemaps`; the modern Debug-ID path discovers the built JS artifacts directly, while the glob list stays in sync with the generated maps for cleanup after upload.
 
 The Worker build also injects Debug IDs into the emitted `worker.js` and hashed worker chunks before
 deploy, so the deployed artifact carries the same Debug IDs that Sentry sees in the event payload.
 The browser-facing builds still use the SRI-safe legacy upload path.
 
-Each build surface now uses its own explicit glob pattern set instead of a broad `build/**/*.map` sweep.
+Each build surface now keeps its own explicit glob pattern set in the relevant upload or cleanup path instead of a broad `build/**/*.map` sweep.
 
 The deployment Vite configs (`vite.react-router.config.ts`, `vite.hono.config.ts`, and `vite.worker.config.ts`) minify their outputs, and the Worker deploy keeps `wrangler.jsonc` on `"no_bundle": true` plus `"preserve_file_names": true` so Wrangler does not re-bundle or rename the already-built `worker.js` after the source maps are uploaded. The Worker config also sets `base_dir: "./build"`, `find_additional_modules: true`, and an `ESModule` rule for `assets/**/*.js` so the generated chunk graph is uploaded alongside `worker.js`. That keeps the deployed runtime aligned with the exact bytes Sentry indexed.
 
@@ -243,11 +245,17 @@ These are used by:
 - `vite.hono.config.ts`
 - `vite.worker.config.ts`
 
+Build helper split:
+
+- `vite.react-router.config.ts` and `vite.hono.config.ts` keep legacy sourcemap upload with explicit glob patterns
+- `vite.worker.config.ts` opts into modern Debug-ID upload with `useModernDebugIdUpload: true` and keeps its map globs only in `filesToDeleteAfterUpload`
+
 Artifact and source-map upload only happens when the required Sentry build credentials are present.
 
 Current deployment-build behavior:
 
-- `vite.react-router.config.ts`, `vite.hono.config.ts`, and `vite.worker.config.ts` each upload only the source maps they own using explicit glob patterns
+- `vite.react-router.config.ts` and `vite.hono.config.ts` keep legacy upload with explicit glob patterns
+- `vite.worker.config.ts` uses modern Debug-ID upload; its explicit map glob list is retained only for post-upload cleanup
 - the build configs pass explicit Sentry `dist` values at the call site, so release attribution stays stable even when the build mode changes
 - for Debug-ID mode (Worker build), keep the emitted built `.js` artifacts and `.map` files together for
   the same build output; if the `.js` artifact with matching Debug ID is missing, Sentry will report

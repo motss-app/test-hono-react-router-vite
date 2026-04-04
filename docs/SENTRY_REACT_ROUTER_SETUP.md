@@ -35,7 +35,9 @@ Source-map upload for this stack is split by build surface, not by a catch-all `
 
 - React Router build: `./build/client/**/*.map` and `./build/server/**/*.map`
 - Deno/Hono build: `./build/assets/**/*.map` and `./build/server.js.map`
-- Worker build: `./build/assets/**/*.map` and `./build/worker.js.map`
+- Worker build: `useModernDebugIdUpload: true` with `./build/assets/**/*.map` and `./build/worker.js.map` kept in `filesToDeleteAfterUpload`
+
+That means the Worker build does not need `uploadLegacySourcemaps`; the modern Debug-ID path discovers the built JS artifacts directly and only uses the glob list to clean up the generated maps after upload.
 
 For Debug-ID mode, treat this as an artifact pair requirement:
 
@@ -211,7 +213,7 @@ When changing the Worker-side React Router Sentry setup, verify locally:
 - `vite.hono.config.ts`, `vite.react-router.config.ts`, and `vite.worker.config.ts` minify their outputs
 - `wrangler.jsonc` keeps `"no_bundle": true`, `"preserve_file_names": true`, `"find_additional_modules": true`, `base_dir: "./build"`, and `minify: false` so Wrangler does not re-bundle, rename, or omit the generated Worker chunks after source maps are uploaded
 - `vite.react-router.config.ts`, `vite.hono.config.ts`, and `vite.worker.config.ts` each keep their own explicit source-map glob patterns
-- the Worker build uploads `./build/assets/**/*.map` plus `./build/worker.js.map`, not a broad `build/**/*.map` glob
+- the Worker build sets `useModernDebugIdUpload: true` and keeps `./build/assets/**/*.map` plus `./build/worker.js.map` only in `filesToDeleteAfterUpload`
 - the Worker deploy includes the generated `worker.js` plus `assets/**/*.js` chunks from that same build output so Debug IDs match uploaded maps
 - the build configs pass explicit Sentry dist strings at the callsite (`react-router-dev`, `react-router`, `hono`, and `worker`), so release attribution is stable across build modes
 - `app/worker.ts` remains the only place that initializes the Worker runtime SDK

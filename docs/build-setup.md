@@ -62,7 +62,7 @@ Rule of thumb: do not disable future flags preemptively; only turn one off if it
 
 ### Sentry note
 
-For this repo, the browser-facing React Router build keeps legacy sourcemap upload so `unstable_subResourceIntegrity` stays valid. The Worker build uses the Debug ID upload path so the deployed `worker.js` carries the same Debug IDs that Sentry sees, while `wrangler.jsonc` keeps `"no_bundle": true` plus `"preserve_file_names": true` so Wrangler deploys the exact Vite-built Worker artifact. The Worker config also needs explicit module rules for the generated `assets/**/*.js` chunks so Wrangler uploads the full module graph alongside `worker.js`.
+For this repo, the browser-facing React Router build keeps legacy sourcemap upload so `unstable_subResourceIntegrity` stays valid. The Worker build opts into modern Debug-ID upload via `useModernDebugIdUpload: true`, and the `./build/assets/**/*.map` plus `./build/worker.js.map` glob pair is retained only as the Worker `filesToDeleteAfterUpload` list. `wrangler.jsonc` keeps `"no_bundle": true` plus `"preserve_file_names": true` so Wrangler deploys the exact Vite-built Worker artifact. The Worker config also needs explicit module rules for the generated `assets/**/*.js` chunks so Wrangler uploads the full module graph alongside `worker.js`.
 
 ### Production Start
 ```bash
