@@ -10,7 +10,7 @@ interface SentryVitePluginUploadOptions {
   dist: string;
   filesToDeleteAfterUpload: string | string[];
   finalizeRelease?: boolean;
-  uploadLegacySourcemaps?: string | string[];
+  uploadLegacySourcemaps: string | string[];
   useModernDebugIdUpload?: boolean;
 }
 
@@ -93,9 +93,7 @@ export function createSentryVitePluginOptions(
   const createRelease = options.createRelease ?? true;
   const finalizeRelease = options.finalizeRelease ?? true;
   const filesToDeleteAfterUpload = options.filesToDeleteAfterUpload;
-  const uploadLegacySourcemaps = options.useModernDebugIdUpload
-    ? undefined
-    : options.uploadLegacySourcemaps;
+  const uploadLegacySourcemaps = options.uploadLegacySourcemaps;
   const useModernDebugIdUpload = options.useModernDebugIdUpload ?? false;
 
   return {
@@ -113,7 +111,11 @@ export function createSentryVitePluginOptions(
     },
     sourcemaps: useModernDebugIdUpload
       ? {
+          assets: uploadLegacySourcemaps,
           filesToDeleteAfterUpload,
+          ignore: [
+            '**/*.js',
+          ],
         }
       : {
           disable: true,
