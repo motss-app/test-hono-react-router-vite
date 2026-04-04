@@ -1,6 +1,6 @@
 import { create, keyframes, props } from '@stylexjs/stylex';
 import type { JSX } from 'react';
-import { isRouteErrorResponse, useParams, useRouteError } from 'react-router';
+import { isRouteErrorResponse } from 'react-router';
 
 import { Link } from '../components/Link.tsx';
 import { Text } from '../components/text.tsx';
@@ -1035,9 +1035,7 @@ function ErrorIncidentView({
   );
 }
 
-export function ErrorBoundary(): JSX.Element {
-  const error = useRouteError();
-  const params = useParams<'code'>();
+export function ErrorBoundary({ error, params }: Route.ErrorBoundaryProps): JSX.Element {
   const routeCode = params.code;
   let statusCode = serverErrorStatusCode;
   let statusText = 'Internal Server Error';
