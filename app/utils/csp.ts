@@ -42,6 +42,8 @@ const defaultScriptSrc = [
 export const cloudflareAnalyticsStyleHashes = [
   "'sha256-yA3qHWL4K3kukdLY/T+1vlN/z6FrxQQRjp6/L8l7snM='",
 ];
+export const inlineScriptPattern = /<script\b(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g;
+export const inlineStylePattern = /<style\b[^>]*>([\s\S]*?)<\/style>/g;
 const documentPolicy = 'js-profiling';
 
 // ============================================================================
@@ -69,6 +71,18 @@ function uniqueSources(values: readonly string[]): string[] {
 
 async function createDigestToken(value: string): Promise<string> {
   return `sha384-${await digestBase64(value)}`;
+}
+
+export async function collectInlineHashes(html: string, pattern: RegExp): Promise<string[]> {
+  const inlineContents = [
+    ...html.matchAll(pattern),
+  ]
+    .map(match => match[1])
+    .filter((inlineContent): inlineContent is string => Boolean(inlineContent?.trim()));
+
+  return await Promise.all(
+    inlineContents.map(async inlineContent => `'${await createDigestToken(inlineContent)}'`)
+  );
 }
 
 function createNonce(): string {

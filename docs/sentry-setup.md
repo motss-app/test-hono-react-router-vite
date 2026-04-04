@@ -299,7 +299,7 @@ If the `timestamp-*.mjs` `NotFound` ever reappears, first check whether preview-
 
 This repo keeps `unstable_subResourceIntegrity: true`, so emitted browser assets must stay byte-for-byte stable after hashing.
 
-SRI only applies to **external** assets that React Router/Vite can manage in the generated HTML. Inline `<style>` and `<script>` blocks in `root.tsx` are not covered by SRI; they should use CSP nonces instead.
+SRI only applies to **external** assets that React Router/Vite can manage in the generated HTML. Inline `<style>` and `<script>` blocks in `root.tsx` are not covered by SRI; see [CSP for SSG and SSR](csp-ssg-ssr-guide.md) for the nonce/hash split.
 
 The modern Sentry React Router build-end flow can inject debug IDs and rewrite generated JavaScript during upload. That is fine for some projects, but here it can invalidate the integrity hashes that the browser uses to load chunks.
 

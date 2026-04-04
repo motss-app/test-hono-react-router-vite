@@ -58,11 +58,7 @@ function createRouterContext(c: Context<HonoEnv>): RouterContextProvider {
   );
 }
 
-function applySsrResponseHeaders(
-  c: Context<HonoEnv>,
-  responseHeaders: Headers,
-  cspNonce: string | null
-): void {
+function applyCommonResponseHeaders(c: Context<HonoEnv>, responseHeaders: Headers): void {
   const honoTiming = c.res.headers.get('Server-Timing');
 
   if (honoTiming) {
@@ -70,49 +66,84 @@ function applySsrResponseHeaders(
   }
 
   responseHeaders.set('Cache-Control', liveSsrCacheControl);
+}
 
-  if (!(import.meta.env.PROD && responseHeaders.get('Content-Type')?.includes('text/html'))) {
+function logSsrEnvSnapshotOnce(c: Context<HonoEnv>): void {
+  if (hasLoggedSsrEnvSnapshot) {
     return;
   }
 
-  if (!hasLoggedSsrEnvSnapshot) {
-    hasLoggedSsrEnvSnapshot = true;
+  hasLoggedSsrEnvSnapshot = true;
 
-    logger.info(
-      '[app/ssr-handler.ts] Sentry env snapshot',
-      logSentryEnvSnapshot({
-        deploymentBuild: import.meta.env.PROD,
-        mode: import.meta.env.MODE,
-        phase: 'ssr',
-        source: 'app/ssr-handler.ts',
-        values: {
-          port: undefined,
-          sentryAuthToken: undefined,
-          sentryDsn: c.env.SENTRY_DSN,
-          sentryRelease: import.meta.env.SENTRY_RELEASE,
-          sentrySpotlight: undefined,
-          viteSentryDsn: undefined,
-          viteSentrySpotlight: undefined,
-        },
-      })
-    );
-  }
+  logger.info(
+    '[app/ssr-handler.ts] Sentry env snapshot',
+    logSentryEnvSnapshot({
+      deploymentBuild: import.meta.env.PROD,
+      mode: import.meta.env.MODE,
+      phase: 'ssr',
+      source: 'app/ssr-handler.ts',
+      values: {
+        port: undefined,
+        sentryAuthToken: undefined,
+        sentryDsn: c.env.SENTRY_DSN,
+        sentryRelease: import.meta.env.SENTRY_RELEASE,
+        sentrySpotlight: undefined,
+        viteSentryDsn: undefined,
+        viteSentrySpotlight: undefined,
+      },
+    })
+  );
+}
 
+function getSentryDsn(c: Context<HonoEnv>): string {
   const sentryDsn = c.env.SENTRY_DSN;
 
   if (!sentryDsn) {
     throw new Error('app/ssr-handler.ts requires SENTRY_DSN to be defined.');
   }
 
+  return sentryDsn;
+}
+
+function isHtmlResponse(responseHeaders: Headers): boolean {
+  return Boolean(
+    import.meta.env.PROD && responseHeaders.get('Content-Type')?.includes('text/html')
+  );
+}
+
+function applySsrResponseHeaders(
+  c: Context<HonoEnv>,
+  response: Response,
+  responseHeaders: Headers,
+  cspNonce: string | null
+): Response {
+  applyCommonResponseHeaders(c, responseHeaders);
+
+  if (!isHtmlResponse(responseHeaders)) {
+    return new Response(response.body, {
+      headers: responseHeaders,
+      status: response.status,
+      statusText: response.statusText,
+    });
+  }
+
+  logSsrEnvSnapshotOnce(c);
+
   responseHeaders.set(
     'Content-Security-Policy',
     csp.buildPolicy({
-      connectSrc: getSentryConnectSrc(sentryDsn),
+      connectSrc: getSentryConnectSrc(getSentryDsn(c)),
       nonce: cspNonce,
-      styleHashes: import.meta.env.PROD ? cloudflareAnalyticsStyleHashes : [],
+      styleHashes: cloudflareAnalyticsStyleHashes,
     })
   );
   responseHeaders.set('Document-Policy', csp.buildDocumentPolicy());
+
+  return new Response(response.body, {
+    headers: responseHeaders,
+    status: response.status,
+    statusText: response.statusText,
+  });
 }
 
 async function handleSsrRequest(
@@ -131,13 +162,7 @@ async function handleSsrRequest(
 
   const responseHeaders = new Headers(response.headers);
 
-  applySsrResponseHeaders(c, responseHeaders, cspNonce);
-
-  return new Response(response.body, {
-    headers: responseHeaders,
-    status: response.status,
-    statusText: response.statusText,
-  });
+  return applySsrResponseHeaders(c, response, responseHeaders, cspNonce);
 }
 
 export function createSsrHandler(app: App): void {

@@ -7,7 +7,7 @@ Use this rule of thumb:
 - **External same-origin assets** → usually just allow `'self'`
 - **External third-party assets** → allow the host, and optionally add `integrity`
 
-## What nonce, hash, and integrity do
+## Nonce vs hash vs integrity
 
 ### Nonce
 
@@ -47,14 +47,10 @@ For same-origin JS and CSS, `integrity` is optional. In this repo we do **not** 
 
 ### Third-party resources
 
-Add the host to the relevant directive:
+For each third-party service, identify the directive(s) it needs, add the host, and verify both SSR and SSG output. Two examples in this repo are:
 
-```http
-script-src 'self' https://cdn.example.com;
-style-src 'self' https://fonts.googleapis.com;
-font-src 'self' https://fonts.gstatic.com;
-connect-src 'self' https://api.example.com;
-```
+- Turnstile uses `https://challenges.cloudflare.com/turnstile/v0/api.js`, so `script-src` should allow `https://challenges.cloudflare.com` and `frame-src` should allow the same origin for the widget frame.
+- Cloudflare Analytics shares its style hashes through `cloudflareAnalyticsStyleHashes`, and `app/ssr-handler.ts` plus `vite-plugins/copy-headers.ts` both feed that list into `csp.buildPolicy()` so SSR and SSG stay aligned.
 
 If the third-party URL is stable, `integrity` can be worth adding.
 
@@ -62,15 +58,14 @@ If the third-party URL is stable, `integrity` can be worth adding.
 
 ### SSR pages
 
-For request-time HTML:
+For request-time HTML, React Router needs a request-specific nonce so inline styles and streamed document scripts stay CSP-compliant.
 
-- `app/ssr-handler.ts` creates a nonce in production
-- `app/entry.server.tsx` passes that nonce to `ServerRouter`
-- `app/root.tsx` applies the nonce to:
-  - inline critical CSS
-  - `ScrollRestoration`
-  - `Scripts`
-- `app/ssr-handler.ts` sets the runtime `Content-Security-Policy` header
+- `app/ssr-handler.ts` creates a fresh nonce in production and stores it on the request with `csp.setNonce()`.
+- `app/entry.server.tsx` reads the nonce with `csp.getNonce(request)` and passes it to `ServerRouter` and `renderToReadableStream`.
+- `app/root.tsx` reads the nonce from the loader and passes it to `RootDocumentHead` and `RootDocumentScripts`.
+- `app/components/root-document-head.tsx` applies the nonce to inline critical CSS.
+- `app/components/root-document-scripts.tsx` applies the nonce to `ScrollRestoration` and `Scripts`.
+- `app/ssr-handler.ts` uses the nonce when building the runtime `Content-Security-Policy` header.
 
 This is needed because React Router emits inline document scripts during SSR.
 
@@ -82,6 +77,7 @@ For prerendered HTML:
 - `vite-plugins/copy-headers.ts` reads each prerendered HTML file
 - it hashes inline `<script>` and `<style>` blocks
 - it appends route-specific `Cache-Control` and CSP entries to `build/client/_headers`
+- Cloudflare Analytics reuses `cloudflareAnalyticsStyleHashes`, so the generated SSG policy matches the runtime SSR policy.
 
 This is used for both production and canary builds:
 
@@ -119,6 +115,7 @@ So:
 - Using a nonce for static SSG HTML
 - Assuming same-origin inline code is allowed without a nonce or hash
 - Treating `integrity` as a replacement for CSP
+- Forgetting to thread the nonce through React Router's component tree, causing hydration failures on SSR pages
 
 ## Baseline policy shape
 
@@ -143,6 +140,9 @@ Then add external hosts only where needed.
 - `app/root.tsx`
 - `app/entry.server.tsx`
 - `app/ssr-handler.ts`
+- `app/components/root-document-head.tsx`
+- `app/components/root-document-scripts.tsx`
+- `app/components/cloudflare-analytics.tsx`
 - `vite-utils/route-discovery.ts`
 - `vite-plugins/copy-headers.ts`
 - `headers/_headers.production`

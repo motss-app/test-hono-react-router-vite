@@ -79,7 +79,7 @@ export default wrapSentryHandleRequest(async function handleRequest(
         url: request.url,
       };
 
-  const body = await renderToReadableStream(<ServerRouter {...serverRouterProps} />, {
+  const renderOptions = {
     onError(error: unknown) {
       status = HTTP_STATUS_INTERNAL_SERVER_ERROR;
       // Log streaming rendering errors from inside the shell. Don't log
@@ -89,7 +89,17 @@ export default wrapSentryHandleRequest(async function handleRequest(
         console.error(error);
       }
     },
-  });
+  } satisfies Parameters<typeof renderToReadableStream>[1];
+
+  const body = await renderToReadableStream(
+    <ServerRouter {...serverRouterProps} />,
+    nonce
+      ? {
+          ...renderOptions,
+          nonce,
+        }
+      : renderOptions
+  );
   shellRendered = true;
 
   if ((userAgent && isbot(userAgent)) || routerContext.isSpaMode) {

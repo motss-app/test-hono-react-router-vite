@@ -249,15 +249,7 @@ to tell React that this root-level attribute difference is intentional.
 
 ## SRI and CSP notes
 
-The theme bootstrap asset itself is built as an **external** JavaScript file, so it is eligible for integrity protection in principle.
-
-However, React Router's `unstable_subResourceIntegrity` only auto-manages assets that React Router knows about in the generated build/manifest flow. The current `app/root.tsx` inserts the theme bootstrap tag manually, so it does **not** get automatic RR7 SRI decoration just because the asset exists.
-
-Practical consequences:
-
-- inline `<style>` or `<script>` blocks in `root.tsx` are **not** SRI-protected; use a CSP nonce for those
-- externally loaded assets like the theme bootstrap script can use SRI, but you must either let the framework manage the tag or add integrity yourself
-- if you keep the current manual `<script src={themeBootstrapSrc} />` pattern, treat it as an external asset load and rely on the plugin's hashed output plus CSP, not on automatic RR7 SRI
+The theme bootstrap is an external same-origin script rendered manually in `app/root.tsx`, so it does not get automatic React Router SRI decoration. For the broader CSP and SRI rules, see [CSP for SSG and SSR](csp-ssg-ssr-guide.md).
 
 ## Practical guidelines
 
@@ -330,19 +322,7 @@ Now that the asset filename comes from Rolldown's `[hash]`, the plugin only need
 
 ## What this does **not** solve
 
-This plugin removes the custom inline theme bootstrap script, but it does not automatically make the whole React Router document strict-CSP-friendly.
-
-Other framework-generated inline scripts may still exist for things like:
-
-- scroll restoration
-- hydration bootstrapping
-- streamed data payloads
-
-So this plugin specifically gives you:
-
-- no custom inline theme bootstrap
-- a hashed production bootstrap asset
-- a stable way to reference that asset from the app
+This plugin only handles the theme bootstrap script. The rest of the React Router document's inline scripts and styles still follow the CSP rules in [CSP for SSG and SSR](csp-ssg-ssr-guide.md).
 
 ## Quick checklist
 
