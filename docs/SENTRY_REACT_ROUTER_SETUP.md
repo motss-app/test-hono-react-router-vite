@@ -29,6 +29,7 @@ Important nuance:
 - keep `@sentry/react-router` in browser-only client entrypoints like `app/entry.client.tsx`
 - use `@sentry/react-router/cloudflare` in route modules that are part of the SSR graph
 - this keeps the Worker build on the Worker-safe entrypoint while still working in the browser bundle
+- `app/entry.client.tsx` also wraps hydration in a short-lived `Client bootstrap` span so browser startup shows up explicitly in traces
 
 ## What about SSG-only pages?
 

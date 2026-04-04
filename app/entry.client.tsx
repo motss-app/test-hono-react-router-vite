@@ -6,8 +6,10 @@ import {
   logger,
   reactRouterTracingIntegration,
   setTag,
+  startInactiveSpan,
+  startSpan,
 } from '@sentry/react-router';
-import { StrictMode, startTransition } from 'react';
+import { StrictMode, startTransition, useEffect } from 'react';
 import { hydrateRoot } from 'react-dom/client';
 import { HydratedRouter } from 'react-router/dom';
 
@@ -34,6 +36,23 @@ const appSessionId = getBrowserAppSessionId();
 const browserWindow = window as Window & {
   __appEntryClientLoadedAt__?: string;
 };
+
+let browserBootstrapSpanEnded = false;
+let browserBootstrapSpan: ReturnType<typeof startInactiveSpan> | undefined;
+
+function BrowserBootstrapSpanEnder(): null {
+  useEffect(() => {
+    if (browserBootstrapSpanEnded) {
+      return;
+    }
+
+    browserBootstrapSpanEnded = true;
+    browserBootstrapSpan?.end();
+    browserBootstrapSpan = undefined;
+  }, []);
+
+  return null;
+}
 
 console.info(
   '[app/entry.client.tsx] Sentry env snapshot',
@@ -126,10 +145,20 @@ if (isDevSentryMode) {
   flush(2000);
 }
 
+browserBootstrapSpan = startInactiveSpan({
+  attributes: {
+    'app.entry': 'app/entry.client.tsx',
+    'app.phase': 'hydrate',
+  },
+  name: 'Client bootstrap',
+  op: 'ui.load',
+});
+
 startTransition(() => {
   hydrateRoot(
     document,
     <StrictMode>
+      <BrowserBootstrapSpanEnder />
       {/* Keep this prop wiring for future Framework Mode support; do not remove it lightly. */}
       <HydratedRouter
         unstable_instrumentations={[
@@ -145,28 +174,41 @@ startTransition(() => {
  */
 globalThis.requestIdleCallback(async function lazyLoadBrowserIntegration() {
   try {
-    const lazyBrowserIntegrations = [
+    await startSpan(
       {
-        enabled: true,
-        loader: () => import('@sentry/react-router').then(mod => mod.browserProfilingIntegration),
+        attributes: {
+          'app.entry': 'app/entry.client.tsx',
+          'app.phase': 'idle',
+        },
+        name: 'Lazy browser integrations',
+        op: 'ui.setup',
       },
-      // {
-      //   // Don't load the Replay integration in development when we're sending
-      //   // envelopes to the local Spotlight sidecar — Spotlight's envelope parser
-      //   // can choke on replay recordings. Only enable Replay outside of
-      //   // development mode.
-      //   enabled: !isDevSentryMode,
-      //   loader: () => import('@sentry/react-router').then(mod => mod.replayIntegration),
-      // },
-    ].filter(n => n.enabled);
+      async () => {
+        const lazyBrowserIntegrations = [
+          {
+            enabled: true,
+            loader: () =>
+              import('@sentry/react-router').then(mod => mod.browserProfilingIntegration),
+          },
+          // {
+          //   // Don't load the Replay integration in development when we're sending
+          //   // envelopes to the local Spotlight sidecar — Spotlight's envelope parser
+          //   // can choke on replay recordings. Only enable Replay outside of
+          //   // development mode.
+          //   enabled: !isDevSentryMode,
+          //   loader: () => import('@sentry/react-router').then(mod => mod.replayIntegration),
+          // },
+        ].filter(n => n.enabled);
 
-    for await (const { loader } of lazyBrowserIntegrations) {
-      const integration = await loader();
+        for await (const { loader } of lazyBrowserIntegrations) {
+          const integration = await loader();
 
-      addIntegration(integration());
+          addIntegration(integration());
 
-      console.info('[entry.client] Lazy-loaded Sentry browser integration', integration.name);
-    }
+          console.info('[entry.client] Lazy-loaded Sentry browser integration', integration.name);
+        }
+      }
+    );
   } catch (error) {
     console.error('[entry.client] Failed to lazy-load optional Sentry integrations', error);
   }

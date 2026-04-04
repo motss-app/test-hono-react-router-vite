@@ -49,6 +49,8 @@ These are the key files involved in the current setup:
 - `app/entry.client.tsx`
   - browser SDK init
   - React Router tracing
+  - manual hydration/bootstrap span
+  - idle browser integration span
   - Replay, profiling, logs
   - dev Spotlight browser transport
 - `app/root.tsx`
@@ -102,7 +104,9 @@ well as the browser bundle.
 Current behavior:
 
 - uses `reactRouterTracingIntegration({ useInstrumentationAPI: true })`
+- starts a short-lived `Client bootstrap` span around hydration so browser startup no longer shows up as an unexplained trace gap
 - lazy-loads browser profiling after startup
+- wraps the idle browser integration loader in a `Lazy browser integrations` span so the deferred setup work is visible in traces
 - lazy-loads replay after startup
 - reads the session-scoped `app_session_id` cookie and creates a new session cookie in the browser only when one is missing before tagging browser telemetry with `app.session_id`
 - stamps `app.session_id` onto emitted browser span data via `beforeSendSpan`
