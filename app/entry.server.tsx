@@ -36,7 +36,7 @@ function getCurrentAppSessionId(): string | undefined {
   return getIsolationScope().getScopeData().tags[appSessionIdTagName] as string | undefined;
 }
 
-export const handleError: HandleErrorFunction = error => {
+export const handleError: HandleErrorFunction = (error, { request }) => {
   if (error instanceof Error) {
     if (error.message.startsWith(runtimeDemoErrorPrefix)) {
       logger.error('[app/entry.server.tsx] Runtime demo error', {
@@ -46,9 +46,11 @@ export const handleError: HandleErrorFunction = error => {
         route: '/errors/runtime',
         source: 'app/routes/errors.$code.tsx',
       });
-    } else {
-      captureException(error);
     }
+  }
+
+  if (!request.signal.aborted) {
+    captureException(error);
   }
 
   if (isDevelopmentSentryMode(import.meta.env.MODE)) {

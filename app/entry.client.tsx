@@ -8,7 +8,7 @@ import {
   setTag,
   startInactiveSpan,
   startSpan,
-} from '@sentry/react-router';
+} from '@sentry/react-router/cloudflare';
 import { StrictMode, startTransition, useEffect } from 'react';
 import { hydrateRoot } from 'react-dom/client';
 import { HydratedRouter } from 'react-router/dom';
