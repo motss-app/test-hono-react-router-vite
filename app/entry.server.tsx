@@ -18,11 +18,20 @@ import { getIsolationScope, logger } from '@sentry/cloudflare';
 import {
   captureException,
   injectTraceMetaTags,
+  SEMANTIC_ATTRIBUTE_SENTRY_OP,
+  SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN,
+  setHttpStatus,
+  startSpan,
   wrapSentryHandleRequest,
 } from '@sentry/react-router/cloudflare';
 import { isbot } from 'isbot';
 import { renderToReadableStream } from 'react-dom/server';
-import type { EntryContext, HandleErrorFunction } from 'react-router';
+import type {
+  EntryContext,
+  HandleErrorFunction,
+  unstable_InstrumentationHandlerResult,
+  unstable_ServerInstrumentation,
+} from 'react-router';
 import { ServerRouter } from 'react-router';
 
 import { appSessionIdTagName } from './monitoring/app-session.ts';
@@ -31,10 +40,123 @@ import { csp } from './utils/csp.ts';
 
 const HTTP_STATUS_INTERNAL_SERVER_ERROR = 500;
 const runtimeDemoErrorPrefix = 'Runtime error for code:';
+const reactRouterInstrumentationOrigin = 'auto.function.react_router.instrumentation_api';
+
+type RouteInstrumentationOperation =
+  | 'function.react_router.action'
+  | 'function.react_router.lazy'
+  | 'function.react_router.loader'
+  | 'function.react_router.middleware';
 
 function getCurrentAppSessionId(): string | undefined {
   return getIsolationScope().getScopeData().tags[appSessionIdTagName] as string | undefined;
 }
+
+function createRouteSpanAttributes(
+  route: {
+    id: string;
+    index: boolean | undefined;
+    path: string | undefined;
+  },
+  info?: {
+    request?: {
+      method: string;
+      url: string;
+    };
+    unstable_pattern?: string;
+  }
+): Record<string, boolean | string> {
+  return {
+    ...(info?.unstable_pattern
+      ? {
+          'http.route': info.unstable_pattern,
+        }
+      : {}),
+    ...(info?.request
+      ? {
+          'http.method': info.request.method,
+          'http.url': info.request.url,
+        }
+      : {}),
+    ...(route.index
+      ? {
+          'react_router.route.index': true,
+        }
+      : {}),
+    ...(route.path
+      ? {
+          'react_router.route.path': route.path,
+        }
+      : {}),
+    'react_router.route.id': route.id,
+  };
+}
+
+function instrumentRouteSpan(
+  operation: RouteInstrumentationOperation,
+  name: string,
+  attributes: Record<string, boolean | string>,
+  handler: () => Promise<unstable_InstrumentationHandlerResult>
+): Promise<void> {
+  return startSpan(
+    {
+      attributes: {
+        [SEMANTIC_ATTRIBUTE_SENTRY_OP]: operation,
+        [SEMANTIC_ATTRIBUTE_SENTRY_ORIGIN]: reactRouterInstrumentationOrigin,
+        ...attributes,
+      },
+      name,
+    },
+    async span => {
+      const result = await handler();
+
+      if (result.status === 'error') {
+        setHttpStatus(span, 500);
+      }
+    }
+  );
+}
+
+export const unstable_instrumentations = [
+  {
+    route(route) {
+      route.instrument({
+        action(callAction, info) {
+          return instrumentRouteSpan(
+            'function.react_router.action',
+            info.unstable_pattern ?? route.path ?? route.id,
+            createRouteSpanAttributes(route, info),
+            callAction
+          );
+        },
+        lazy(callLazy) {
+          return instrumentRouteSpan(
+            'function.react_router.lazy',
+            route.path ?? route.id,
+            createRouteSpanAttributes(route),
+            callLazy
+          );
+        },
+        loader(callLoader, info) {
+          return instrumentRouteSpan(
+            'function.react_router.loader',
+            info.unstable_pattern ?? route.path ?? route.id,
+            createRouteSpanAttributes(route, info),
+            callLoader
+          );
+        },
+        middleware(callMiddleware, info) {
+          return instrumentRouteSpan(
+            'function.react_router.middleware',
+            info.unstable_pattern ?? route.path ?? route.id,
+            createRouteSpanAttributes(route, info),
+            callMiddleware
+          );
+        },
+      });
+    },
+  },
+] satisfies readonly unstable_ServerInstrumentation[];
 
 export const handleError: HandleErrorFunction = (error, { request }) => {
   if (error instanceof Error) {

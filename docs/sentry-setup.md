@@ -153,6 +153,7 @@ Important detail:
 - `wrapSentryHandleRequest(...)`
 - `injectTraceMetaTags(...)`
 - `captureException(...)` from the exported `handleError`
+- `unstable_instrumentations` from the same file when we want React Router loader/action/middleware/lazy spans
 
 This layer enriches the React Router SSR branch inside the active request that was already opened by
 `@sentry/cloudflare` in `app/worker.ts`.
@@ -166,6 +167,8 @@ Important details:
 
 - for Cloudflare Worker deploys, do not use the Node-only React Router server helpers such as
   `createSentryHandleError({})` or `createSentryServerInstrumentation()`
+- do not create a separate Node preload file like `instrument.server.mjs` for the Worker path
+- if you need the React Router instrumentation API, export `unstable_instrumentations` from `app/entry.server.tsx` and keep it route-level so the Worker still owns the top-level request span
 - `/api/*`, `/ssr`, document/data requests, and `__manifest` all still enter the Worker first
 - server/runtime ownership on the deployed Worker stays with `@sentry/cloudflare`
 
