@@ -87,6 +87,12 @@ throw new Response("Not found", { status: 404 });
 throw new Response("Server error", { status: 500 });
 ```
 
+### Handled vs Unexpected Failures
+- Use `throw new Response(...)` for intended, user-facing failures that the route boundary should handle.
+- Use `throw new Error(...)` only when you want to report an unexpected bug or crash.
+- If a route needs to build the same `Response` pattern repeatedly, a local helper like `throwRouteResponse(...)` keeps the intent clear and avoids misleading `Unexpected Server Error` telemetry in production.
+- If you intentionally demo a real runtime crash, log the same event on the server or worker with the current `app.session_id` so you can match it to the browser issue without capturing a second exception.
+
 ### Error Boundary
 Catches all errors in `app/root.tsx`:
 

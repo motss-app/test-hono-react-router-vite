@@ -76,10 +76,10 @@ export const errorScenarios = [
   {
     code: 'runtime',
     detail:
-      'Throws a normal JavaScript error instead of a `Response`, which lets you compare the two failure shapes.',
+      'Throws a normal JavaScript error instead of a `Response`, which lets you compare the two failure shapes. The server-side log keeps the current `app.session_id` so you can match it to the browser issue.',
     kind: 'runtime',
     label: 'Runtime Error',
-    summary: 'An exception escaped the route logic and was caught by the route boundary.',
+    summary: 'A runtime exception escaped the route logic and was caught by the route boundary.',
     tone: 'runtime',
   },
 ] as const satisfies readonly ErrorScenario[];

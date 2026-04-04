@@ -14,6 +14,7 @@
  * 3. SEO & Performance: It handles bot detection (isbot) to ensure crawlers see the
  *    full content immediately.
  */
+import { getIsolationScope, logger } from '@sentry/cloudflare';
 import {
   captureException,
   injectTraceMetaTags,
@@ -24,14 +25,30 @@ import { renderToReadableStream } from 'react-dom/server';
 import type { EntryContext, HandleErrorFunction } from 'react-router';
 import { ServerRouter } from 'react-router';
 
+import { appSessionIdTagName } from './monitoring/app-session.ts';
 import { isDevelopmentSentryMode } from './monitoring/sentry.ts';
 import { csp } from './utils/csp.ts';
 
 const HTTP_STATUS_INTERNAL_SERVER_ERROR = 500;
+const runtimeDemoErrorPrefix = 'Runtime error for code:';
+
+function getCurrentAppSessionId(): string | undefined {
+  return getIsolationScope().getScopeData().tags[appSessionIdTagName] as string | undefined;
+}
 
 export const handleError: HandleErrorFunction = error => {
   if (error instanceof Error) {
-    captureException(error);
+    if (error.message.startsWith(runtimeDemoErrorPrefix)) {
+      logger.error('[app/entry.server.tsx] Runtime demo error', {
+        appSessionId: getCurrentAppSessionId(),
+        errorMessage: error.message,
+        errorName: error.name,
+        route: '/errors/runtime',
+        source: 'app/routes/errors.$code.tsx',
+      });
+    } else {
+      captureException(error);
+    }
   }
 
   if (isDevelopmentSentryMode(import.meta.env.MODE)) {
