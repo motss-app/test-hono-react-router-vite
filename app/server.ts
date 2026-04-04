@@ -136,9 +136,7 @@ function handleFetch(request: Request): Promise<Response> {
   const baggage = request.headers.get('baggage') ?? undefined;
 
   return withIsolationScope(() => {
-    if (isServerSentryEnabled) {
-      setTag(appSessionIdTagName, appSessionId);
-    }
+    setTag(appSessionIdTagName, appSessionId);
 
     return sentryTrace || baggage
       ? continueTrace(

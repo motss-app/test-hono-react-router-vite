@@ -2,7 +2,7 @@ import { dirname, join, resolve } from 'node:path';
 import type { Plugin } from 'vite';
 
 import { getSentryConnectSrc } from '../app/monitoring/sentry.ts';
-import { csp } from '../app/utils/csp.ts';
+import { cloudflareAnalyticsStyleHashes, csp } from '../app/utils/csp.ts';
 import { readRequiredEnv } from '../vite-utils/get-required-env.ts';
 import { discoverPrerenderRoutes } from '../vite-utils/route-discovery.ts';
 import { createBuildSentryEnvSnapshot } from '../vite-utils/sentry-env-log.ts';
@@ -13,8 +13,18 @@ interface HeadersCopyPluginOptions {
   mode: string;
 }
 
+interface ProcessStaticRouteOptions {
+  clientDir: string;
+  includeCloudflareAnalyticsStyleHashes: boolean;
+  routePath: string;
+  sentryDsn: string;
+  staticPageCacheControl: string;
+}
+
 const inlineScriptPattern = /<script\b(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g;
 const inlineStylePattern = /<style\b[^>]*>([\s\S]*?)<\/style>/g;
+const staticPageCacheControl =
+  'public, max-age=600, s-maxage=3600, stale-while-revalidate=180, must-revalidate';
 
 function fileExists(path: string): boolean {
   try {
@@ -62,12 +72,13 @@ function buildStaticRouteHeaders(
   ].join('\n');
 }
 
-async function processStaticRoute(
-  routePath: string,
-  clientDir: string,
-  sentryDsn: string,
-  staticPageCacheControl: string
-): Promise<string | null> {
+async function processStaticRoute({
+  clientDir,
+  includeCloudflareAnalyticsStyleHashes,
+  routePath,
+  sentryDsn,
+  staticPageCacheControl,
+}: ProcessStaticRouteOptions): Promise<string | null> {
   const htmlFile = htmlFilePathFromRoute(clientDir, routePath);
 
   if (!fileExists(htmlFile)) {
@@ -86,7 +97,10 @@ async function processStaticRoute(
     csp.buildPolicy({
       connectSrc: getSentryConnectSrc(sentryDsn),
       scriptHashes,
-      styleHashes,
+      styleHashes: [
+        ...styleHashes,
+        ...(includeCloudflareAnalyticsStyleHashes ? cloudflareAnalyticsStyleHashes : []),
+      ],
     }),
     staticPageCacheControl
   );
@@ -97,8 +111,7 @@ export function headersCopyPlugin(options: HeadersCopyPluginOptions): Plugin {
   const destPath = resolve(Deno.cwd(), options.dest);
   const clientDir = dirname(destPath);
   const mode = options.mode;
-  const staticPageCacheControl =
-    'public, max-age=600, s-maxage=3600, stale-while-revalidate=180, must-revalidate';
+  const includeCloudflareAnalyticsStyleHashes = mode !== 'development';
   Deno.stderr.writeSync(
     new TextEncoder().encode(
       `[vite-plugins/copy-headers.ts] Sentry env snapshot ${JSON.stringify(createBuildSentryEnvSnapshot('vite-plugins/copy-headers.ts', mode))}\n`
@@ -125,7 +138,13 @@ export function headersCopyPlugin(options: HeadersCopyPluginOptions): Plugin {
       const prerenderRoutes = discoverPrerenderRoutes();
       const staticRouteHeadersResults = await Promise.all(
         prerenderRoutes.map(routePath =>
-          processStaticRoute(routePath, clientDir, sentryDsn, staticPageCacheControl)
+          processStaticRoute({
+            clientDir,
+            includeCloudflareAnalyticsStyleHashes,
+            routePath,
+            sentryDsn,
+            staticPageCacheControl,
+          })
         )
       );
       const staticRouteHeaders = staticRouteHeadersResults.filter(

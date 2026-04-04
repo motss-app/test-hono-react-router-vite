@@ -39,6 +39,9 @@ const defaultScriptSrc = [
   "'self'",
   'https://static.cloudflareinsights.com',
 ];
+export const cloudflareAnalyticsStyleHashes = [
+  "'sha256-yA3qHWL4K3kukdLY/T+1vlN/z6FrxQQRjp6/L8l7snM='",
+];
 const documentPolicy = 'js-profiling';
 
 // ============================================================================

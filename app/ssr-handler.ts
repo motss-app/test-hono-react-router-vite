@@ -9,7 +9,7 @@ import type { App } from './app.ts';
 import { getSentryConnectSrc } from './monitoring/sentry.ts';
 import { HonoContext } from './router-context.ts';
 import type { HonoEnv } from './types/hono.types.ts';
-import { csp } from './utils/csp.ts';
+import { cloudflareAnalyticsStyleHashes, csp } from './utils/csp.ts';
 
 let hasLoggedSsrEnvSnapshot = false;
 const liveSsrCacheControl = 'no-store';
@@ -109,6 +109,7 @@ function applySsrResponseHeaders(
     csp.buildPolicy({
       connectSrc: getSentryConnectSrc(sentryDsn),
       nonce: cspNonce,
+      styleHashes: import.meta.env.PROD ? cloudflareAnalyticsStyleHashes : [],
     })
   );
   responseHeaders.set('Document-Policy', csp.buildDocumentPolicy());

@@ -263,18 +263,16 @@ Practical consequences:
 
 ### Recommended choice for this repo
 
-Inline it if your top priority is to run the theme bootstrap the moment the parser reaches `<head>`.
+Use an external `script src` in `<head>` for the theme bootstrap, which is what the current implementation does.
 
 Why:
 
-- it executes immediately when the parser reaches the script tag, with no network round trip first
-- it is tiny, so the inline cost is low
-- it is isolated from the React app, so the logic still stays in its own source file
-- it avoids the cold-load delay that even a parser-blocking external script still has
+- it keeps the bootstrap logic in a real file instead of embedding it inline
+- it still runs before later HTML when the tag is a plain head script with no `async` or `defer`
+- the app can pair it with a `<link rel="preload" as="script">` hint to reduce the first-load delay
+- the virtual module still gives the app a stable dev URL and a hashed production asset
 
-Use an external `script src` if you value caching and asset separation more than immediate execution. If you do that, keep it as a plain head script with no `async` or `defer`, because that is what makes it parser-blocking and ensures it runs before later HTML. But it will still wait for the network first.
-
-If you inline it, manage it with a CSP nonce or hash.
+Use an inline `<script>` only if your top priority is running the bootstrap the moment the parser reaches `<head>`, and be ready to manage it with a CSP nonce or hash. That is not the current repo choice.
 
 If you reuse this pattern elsewhere:
 
