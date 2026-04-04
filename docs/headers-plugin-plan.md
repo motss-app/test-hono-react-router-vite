@@ -81,3 +81,5 @@ Prerendered HTML/SSG routes now use the production cache policy in both producti
 | `canary` | HTML/SSG routes | 600s (10 m) | 3600s (1 h) | 180s (3 m) | `must-revalidate` |
 | | Other static assets | 900s (15 m) | 3600s (1 h) | 180s (3 m) | `must-revalidate` |
 | | Hashed `/assets/*` | 86400s (1 d) | 31536000s (1 y) | 21600s (6 hr) | — |
+
+Live SSR responses are handled separately and are marked `Cache-Control: no-store` at runtime in `app/ssr-handler.ts` and the SSR route modules. That keeps prerendered HTML cacheable while preventing dynamic pages like `/ssr`, `/errors/:code`, and runtime route-discovery/data responses from serving stale deploy state after a release.

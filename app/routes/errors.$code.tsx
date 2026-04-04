@@ -17,6 +17,7 @@ import type { Route } from './+types/errors.$code.ts';
 const serverErrorStatusCode = 500;
 const unknownErrorStatusCode = 404;
 const unknownErrorStatusText = 'Unknown Error Code';
+const noStoreCacheControl = 'no-store';
 
 const heroReveal = keyframes({
   '0%': {
@@ -92,6 +93,7 @@ export function headers({ loaderHeaders, parentHeaders }: Route.HeadersArgs): He
   const timing = loaderHeaders.get('X-Route-Timing') || '0';
   const newTiming = `error-code-loader;dur=${timing};desc="Error Code Route Loader"`;
 
+  parentHeaders.set('Cache-Control', noStoreCacheControl);
   parentHeaders.append('Server-Timing', newTiming);
 
   return parentHeaders;
