@@ -50,7 +50,6 @@ export default function createViteConfig(config: ConfigEnv) {
     build: {
       cssCodeSplit: false,
       emptyOutDir: false,
-      minify: true,
       rolldownOptions: {
         output: {
           codeSplitting: {
@@ -58,6 +57,7 @@ export default function createViteConfig(config: ConfigEnv) {
               sentryCodeSplittingGroup,
             ],
           },
+          minify: true,
         },
       },
       sourcemap: 'hidden',

@@ -31,13 +31,13 @@ export default defineConfig(({ mode }) => {
   return {
     build: {
       emptyOutDir: false, // Don't delete the client and server folders from React Router,
-      minify: true,
       outDir: 'build',
       rolldownOptions: {
         input: './app/server.ts',
         output: {
           entryFileNames: 'server.js',
           format: 'esm',
+          minify: true,
         },
       },
       sourcemap: 'hidden',

@@ -62,7 +62,7 @@ Rule of thumb: do not disable future flags preemptively; only turn one off if it
 
 ### Sentry note
 
-For this repo, the Sentry build flow must avoid post-build JS rewriting on the client bundle. Legacy sourcemap upload is used so `unstable_subResourceIntegrity` stays valid. The Vite build configs minify their outputs, and the Worker deploy keeps `wrangler.jsonc` on `"no_bundle": true` plus `"preserve_file_names": true` so the deployed `worker.js` stays identical to the artifact that produced `worker.js.map`.
+For this repo, the Sentry build flow must avoid post-build JS rewriting on the client bundle. Legacy sourcemap upload is used so `unstable_subResourceIntegrity` stays valid. The Vite build configs minify their outputs, and the Worker deploy keeps `wrangler.jsonc` on `"no_bundle": true` plus `"preserve_file_names": true` so the deployed `worker.js` stays identical to the artifact that produced `worker.js.map`. The Worker config also needs explicit module rules for the generated `assets/**/*.js` chunks so Wrangler uploads the full module graph alongside `worker.js`.
 
 ### Production Start
 ```bash

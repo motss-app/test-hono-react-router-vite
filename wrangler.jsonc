@@ -5,6 +5,7 @@
     "directory": "./build/client",
     "html_handling": "drop-trailing-slash"
   },
+  "base_dir": "./build",
   "compatibility_date": "2026-03-22",
   "compatibility_flags": [
     "enable_request_signal",
@@ -26,6 +27,7 @@
       }
     },
     "preview": {
+      // Local preview bundles the Worker so Wrangler can resolve the generated chunk graph.
       "minify": false,
       "no_bundle": false,
       "vars": {
@@ -44,12 +46,15 @@
       }
     }
   },
+  // Include the Vite-emitted Worker chunks as ES modules so worker.js can import
+  // the generated runtime files during no-bundle deploys.
+  "find_additional_modules": true,
   "logpush": true,
   "main": "./build/worker.js",
   "minify": false,
   "name": "test-hono-react-router-vite",
-  // Keep Wrangler from re-bundling the Vite output so the deployed Worker stays
-  // byte-for-byte aligned with the source maps uploaded from build/.
+  // Production deploys stay no-bundle so the Vite output remains byte-for-byte
+  // aligned with the source maps uploaded from build/.
   "no_bundle": true,
   "observability": {
     "enabled": true,
@@ -71,6 +76,14 @@
   },
   "preserve_file_names": true,
   "preview_urls": true,
+  "rules": [
+    {
+      "globs": [
+        "assets/**/*.js"
+      ],
+      "type": "ESModule"
+    }
+  ],
   "upload_source_maps": true,
   "vars": {
     "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"

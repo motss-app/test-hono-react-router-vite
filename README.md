@@ -56,7 +56,7 @@ This project now ships with Sentry wired for:
 - Cloudflare Worker error monitoring, tracing, logs, and metrics
 - build-time source map upload when Sentry build credentials are configured
 
-For deployment builds, each Vite config now uploads only the source maps it owns with explicit glob patterns: React Router covers `./build/client/**/*.map` and `./build/server/**/*.map`, Deno/Hono covers `./build/assets/**/*.map` and `./build/server.js.map`, and the Worker covers `./build/assets/**/*.map` and `./build/worker.js.map`. Each build config passes its own explicit Sentry `dist` into `vite-utils/sentry-build.ts` (`react-router-dev`, `react-router`, `hono`, and `worker`), so release attribution stays stable and predictable across build modes.
+For deployment builds, each Vite config now uploads only the source maps it owns with explicit glob patterns: React Router covers `./build/client/**/*.map` and `./build/server/**/*.map`, Deno/Hono covers `./build/assets/**/*.map` and `./build/server.js.map`, and the Worker covers `./build/assets/**/*.map` and `./build/worker.js.map`. Each build config passes its own explicit Sentry `dist` into `vite-utils/sentry-build.ts` (`react-router-dev`, `react-router`, `hono`, and `worker`), so release attribution stays stable and predictable across build modes. The Worker deploy also keeps `base_dir: "./build"`, `find_additional_modules: true`, and an `ESModule` rule for `assets/**/*.js` so the generated chunk graph ships with `worker.js`.
 
 The deployment build configs minify in Vite, and `wrangler.jsonc` keeps `"no_bundle": true`, `"preserve_file_names": true`, and `minify: false` so Cloudflare deploys the exact Worker artifact that produced the uploaded `worker.js.map`.
 
@@ -123,7 +123,7 @@ Worker runtime setup:
 
 - Cloudflare Worker runtime DSN now comes from Wrangler `vars.SENTRY_DSN`
 - deployed Worker request ownership stays in `app/worker.ts` via `@sentry/cloudflare`
-- `wrangler.jsonc` keeps `"no_bundle": true` and `"preserve_file_names": true` so the deployed Worker stays aligned with the Vite-built `build/worker.js`
+- `wrangler.jsonc` keeps `"no_bundle": true`, `"preserve_file_names": true`, `"find_additional_modules": true`, `base_dir: "./build"`, and an `ESModule` rule for `assets/**/*.js` so the deployed Worker stays aligned with the Vite-built `build/worker.js`
 - the React Router SSR branch in `app/entry.server.tsx` uses `@sentry/react-router/cloudflare`
   helpers such as `wrapSentryHandleRequest()` and `injectTraceMetaTags()`
 - local Deno dev uses `.env`

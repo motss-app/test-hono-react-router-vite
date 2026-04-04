@@ -35,7 +35,6 @@ export default defineConfig(({ mode }) => {
   return {
     build: {
       emptyOutDir: false,
-      minify: true,
       modulePreload: {
         polyfill: true,
       },
@@ -50,6 +49,8 @@ export default defineConfig(({ mode }) => {
           },
           entryFileNames: 'worker.js',
           format: 'esm',
+          minify: true,
+          minifyInternalExports: true,
         },
       },
       sourcemap: 'hidden',
