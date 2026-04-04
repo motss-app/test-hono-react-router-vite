@@ -58,19 +58,19 @@ jobs:
             --data '{"hosts":["hono-react-router-vite-canary.motss.fyi"]}'
           echo "✅ Canary Cloudflare cache purged"
 
-      - name: Build & Deploy Production
-        if: github.ref == 'refs/heads/main'
-        id: deploy-production
-        run: |
-          echo "🚀 Building Production..."
-          deno task build:worker
+      # - name: Build & Deploy Production
+      #   if: github.ref == 'refs/heads/main'
+      #   id: deploy-production
+      #   run: |
+      #     echo "🚀 Building Production..."
+      #     deno task build:worker
           
-          echo "🚀 Deploying Production..."
-          deno run -A npm:wrangler deploy --env production > deploy-prod.log 2>&1 || { cat deploy-prod.log; exit 1; }
+      #     echo "🚀 Deploying Production..."
+      #     deno run -A npm:wrangler deploy --env production > deploy-prod.log 2>&1 || { cat deploy-prod.log; exit 1; }
           
-          cat deploy-prod.log
-          URL=$(grep -oE 'https://[^ ]*workers\.dev' deploy-prod.log | head -n 1)
-          echo "PROD_URL=$URL" >> $GITHUB_ENV
+      #     cat deploy-prod.log
+      #     URL=$(grep -oE 'https://[^ ]*workers\.dev' deploy-prod.log | head -n 1)
+      #     echo "PROD_URL=$URL" >> $GITHUB_ENV
 
       - name: Purge Cloudflare Cache
         if: github.ref == 'refs/heads/main'
