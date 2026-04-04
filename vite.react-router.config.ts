@@ -20,21 +20,26 @@ function getReactRouterSourceMapsGlobPatterns() {
   ];
 }
 
-export default function createViteConfig(config: ConfigEnv) {
-  const { mode } = config;
-  const isDev = mode === 'development';
-  const isDeploymentBuild = Deno.env.get('DEPLOYMENT_BUILD') === 'true';
-  loadConfigEnvironment(mode);
+function logReactRouterSentryEnvSnapshot(mode: string): void {
   Deno.stderr.writeSync(
     new TextEncoder().encode(
       `[vite.react-router.config.ts] Sentry env snapshot ${JSON.stringify(createBuildSentryEnvSnapshot('vite.react-router.config.ts', mode))}\n`
     )
   );
+}
+
+export default function createViteConfig(config: ConfigEnv) {
+  const { mode } = config;
+  const isDev = mode === 'development';
+  const isDeploymentBuild = Deno.env.get('DEPLOYMENT_BUILD') === 'true';
+  loadConfigEnvironment(mode);
+  logReactRouterSentryEnvSnapshot(mode);
 
   const sentryVitePluginOptions = isDev
     ? null
     : createSentryVitePluginOptions(mode, {
         createRelease: true,
+        dist: 'react-router',
         filesToDeleteAfterUpload: getReactRouterSourceMapsGlobPatterns(),
         finalizeRelease: false,
         uploadLegacySourcemaps: getReactRouterSourceMapsGlobPatterns(),
@@ -45,6 +50,7 @@ export default function createViteConfig(config: ConfigEnv) {
     build: {
       cssCodeSplit: false,
       emptyOutDir: false,
+      minify: true,
       rolldownOptions: {
         output: {
           codeSplitting: {

@@ -22,6 +22,7 @@ export default defineConfig(({ mode }) => {
 
   const sentryVitePluginOptions = createSentryVitePluginOptions(mode, {
     createRelease: false,
+    dist: 'hono',
     filesToDeleteAfterUpload: getSentrySourceMapsGlobPatterns(),
     finalizeRelease: true,
     uploadLegacySourcemaps: getSentrySourceMapsGlobPatterns(),
@@ -30,6 +31,7 @@ export default defineConfig(({ mode }) => {
   return {
     build: {
       emptyOutDir: false, // Don't delete the client and server folders from React Router,
+      minify: true,
       outDir: 'build',
       rolldownOptions: {
         input: './app/server.ts',

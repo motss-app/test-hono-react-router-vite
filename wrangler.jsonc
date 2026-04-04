@@ -39,7 +39,11 @@
   },
   "logpush": true,
   "main": "./build/worker.js",
+  "minify": false,
   "name": "test-hono-react-router-vite",
+  // Keep Wrangler from re-bundling the Vite output so the deployed Worker stays
+  // byte-for-byte aligned with the source maps uploaded from build/.
+  "no_bundle": true,
   "observability": {
     "enabled": true,
     "head_sampling_rate": 1.0,

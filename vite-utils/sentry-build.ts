@@ -7,6 +7,7 @@ type RuntimeMode = 'canary' | 'development' | 'production' | string;
 
 interface LegacySourcemapUploadOptions {
   createRelease?: boolean;
+  dist: string;
   filesToDeleteAfterUpload: string | string[];
   finalizeRelease?: boolean;
   uploadLegacySourcemaps: string | string[];
@@ -26,10 +27,6 @@ interface SharedBuildOptions {
 const sentryOrganization = 'ipohjs';
 const sentryProject = 'hono-react-router-vite';
 
-function getSentryDist(mode: RuntimeMode): string | undefined {
-  return mode === 'canary' || mode === 'production' ? mode : undefined;
-}
-
 function isDeploymentBuild(): boolean {
   return Deno.env.get('DEPLOYMENT_BUILD') === 'true';
 }
@@ -38,22 +35,15 @@ function isDevelopmentSentryMode(mode: RuntimeMode): boolean {
   return mode === 'development';
 }
 
-function createSharedBuildOptions(mode: RuntimeMode) {
+function createSharedBuildOptions(mode: RuntimeMode): SharedBuildOptions | null {
   if (isDevelopmentSentryMode(mode) || !isDeploymentBuild()) {
     return null;
   }
-
-  const dist = getSentryDist(mode);
 
   return {
     authToken: readRequiredEnv('SENTRY_AUTH_TOKEN', {
       source: 'vite-utils/sentry-build.ts',
     }),
-    ...(dist
-      ? {
-          dist,
-        }
-      : {}),
     org: sentryOrganization,
     project: sentryProject,
     release: {

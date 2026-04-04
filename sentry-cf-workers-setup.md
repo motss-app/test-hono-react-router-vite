@@ -2,6 +2,8 @@
 
 This is different from the Sentry setup for React Router framework mode. In production mode, I deploy React Router framework mode to Cloudflare Workers and all requests will be handled by the Hono server sitting in front of the React Router server.
 
+Repo note: this workspace's current Worker deploy flow builds `app/worker.ts` with Vite, minifies there, and deploys the result with `wrangler.jsonc` set to `"no_bundle": true` so the uploaded source maps continue to match the running `worker.js`. For the repo's current source of truth, see [`docs/sentry-setup.md`](docs/sentry-setup.md).
+
 ## Install
 
 Add the Sentry Cloudflare SDK as a dependency:
