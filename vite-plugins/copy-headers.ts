@@ -2,7 +2,11 @@ import { dirname, join, resolve } from 'node:path';
 import type { Plugin } from 'vite';
 
 import { getSentryConnectSrc } from '../app/monitoring/sentry.ts';
-import { cloudflareAnalyticsStyleHashes, csp } from '../app/utils/csp.ts';
+import {
+  cloudflareAnalyticsScriptHashes,
+  cloudflareAnalyticsStyleHashes,
+  csp,
+} from '../app/utils/csp.ts';
 import { readRequiredEnv } from '../vite-utils/get-required-env.ts';
 import { discoverPrerenderRoutes } from '../vite-utils/route-discovery.ts';
 import { createBuildSentryEnvSnapshot } from '../vite-utils/sentry-env-log.ts';
@@ -96,7 +100,10 @@ async function processStaticRoute({
     routePath,
     csp.buildPolicy({
       connectSrc: getSentryConnectSrc(sentryDsn),
-      scriptHashes,
+      scriptHashes: [
+        ...scriptHashes,
+        ...(includeCloudflareAnalyticsStyleHashes ? cloudflareAnalyticsScriptHashes : []),
+      ],
       styleHashes: [
         ...styleHashes,
         ...(includeCloudflareAnalyticsStyleHashes ? cloudflareAnalyticsStyleHashes : []),

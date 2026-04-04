@@ -39,6 +39,13 @@ const defaultScriptSrc = [
   "'self'",
   'https://static.cloudflareinsights.com',
 ];
+// biome-ignore-start lint/security/noSecrets: These are public CSP hashes for Cloudflare's inline beacon snippets.
+export const cloudflareAnalyticsScriptHashes = [
+  "'sha256-7mu4H06fwDCjmnxxr/xNHyuQC6pLTHr4M2E4jXw5WZs='",
+  "'sha256-QAlSewaQLi/NPCznjAZSyvQ72heD0VdxmNDDkZeCxgc='",
+  "'sha256-p7GE78bbMHDrE4IWzpiMSttAsTpUu7wwi5/wvnH54Os='",
+];
+// biome-ignore-end lint/security/noSecrets: end public CSP hash suppression
 export const cloudflareAnalyticsStyleHashes = [
   "'sha256-yA3qHWL4K3kukdLY/T+1vlN/z6FrxQQRjp6/L8l7snM='",
 ];
