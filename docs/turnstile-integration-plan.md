@@ -73,3 +73,8 @@ Protect the chosen form submission flow with Cloudflare Turnstile while keeping 
 - The public site key can live in a client-exposed env var such as `VITE_TURNSTILE_SITE_KEY`
 - The secret key should stay server-only and be loaded from env or a worker binding
 - If the protected form is currently only a React Router route, prefer moving verification to a Hono API endpoint instead of trying to read the secret from a loader
+
+## References
+
+1. client side integration: https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/
+1. server side integration: https://developers.cloudflare.com/turnstile/get-started/server-side-validation/
