@@ -37,6 +37,14 @@ Source-map upload for this stack is split by build surface, not by a catch-all `
 - Deno/Hono build: `./build/assets/**/*.map` and `./build/server.js.map`
 - Worker build: `./build/assets/**/*.map` and `./build/worker.js.map`
 
+For Debug-ID mode, treat this as an artifact pair requirement:
+
+- upload built source artifacts (`worker.js` and emitted worker chunks) with injected Debug IDs
+- upload their matching source maps (`.map`)
+
+If only source maps are uploaded (or the deployed `.js` artifacts come from a different build), Sentry
+cannot match frame Debug IDs and will show `No Source File With Matching Debug ID`.
+
 The Worker build also injects Debug IDs into the emitted `worker.js` and generated worker chunks
 before deploy, so the deployed artifact matches the Debug IDs that Sentry records. The browser-
 facing React Router build remains on the legacy upload path for SRI safety.
@@ -204,6 +212,7 @@ When changing the Worker-side React Router Sentry setup, verify locally:
 - `wrangler.jsonc` keeps `"no_bundle": true`, `"preserve_file_names": true`, `"find_additional_modules": true`, `base_dir: "./build"`, and `minify: false` so Wrangler does not re-bundle, rename, or omit the generated Worker chunks after source maps are uploaded
 - `vite.react-router.config.ts`, `vite.hono.config.ts`, and `vite.worker.config.ts` each keep their own explicit source-map glob patterns
 - the Worker build uploads `./build/assets/**/*.map` plus `./build/worker.js.map`, not a broad `build/**/*.map` glob
+- the Worker deploy includes the generated `worker.js` plus `assets/**/*.js` chunks from that same build output so Debug IDs match uploaded maps
 - the build configs pass explicit Sentry dist strings at the callsite (`react-router-dev`, `react-router`, `hono`, and `worker`), so release attribution is stable across build modes
 - `app/worker.ts` remains the only place that initializes the Worker runtime SDK
 - `app/entry.server.tsx` only uses Worker-safe React Router helper imports

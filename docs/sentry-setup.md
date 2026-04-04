@@ -23,7 +23,14 @@ The current setup covers four different runtime/build surfaces:
 | Cloudflare Worker runtime | `@sentry/cloudflare` | `app/worker.ts` | Single initialized server SDK for deployed Worker requests |
 | SSG-only pages | `—` at runtime | `react-router.config.ts` prerender and/or client entry | No server/runtime SDK; use the browser SDK only if the prerendered page hydrates |
 
-Build-time source map upload is handled separately by Sentry Vite plugins in the Vite build configs.
+Build-time artifact upload is handled separately by Sentry Vite plugins in the Vite build configs.
+
+Important Debug ID requirement:
+
+- Debug-ID symbolication needs both the built source artifacts (`.js` chunks/files with injected Debug IDs)
+  and the matching source maps (`.map`).
+- Uploading only `.map` files is not enough; Sentry also needs the corresponding built `.js` artifacts to
+  resolve frames by Debug ID.
 
 Current source-map glob layout:
 
@@ -236,12 +243,15 @@ These are used by:
 - `vite.hono.config.ts`
 - `vite.worker.config.ts`
 
-Source map upload only happens when the required Sentry build credentials are present.
+Artifact and source-map upload only happens when the required Sentry build credentials are present.
 
 Current deployment-build behavior:
 
 - `vite.react-router.config.ts`, `vite.hono.config.ts`, and `vite.worker.config.ts` each upload only the source maps they own using explicit glob patterns
 - the build configs pass explicit Sentry `dist` values at the call site, so release attribution stays stable even when the build mode changes
+- for Debug-ID mode (Worker build), keep the emitted built `.js` artifacts and `.map` files together for
+  the same build output; if the `.js` artifact with matching Debug ID is missing, Sentry will report
+  `No Source File With Matching Debug ID`
 
 ### Why the canary build log looks noisy
 

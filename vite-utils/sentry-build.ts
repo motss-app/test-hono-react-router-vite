@@ -113,9 +113,6 @@ export function createSentryVitePluginOptions(
       ? {
           assets: uploadLegacySourcemaps,
           filesToDeleteAfterUpload,
-          ignore: [
-            '**/*.js',
-          ],
         }
       : {
           disable: true,
