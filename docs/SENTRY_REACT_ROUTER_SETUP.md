@@ -197,13 +197,8 @@ When changing the Worker-side React Router Sentry setup, verify locally:
 These are not urgent blockers, but revisit them if SSR observability starts to drift or if we decide
 to enforce a stricter "Cloudflare SDK only on the server" rule:
 
-- confirm whether `app/entry.server.tsx` should keep using `@sentry/react-router/cloudflare` as a
-  helper layer, or whether we want to replace it with a custom wrapper that only leans on
-  `@sentry/cloudflare`
 - restore the old `handleError` behavior if we start missing SSR errors again: skip aborted
   requests, capture non-`Error` throwables, and flush in serverless contexts
-- keep browser/client tracing on `@sentry/react-router`; do not move browser-only telemetry to
-  `@sentry/cloudflare`
 
 ## References
 

@@ -27,6 +27,10 @@ export function isDevelopmentSentryMode(mode: RuntimeMode): boolean {
   return mode === 'development';
 }
 
+function getSentryDist(mode: RuntimeMode): string | undefined {
+  return mode === 'canary' || mode === 'production' ? mode : undefined;
+}
+
 function getRequiredRuntimeRelease(mode: RuntimeMode, release?: string): string | undefined {
   if (isDevelopmentSentryMode(mode)) {
     return;
@@ -73,6 +77,7 @@ function createBaseOptions(mode: RuntimeMode, dsn?: string) {
         }
       : {}),
     debug: isDevelopmentSentryMode(mode),
+    dist: getSentryDist(mode),
     enableLogs: true,
     environment: getSentryEnvironment(mode),
     sendDefaultPii: true,

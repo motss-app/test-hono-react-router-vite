@@ -12,8 +12,23 @@ interface LegacySourcemapUploadOptions {
   uploadLegacySourcemaps: string | string[];
 }
 
+interface SharedBuildOptions {
+  authToken: string;
+  dist?: string;
+  org: string;
+  project: string;
+  release: {
+    name: string;
+  };
+  telemetry: boolean;
+}
+
 const sentryOrganization = 'ipohjs';
 const sentryProject = 'hono-react-router-vite';
+
+function getSentryDist(mode: RuntimeMode): string | undefined {
+  return mode === 'canary' || mode === 'production' ? mode : undefined;
+}
 
 function isDeploymentBuild(): boolean {
   return Deno.env.get('DEPLOYMENT_BUILD') === 'true';
@@ -28,10 +43,17 @@ function createSharedBuildOptions(mode: RuntimeMode) {
     return null;
   }
 
+  const dist = getSentryDist(mode);
+
   return {
     authToken: readRequiredEnv('SENTRY_AUTH_TOKEN', {
       source: 'vite-utils/sentry-build.ts',
     }),
+    ...(dist
+      ? {
+          dist,
+        }
+      : {}),
     org: sentryOrganization,
     project: sentryProject,
     release: {
@@ -40,7 +62,7 @@ function createSharedBuildOptions(mode: RuntimeMode) {
       }),
     },
     telemetry: true,
-  };
+  } satisfies SharedBuildOptions;
 }
 
 export function createSentryBuildOptions(mode: RuntimeMode): SentryReactRouterBuildOptions | null {
@@ -50,8 +72,19 @@ export function createSentryBuildOptions(mode: RuntimeMode): SentryReactRouterBu
     return null;
   }
 
+  const { dist, ...buildOptions } = sharedBuildOptions;
+
   return {
-    ...sharedBuildOptions,
+    ...buildOptions,
+    ...(dist
+      ? {
+          unstable_sentryVitePluginOptions: {
+            release: {
+              dist,
+            },
+          },
+        }
+      : {}),
     reactComponentAnnotation: {
       enabled: true,
     },
@@ -68,6 +101,8 @@ export function createSentryVitePluginOptions(
     return null;
   }
 
+  const { dist, ...buildOptions } = sharedBuildOptions;
+
   const {
     createRelease = true,
     finalizeRelease = true,
@@ -76,9 +111,14 @@ export function createSentryVitePluginOptions(
   } = options;
 
   return {
-    ...sharedBuildOptions,
+    ...buildOptions,
     release: {
-      ...sharedBuildOptions.release,
+      ...buildOptions.release,
+      ...(dist
+        ? {
+            dist,
+          }
+        : {}),
       create: createRelease,
       finalize: finalizeRelease,
       inject: false,
