@@ -37,6 +37,10 @@ Source-map upload for this stack is split by build surface, not by a catch-all `
 - Deno/Hono build: `./build/assets/**/*.map` and `./build/server.js.map`
 - Worker build: `./build/assets/**/*.map` and `./build/worker.js.map`
 
+The Worker build also injects Debug IDs into the emitted `worker.js` and generated worker chunks
+before deploy, so the deployed artifact matches the Debug IDs that Sentry records. The browser-
+facing React Router build remains on the legacy upload path for SRI safety.
+
 Those build outputs are minified in the deployment Vite configs, and the Worker deploy keeps `wrangler.jsonc` on `"no_bundle": true` plus `"preserve_file_names": true` so the deployed `worker.js` stays identical to the asset whose source map Sentry indexes. The Worker config also sets `base_dir: "./build"`, `find_additional_modules: true`, and an `ESModule` rule for `assets/**/*.js` so the generated chunk graph is included with the deploy.
 
 ## What about SSG-only pages?

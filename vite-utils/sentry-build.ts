@@ -5,12 +5,13 @@ import { readRequiredEnv } from './get-required-env.ts';
 
 type RuntimeMode = 'canary' | 'development' | 'production' | string;
 
-interface LegacySourcemapUploadOptions {
+interface SentryVitePluginUploadOptions {
   createRelease?: boolean;
   dist: string;
   filesToDeleteAfterUpload: string | string[];
   finalizeRelease?: boolean;
-  uploadLegacySourcemaps: string | string[];
+  uploadLegacySourcemaps?: string | string[];
+  useModernDebugIdUpload?: boolean;
 }
 
 interface SharedBuildOptions {
@@ -81,7 +82,7 @@ export function createSentryBuildOptions(
 
 export function createSentryVitePluginOptions(
   mode: RuntimeMode,
-  options: LegacySourcemapUploadOptions
+  options: SentryVitePluginUploadOptions
 ): SentryVitePluginOptions | null {
   const sharedBuildOptions = createSharedBuildOptions(mode, options.dist);
 
@@ -89,12 +90,13 @@ export function createSentryVitePluginOptions(
     return null;
   }
 
-  const {
-    createRelease = true,
-    finalizeRelease = true,
-    filesToDeleteAfterUpload,
-    uploadLegacySourcemaps,
-  } = options;
+  const createRelease = options.createRelease ?? true;
+  const finalizeRelease = options.finalizeRelease ?? true;
+  const filesToDeleteAfterUpload = options.filesToDeleteAfterUpload;
+  const uploadLegacySourcemaps = options.useModernDebugIdUpload
+    ? undefined
+    : options.uploadLegacySourcemaps;
+  const useModernDebugIdUpload = options.useModernDebugIdUpload ?? false;
 
   return {
     ...sharedBuildOptions,
@@ -103,11 +105,19 @@ export function createSentryVitePluginOptions(
       create: createRelease,
       finalize: finalizeRelease,
       inject: false,
-      uploadLegacySourcemaps,
+      ...(uploadLegacySourcemaps
+        ? {
+            uploadLegacySourcemaps,
+          }
+        : {}),
     },
-    sourcemaps: {
-      disable: true,
-      filesToDeleteAfterUpload,
-    },
+    sourcemaps: useModernDebugIdUpload
+      ? {
+          filesToDeleteAfterUpload,
+        }
+      : {
+          disable: true,
+          filesToDeleteAfterUpload,
+        },
   };
 }
