@@ -5,6 +5,7 @@
     "directory": "./build/client",
     "html_handling": "drop-trailing-slash"
   },
+  "base_dir": "./build",
   "compatibility_date": "2026-03-22",
   "compatibility_flags": [
     "enable_request_signal",
@@ -15,28 +16,54 @@
   ],
   "env": {
     "canary": {
-      "name": "test-hono-react-router-vite-canary",
       "routes": [
         {
           "custom_domain": true,
           "pattern": "hono-react-router-vite-canary.motss.fyi"
         }
-      ]
+      ],
+      "vars": {
+        "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
+      }
+    },
+    "preview": {
+      // Local preview bundles the Worker so Wrangler can resolve the generated chunk graph.
+      "minify": false,
+      "no_bundle": false,
+      "vars": {
+        "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
+      }
     },
     "production": {
-      "name": "test-hono-react-router-vite"
+      "routes": [
+        {
+          "custom_domain": true,
+          "pattern": "hono-react-router-vite.motss.fyi"
+        }
+      ],
+      "vars": {
+        "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
+      }
     }
   },
+  // Include the Vite-emitted Worker chunks as ES modules so worker.js can import
+  // the generated runtime files during no-bundle deploys.
+  "find_additional_modules": true,
   "logpush": true,
   "main": "./build/worker.js",
+  "minify": false,
   "name": "test-hono-react-router-vite",
+  // Production deploys stay no-bundle so the Vite output remains byte-for-byte
+  // aligned with the source maps uploaded from build/.
+  "no_bundle": true,
   "observability": {
     "enabled": true,
     "head_sampling_rate": 1.0,
     "logs": {
       "enabled": true,
       "head_sampling_rate": 1.0,
-      "invocation_logs": true
+      "invocation_logs": true,
+      "persist": true
     },
     "traces": {
       "enabled": true,
@@ -47,7 +74,19 @@
   "placement": {
     "mode": "smart"
   },
+  "preserve_file_names": true,
   "preview_urls": true,
+  "rules": [
+    {
+      "globs": [
+        "assets/**/*.js"
+      ],
+      "type": "ESModule"
+    }
+  ],
   "upload_source_maps": true,
+  "vars": {
+    "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
+  },
   "workers_dev": true
 }

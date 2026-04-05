@@ -35,6 +35,7 @@ export function RootDocumentHead({ cspNonce }: RootDocumentHeadProps): JSX.Eleme
           <link
             href="/virtual:stylex.css"
             rel="stylesheet"
+            suppressHydrationWarning
           />
           <script
             src="/@id/virtual:stylex:runtime"

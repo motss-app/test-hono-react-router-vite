@@ -3,6 +3,7 @@ import '@fontsource-variable/open-sans/wght.css';
 import openSansLatinWghtNormalWoff2 from '@fontsource-variable/open-sans/files/open-sans-latin-wght-normal.woff2';
 import openSansMathWghtNormalWoff2 from '@fontsource-variable/open-sans/files/open-sans-math-wght-normal.woff2';
 import openSansSymbolsWghtNormalWoff2 from '@fontsource-variable/open-sans/files/open-sans-symbols-wght-normal.woff2';
+import { captureException } from '@sentry/react-router/cloudflare';
 import { props } from '@stylexjs/stylex';
 import type { JSX, PropsWithChildren } from 'react';
 import { isRouteErrorResponse, Link, Outlet, useRouteLoaderData } from 'react-router';
@@ -125,9 +126,15 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): JSX.Element 
         message = `${error.status} - Error`;
         details = error.statusText || error.data?.message || details;
     }
-  } else if (import.meta.env.DEV && error && error instanceof Error) {
-    details = error.message;
-    stack = error.stack;
+  } else if (error && error instanceof Error) {
+    if (typeof window !== 'undefined') {
+      captureException(error);
+    }
+
+    if (import.meta.env.DEV) {
+      details = error.message;
+      stack = error.stack;
+    }
   }
 
   return (

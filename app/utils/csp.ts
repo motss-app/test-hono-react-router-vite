@@ -4,6 +4,7 @@
 
 interface ContentSecurityPolicyOptions {
   connectSrc?: string[] | null;
+  frameSrc?: string[] | null;
   nonce?: string | null;
   scriptSrc?: string[] | null;
   scriptHashes?: string[] | null;
@@ -12,6 +13,7 @@ interface ContentSecurityPolicyOptions {
 
 interface CspResult {
   buildPolicy(options: ContentSecurityPolicyOptions): string;
+  buildDocumentPolicy(): string;
   createDigestToken(value: string): Promise<string>;
   createNonce(): string;
   getNonce(request: Request): string | undefined;
@@ -30,10 +32,17 @@ const defaultConnectSrc = [
   "'self'",
   'https://cloudflareinsights.com',
 ];
+const defaultFrameSrc = [
+  "'self'",
+];
 const defaultScriptSrc = [
   "'self'",
   'https://static.cloudflareinsights.com',
 ];
+export const cloudflareAnalyticsStyleHashes = [
+  "'sha256-yA3qHWL4K3kukdLY/T+1vlN/z6FrxQQRjp6/L8l7snM='",
+];
+const documentPolicy = 'js-profiling';
 
 // ============================================================================
 // Functions
@@ -66,6 +75,10 @@ function createNonce(): string {
   return toBase64(crypto.getRandomValues(new Uint8Array(cspNonceByteLength)));
 }
 
+function buildDocumentPolicy(): string {
+  return documentPolicy;
+}
+
 function getNonce(request: Request): string | undefined {
   return request.headers.get(cspNonceRequestHeader) ?? undefined;
 }
@@ -79,7 +92,11 @@ function setNonce(headers: Headers, nonce: string | null | undefined): void {
 }
 
 function buildPolicy(options: ContentSecurityPolicyOptions): string {
-  const resolvedConnectSrc = options.connectSrc ?? defaultConnectSrc;
+  const resolvedConnectSrc = uniqueSources([
+    ...defaultConnectSrc,
+    ...(options.connectSrc ?? []),
+  ]);
+  const resolvedFrameSrc = options.frameSrc ?? defaultFrameSrc;
   const resolvedScriptSrc = options.scriptSrc ?? defaultScriptSrc;
   const resolvedScriptHashes = options.scriptHashes ?? [];
   const resolvedStyleHashes = options.styleHashes ?? [];
@@ -113,6 +130,7 @@ function buildPolicy(options: ContentSecurityPolicyOptions): string {
     `style-src ${styleSources.join(' ')}`,
     `font-src 'self'`,
     `img-src 'self' data:`,
+    `frame-src ${uniqueSources(resolvedFrameSrc).join(' ')}`,
     `connect-src ${uniqueSources(resolvedConnectSrc).join(' ')}`,
   ].join('; ');
 }
@@ -122,6 +140,7 @@ function buildPolicy(options: ContentSecurityPolicyOptions): string {
 // ============================================================================
 
 export const csp = {
+  buildDocumentPolicy,
   buildPolicy,
   createDigestToken,
   createNonce,

@@ -37,7 +37,7 @@ async function buildThemeBootstrapCode(): Promise<{
           entryFileNames: 'assets/theme-bootstrap-[hash].js',
         },
       },
-      sourcemap: false,
+      sourcemap: true,
       target: 'es2024',
       write: false,
     } satisfies NonNullable<InlineConfig['build']>,

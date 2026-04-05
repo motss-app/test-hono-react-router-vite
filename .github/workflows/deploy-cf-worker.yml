@@ -16,18 +16,21 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     name: Deploy
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      DEPLOYMENT_BUILD: 'true'
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      SENTRY_DSN: ${{ vars.SENTRY_DSN }}
+      SENTRY_RELEASE: ${{ github.sha }}
+      VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 25
+      - uses: actions/checkout@v6
 
       - name: Setup Deno
-        uses: denoland/setup-deno@v1
+        uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
+          cache: true
 
       - name: Install Dependencies
         run: deno install
@@ -45,8 +48,15 @@ jobs:
           cat deploy-canary.log
           URL=$(grep -oE 'https://[^ ]*workers\.dev' deploy-canary.log | head -n 1)
           echo "CANARY_URL=$URL" >> $GITHUB_ENV
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+      - name: Purge Cloudflare Cache for Canary
+        if: steps.deploy-canary.outcome == 'success'
+        run: |
+          curl -X DELETE "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/cache/purge" \
+            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data '{"hosts":["hono-react-router-vite-canary.motss.fyi"]}'
+          echo "✅ Canary Cloudflare cache purged"
 
       - name: Build & Deploy Production
         if: github.ref == 'refs/heads/main'
@@ -61,8 +71,15 @@ jobs:
           cat deploy-prod.log
           URL=$(grep -oE 'https://[^ ]*workers\.dev' deploy-prod.log | head -n 1)
           echo "PROD_URL=$URL" >> $GITHUB_ENV
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+      - name: Purge Cloudflare Cache
+        if: github.ref == 'refs/heads/main'
+        run: |
+          curl -X DELETE "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/cache/purge" \
+            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data '{"hosts":["hono-react-router-vite.motss.fyi"]}'
+          echo "✅ Cloudflare cache purged"
 
       - name: Summary
         run: |

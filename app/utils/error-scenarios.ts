@@ -1,4 +1,4 @@
-interface ErrorScenario {
+export interface ErrorScenario {
   code: '401' | '403' | '404' | '500' | '502' | '503' | 'runtime';
   detail: string;
   kind: 'response' | 'runtime';
@@ -9,7 +9,7 @@ interface ErrorScenario {
   tone: 'critical' | 'runtime' | 'warning';
 }
 
-const errorScenarios = [
+export const errorScenarios = [
   {
     code: '404',
     detail: 'Throws a 404 `Response` so the route boundary can render a missing-resource state.',
@@ -76,10 +76,10 @@ const errorScenarios = [
   {
     code: 'runtime',
     detail:
-      'Throws a normal JavaScript error instead of a `Response`, which lets you compare the two failure shapes.',
+      'Throws a normal JavaScript error instead of a `Response`, which lets you compare the two failure shapes. The server-side log keeps the current `app.session_id` so you can match it to the browser issue.',
     kind: 'runtime',
     label: 'Runtime Error',
-    summary: 'An exception escaped the route logic and was caught by the route boundary.',
+    summary: 'A runtime exception escaped the route logic and was caught by the route boundary.',
     tone: 'runtime',
   },
 ] as const satisfies readonly ErrorScenario[];
@@ -91,7 +91,7 @@ const errorScenarioMap = new Map(
   ])
 );
 
-function getErrorScenario(code: string | undefined): ErrorScenario | undefined {
+export function getErrorScenario(code: string | undefined): ErrorScenario | undefined {
   if (!code) {
     return;
   }
@@ -99,7 +99,7 @@ function getErrorScenario(code: string | undefined): ErrorScenario | undefined {
   return errorScenarioMap.get(code as ErrorScenario['code']);
 }
 
-function getErrorScenarioByStatus(status: number | undefined): ErrorScenario | undefined {
+export function getErrorScenarioByStatus(status: number | undefined): ErrorScenario | undefined {
   if (status === undefined) {
     return;
   }
@@ -108,5 +108,3 @@ function getErrorScenarioByStatus(status: number | undefined): ErrorScenario | u
     scenario => scenario.kind === 'response' && scenario.status === status
   );
 }
-
-export { type ErrorScenario, errorScenarios, getErrorScenario, getErrorScenarioByStatus };

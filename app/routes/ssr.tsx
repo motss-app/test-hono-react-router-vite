@@ -12,6 +12,7 @@ import type { HonoEnv } from '../types/hono.types.ts';
 import type { Route } from './+types/ssr.ts';
 
 const SIMULATION_DELAY_MS = 5;
+const noStoreCacheControl = 'no-store';
 
 const heroReveal = keyframes({
   '0%': {
@@ -438,6 +439,7 @@ export async function loader({ context, request }: Route.LoaderArgs) {
 export function headers({ loaderHeaders, parentHeaders }: Route.HeadersArgs): Headers {
   const renderTime = loaderHeaders.get('X-Render-Time') ?? '-1';
 
+  parentHeaders.set('Cache-Control', noStoreCacheControl);
   parentHeaders.append('Server-Timing', `ssr-loader;dur=${renderTime}`);
 
   const requestId = loaderHeaders.get('X-Request-Id');

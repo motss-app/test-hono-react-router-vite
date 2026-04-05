@@ -165,7 +165,10 @@
         "noSecrets": "error",
         "recommended": true
       },
-      "style": "error",
+      "style": {
+        "recommended": true,
+        "useExportsLast": "off"
+      },
       "suspicious": "error"
     }
   },

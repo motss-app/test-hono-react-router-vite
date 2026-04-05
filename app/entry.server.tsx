@@ -14,21 +14,55 @@
  * 3. SEO & Performance: It handles bot detection (isbot) to ensure crawlers see the
  *    full content immediately.
  */
+import { getIsolationScope, logger } from '@sentry/cloudflare';
+import {
+  captureException,
+  injectTraceMetaTags,
+  wrapSentryHandleRequest,
+} from '@sentry/react-router/cloudflare';
 import { isbot } from 'isbot';
 import { renderToReadableStream } from 'react-dom/server';
-import type { AppLoadContext, EntryContext } from 'react-router';
+import type { EntryContext, HandleErrorFunction } from 'react-router';
 import { ServerRouter } from 'react-router';
 
+import { appSessionIdTagName } from './monitoring/app-session.ts';
+import { isDevelopmentSentryMode } from './monitoring/sentry.ts';
 import { csp } from './utils/csp.ts';
 
 const HTTP_STATUS_INTERNAL_SERVER_ERROR = 500;
+const runtimeDemoErrorPrefix = 'Runtime error for code:';
 
-export default async function handleRequest(
+function getCurrentAppSessionId(): string | undefined {
+  return getIsolationScope().getScopeData().tags[appSessionIdTagName] as string | undefined;
+}
+
+export const handleError: HandleErrorFunction = (error, { request }) => {
+  if (error instanceof Error) {
+    if (error.message.startsWith(runtimeDemoErrorPrefix)) {
+      logger.error('[app/entry.server.tsx] Runtime demo error', {
+        appSessionId: getCurrentAppSessionId(),
+        errorMessage: error.message,
+        errorName: error.name,
+        route: '/errors/runtime',
+        source: 'app/routes/errors.$code.tsx',
+      });
+    }
+  }
+
+  if (!request.signal.aborted) {
+    captureException(error);
+  }
+
+  if (isDevelopmentSentryMode(import.meta.env.MODE)) {
+    console.error(error);
+  }
+};
+
+export default wrapSentryHandleRequest(async function handleRequest(
   request: Request,
   responseStatusCode: number,
   responseHeaders: Headers,
-  routerContext: EntryContext,
-  _loadContext: AppLoadContext
+  routerContext: EntryContext
 ) {
   let shellRendered = false;
   let status = responseStatusCode;
@@ -64,8 +98,8 @@ export default async function handleRequest(
 
   responseHeaders.set('Content-Type', 'text/html');
 
-  return new Response(body, {
+  return new Response(injectTraceMetaTags(body), {
     headers: responseHeaders,
     status,
   });
-}
+});

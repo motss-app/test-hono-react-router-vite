@@ -1,12 +1,18 @@
+import { logger } from '@sentry/cloudflare';
 import type { Context } from 'hono';
 import { endTime, startTime } from 'hono/timing';
 import type { ServerBuild } from 'react-router';
 import { createRequestHandler, RouterContextProvider } from 'react-router';
 
+import { logSentryEnvSnapshot } from '../vite-utils/sentry-env-log.ts';
 import type { App } from './app.ts';
+import { getSentryConnectSrc } from './monitoring/sentry.ts';
 import { HonoContext } from './router-context.ts';
 import type { HonoEnv } from './types/hono.types.ts';
-import { csp } from './utils/csp.ts';
+import { cloudflareAnalyticsStyleHashes, csp } from './utils/csp.ts';
+
+let hasLoggedSsrEnvSnapshot = false;
+const liveSsrCacheControl = 'no-store';
 
 function loadServerBuild(): Promise<ServerBuild> {
   return import.meta.env.PROD
@@ -28,56 +34,116 @@ async function createRouterRequest(request: Request, nonce: string | null): Prom
   });
 }
 
+function setHonoData(c: Context<HonoEnv>): void {
+  startTime(c, 'hono-compute');
+  c.set('honoData', {
+    computedValue: crypto.randomUUID(),
+    meta: {
+      requestId: crypto.randomUUID(),
+      requestUrl: c.req.url,
+    },
+    serverTimestamp: new Date().toISOString(),
+  } satisfies HonoEnv['Variables']['honoData']);
+  endTime(c, 'hono-compute');
+}
+
+function createRouterContext(c: Context<HonoEnv>): RouterContextProvider {
+  return new RouterContextProvider(
+    new Map([
+      [
+        HonoContext,
+        c.var,
+      ],
+    ])
+  );
+}
+
+function applySsrResponseHeaders(
+  c: Context<HonoEnv>,
+  responseHeaders: Headers,
+  cspNonce: string | null
+): void {
+  const honoTiming = c.res.headers.get('Server-Timing');
+
+  if (honoTiming) {
+    responseHeaders.append('Server-Timing', honoTiming);
+  }
+
+  responseHeaders.set('Cache-Control', liveSsrCacheControl);
+
+  if (!(import.meta.env.PROD && responseHeaders.get('Content-Type')?.includes('text/html'))) {
+    return;
+  }
+
+  if (!hasLoggedSsrEnvSnapshot) {
+    hasLoggedSsrEnvSnapshot = true;
+
+    logger.info(
+      '[app/ssr-handler.ts] Sentry env snapshot',
+      logSentryEnvSnapshot({
+        deploymentBuild: import.meta.env.PROD,
+        mode: import.meta.env.MODE,
+        phase: 'ssr',
+        source: 'app/ssr-handler.ts',
+        values: {
+          port: undefined,
+          sentryAuthToken: undefined,
+          sentryDsn: c.env.SENTRY_DSN,
+          sentryRelease: import.meta.env.SENTRY_RELEASE,
+          sentrySpotlight: undefined,
+          viteSentryDsn: undefined,
+          viteSentrySpotlight: undefined,
+        },
+      })
+    );
+  }
+
+  const sentryDsn = c.env.SENTRY_DSN;
+
+  if (!sentryDsn) {
+    throw new Error('app/ssr-handler.ts requires SENTRY_DSN to be defined.');
+  }
+
+  responseHeaders.set(
+    'Content-Security-Policy',
+    csp.buildPolicy({
+      connectSrc: getSentryConnectSrc(sentryDsn),
+      nonce: cspNonce,
+      styleHashes: import.meta.env.PROD ? cloudflareAnalyticsStyleHashes : [],
+    })
+  );
+  responseHeaders.set('Document-Policy', csp.buildDocumentPolicy());
+}
+
+async function handleSsrRequest(
+  c: Context<HonoEnv>,
+  handler: ReturnType<typeof createRequestHandler>
+): Promise<Response> {
+  setHonoData(c);
+
+  startTime(c, 'react-router-ssr');
+  const cspNonce = import.meta.env.PROD ? csp.createNonce() : null;
+  const response = await handler(
+    await createRouterRequest(c.req.raw, cspNonce),
+    createRouterContext(c)
+  );
+  endTime(c, 'react-router-ssr');
+
+  const responseHeaders = new Headers(response.headers);
+
+  applySsrResponseHeaders(c, responseHeaders, cspNonce);
+
+  return new Response(response.body, {
+    headers: responseHeaders,
+    status: response.status,
+    statusText: response.statusText,
+  });
+}
+
 export function createSsrHandler(app: App): void {
   const handler = createRequestHandler(loadServerBuild, import.meta.env.MODE);
 
-  app.use('*', async (c: Context<HonoEnv>) => {
-    startTime(c, 'hono-compute');
-    c.set('honoData', {
-      computedValue: crypto.randomUUID(),
-      meta: {
-        requestId: crypto.randomUUID(),
-        requestUrl: c.req.url,
-      },
-      serverTimestamp: new Date().toISOString(),
-    } satisfies HonoEnv['Variables']['honoData']);
-    endTime(c, 'hono-compute');
-
-    startTime(c, 'react-router-ssr');
-    const cspNonce = import.meta.env.PROD ? csp.createNonce() : null;
-    const response = await handler(
-      await createRouterRequest(c.req.raw, cspNonce),
-      new RouterContextProvider(
-        new Map([
-          [
-            HonoContext,
-            c.var,
-          ],
-        ])
-      )
-    );
-    endTime(c, 'react-router-ssr');
-
-    const responseHeaders = new Headers(response.headers);
-    const honoTiming = c.res.headers.get('Server-Timing');
-
-    if (honoTiming) {
-      responseHeaders.append('Server-Timing', honoTiming);
-    }
-
-    if (import.meta.env.PROD && responseHeaders.get('Content-Type')?.includes('text/html')) {
-      responseHeaders.set(
-        'Content-Security-Policy',
-        csp.buildPolicy({
-          nonce: cspNonce,
-        })
-      );
-    }
-
-    return new Response(response.body, {
-      headers: responseHeaders,
-      status: response.status,
-      statusText: response.statusText,
-    });
+  app.use('*', (c: Context<HonoEnv>) => {
+    return handleSsrRequest(c, handler);
   });
 }

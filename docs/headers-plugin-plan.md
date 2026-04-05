@@ -71,11 +71,15 @@ The plugin hooks into `writeBundle` to copy the environment-specific headers fil
 
 ## Caching Expectations
 
+Prerendered HTML/SSG routes now use the production cache policy in both production and canary builds; only the non-prerendered static asset rows remain mode-specific.
+
 | Mode | Route group | Browser `max-age` | CDN `s-maxage` | `stale-while-revalidate` | Additional directives |
 | ---- | ----------- | ---------------- | -------------- | -------------------------- | --------------------- |
 | `production` | HTML/SSG routes | 600s (10 m) | 3600s (1 h) | 180s (3 m) | `must-revalidate` |
 | | Other static assets | 1800s (30 m) | 10800s (3 h) | 300s (5 m) | `must-revalidate` |
 | | Hashed `/assets/*` | 604800s (7 d) | 315360000s (10 y) | 86400s (24 h) | `immutable` |
-| `canary` | HTML/SSG routes | 300s (5 m) | 1800s (30 m) | 60s (1 m) | `must-revalidate` |
+| `canary` | HTML/SSG routes | 600s (10 m) | 3600s (1 h) | 180s (3 m) | `must-revalidate` |
 | | Other static assets | 900s (15 m) | 3600s (1 h) | 180s (3 m) | `must-revalidate` |
 | | Hashed `/assets/*` | 86400s (1 d) | 31536000s (1 y) | 21600s (6 hr) | — |
+
+Live SSR responses are handled separately and are marked `Cache-Control: no-store` at runtime in `app/ssr-handler.ts` and the SSR route modules. That keeps prerendered HTML cacheable while preventing dynamic pages like `/ssr`, `/errors/:code`, and runtime route-discovery/data responses from serving stale deploy state after a release.

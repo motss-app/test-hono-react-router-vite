@@ -8,6 +8,14 @@ Visit `/errors` to see all error types in action.
 
 ## Throwing Errors
 
+### Use the right failure shape
+
+- Use `throw new Response(...)` when the failure is **intentional** and should be handled by a route boundary as part of the normal HTTP flow.
+- Use `throw new Error(...)` when the failure is **unexpected** and represents a bug or crash that should be captured as an exception.
+- If you need to repeat the same `Response` pattern, wrap it in a small helper such as `throwRouteResponse(...)` so the intent stays obvious.
+
+This distinction matters because React Router sanitizes unexpected errors in production. A raw `Error` can surface as a generic `Unexpected Server Error`, while a thrown `Response` preserves the intended status and avoids misleading telemetry for demo or expected failure cases.
+
 ### HTTP Status Errors
 ```typescript
 throw new Response("Message", { status: 401 });
@@ -32,6 +40,8 @@ throw new Response(JSON.stringify({
 ```typescript
 throw new Error("Something broke");
 ```
+
+Use this form only when you truly want the route to fail as a bug. If you intentionally demo a runtime crash, keep the real `throw new Error(...)` and log the same event on the server or worker with the current `app.session_id` so you can correlate it with the browser issue. Do **not** call `captureException` before the throw or you will create a second Sentry issue.
 
 ## Status Codes
 
@@ -118,6 +128,9 @@ export function ErrorBoundary({ error }) {
 ## Best Practices
 
 - ✅ Use appropriate HTTP status codes
+- ✅ Use `throw new Response(...)` for expected, handled route failures
+- ✅ Use `throw new Error(...)` only for unexpected bugs or crash paths
+- ✅ Correlate intentional runtime-crash demos with `app.session_id` server logs instead of capturing a second exception
 - ✅ Provide user-friendly messages
 - ✅ Validate input early
 - ✅ Handle async errors

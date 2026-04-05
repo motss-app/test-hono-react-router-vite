@@ -6,7 +6,7 @@ A modern full-stack web application using React Router v7, Hono, and Vite with h
 
 ```bash
 deno install
-deno task dev      # Development at http://localhost:5173
+deno task dev      # App + API + Spotlight at http://localhost:5173
 deno task build && deno task start  # Production at http://localhost:3000
 ```
 
@@ -14,9 +14,10 @@ deno task build && deno task start  # Production at http://localhost:3000
 
 ### Development Mode
 - **Port**: 5173
-- **Server**: Vite dev server with HMR
+- **Server**: Vite dev server with HMR + Spotlight sidecar
 - **API**: Hono handles `/api/*` routes
 - **Pages**: React Router handles all other routes
+- **Worker parity**: use `deno task preview:worker` when you want to run the app and API inside local Cloudflare `workerd` instead of the Deno dev server
 
 ### Production Mode
 - **Port**: 3000
@@ -85,6 +86,12 @@ throw new Response("Not found", { status: 404 });
 // 500 Server Error
 throw new Response("Server error", { status: 500 });
 ```
+
+### Handled vs Unexpected Failures
+- Use `throw new Response(...)` for intended, user-facing failures that the route boundary should handle.
+- Use `throw new Error(...)` only when you want to report an unexpected bug or crash.
+- If a route needs to build the same `Response` pattern repeatedly, a local helper like `throwRouteResponse(...)` keeps the intent clear and avoids misleading `Unexpected Server Error` telemetry in production.
+- If you intentionally demo a real runtime crash, log the same event on the server or worker with the current `app.session_id` so you can match it to the browser issue without capturing a second exception.
 
 ### Error Boundary
 Catches all errors in `app/root.tsx`:

@@ -68,7 +68,7 @@ http://localhost:3000/ssr       → Server-rendered (SSR)
 ## Scripts
 
 ```bash
-deno task dev      # Development with HMR
+deno task dev      # Development with HMR + Spotlight
 deno task build    # Production build
 deno task start    # Production server
 deno task preview  # Preview build locally

@@ -1,6 +1,6 @@
 import { create, keyframes, props } from '@stylexjs/stylex';
 import type { JSX } from 'react';
-import { isRouteErrorResponse, useParams, useRouteError } from 'react-router';
+import { isRouteErrorResponse } from 'react-router';
 
 import { Link } from '../components/Link.tsx';
 import { Text } from '../components/text.tsx';
@@ -17,6 +17,7 @@ import type { Route } from './+types/errors.$code.ts';
 const serverErrorStatusCode = 500;
 const unknownErrorStatusCode = 404;
 const unknownErrorStatusText = 'Unknown Error Code';
+const noStoreCacheControl = 'no-store';
 
 const heroReveal = keyframes({
   '0%': {
@@ -41,7 +42,7 @@ const artworkDrift = keyframes({
   },
 });
 
-function meta(): Route.MetaDescriptors {
+export function meta(): Route.MetaDescriptors {
   return [
     {
       title: 'Error Case Demo',
@@ -68,7 +69,7 @@ function throwRouteResponse(
   });
 }
 
-function loader({ params }: Route.LoaderArgs) {
+export function loader({ params }: Route.LoaderArgs) {
   const start = performance.now();
   const scenario = getErrorScenario(params.code);
 
@@ -88,10 +89,11 @@ function loader({ params }: Route.LoaderArgs) {
   );
 }
 
-function headers({ loaderHeaders, parentHeaders }: Route.HeadersArgs): Headers {
+export function headers({ loaderHeaders, parentHeaders }: Route.HeadersArgs): Headers {
   const timing = loaderHeaders.get('X-Route-Timing') || '0';
   const newTiming = `error-code-loader;dur=${timing};desc="Error Code Route Loader"`;
 
+  parentHeaders.set('Cache-Control', noStoreCacheControl);
   parentHeaders.append('Server-Timing', newTiming);
 
   return parentHeaders;
@@ -1035,25 +1037,7 @@ function ErrorIncidentView({
   );
 }
 
-function ErrorCode({ params }: Route.ComponentProps): JSX.Element {
-  const routeCode = params.code;
-  const scenario = getErrorScenario(routeCode);
-
-  return (
-    <ErrorIncidentView
-      errorType="Pending Error"
-      message="This route is designed to throw before the normal component renders"
-      routeCode={routeCode}
-      scenario={scenario}
-      statusCode={500}
-      statusText="Intentional Error Route"
-    />
-  );
-}
-
-function ErrorBoundary(): JSX.Element {
-  const error = useRouteError();
-  const params = useParams<'code'>();
+export function ErrorBoundary({ error, params }: Route.ErrorBoundaryProps): JSX.Element {
   const routeCode = params.code;
   let statusCode = serverErrorStatusCode;
   let statusText = 'Internal Server Error';
@@ -1089,5 +1073,18 @@ function ErrorBoundary(): JSX.Element {
   );
 }
 
-export { ErrorBoundary, headers, loader, meta };
-export default ErrorCode;
+export default function ErrorCode({ params }: Route.ComponentProps): JSX.Element {
+  const routeCode = params.code;
+  const scenario = getErrorScenario(routeCode);
+
+  return (
+    <ErrorIncidentView
+      errorType="Pending Error"
+      message="This route is designed to throw before the normal component renders"
+      routeCode={routeCode}
+      scenario={scenario}
+      statusCode={500}
+      statusText="Intentional Error Route"
+    />
+  );
+}
