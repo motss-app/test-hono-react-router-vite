@@ -11,7 +11,6 @@
     "allowUnusedLabels": false,
     "erasableSyntaxOnly": true,
     "exactOptionalPropertyTypes": true,
-    "forceConsistentCasingInFileNames": true,
     "jsx": "react-jsx",
     "jsxImportSource": "react",
     "jsxImportSourceTypes": "@types/react",

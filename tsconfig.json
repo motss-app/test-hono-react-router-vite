@@ -3,6 +3,7 @@
     "allowImportingTsExtensions": true,
     "baseUrl": ".",
     "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
     "jsx": "react-jsx",
     "lib": [
       "DOM",
@@ -21,7 +22,6 @@
     "strict": true,
     "target": "ESNext",
     "types": [
-      "node",
       "vite/client"
     ],
     "verbatimModuleSyntax": true

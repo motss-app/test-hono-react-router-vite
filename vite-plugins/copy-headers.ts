@@ -2,7 +2,13 @@ import { dirname, join, resolve } from 'node:path';
 import type { Plugin } from 'vite';
 
 import { getSentryConnectSrc } from '../app/monitoring/sentry.ts';
-import { cloudflareAnalyticsStyleHashes, csp } from '../app/utils/csp.ts';
+import {
+  cloudflareAnalyticsStyleHashes,
+  collectInlineHashes,
+  csp,
+  inlineScriptPattern,
+  inlineStylePattern,
+} from '../app/utils/csp.ts';
 import { readRequiredEnv } from '../vite-utils/get-required-env.ts';
 import { discoverPrerenderRoutes } from '../vite-utils/route-discovery.ts';
 import { createBuildSentryEnvSnapshot } from '../vite-utils/sentry-env-log.ts';
@@ -21,8 +27,6 @@ interface ProcessStaticRouteOptions {
   staticPageCacheControl: string;
 }
 
-const inlineScriptPattern = /<script\b(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g;
-const inlineStylePattern = /<style\b[^>]*>([\s\S]*?)<\/style>/g;
 const staticPageCacheControl =
   'public, max-age=600, s-maxage=3600, stale-while-revalidate=180, must-revalidate';
 
@@ -36,18 +40,6 @@ function fileExists(path: string): boolean {
     }
     throw error;
   }
-}
-
-function collectInlineHashes(html: string, pattern: RegExp): Promise<string[]> {
-  const inlineContents = [
-    ...html.matchAll(pattern),
-  ]
-    .map(match => match[1])
-    .filter((inlineContent): inlineContent is string => Boolean(inlineContent?.trim()));
-
-  return Promise.all(
-    inlineContents.map(async inlineContent => `'${await csp.createDigestToken(inlineContent)}'`)
-  );
 }
 
 function htmlFilePathFromRoute(clientDir: string, routePath: string): string {
@@ -87,7 +79,7 @@ async function processStaticRoute({
   }
 
   const html = await Deno.readTextFile(htmlFile);
-  const [, styleHashes] = await Promise.all([
+  const [scriptHashes, styleHashes] = await Promise.all([
     collectInlineHashes(html, inlineScriptPattern),
     collectInlineHashes(html, inlineStylePattern),
   ]);
@@ -96,6 +88,7 @@ async function processStaticRoute({
     routePath,
     csp.buildPolicy({
       connectSrc: getSentryConnectSrc(sentryDsn),
+      scriptHashes,
       styleHashes: [
         ...styleHashes,
         ...(includeCloudflareAnalyticsStyleHashes ? cloudflareAnalyticsStyleHashes : []),

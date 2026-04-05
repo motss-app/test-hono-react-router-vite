@@ -41,11 +41,11 @@ Protect the chosen form submission flow with Cloudflare Turnstile while keeping 
 - Log validation failures privately, without exposing the secret or token
 
 ## CSP requirements
-- Update the shared CSP builder in `app/utils/csp.ts`
-- Allow `https://challenges.cloudflare.com` in:
+See [CSP for SSG and SSR](csp-ssg-ssr-guide.md) for general CSP patterns; the following requirements are Turnstile-specific.
+
+- Update the shared CSP builder in `app/utils/csp.ts` to allow `https://challenges.cloudflare.com` in:
   - `script-src`
   - `frame-src`
-- Keep using the repo’s existing nonce/hash model for app-owned inline code
 - Avoid inline Turnstile bootstrap scripts so the widget stays CSP-friendly
 - Start conservative:
   - do not widen `connect-src` unless browser testing proves Turnstile needs it
