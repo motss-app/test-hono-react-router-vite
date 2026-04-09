@@ -106,9 +106,7 @@ function getSentryDsn(c: Context<HonoEnv>): string {
 }
 
 function isHtmlResponse(responseHeaders: Headers): boolean {
-  return Boolean(
-    import.meta.env.PROD && responseHeaders.get('Content-Type')?.includes('text/html')
-  );
+  return Boolean(responseHeaders.get('Content-Type')?.includes('text/html'));
 }
 
 function applySsrResponseHeaders(
@@ -129,14 +127,16 @@ function applySsrResponseHeaders(
 
   logSsrEnvSnapshotOnce(c);
 
-  responseHeaders.set(
-    'Content-Security-Policy',
-    csp.buildPolicy({
-      connectSrc: getSentryConnectSrc(getSentryDsn(c)),
-      nonce: cspNonce,
-      styleHashes: cloudflareAnalyticsStyleHashes,
-    })
-  );
+  if (import.meta.env.PROD) {
+    responseHeaders.set(
+      'Content-Security-Policy',
+      csp.buildPolicy({
+        connectSrc: getSentryConnectSrc(getSentryDsn(c)),
+        nonce: cspNonce,
+        styleHashes: cloudflareAnalyticsStyleHashes,
+      })
+    );
+  }
   responseHeaders.set('Document-Policy', csp.buildDocumentPolicy());
 
   return new Response(response.body, {

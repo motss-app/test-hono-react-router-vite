@@ -420,6 +420,14 @@ const routes = [
     title: 'Error Handling Demo',
     to: '/errors',
   },
+  {
+    description:
+      'A Turnstile-protected submission flow with server-side validation and CSP-safe loading.',
+    number: '05',
+    path: '/turnstile',
+    title: 'Turnstile Protection',
+    to: '/turnstile',
+  },
 ] as const;
 
 export function meta(_args: Route.MetaArgs): Route.MetaDescriptors {

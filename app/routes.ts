@@ -5,6 +5,7 @@ export default [
   route('/about', './routes/about.tsx'),
   route('/ssr', './routes/ssr.tsx'),
   route('/hono-rpc', './routes/hono-rpc.tsx'),
+  route('/turnstile', './routes/turnstile.tsx'),
   route('/errors', './routes/errors.tsx'),
   route('/errors/:code', './routes/errors.$code.tsx'), // Dynamic error code routes
   route('*', './routes/$.tsx'), // Catch-all 404 route
