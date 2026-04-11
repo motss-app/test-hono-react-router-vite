@@ -1,4 +1,7 @@
 {
+  "chat.tools.terminal.autoApprove": {
+    "env": true
+  },
   "deno.enable": true,
   "editor.codeActionsOnSave": {
     "source.addMissingImports.ts": "explicit",
