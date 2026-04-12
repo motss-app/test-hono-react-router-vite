@@ -37,6 +37,7 @@ jobs:
 
       - name: Build & Deploy Canary
         id: deploy-canary
+        if: github.event_name != 'pull_request'
         run: |
           echo "🚀 Building Canary..."
           deno task build:worker:canary
