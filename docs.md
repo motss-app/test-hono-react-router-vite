@@ -32,6 +32,7 @@ deno task build && deno task start  # Production at http://localhost:3000
 | `/about` | SSG | About page (prerendered) |
 | `/errors` | SSG | Error demo page |
 | `/ssr` | SSR | Server-rendered demo |
+| `/errors/:code` | SSR | Dynamic error demo |
 | `/api/*` | API | Hono endpoints |
 | `/*` | SSR | 404 catch-all |
 

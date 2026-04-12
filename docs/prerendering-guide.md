@@ -18,6 +18,7 @@ prerender() {
 | `/` | ✅ SSG | Static content, no loader |
 | `/about` | ✅ SSG | Static content, no loader |
 | `/errors` | ✅ SSG | Static base page |
+| `/errors/:code` | ❌ SSR | Dynamic error demo |
 | `/ssr` | ❌ SSR | Dynamic timestamp |
 | `/*` | ❌ SSR | Dynamic 404 URLs |
 

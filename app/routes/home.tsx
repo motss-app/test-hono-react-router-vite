@@ -38,6 +38,7 @@ const s = create({
       },
       transform: 'translate3d(0, -0.125rem, 0)',
     },
+    alignItems: 'center',
     animationDelay: '240ms',
     animationDuration: '700ms',
     animationFillMode: 'both',
@@ -52,11 +53,14 @@ const s = create({
       [themeConditions.dataThemeDark]: colorTokens.slate900,
       default: colorTokens.white,
     },
-    display: 'inline-flex',
+    display: 'inline-grid',
     fontWeight: fontWeightTokens.fontWeightSemibold,
+    gap: '0.5rem',
+    gridAutoFlow: 'column',
     padding: '0.92rem 1.45rem',
     textDecoration: 'none',
     transition: 'background-color 0.2s ease, transform 0.2s ease',
+    whiteSpace: 'nowrap',
   },
   ctaSecondary: {
     ':hover': {
@@ -90,7 +94,7 @@ const s = create({
       [themeConditions.dataThemeDark]: colorTokens.slate100,
       default: colorTokens.slate900,
     },
-    display: 'inline-flex',
+    display: 'inline-grid',
     fontWeight: fontWeightTokens.fontWeightSemibold,
     padding: '0.92rem 1.45rem',
     textDecoration: 'none',
@@ -139,7 +143,7 @@ const s = create({
   },
   heroInner: {
     alignItems: 'flex-end',
-    display: 'flex',
+    display: 'grid',
     marginLeft: 'auto',
     marginRight: 'auto',
     maxWidth: '84rem',
@@ -399,15 +403,22 @@ const routes = [
     to: '/about',
   },
   {
-    description: 'Request-time rendering with timing data and server-owned state on the page.',
+    description: 'Header, main, and footer arranged in the classic holy grail app shell.',
     number: '02',
+    path: '/holy-grail',
+    title: 'Holy Grail Layout',
+    to: '/holy-grail',
+  },
+  {
+    description: 'Request-time rendering with timing data and server-owned state on the page.',
+    number: '03',
     path: '/ssr',
     title: 'SSR Page',
     to: '/ssr',
   },
   {
     description: 'Typed client and server calls flowing through Hono without extra ceremony.',
-    number: '03',
+    number: '04',
     path: '/hono-rpc',
     title: 'Hono RPC Demo',
     to: '/hono-rpc',
@@ -415,7 +426,7 @@ const routes = [
   {
     description:
       'Error routes and boundary behavior for failure states, status codes, and recovery.',
-    number: '04',
+    number: '05',
     path: '/errors',
     title: 'Error Handling Demo',
     to: '/errors',
@@ -465,8 +476,8 @@ export default function Home(): JSX.Element {
             </Text>
 
             <p {...props(s.heroBody)}>
-              Four routes keep SSR, RPC, boundaries, and architecture legible without turning the
-              homepage into a dashboard.
+              Five routes keep SSR, RPC, layout, boundaries, and architecture legible without
+              turning the homepage into a dashboard.
             </p>
 
             <div {...props(s.heroActions)}>

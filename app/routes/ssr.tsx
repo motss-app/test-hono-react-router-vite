@@ -1,4 +1,4 @@
-import { create, keyframes, props } from '@stylexjs/stylex';
+import { type CompiledStyles, create, keyframes, props } from '@stylexjs/stylex';
 import type { JSX } from 'react';
 import { data } from 'react-router';
 
@@ -46,6 +46,7 @@ const s = create({
       },
       transform: 'translate3d(0, -0.125rem, 0)',
     },
+    alignItems: 'center',
     animationDelay: '240ms',
     animationDuration: '700ms',
     animationFillMode: 'both',
@@ -60,12 +61,14 @@ const s = create({
       [themeConditions.dataThemeDark]: colorTokens.slate900,
       default: colorTokens.white,
     },
-    display: 'inline-flex',
+    display: 'inline-grid',
     fontWeight: fontWeightTokens.fontWeightSemibold,
     gap: '0.5rem',
+    gridAutoFlow: 'column',
     padding: '0.92rem 1.45rem',
     textDecoration: 'none',
     transition: 'background-color 0.2s ease, transform 0.2s ease',
+    whiteSpace: 'nowrap',
   },
   ctaSecondary: {
     ':hover': {
@@ -99,7 +102,7 @@ const s = create({
       [themeConditions.dataThemeDark]: colorTokens.slate100,
       default: colorTokens.slate900,
     },
-    display: 'inline-flex',
+    display: 'inline-grid',
     fontWeight: fontWeightTokens.fontWeightSemibold,
     gap: '0.5rem',
     padding: '0.92rem 1.45rem',
@@ -146,10 +149,10 @@ const s = create({
     position: 'relative',
   },
   heroActions: {
-    alignItems: 'center',
-    display: 'flex',
-    flexWrap: 'wrap',
+    display: 'inline-grid',
     gap: '0.75rem',
+    gridAutoFlow: 'column',
+    justifyContent: 'start',
   },
   heroBody: {
     animationDelay: '160ms',
@@ -179,7 +182,7 @@ const s = create({
   },
   heroInner: {
     alignItems: 'flex-end',
-    display: 'flex',
+    display: 'grid',
     marginLeft: 'auto',
     marginRight: 'auto',
     maxWidth: '84rem',
@@ -400,6 +403,39 @@ const s = create({
   },
 });
 
+type SsrStyle = CompiledStyles;
+
+type SsrStyles = {
+  ctaPrimary: SsrStyle;
+  ctaSecondary: SsrStyle;
+  dataLabel: SsrStyle;
+  dataList: SsrStyle;
+  dataValue: SsrStyle;
+  hero: SsrStyle;
+  heroBody: SsrStyle;
+  heroCopy: SsrStyle;
+  heroInner: SsrStyle;
+  heroLead: SsrStyle;
+  heroMedia: SsrStyle;
+  heroOverlay: SsrStyle;
+  heroActions: SsrStyle;
+  page: SsrStyle;
+  rowBody: SsrStyle;
+  rowContent: SsrStyle;
+  rowNumber: SsrStyle;
+  rowPanel: SsrStyle;
+  rowRow: SsrStyle;
+  rowTitle: SsrStyle;
+  routesInner: SsrStyle;
+  routesIntro: SsrStyle;
+  routesList: SsrStyle;
+  routesTitle: SsrStyle;
+  title: SsrStyle;
+  titleAccent: SsrStyle;
+};
+
+const styles = s as SsrStyles;
+
 /** This loader makes this page SSR - it runs on EVERY request */
 export async function loader({ context, request }: Route.LoaderArgs) {
   const startTime = performance.now();
@@ -488,50 +524,50 @@ export default function SsrPage({ loaderData }: Route.ComponentProps): JSX.Eleme
   ] as const;
 
   return (
-    <main {...props(s.page)}>
-      <section {...props(s.hero)}>
+    <main {...props(styles.page)}>
+      <section {...props(styles.hero)}>
         <div
           aria-hidden="true"
-          {...props(s.heroMedia)}
+          {...props(styles.heroMedia)}
         />
         <div
           aria-hidden="true"
-          {...props(s.heroOverlay)}
+          {...props(styles.heroOverlay)}
         />
 
-        <div {...props(s.heroInner)}>
-          <div {...props(s.heroCopy)}>
+        <div {...props(styles.heroInner)}>
+          <div {...props(styles.heroCopy)}>
             <Text
               as="h1"
-              {...props(s.title)}
+              {...props(styles.title)}
             >
               SSR
-              <span {...props(s.titleAccent)}>Live on request</span>
+              <span {...props(styles.titleAccent)}>Live on request</span>
             </Text>
 
             <Text
               as="p"
-              {...props(s.heroLead)}
+              {...props(styles.heroLead)}
             >
               This route renders on the server for every visit.
             </Text>
 
-            <p {...props(s.heroBody)}>
+            <p {...props(styles.heroBody)}>
               The loader runs on each request, forwards timing metadata, and can read Hono context
               before the page reaches the browser.
             </p>
 
-            <div {...props(s.heroActions)}>
+            <div {...props(styles.heroActions)}>
               <Link
                 to="/"
-                {...props(s.ctaSecondary)}
+                {...props(styles.ctaSecondary)}
               >
                 <IconArrowLeft {...props(iconStyles.base)} />
                 <span>Back home</span>
               </Link>
               <Link
                 to="/hono-rpc"
-                {...props(s.ctaPrimary)}
+                {...props(styles.ctaPrimary)}
               >
                 <IconServer {...props(iconStyles.base)} />
                 <span>Compare with RPC</span>
@@ -542,41 +578,41 @@ export default function SsrPage({ loaderData }: Route.ComponentProps): JSX.Eleme
       </section>
 
       <section>
-        <div {...props(s.routesInner)}>
+        <div {...props(styles.routesInner)}>
           <Text
             as="h2"
-            {...props(s.routesTitle)}
+            {...props(styles.routesTitle)}
           >
             The current response came from the server.
           </Text>
 
-          <p {...props(s.routesIntro)}>
+          <p {...props(styles.routesIntro)}>
             These values are generated during the request, then serialized into the rendered HTML
             and response headers.
           </p>
 
-          <div {...props(s.routesList)}>
-            <div {...props(s.rowRow)}>
-              <div {...props(s.rowPanel)}>
-                <span {...props(s.rowNumber)}>01</span>
+          <div {...props(styles.routesList)}>
+            <div {...props(styles.rowRow)}>
+              <div {...props(styles.rowPanel)}>
+                <span {...props(styles.rowNumber)}>01</span>
 
-                <div {...props(s.rowContent)}>
+                <div {...props(styles.rowContent)}>
                   <Text
                     as="h3"
-                    {...props(s.rowTitle)}
+                    {...props(styles.rowTitle)}
                   >
                     Live response
                   </Text>
-                  <p {...props(s.rowBody)}>
+                  <p {...props(styles.rowBody)}>
                     Request-specific data produced by the SSR loader before the page is delivered.
                   </p>
                 </div>
 
-                <dl {...props(s.dataList)}>
+                <dl {...props(styles.dataList)}>
                   {responseRows.map(row => (
                     <div key={row.label}>
-                      <dt {...props(s.dataLabel)}>{row.label}</dt>
-                      <dd {...props(s.dataValue)}>{row.value}</dd>
+                      <dt {...props(styles.dataLabel)}>{row.label}</dt>
+                      <dd {...props(styles.dataValue)}>{row.value}</dd>
                     </div>
                   ))}
                 </dl>
@@ -584,32 +620,32 @@ export default function SsrPage({ loaderData }: Route.ComponentProps): JSX.Eleme
             </div>
 
             {loaderData.honoVars ? (
-              <div {...props(s.rowRow)}>
-                <div {...props(s.rowPanel)}>
-                  <span {...props(s.rowNumber)}>02</span>
+              <div {...props(styles.rowRow)}>
+                <div {...props(styles.rowPanel)}>
+                  <span {...props(styles.rowNumber)}>02</span>
 
-                  <div {...props(s.rowContent)}>
+                  <div {...props(styles.rowContent)}>
                     <Text
                       as="h3"
-                      {...props(s.rowTitle)}
+                      {...props(styles.rowTitle)}
                     >
                       Hono context
                     </Text>
-                    <p {...props(s.rowBody)}>
+                    <p {...props(styles.rowBody)}>
                       Data forwarded from the Hono request context into the React Router loader
                       through `RouterContextProvider`.
                     </p>
                   </div>
 
-                  <dl {...props(s.dataList)}>
+                  <dl {...props(styles.dataList)}>
                     <div>
-                      <dt {...props(s.dataLabel)}>Request URL</dt>
-                      <dd {...props(s.dataValue)}>{loaderData.honoVars.meta.requestUrl}</dd>
+                      <dt {...props(styles.dataLabel)}>Request URL</dt>
+                      <dd {...props(styles.dataValue)}>{loaderData.honoVars.meta.requestUrl}</dd>
                     </div>
                     {loaderData.honoVars.meta.requestId ? (
                       <div>
-                        <dt {...props(s.dataLabel)}>Request ID</dt>
-                        <dd {...props(s.dataValue)}>{loaderData.honoVars.meta.requestId}</dd>
+                        <dt {...props(styles.dataLabel)}>Request ID</dt>
+                        <dd {...props(styles.dataValue)}>{loaderData.honoVars.meta.requestId}</dd>
                       </div>
                     ) : null}
                   </dl>
@@ -621,42 +657,42 @@ export default function SsrPage({ loaderData }: Route.ComponentProps): JSX.Eleme
       </section>
 
       <section>
-        <div {...props(s.routesInner)}>
+        <div {...props(styles.routesInner)}>
           <Text
             as="h2"
-            {...props(s.routesTitle)}
+            {...props(styles.routesTitle)}
           >
             How to verify the page is really SSR.
           </Text>
 
-          <p {...props(s.routesIntro)}>
+          <p {...props(styles.routesIntro)}>
             The route is meant to be inspected, not just viewed. These checks make the rendering
             mode obvious.
           </p>
 
-          <div {...props(s.routesList)}>
-            <div {...props(s.rowRow)}>
-              <div {...props(s.rowPanel)}>
-                <span {...props(s.rowNumber)}>03</span>
+          <div {...props(styles.routesList)}>
+            <div {...props(styles.rowRow)}>
+              <div {...props(styles.rowPanel)}>
+                <span {...props(styles.rowNumber)}>03</span>
 
-                <div {...props(s.rowContent)}>
+                <div {...props(styles.rowContent)}>
                   <Text
                     as="h3"
-                    {...props(s.rowTitle)}
+                    {...props(styles.rowTitle)}
                   >
                     Verification steps
                   </Text>
-                  <p {...props(s.rowBody)}>
+                  <p {...props(styles.rowBody)}>
                     Use the browser and network tooling to confirm the response is generated at
                     request time.
                   </p>
                 </div>
 
-                <dl {...props(s.dataList)}>
+                <dl {...props(styles.dataList)}>
                   {verificationRows.map(row => (
                     <div key={row.label}>
-                      <dt {...props(s.dataLabel)}>{row.label}</dt>
-                      <dd {...props(s.dataValue)}>{row.value}</dd>
+                      <dt {...props(styles.dataLabel)}>{row.label}</dt>
+                      <dd {...props(styles.dataValue)}>{row.value}</dd>
                     </div>
                   ))}
                 </dl>

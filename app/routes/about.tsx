@@ -47,6 +47,7 @@ const s = create({
       },
       transform: 'translate3d(0, -0.125rem, 0)',
     },
+    alignItems: 'center',
     animationDelay: '240ms',
     animationDuration: '700ms',
     animationFillMode: 'both',
@@ -61,12 +62,14 @@ const s = create({
       [themeConditions.dataThemeDark]: colorTokens.slate900,
       default: colorTokens.white,
     },
-    display: 'inline-flex',
+    display: 'inline-grid',
     fontWeight: fontWeightTokens.fontWeightSemibold,
     gap: '0.5rem',
+    gridAutoFlow: 'column',
     padding: '0.92rem 1.45rem',
     textDecoration: 'none',
     transition: 'background-color 0.2s ease, transform 0.2s ease',
+    whiteSpace: 'nowrap',
   },
   ctaSecondary: {
     ':hover': {
@@ -100,7 +103,7 @@ const s = create({
       [themeConditions.dataThemeDark]: colorTokens.slate100,
       default: colorTokens.slate900,
     },
-    display: 'inline-flex',
+    display: 'inline-grid',
     fontWeight: fontWeightTokens.fontWeightSemibold,
     gap: '0.5rem',
     padding: '0.92rem 1.45rem',
@@ -118,7 +121,7 @@ const s = create({
     minWidth: 0,
   },
   featureIcon: {
-    display: 'inline-flex',
+    display: 'inline-grid',
     marginBottom: '0.5rem',
   },
   featureIconAmber: {
@@ -220,7 +223,7 @@ const s = create({
   },
   heroInner: {
     alignItems: 'flex-end',
-    display: 'flex',
+    display: 'grid',
     marginLeft: 'auto',
     marginRight: 'auto',
     maxWidth: '84rem',
@@ -436,8 +439,9 @@ const s = create({
     minWidth: 0,
   },
   rowIcon: {
-    display: 'inline-flex',
+    display: 'inline-grid',
     marginBottom: '0.5rem',
+    placeItems: 'center',
   },
   rowIconBlue: {
     color: {
@@ -493,8 +497,7 @@ const s = create({
     minWidth: 0,
   },
   stackItems: {
-    display: 'flex',
-    flexDirection: 'column',
+    display: 'grid',
     gap: '0.75rem',
     listStyle: 'none',
     margin: 0,
@@ -512,8 +515,9 @@ const s = create({
   },
   stackListItem: {
     alignItems: 'start',
-    display: 'flex',
+    display: 'grid',
     gap: '0.75rem',
+    gridTemplateColumns: 'auto minmax(0, 1fr)',
     minWidth: 0,
   },
   title: {

@@ -58,6 +58,7 @@ build/client/
 | Route | Mode | Reason |
 |-------|------|--------|
 | `/ssr` | SSR | Dynamic timestamp |
+| `/errors/:code` | SSR | Dynamic loader-driven error demo |
 | `/*` | SSR | Dynamic 404 URLs |
 
 ## Performance

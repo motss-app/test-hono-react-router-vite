@@ -2,14 +2,7 @@ import { flush, logger, metrics, startNewTrace, startSpan } from '@sentry/react-
 import { create, keyframes, props } from '@stylexjs/stylex';
 import type { InferResponseType } from 'hono';
 import { hc } from 'hono/client';
-import {
-  type ComponentProps,
-  type JSX,
-  type ReactNode,
-  useCallback,
-  useEffect,
-  useState,
-} from 'react';
+import { Fragment, type JSX, type ReactNode, useCallback, useEffect, useState } from 'react';
 
 import type { ApiAppType } from '../apis/mod.ts';
 import { Link } from '../components/Link.tsx';
@@ -194,7 +187,7 @@ const s = create({
   },
   actionShell: {
     alignItems: 'center',
-    display: 'flex',
+    display: 'grid',
     minWidth: 0,
   },
   ctaSecondary: {
@@ -209,6 +202,7 @@ const s = create({
       },
       transform: 'translate3d(0, -0.125rem, 0)',
     },
+    alignItems: 'center',
     animationDelay: '320ms',
     animationDuration: '700ms',
     animationFillMode: 'both',
@@ -229,12 +223,14 @@ const s = create({
       [themeConditions.dataThemeDark]: colorTokens.slate100,
       default: colorTokens.slate900,
     },
-    display: 'inline-flex',
+    display: 'inline-grid',
     fontWeight: fontWeightTokens.fontWeightSemibold,
     gap: '0.5rem',
+    gridAutoFlow: 'column',
     padding: '0.92rem 1.45rem',
     textDecoration: 'none',
     transition: 'background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease',
+    whiteSpace: 'nowrap',
   },
   dataLabel: {
     color: {
@@ -301,10 +297,10 @@ const s = create({
     position: 'relative',
   },
   heroActions: {
-    alignItems: 'center',
-    display: 'flex',
-    flexWrap: 'wrap',
+    display: 'inline-grid',
     gap: '0.75rem',
+    gridAutoFlow: 'column',
+    justifyContent: 'start',
   },
   heroBody: {
     animationDelay: '160ms',
@@ -334,7 +330,7 @@ const s = create({
   },
   heroInner: {
     alignItems: 'flex-end',
-    display: 'flex',
+    display: 'grid',
     marginLeft: 'auto',
     marginRight: 'auto',
     maxWidth: '84rem',
@@ -569,37 +565,6 @@ const s = create({
   },
 });
 
-interface RpcResponseRowProps {
-  className?: ComponentProps<typeof Skeleton>['className'];
-  isLoading: boolean;
-  label: string;
-  style?: ComponentProps<typeof Skeleton>['style'];
-  value: string;
-}
-
-function RpcResponseRow({
-  className,
-  isLoading,
-  label,
-  style,
-  value,
-}: RpcResponseRowProps): JSX.Element {
-  return (
-    <div>
-      <dt {...props(s.dataLabel)}>{label}</dt>
-      <dd {...props(s.dataValue)}>
-        <Skeleton
-          className={className}
-          isLoading={isLoading}
-          style={style}
-        >
-          {value}
-        </Skeleton>
-      </dd>
-    </div>
-  );
-}
-
 interface HonoRpcViewProps {
   action: ReactNode;
   isLoading: boolean;
@@ -688,24 +653,44 @@ function HonoRpcView({ action, isLoading, response }: HonoRpcViewProps): JSX.Ele
                 </div>
 
                 <dl {...props(s.dataList)}>
-                  <RpcResponseRow
-                    isLoading={isLoading}
-                    label="Message"
-                    {...props(s.skeletonMessage)}
-                    value={response.message}
-                  />
-                  <RpcResponseRow
-                    isLoading={isLoading}
-                    label="Server"
-                    {...props(s.skeletonServer)}
-                    value={response.server}
-                  />
-                  <RpcResponseRow
-                    isLoading={isLoading}
-                    label="Timestamp"
-                    {...props(s.skeletonTimestamp)}
-                    value={response.timestamp}
-                  />
+                  <Fragment key="message">
+                    <dt {...props(s.dataLabel)}>Message</dt>
+                    <dd {...props(s.dataValue)}>
+                      <Skeleton
+                        className={props(s.skeletonMessage).className}
+                        isLoading={isLoading}
+                        style={props(s.skeletonMessage).style}
+                      >
+                        {response.message}
+                      </Skeleton>
+                    </dd>
+                  </Fragment>
+
+                  <Fragment key="server">
+                    <dt {...props(s.dataLabel)}>Server</dt>
+                    <dd {...props(s.dataValue)}>
+                      <Skeleton
+                        className={props(s.skeletonServer).className}
+                        isLoading={isLoading}
+                        style={props(s.skeletonServer).style}
+                      >
+                        {response.server}
+                      </Skeleton>
+                    </dd>
+                  </Fragment>
+
+                  <Fragment key="timestamp">
+                    <dt {...props(s.dataLabel)}>Timestamp</dt>
+                    <dd {...props(s.dataValue)}>
+                      <Skeleton
+                        className={props(s.skeletonTimestamp).className}
+                        isLoading={isLoading}
+                        style={props(s.skeletonTimestamp).style}
+                      >
+                        {response.timestamp}
+                      </Skeleton>
+                    </dd>
+                  </Fragment>
                 </dl>
               </div>
             </div>

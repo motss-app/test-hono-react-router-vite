@@ -1,7 +1,8 @@
 const EXTENSION_REGEX = /\.(tsx|ts|jsx|js)$/;
 const prerenderExcludedRoutes = [
-  '/ssr',
+  '/errors/:code',
   '/home',
+  '/ssr',
 ];
 
 function discoverStaticRoutes(options: { exclude?: string[] } = {}): string[] {
@@ -17,7 +18,7 @@ function discoverStaticRoutes(options: { exclude?: string[] } = {}): string[] {
         continue;
       }
 
-      // Skip dynamic routes (containing '$' or '[')
+      // Skip dynamic routes (containing '$' or '['). These are SSR-only and should not be pre-rendered.
       if (entry.name.includes('$') || entry.name.includes('[')) {
         continue;
       }

@@ -58,6 +58,7 @@ This project combines React Router v7, Hono, and Vite for a modern full-stack we
 | `/about` | SSG | About page (prerendered) |
 | `/errors` | SSG | Error demo page (prerendered) |
 | `/ssr` | SSR | Server-rendered demo |
+| `/errors/:code` | SSR | Dynamic error demo |
 | `/api/*` | API | Hono API endpoints |
 | `/*` | SSR | 404 catch-all |
 

@@ -119,7 +119,7 @@ const s = create({
     },
     borderRadius: '9999px',
     color: colorTokens.white,
-    display: 'inline-flex',
+    display: 'inline-grid',
     fontWeight: fontWeightTokens.fontWeightSemibold,
     gap: '0.5rem',
     padding: '0.92rem 1.45rem',
@@ -183,6 +183,7 @@ const s = create({
       },
       transform: 'translate3d(0, -0.125rem, 0)',
     },
+    alignItems: 'center',
     animationDelay: '320ms',
     animationDuration: '700ms',
     animationFillMode: 'both',
@@ -203,12 +204,14 @@ const s = create({
       [themeConditions.dataThemeDark]: colorTokens.slate100,
       default: colorTokens.slate900,
     },
-    display: 'inline-flex',
+    display: 'inline-grid',
     fontWeight: fontWeightTokens.fontWeightSemibold,
     gap: '0.5rem',
+    gridAutoFlow: 'column',
     padding: '0.92rem 1.45rem',
     textDecoration: 'none',
     transition: 'background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease',
+    whiteSpace: 'nowrap',
   },
   ctaSecondaryCritical: {
     ':hover': {
@@ -286,10 +289,10 @@ const s = create({
     position: 'relative',
   },
   heroActions: {
-    alignItems: 'center',
-    display: 'flex',
-    flexWrap: 'wrap',
+    display: 'inline-grid',
     gap: '0.75rem',
+    gridAutoFlow: 'column',
+    justifyContent: 'start',
   },
   heroBody: {
     animationDelay: '160ms',
@@ -343,7 +346,7 @@ const s = create({
   },
   heroInner: {
     alignItems: 'flex-end',
-    display: 'flex',
+    display: 'grid',
     marginLeft: 'auto',
     marginRight: 'auto',
     maxWidth: '84rem',
@@ -764,54 +767,58 @@ function getTone(
 }
 
 function getToneStyles(tone: 'critical' | 'runtime' | 'warning') {
+  function style(styleName: string) {
+    return s[styleName as keyof typeof s];
+  }
+
   switch (tone) {
     case 'critical':
       return {
-        ctaPrimary: s.ctaPrimaryCritical,
-        ctaSecondary: s.ctaSecondaryCritical,
-        hero: s.heroCritical,
-        heroBody: s.heroBodyCritical,
-        heroLead: s.heroLeadCritical,
-        heroMedia: s.heroMediaCritical,
-        heroOverlay: s.heroOverlayCritical,
-        routesIntro: s.routesIntroCritical,
-        routesList: s.routesListCritical,
-        rowCode: s.rowCodeCritical,
-        rowRow: s.rowRowCritical,
-        statusLabel: s.statusLabelCritical,
-        titleAccent: s.titleAccentCritical,
+        ctaPrimary: style('ctaPrimaryCritical'),
+        ctaSecondary: style('ctaSecondaryCritical'),
+        hero: style('heroCritical'),
+        heroBody: style('heroBodyCritical'),
+        heroLead: style('heroLeadCritical'),
+        heroMedia: style('heroMediaCritical'),
+        heroOverlay: style('heroOverlayCritical'),
+        routesIntro: style('routesIntroCritical'),
+        routesList: style('routesListCritical'),
+        rowCode: style('rowCodeCritical'),
+        rowRow: style('rowRowCritical'),
+        statusLabel: style('statusLabelCritical'),
+        titleAccent: style('titleAccentCritical'),
       };
     case 'runtime':
       return {
-        ctaPrimary: s.ctaPrimaryRuntime,
-        ctaSecondary: s.ctaSecondaryRuntime,
-        hero: s.heroRuntime,
-        heroBody: s.heroBodyRuntime,
-        heroLead: s.heroLeadRuntime,
-        heroMedia: s.heroMediaRuntime,
-        heroOverlay: s.heroOverlayRuntime,
-        routesIntro: s.routesIntroRuntime,
-        routesList: s.routesListRuntime,
-        rowCode: s.rowCodeRuntime,
-        rowRow: s.rowRowRuntime,
-        statusLabel: s.statusLabelRuntime,
-        titleAccent: s.titleAccentRuntime,
+        ctaPrimary: style('ctaPrimaryRuntime'),
+        ctaSecondary: style('ctaSecondaryRuntime'),
+        hero: style('heroRuntime'),
+        heroBody: style('heroBodyRuntime'),
+        heroLead: style('heroLeadRuntime'),
+        heroMedia: style('heroMediaRuntime'),
+        heroOverlay: style('heroOverlayRuntime'),
+        routesIntro: style('routesIntroRuntime'),
+        routesList: style('routesListRuntime'),
+        rowCode: style('rowCodeRuntime'),
+        rowRow: style('rowRowRuntime'),
+        statusLabel: style('statusLabelRuntime'),
+        titleAccent: style('titleAccentRuntime'),
       };
     default:
       return {
-        ctaPrimary: s.ctaPrimaryWarning,
-        ctaSecondary: s.ctaSecondaryWarning,
-        hero: s.heroWarning,
-        heroBody: s.heroBodyWarning,
-        heroLead: s.heroLeadWarning,
-        heroMedia: s.heroMediaWarning,
-        heroOverlay: s.heroOverlayWarning,
-        routesIntro: s.routesIntroWarning,
-        routesList: s.routesListWarning,
-        rowCode: s.rowCodeWarning,
-        rowRow: s.rowRowWarning,
-        statusLabel: s.statusLabelWarning,
-        titleAccent: s.titleAccentWarning,
+        ctaPrimary: style('ctaPrimaryWarning'),
+        ctaSecondary: style('ctaSecondaryWarning'),
+        hero: style('heroWarning'),
+        heroBody: style('heroBodyWarning'),
+        heroLead: style('heroLeadWarning'),
+        heroMedia: style('heroMediaWarning'),
+        heroOverlay: style('heroOverlayWarning'),
+        routesIntro: style('routesIntroWarning'),
+        routesList: style('routesListWarning'),
+        rowCode: style('rowCodeWarning'),
+        rowRow: style('rowRowWarning'),
+        statusLabel: style('statusLabelWarning'),
+        titleAccent: style('titleAccentWarning'),
       };
   }
 }

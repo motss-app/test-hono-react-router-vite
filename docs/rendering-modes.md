@@ -26,7 +26,7 @@ prerender() {
 
 ## SSR (Server-Side Rendering) 🔄
 
-**Routes:** `/ssr`, `/*` (404)
+**Routes:** `/ssr`, `/errors/:code`, `/*` (404)
 
 **How it works:**
 - Rendered on server for each request
@@ -71,6 +71,7 @@ Routes with loaders not in prerender array.
 | `/about` | SSG | About page |
 | `/errors` | SSG | Error demos |
 | `/ssr` | SSR | SSR demo |
+| `/errors/:code` | SSR | Dynamic error demo |
 | `/api/*` | API | Hono endpoints |
 | `/*` | SSR | 404 handler |
 
