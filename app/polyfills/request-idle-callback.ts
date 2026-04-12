@@ -9,14 +9,16 @@ const idleWindow = globalThis as Window & typeof globalThis;
 if (!idleWindow.requestIdleCallback) {
   idleWindow.requestIdleCallback = (callback, options) => {
     const startedAt = Date.now();
-    const timeout = options?.timeout ?? 1;
+    const providedTimeout = options?.timeout;
 
     return setTimeout(() => {
+      const elapsed = Date.now() - startedAt;
+
       callback({
-        didTimeout: Boolean(options?.timeout),
+        didTimeout: providedTimeout !== undefined && elapsed >= providedTimeout,
         timeRemaining: () => Math.max(0, 50 - (Date.now() - startedAt)),
       });
-    }, timeout);
+    }, 1);
   };
 }
 
