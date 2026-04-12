@@ -20,10 +20,10 @@ if (!idleWindow.requestIdleCallback) {
       });
     }, 1);
   };
-}
 
-if (!idleWindow.cancelIdleCallback) {
-  idleWindow.cancelIdleCallback = handle => {
-    clearTimeout(handle);
-  };
+  if (!idleWindow.cancelIdleCallback) {
+    idleWindow.cancelIdleCallback = handle => {
+      clearTimeout(handle);
+    };
+  }
 }
