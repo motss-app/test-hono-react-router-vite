@@ -2,6 +2,8 @@
 
 A modern, production-ready template for building full-stack React applications using React Router.
 
+[![Better Stack Badge](https://uptime.betterstack.com/status-badges/v3/monitor/2jjkq.svg)](https://uptime.betterstack.com/?utm_source=status_badge)
+
 [![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
 
 ## Documentation
