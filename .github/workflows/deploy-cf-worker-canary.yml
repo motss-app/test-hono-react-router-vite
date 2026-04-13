@@ -37,8 +37,27 @@ jobs:
 
       - name: Build Canary
         run: |
-          echo "🚀 Building Canary..."
-          deno task build:worker:canary
+          set -euo pipefail
+
+          max_attempts=5
+          attempt=1
+
+          while true; do
+            echo "🚀 Building Canary (attempt ${attempt}/${max_attempts})..."
+
+            if deno task build:worker:canary; then
+              break
+            fi
+
+            if [ "${attempt}" -ge "${max_attempts}" ]; then
+              exit 1
+            fi
+
+            sleep_seconds=$((attempt * 5))
+            echo "⚠️ Canary build failed. Retrying in ${sleep_seconds}s..."
+            sleep "${sleep_seconds}"
+            attempt=$((attempt + 1))
+          done
 
       - name: Debug DNS
         run: |
