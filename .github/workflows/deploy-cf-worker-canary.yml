@@ -126,7 +126,17 @@ jobs:
       - name: Show Canary deploy log on failure
         if: ${{ failure() && steps.deploy-canary.outcome == 'failure' }}
         run: |
-          cat deploy-canary.log
+          set -euo pipefail
+
+          WRANGLER_LOG_FILE=$(sed -n 's/.*Logs were written to "\([^"]*\)".*/\1/p' deploy-canary.log | tail -n 1)
+
+          if [ -n "${WRANGLER_LOG_FILE}" ] && [ -f "${WRANGLER_LOG_FILE}" ]; then
+            echo "🪵 Showing Wrangler log: ${WRANGLER_LOG_FILE}"
+            cat "${WRANGLER_LOG_FILE}"
+          else
+            echo "Wrangler log file not found, showing deploy output instead"
+            cat deploy-canary.log
+          fi
 
       - name: Purge Cloudflare Cache for Canary
         if: steps.deploy-canary.outputs.canary_url != ''

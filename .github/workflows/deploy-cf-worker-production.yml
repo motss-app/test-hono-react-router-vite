@@ -107,7 +107,17 @@ jobs:
       - name: Show Production deploy log on failure
         if: ${{ failure() && steps.deploy-production.outcome == 'failure' }}
         run: |
-          cat deploy-prod.log
+          set -euo pipefail
+
+          WRANGLER_LOG_FILE=$(sed -n 's/.*Logs were written to "\([^"]*\)".*/\1/p' deploy-prod.log | tail -n 1)
+
+          if [ -n "${WRANGLER_LOG_FILE}" ] && [ -f "${WRANGLER_LOG_FILE}" ]; then
+            echo "🪵 Showing Wrangler log: ${WRANGLER_LOG_FILE}"
+            cat "${WRANGLER_LOG_FILE}"
+          else
+            echo "Wrangler log file not found, showing deploy output instead"
+            cat deploy-prod.log
+          fi
 
       - name: Purge Cloudflare Cache
         if: steps.deploy-production.outputs.prod_url != ''
