@@ -1,9 +1,10 @@
 name: Deploy to Cloudflare Workers Production
 
 on:
-  push:
-    branches:
-      - main
+  # fixme(@motss): Temporarily disable auto-deploy
+  # push:
+  #   branches:
+  #     - main
   workflow_dispatch:
     inputs:
       environment:
