@@ -102,7 +102,7 @@ jobs:
           while true; do
             echo "🚀 Deploying Canary (attempt ${attempt}/${max_attempts})..."
 
-            if deno run -A npm:wrangler deploy --env canary --log-level debug > deploy-canary.log 2>&1; then
+            if deno run -A npm:wrangler deploy --env canary > deploy-canary.log 2>&1; then
               break
             fi
 
@@ -122,6 +122,11 @@ jobs:
           URL=$(grep -oE 'https://[^ ]*workers\.dev' deploy-canary.log | head -n 1)
           echo "canary_url=$URL" >> $GITHUB_OUTPUT
           echo "CANARY_URL=$URL" >> $GITHUB_ENV
+
+      - name: Show Canary deploy log on failure
+        if: ${{ failure() && steps.deploy-canary.outcome == 'failure' }}
+        run: |
+          cat deploy-canary.log
 
       - name: Purge Cloudflare Cache for Canary
         if: steps.deploy-canary.outputs.canary_url != ''

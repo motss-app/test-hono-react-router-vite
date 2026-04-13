@@ -83,7 +83,7 @@ jobs:
           while true; do
             echo "🚀 Deploying Production (attempt ${attempt}/${max_attempts})..."
 
-            if deno run -A npm:wrangler deploy --env production --log-level debug > deploy-prod.log 2>&1; then
+            if deno run -A npm:wrangler deploy --env production > deploy-prod.log 2>&1; then
               break
             fi
 
@@ -103,6 +103,11 @@ jobs:
           URL=$(grep -oE 'https://[^ ]*workers\.dev' deploy-prod.log | head -n 1)
           echo "prod_url=$URL" >> $GITHUB_OUTPUT
           echo "PROD_URL=$URL" >> $GITHUB_ENV
+
+      - name: Show Production deploy log on failure
+        if: ${{ failure() && steps.deploy-production.outcome == 'failure' }}
+        run: |
+          cat deploy-prod.log
 
       - name: Purge Cloudflare Cache
         if: steps.deploy-production.outputs.prod_url != ''
