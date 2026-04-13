@@ -188,7 +188,12 @@
         "enabled": true,
         "rules": {
           "complexity": {
-            "noExcessiveLinesPerFunction": "off"
+            "noExcessiveLinesPerFunction": {
+              "level": "error",
+              "options": {
+                "maxLines": 200
+              }
+            }
           },
           "correctness": {
             "noNodejsModules": "off",

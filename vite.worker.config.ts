@@ -40,6 +40,10 @@ export default defineConfig(({ mode }) => {
       },
       outDir: 'build',
       rolldownOptions: {
+        experimental: {
+          chunkOptimization: true,
+          lazyBarrel: true,
+        },
         input: './app/worker.ts',
         output: {
           codeSplitting: {

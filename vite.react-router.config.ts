@@ -51,6 +51,10 @@ export default function createViteConfig(config: ConfigEnv) {
       cssCodeSplit: false,
       emptyOutDir: false,
       rolldownOptions: {
+        experimental: {
+          chunkOptimization: true,
+          lazyBarrel: true,
+        },
         output: {
           codeSplitting: {
             groups: [
