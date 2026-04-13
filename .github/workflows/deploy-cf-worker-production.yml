@@ -39,6 +39,38 @@ jobs:
           echo "🚀 Building Production..."
           deno task build:worker
 
+      - name: Debug DNS
+        run: |
+          max_attempts=5
+          attempt=1
+
+          while true; do
+            echo "🔎 Debugging DNS (attempt ${attempt}/${max_attempts})..."
+
+            dns_ok=true
+
+            if ! timeout 10s nslookup api.cloudflare.com; then
+              dns_ok=false
+            fi
+
+            if ! timeout 10s curl -I --silent --show-error https://api.cloudflare.com; then
+              dns_ok=false
+            fi
+
+            if [ "${dns_ok}" = true ]; then
+              break
+            fi
+
+            if [ "${attempt}" -ge "${max_attempts}" ]; then
+              exit 1
+            fi
+
+            sleep_seconds=$((attempt * 5))
+            echo "⚠️ DNS debug failed. Retrying in ${sleep_seconds}s..."
+            sleep "${sleep_seconds}"
+            attempt=$((attempt + 1))
+          done
+
       - name: Deploy Production
         id: deploy-production
         run: |
