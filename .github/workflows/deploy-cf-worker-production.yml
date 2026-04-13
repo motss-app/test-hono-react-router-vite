@@ -36,9 +36,18 @@ jobs:
         run: deno install
 
       - name: Build Production
+        id: build-production
         run: |
           echo "🚀 Building Production..."
           deno task build:worker
+
+      - name: Purge Deno cache on build failure
+        if: ${{ failure() && steps.build-production.outcome == 'failure' }}
+        run: |
+          set -euo pipefail
+
+          echo "🧹 Purging Deno cache after production build failure..."
+          deno clean || true
 
       - name: Debug DNS
         run: |

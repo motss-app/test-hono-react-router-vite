@@ -53,6 +53,9 @@ jobs:
               exit 1
             fi
 
+            echo "🧹 Purging Deno cache before retry..."
+            deno clean || true
+
             sleep_seconds=$((attempt * 5))
             echo "⚠️ Canary build failed. Retrying in ${sleep_seconds}s..."
             sleep "${sleep_seconds}"
