@@ -29,7 +29,7 @@
     "@types/react-dom": "19.2.3",
     "typescript": "6.0.2",
     "vite": "8.0.8",
-    "wrangler": "4.80.0"
+    "wrangler": "4.82.2"
   },
   "name": "test-hono-react-router-vite",
   "private": true,
