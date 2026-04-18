@@ -8,22 +8,22 @@ const idleWindow = globalThis as Window & typeof globalThis;
  */
 if (!idleWindow.requestIdleCallback) {
   idleWindow.requestIdleCallback = (callback, options) => {
-    const startedAt = Date.now();
+    const startedAt = performance.now();
     const providedTimeout = options?.timeout;
 
     return setTimeout(() => {
-      const elapsed = Date.now() - startedAt;
+      const elapsed = performance.now() - startedAt;
 
       callback({
         didTimeout: providedTimeout !== undefined && elapsed >= providedTimeout,
-        timeRemaining: () => Math.max(0, 50 - (Date.now() - startedAt)),
+        timeRemaining: () => Math.max(0, 50 - (performance.now() - startedAt)),
       });
     }, 1);
   };
+}
 
-  if (!idleWindow.cancelIdleCallback) {
-    idleWindow.cancelIdleCallback = handle => {
-      clearTimeout(handle);
-    };
-  }
+if (!idleWindow.cancelIdleCallback) {
+  idleWindow.cancelIdleCallback = handle => {
+    clearTimeout(handle);
+  };
 }
