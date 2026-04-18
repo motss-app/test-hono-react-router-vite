@@ -13,12 +13,10 @@ import { createSentryVitePluginOptions } from './vite-utils/sentry-build.ts';
 import { sentryCodeSplittingGroup } from './vite-utils/sentry-chunking.ts';
 import { createBuildSentryEnvSnapshot } from './vite-utils/sentry-env-log.ts';
 
-function getReactRouterSourceMapsGlobPatterns() {
-  return [
-    './build/client/**/*.map',
-    './build/server/**/*.map',
-  ];
-}
+const reactRouterSourceMapsGlobPatterns = [
+  './build/client/**/*.map',
+  './build/server/**/*.map',
+];
 
 function logReactRouterSentryEnvSnapshot(mode: string): void {
   Deno.stderr.writeSync(
@@ -28,27 +26,25 @@ function logReactRouterSentryEnvSnapshot(mode: string): void {
   );
 }
 
-function createReactRouterBuildConfig() {
-  return {
-    cssCodeSplit: false,
-    emptyOutDir: false,
-    rolldownOptions: {
-      experimental: {
-        chunkOptimization: true,
-        lazyBarrel: true,
-      },
-      output: {
-        codeSplitting: {
-          groups: [
-            sentryCodeSplittingGroup,
-          ],
-        },
-        minify: true,
-      },
+const reactRouterBuildConfig = {
+  cssCodeSplit: false,
+  emptyOutDir: false,
+  rolldownOptions: {
+    experimental: {
+      chunkOptimization: true,
+      lazyBarrel: true,
     },
-    sourcemap: 'hidden',
-  };
-}
+    output: {
+      codeSplitting: {
+        groups: [
+          sentryCodeSplittingGroup,
+        ],
+      },
+      minify: true,
+    },
+  },
+  sourcemap: 'hidden',
+};
 
 export default function createViteConfig(config: ConfigEnv) {
   const { mode } = config;
@@ -62,14 +58,14 @@ export default function createViteConfig(config: ConfigEnv) {
     : createSentryVitePluginOptions(mode, {
         createRelease: true,
         dist: 'react-router',
-        filesToDeleteAfterUpload: getReactRouterSourceMapsGlobPatterns(),
+        filesToDeleteAfterUpload: reactRouterSourceMapsGlobPatterns,
         finalizeRelease: false,
-        uploadLegacySourcemaps: getReactRouterSourceMapsGlobPatterns(),
+        uploadLegacySourcemaps: reactRouterSourceMapsGlobPatterns,
       });
   const sentryPlugins = sentryVitePluginOptions ? sentryVitePlugin(sentryVitePluginOptions) : [];
 
   return {
-    build: createReactRouterBuildConfig(),
+    build: reactRouterBuildConfig,
     define: createImportMetaEnvDefine({
       SENTRY_RELEASE: isDeploymentBuild
         ? readRequiredEnv('SENTRY_RELEASE', {
