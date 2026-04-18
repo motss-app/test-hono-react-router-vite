@@ -233,6 +233,7 @@ Current behavior:
 - tags Worker telemetry with `app.session_id`
 - stamps `app.session_id` onto emitted Worker span data via `beforeSendSpan`
 - request metrics and logs are recorded for Worker requests
+- enables `enableRpcTracePropagation` so RPC calls made through Cloudflare service bindings inherit the active trace context
 - the React Router SSR branch uses `wrapSentryHandleRequest(...)` inside that same request path rather than initializing a second server SDK
 - Vite minifies the Worker bundle in `vite.worker.config.ts`, and `wrangler.jsonc` keeps `"no_bundle": true`, `"preserve_file_names": true`, `"find_additional_modules": true`, `base_dir: "./build"`, and an `ESModule` rule for `assets/**/*.js` so Wrangler deploys the already-built Worker as-is. That keeps the runtime file name and line numbers aligned with the Vite output that was uploaded to Sentry; if Wrangler re-bundles, renames, or omits the generated Worker chunks, the deployed `worker.js` no longer matches the uploaded `worker.js.map`, and Sentry will keep showing unmapped stack frames even though the artifact exists.
 
