@@ -1,3 +1,4 @@
+import { elementTimingIntegration } from '@sentry/browser';
 import {
   addIntegration,
   captureMessage,
@@ -107,6 +108,7 @@ init({
     //   ],
     // }),
     tracing,
+    elementTimingIntegration(),
   ],
   ...(isDevSentryMode
     ? {
@@ -185,6 +187,27 @@ globalThis.requestIdleCallback(async function lazyLoadBrowserIntegration() {
       },
       async () => {
         const lazyBrowserIntegrations = [
+          {
+            enabled: true,
+            loader: () =>
+              import('./monitoring/lazy-browser-integrations/http-client.ts').then(
+                mod => mod.httpClientIntegration
+              ),
+          },
+          {
+            enabled: true,
+            loader: () =>
+              import('./monitoring/lazy-browser-integrations/extra-error-data.ts').then(
+                mod => mod.extraErrorDataIntegration
+              ),
+          },
+          {
+            enabled: true,
+            loader: () =>
+              import('./monitoring/lazy-browser-integrations/context-lines.ts').then(
+                mod => mod.contextLinesIntegration
+              ),
+          },
           {
             enabled: true,
             loader: () =>

@@ -13,6 +13,9 @@ import { createSentryVitePluginOptions } from './vite-utils/sentry-build.ts';
 import {
   sentryBrowserProfilingCodeSplittingGroup,
   sentryCodeSplittingGroup,
+  sentryContextLinesCodeSplittingGroup,
+  sentryExtraErrorDataCodeSplittingGroup,
+  sentryHttpClientCodeSplittingGroup,
   sentryViewHierarchyCodeSplittingGroup,
 } from './vite-utils/sentry-chunking.ts';
 import { createBuildSentryEnvSnapshot } from './vite-utils/sentry-env-log.ts';
@@ -41,7 +44,10 @@ const reactRouterBuildConfig = {
     output: {
       codeSplitting: {
         groups: [
+          sentryContextLinesCodeSplittingGroup,
           sentryBrowserProfilingCodeSplittingGroup,
+          sentryExtraErrorDataCodeSplittingGroup,
+          sentryHttpClientCodeSplittingGroup,
           sentryViewHierarchyCodeSplittingGroup,
           sentryCodeSplittingGroup,
         ],

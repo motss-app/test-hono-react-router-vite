@@ -129,9 +129,9 @@ Current behavior:
 - uses `reactRouterTracingIntegration({ useInstrumentationAPI: true })`
 - lazy-loads `viewHierarchyIntegration()` after startup so captured frontend errors can include a DOM snapshot without delaying hydration
 - starts a short-lived `Client bootstrap` span around hydration so browser startup no longer shows up as an unexplained trace gap
-- lazy-loads browser profiling after startup
+- lazy-loads browser profiling, HTTP client enrichment, extra error data, and HTML context lines after startup
 - wraps the idle browser integration loader in a `Lazy browser integrations` span so the deferred setup work is visible in traces
-- lazy-loads replay after startup
+- `replayIntegration()` remains commented out for now, because the local Spotlight sidecar can choke on replay envelopes during development
 - reads the session-scoped `app_session_id` cookie and creates a new session cookie in the browser only when one is missing before tagging browser telemetry with `app.session_id`
 - stamps `app.session_id` onto emitted browser span data via `beforeSendSpan`
 - uses `VITE_SENTRY_DSN` for the browser config
@@ -145,8 +145,24 @@ Important detail:
 - the React Router tracing integration stays eager because `HydratedRouter` needs its client instrumentation during hydration
 - the view hierarchy integration is deferred to the idle browser integrations path, so very early errors may not include a DOM snapshot
 - we intentionally keep the Framework Mode client instrumentation wiring in `app/entry.client.tsx` for future React Router support, even though Sentry currently says those client hooks are not invoked yet
-- the optional browser integrations (`viewHierarchyIntegration()`, `replayIntegration()`, and `browserProfilingIntegration()`) are loaded with `import()` and added later via `addIntegration(...)` to keep the initial browser bundle smaller
+- `elementTimingIntegration()` is initialized eagerly in `app/entry.client.tsx` so Chromium browsers can report the earliest render/load metrics
+- the optional browser integrations (`viewHierarchyIntegration()`, `browserProfilingIntegration()`, `httpClientIntegration()`, `extraErrorDataIntegration()`, and `contextLinesIntegration()`) are loaded with `import()` and added later via `addIntegration(...)` to keep the initial browser bundle smaller
 - browser-side Sentry tracing is still owned by `@sentry/react-router`; the cloudflare subpath only applies to shared route modules and Worker-side helper code
+
+### Browser integration gzip snapshot
+
+The following gzip sizes were measured from the current browser integration experiment and are a handy reference when deciding whether an integration should stay deferred or move earlier.
+
+| Integration | gzip size | Loading note |
+| --- | ---: | --- |
+| `browserTracingIntegration()` | 27.3 kB | Eager tracing path; keep it active before hydration rather than deferring it with the idle loader. |
+| `browserProfilingIntegration()` | 9.61 kB | Lazy-loaded today; keep deferred unless you need profiling earlier in startup. |
+| `replayIntegration()` | 53.1 kB | Commented out today; only enable when you want replay and can afford the extra bundle cost. |
+| `viewHierarchyIntegration()` | 727 B | Lazy-loaded today; lightweight DOM snapshot enrichment. |
+| `httpClientIntegration()` | 6.59 kB | Lazy-loaded today; browser-only request/response enrichment. |
+| `extraErrorDataIntegration()` | 2.7 kB | Lazy-loaded today; enriches custom error objects. |
+| `elementTimingIntegration()` | 7.6 kB | Browser-only and Chromium-only; loaded eagerly in `app/entry.client.tsx` so the earliest render/load metrics are available. |
+| `contextLinesIntegration()` | 653 B | Lazy-loaded today; useful mainly when the page contains inline JavaScript. |
 
 ### React Router server rendering
 
@@ -344,6 +360,21 @@ Notes:
 
 - `SENTRY_RELEASE` is **not a secret**, so do not store it in Wrangler secrets.
 - This repo normally gets it from the build/deploy environment, for example `github.sha` in GitHub Actions.
+
+### Browser integration gzip snapshot
+
+The following gzip sizes were measured from the current browser integration experiment and are a handy reference when deciding whether an integration should stay deferred or move earlier.
+
+| Integration | gzip size | Loading note |
+| --- | ---: | --- |
+| `browserProfilingIntegration()` | 9.61 kB | Lazy-loaded today; keep deferred unless you need profiling earlier in startup. |
+| `replayIntegration()` | 53.1 kB | Commented out today; only enable when you want replay and can afford the extra bundle cost. |
+| `viewHierarchyIntegration()` | 727 B | Lazy-loaded today; lightweight DOM snapshot enrichment. |
+| `httpClientIntegration()` | 6.59 kB | Lazy-loaded today; browser-only request/response enrichment. |
+| `extraErrorDataIntegration()` | 2.7 kB | Lazy-loaded today; enriches custom error objects. |
+| `elementTimingIntegration()` | 7.6 kB | Browser-only and Chromium-only; loaded eagerly in `app/entry.client.tsx` so the earliest render/load metrics are available. |
+| `contextLinesIntegration()` | 653 B | Lazy-loaded today; useful mainly when the page contains inline JavaScript. |
+
 - The deploy workflow sets `DEPLOYMENT_BUILD=true`, and the release define helper throws if `SENTRY_RELEASE` is missing or empty.
 - If you ever want a fixed per-environment value in Wrangler, `vars` is the right place, not `secrets`, but that is not how this repo currently models release values.
 
