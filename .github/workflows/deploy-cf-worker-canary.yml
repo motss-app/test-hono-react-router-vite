@@ -29,7 +29,7 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v2
         with:
-          deno-version: canary
+          deno-version: v2.7.11
           cache: true
 
       - name: Install Dependencies
@@ -39,7 +39,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          max_attempts=5
+          max_attempts=3
           attempt=1
 
           while true; do
@@ -64,7 +64,7 @@ jobs:
 
       - name: Debug DNS
         run: |
-          max_attempts=5
+          max_attempts=3
           attempt=1
 
           while true; do
@@ -99,7 +99,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          max_attempts=5
+          max_attempts=3
           attempt=1
 
           while true; do
