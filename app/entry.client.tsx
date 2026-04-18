@@ -8,7 +8,6 @@ import {
   setTag,
   startInactiveSpan,
   startSpan,
-  viewHierarchyIntegration,
 } from '@sentry/react-router/cloudflare';
 import { StrictMode, startTransition, useEffect } from 'react';
 import { hydrateRoot } from 'react-dom/client';
@@ -108,7 +107,6 @@ init({
     //   ],
     // }),
     tracing,
-    viewHierarchyIntegration(),
   ],
   ...(isDevSentryMode
     ? {
@@ -187,6 +185,10 @@ globalThis.requestIdleCallback(async function lazyLoadBrowserIntegration() {
       },
       async () => {
         const lazyBrowserIntegrations = [
+          {
+            enabled: true,
+            loader: () => import('@sentry/react-router').then(mod => mod.viewHierarchyIntegration),
+          },
           {
             enabled: true,
             loader: () =>

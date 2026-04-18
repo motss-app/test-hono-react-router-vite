@@ -74,7 +74,7 @@ These are the key files involved in the current setup:
   - React Router tracing
   - manual hydration/bootstrap span
   - idle browser integration span
-  - Replay, profiling, logs
+  - Replay, profiling, view hierarchy, logs
   - dev Spotlight browser transport
 - `app/root.tsx`
   - shared route root
@@ -127,7 +127,7 @@ well as the browser bundle.
 Current behavior:
 
 - uses `reactRouterTracingIntegration({ useInstrumentationAPI: true })`
-- eagerly enables `viewHierarchyIntegration()` so captured frontend errors can include a DOM snapshot of the current page state
+- lazy-loads `viewHierarchyIntegration()` after startup so captured frontend errors can include a DOM snapshot without delaying hydration
 - starts a short-lived `Client bootstrap` span around hydration so browser startup no longer shows up as an unexplained trace gap
 - lazy-loads browser profiling after startup
 - wraps the idle browser integration loader in a `Lazy browser integrations` span so the deferred setup work is visible in traces
@@ -143,9 +143,9 @@ Important detail:
 - instead, it uses a custom transport in `app/monitoring/sentry-spotlight-browser.ts`
 - this avoids browser requests to fake endpoints like `https://local/api/0/envelope/...`
 - the React Router tracing integration stays eager because `HydratedRouter` needs its client instrumentation during hydration
-- the view hierarchy integration also stays eager so error events can attach a DOM snapshot from the current render tree
+- the view hierarchy integration is deferred to the idle browser integrations path, so very early errors may not include a DOM snapshot
 - we intentionally keep the Framework Mode client instrumentation wiring in `app/entry.client.tsx` for future React Router support, even though Sentry currently says those client hooks are not invoked yet
-- the optional browser integrations (`replayIntegration()` and `browserProfilingIntegration()`) are loaded with `import()` and added later via `addIntegration(...)` to keep the initial browser bundle smaller
+- the optional browser integrations (`viewHierarchyIntegration()`, `replayIntegration()`, and `browserProfilingIntegration()`) are loaded with `import()` and added later via `addIntegration(...)` to keep the initial browser bundle smaller
 - browser-side Sentry tracing is still owned by `@sentry/react-router`; the cloudflare subpath only applies to shared route modules and Worker-side helper code
 
 ### React Router server rendering
