@@ -8,6 +8,7 @@ import {
   setTag,
   startInactiveSpan,
   startSpan,
+  viewHierarchyIntegration,
 } from '@sentry/react-router/cloudflare';
 import { StrictMode, startTransition, useEffect } from 'react';
 import { hydrateRoot } from 'react-dom/client';
@@ -107,6 +108,7 @@ init({
     //   ],
     // }),
     tracing,
+    viewHierarchyIntegration(),
   ],
   ...(isDevSentryMode
     ? {

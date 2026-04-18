@@ -28,6 +28,28 @@ function logReactRouterSentryEnvSnapshot(mode: string): void {
   );
 }
 
+function createReactRouterBuildConfig() {
+  return {
+    cssCodeSplit: false,
+    emptyOutDir: false,
+    rolldownOptions: {
+      experimental: {
+        chunkOptimization: true,
+        lazyBarrel: true,
+      },
+      output: {
+        codeSplitting: {
+          groups: [
+            sentryCodeSplittingGroup,
+          ],
+        },
+        minify: true,
+      },
+    },
+    sourcemap: 'hidden',
+  };
+}
+
 export default function createViteConfig(config: ConfigEnv) {
   const { mode } = config;
   const isDev = mode === 'development';
@@ -47,25 +69,7 @@ export default function createViteConfig(config: ConfigEnv) {
   const sentryPlugins = sentryVitePluginOptions ? sentryVitePlugin(sentryVitePluginOptions) : [];
 
   return {
-    build: {
-      cssCodeSplit: false,
-      emptyOutDir: false,
-      rolldownOptions: {
-        experimental: {
-          chunkOptimization: true,
-          lazyBarrel: true,
-        },
-        output: {
-          codeSplitting: {
-            groups: [
-              sentryCodeSplittingGroup,
-            ],
-          },
-          minify: true,
-        },
-      },
-      sourcemap: 'hidden',
-    },
+    build: createReactRouterBuildConfig(),
     define: createImportMetaEnvDefine({
       SENTRY_RELEASE: isDeploymentBuild
         ? readRequiredEnv('SENTRY_RELEASE', {
