@@ -1,3 +1,4 @@
+import { elementTimingIntegration } from '@sentry/browser';
 import {
   addIntegration,
   captureMessage,
@@ -109,6 +110,7 @@ init({
     //   ],
     // }),
     tracing,
+    elementTimingIntegration(),
   ],
   ...(isDevSentryMode
     ? {
@@ -190,7 +192,37 @@ globalThis.requestIdleCallback(async function lazyLoadBrowserIntegration() {
           {
             enabled: true,
             loader: () =>
-              import('@sentry/react-router').then(mod => mod.browserProfilingIntegration),
+              import('./monitoring/lazy-browser-integrations/http-client.ts').then(
+                mod => mod.httpClientIntegration
+              ),
+          },
+          {
+            enabled: true,
+            loader: () =>
+              import('./monitoring/lazy-browser-integrations/extra-error-data.ts').then(
+                mod => mod.extraErrorDataIntegration
+              ),
+          },
+          {
+            enabled: true,
+            loader: () =>
+              import('./monitoring/lazy-browser-integrations/context-lines.ts').then(
+                mod => mod.contextLinesIntegration
+              ),
+          },
+          {
+            enabled: true,
+            loader: () =>
+              import('./monitoring/lazy-browser-integrations/view-hierarchy.ts').then(
+                mod => mod.viewHierarchyIntegration
+              ),
+          },
+          {
+            enabled: true,
+            loader: () =>
+              import('./monitoring/lazy-browser-integrations/browser-profiling.ts').then(
+                mod => mod.browserProfilingIntegration
+              ),
           },
           // {
           //   // Don't load the Replay integration in development when we're sending
@@ -198,7 +230,7 @@ globalThis.requestIdleCallback(async function lazyLoadBrowserIntegration() {
           //   // can choke on replay recordings. Only enable Replay outside of
           //   // development mode.
           //   enabled: !isDevSentryMode,
-          //   loader: () => import('@sentry/react-router').then(mod => mod.replayIntegration),
+          //   loader: () => import('@sentry/browser').then(mod => mod.replayIntegration),
           // },
         ].filter(n => n.enabled);
 
