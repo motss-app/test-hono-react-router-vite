@@ -1,3 +1,3 @@
-import { browserProfilingIntegration as sentryBrowserProfilingIntegration } from '@sentry/browser';
+import { browserProfilingIntegration } from '@sentry/browser';
 
-export const browserProfilingIntegration = sentryBrowserProfilingIntegration;
+export { browserProfilingIntegration };

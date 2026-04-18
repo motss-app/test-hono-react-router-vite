@@ -1,3 +1,3 @@
-import { viewHierarchyIntegration as sentryViewHierarchyIntegration } from '@sentry/browser';
+import { viewHierarchyIntegration } from '@sentry/browser';
 
-export const viewHierarchyIntegration = sentryViewHierarchyIntegration;
+export { viewHierarchyIntegration };
