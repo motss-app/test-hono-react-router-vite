@@ -90,12 +90,12 @@ export function createBrowserSentryOptions(mode: RuntimeMode, dsn?: string, rele
 
   return {
     ...createBaseOptions(mode, dsn),
-    enableRpcTracePropagation: true,
     ...(runtimeRelease
       ? {
           release: runtimeRelease,
         }
       : {}),
+    enableRpcTracePropagation: true,
     profilesSampleRate,
     replaysOnErrorSampleRate,
     replaysSessionSampleRate,
