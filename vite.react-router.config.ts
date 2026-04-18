@@ -10,7 +10,11 @@ import { createImportMetaEnvDefine } from './vite-utils/import-meta-env.ts';
 import { loadConfigEnvironment } from './vite-utils/load-env.ts';
 import { readEnv } from './vite-utils/read-env.ts';
 import { createSentryVitePluginOptions } from './vite-utils/sentry-build.ts';
-import { sentryCodeSplittingGroup } from './vite-utils/sentry-chunking.ts';
+import {
+  sentryBrowserProfilingCodeSplittingGroup,
+  sentryCodeSplittingGroup,
+  sentryViewHierarchyCodeSplittingGroup,
+} from './vite-utils/sentry-chunking.ts';
 import { createBuildSentryEnvSnapshot } from './vite-utils/sentry-env-log.ts';
 
 const reactRouterSourceMapsGlobPatterns = [
@@ -37,6 +41,8 @@ const reactRouterBuildConfig = {
     output: {
       codeSplitting: {
         groups: [
+          sentryBrowserProfilingCodeSplittingGroup,
+          sentryViewHierarchyCodeSplittingGroup,
           sentryCodeSplittingGroup,
         ],
       },
