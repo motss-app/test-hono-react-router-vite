@@ -10,3 +10,7 @@
 # React Router
 /.react-router/
 /build/
+
+# AI coding assistant internal data
+.opencode/
+.codex/
