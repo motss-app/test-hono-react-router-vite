@@ -3,18 +3,20 @@
 Purpose: document Phase 2 progress before moving to Phase 3.
 
 ## Goals
-- Prove the new dev shell works.
-- Prove Hono API routes still work in dev and production.
+- Investigate why the Cloudflare-native dev runner fails page SSR in local development.
+- Preserve Hono API routes in both dev and production.
 
 ## Todo
-- [ ] Run `deno task format:check` and confirm there are no formatting diffs or warnings.
-- [ ] Run `deno task lint` and confirm there are no lint errors or warnings.
-- [ ] Run `deno task check` and confirm type generation and type checking pass cleanly.
-- [ ] Run `deno task dev:app` and confirm the app boots without runtime errors or warnings.
-- [ ] Hit `/api/test` and `/api/rpc/hello` in dev and confirm both responses are correct.
-- [ ] Run `deno task build:worker` and confirm the production worker build succeeds cleanly.
-- [ ] Confirm the Hono API contract still works in production build output.
-- [ ] Record any regressions, warnings, or follow-up fixes before starting Phase 3.
+- [x] Reproduce the Cloudflare-native SSR failure and capture the exact error surface.
+- [x] Compare the worker dev runner path with the restored Hono dev server path.
+- [x] Verify whether the worker runner can render `/`, `/about`, and `/ssr` after any config or shim change.
+- [x] Keep `/api/test` and `/api/rpc/hello` working while testing SSR fixes.
+- [x] Run `deno task format:check`, `deno task lint`, `deno task check`, and `deno task build:worker` after each fix attempt.
+- [x] Record whether the Hono dev server remains the required local bootstrap or can be retired later.
 
 ## Completion notes
-- Update this section with a short summary only after every check above passes without errors or warnings.
+- The dev startup race was in `scripts/dev-spotlight.ts`: the app could boot before Spotlight was listening, which caused `connection refused` transport errors during page loads.
+- `scripts/dev-spotlight.ts` now waits for Spotlight to respond before starting `dev:app`, so `deno task dev` comes up cleanly.
+- `vite.worker.config.ts` now explicitly externalizes `node:async_hooks`, which removes Rolldown's automatic externalization warning from the Sentry Cloudflare bundle.
+- Verified routes: `/`, `/about`, `/ssr`, `/api/test`, and `/api/rpc/hello`.
+- Verification commands passed: `deno task format:check`, `deno task lint`, `deno task check`, and `deno task build:worker`.

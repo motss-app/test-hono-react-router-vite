@@ -1,4 +1,3 @@
-import { cloudflare } from '@cloudflare/vite-plugin';
 import honoDevServer, { defaultOptions } from '@hono/vite-dev-server';
 import { nodeAdapter } from '@hono/vite-dev-server/node';
 import { reactRouter } from '@react-router/dev/vite';
@@ -44,11 +43,9 @@ export default defineConfig(async config => {
   return {
     optimizeDeps: {
       include: optimizeDepsInclude,
+      noDiscovery: true,
     },
     plugins: [
-      cloudflare({
-        configPath: './wrangler.jsonc',
-      }),
       themeBuildPlugin(),
       ...(isDev
         ? [

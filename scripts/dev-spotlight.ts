@@ -5,6 +5,8 @@ interface ManagedProcess {
 
 const spotlightUrl = 'http://localhost:8969';
 const spotlightHealthcheckTimeoutMs = 1000;
+const spotlightStartupTimeoutMs = 15000;
+const spotlightStartupPollIntervalMs = 250;
 
 function getSpotlightLaunchCommand(): {
   cmd: string;
@@ -59,6 +61,22 @@ async function isSpotlightRunning(): Promise<boolean> {
   }
 }
 
+async function waitForSpotlightRunning(): Promise<boolean> {
+  const deadline = Date.now() + spotlightStartupTimeoutMs;
+
+  while (Date.now() < deadline) {
+    if (await isSpotlightRunning()) {
+      return true;
+    }
+
+    await new Promise<void>(resolve => {
+      setTimeout(resolve, spotlightStartupPollIntervalMs);
+    });
+  }
+
+  return false;
+}
+
 const processes: ManagedProcess[] = [];
 
 function logWarning(message: string): void {
@@ -98,6 +116,14 @@ if (!(await isSpotlightRunning())) {
       });
   } catch (error) {
     logWarning(`Failed to spawn Spotlight process; continuing without Spotlight: ${String(error)}`);
+  }
+}
+
+if (spotlightProcess) {
+  const isReady = await waitForSpotlightRunning();
+
+  if (!isReady) {
+    logWarning('Spotlight did not become ready before app startup; continuing without waiting any longer.');
   }
 }
 
