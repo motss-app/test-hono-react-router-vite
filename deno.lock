@@ -4,7 +4,9 @@
     "jsr:@std/internal@^1.0.12": "1.0.12",
     "jsr:@std/path@1.1.4": "1.1.4",
     "npm:@base-ui/react@1.4.0": "1.4.0_@date-fns+tz@1.4.1_@types+react@19.2.14_date-fns@4.1.0_react@19.2.5_react-dom@19.2.5__react@19.2.5",
+    "npm:@biomejs/biome@*": "2.4.12",
     "npm:@biomejs/biome@2.4.12": "2.4.12",
+    "npm:@cloudflare/vite-plugin@1.32.3": "1.32.3_vite@8.0.8_wrangler@4.83.0__@cloudflare+workers-types@4.20260418.1",
     "npm:@cloudflare/workers-types@4.20260418.1": "4.20260418.1",
     "npm:@fontsource-variable/open-sans@5.2.7": "5.2.7",
     "npm:@hono/node-server@1.19.14": "1.19.14_hono@4.12.14",
@@ -369,6 +371,17 @@
       ],
       "optionalPeers": [
         "workerd"
+      ]
+    },
+    "@cloudflare/vite-plugin@1.32.3_vite@8.0.8_wrangler@4.83.0__@cloudflare+workers-types@4.20260418.1": {
+      "integrity": "sha512-a8ZkCA/SOiJ36jT3LlBLkUb7ZzGInhYJoTY4BMRBGdk+nsh44HavbNvtu/RdaqS5VJEMLM4+LqVIJ+V0ahGeFg==",
+      "dependencies": [
+        "@cloudflare/unenv-preset",
+        "miniflare",
+        "unenv",
+        "vite@8.0.8",
+        "wrangler",
+        "ws"
       ]
     },
     "@cloudflare/workerd-darwin-64@1.20260415.1": {
@@ -2604,6 +2617,7 @@
       "dependencies": [
         "npm:@base-ui/react@1.4.0",
         "npm:@biomejs/biome@2.4.12",
+        "npm:@cloudflare/vite-plugin@1.32.3",
         "npm:@cloudflare/workers-types@4.20260418.1",
         "npm:@fontsource-variable/open-sans@5.2.7",
         "npm:@hono/node-server@1.19.14",

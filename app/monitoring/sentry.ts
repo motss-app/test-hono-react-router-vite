@@ -1,5 +1,6 @@
 import type { CloudflareOptions } from '@sentry/cloudflare';
 import type { DenoOptions } from '@sentry/deno';
+import type { BrowserOptions } from '@sentry/browser';
 
 export const sentrySpotlightSidecarDefaultUrl = 'http://localhost:8969/stream';
 export const sentryOrigin = 'https://sentry.io';
@@ -85,7 +86,11 @@ function createBaseOptions(mode: RuntimeMode, dsn?: string) {
   };
 }
 
-export function createBrowserSentryOptions(mode: RuntimeMode, dsn?: string, release?: string) {
+export function createBrowserSentryOptions(
+  mode: RuntimeMode,
+  dsn?: string,
+  release?: string
+): BrowserOptions {
   const runtimeRelease = getRequiredRuntimeRelease(mode, release);
 
   return {
@@ -95,7 +100,6 @@ export function createBrowserSentryOptions(mode: RuntimeMode, dsn?: string, rele
           release: runtimeRelease,
         }
       : {}),
-    enableRpcTracePropagation: true,
     profileLifecycle: 'trace',
     profileSessionSampleRate,
     replaysOnErrorSampleRate,
@@ -131,6 +135,7 @@ export function createCloudflareSentryOptions(
           release: runtimeRelease,
         }
       : {}),
+    enableRpcTracePropagation: true,
   };
 }
 

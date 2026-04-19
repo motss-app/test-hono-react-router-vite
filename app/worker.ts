@@ -111,10 +111,9 @@ function recordWorkerRequestError(
   });
 }
 
-// Production: Serve React Router SSR
-if (import.meta.env.PROD) {
-  createSsrHandler(app);
-}
+// Serve React Router SSR in both dev and production so the Cloudflare-native
+// dev server can render page routes while Hono keeps owning /api/*.
+createSsrHandler(app);
 
 export default withSentry<HonoEnv['Bindings']>(
   env => {
