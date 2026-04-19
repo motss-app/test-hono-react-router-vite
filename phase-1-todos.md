@@ -3,14 +3,14 @@
 Purpose: document Phase 1 progress before moving to Phase 2.
 
 ## Goals
-- Keep the working dev shell for page SSR and Hono APIs.
+- Keep the Cloudflare-native dev shell for page SSR and Hono APIs.
 - Preserve Hono as the owner of `/api/*` in dev and production.
 
 ## Todo
 - [x] Review the current `vite.config.ts` and `deno.json` changes.
 - [x] Confirm the Cloudflare Vite plugin is wired for dev only.
 - [x] Confirm local dev uses `env.development` in `wrangler.jsonc`.
-- [x] Confirm the Cloudflare-native worker dev path still fails to SSR page routes.
+- [x] Confirm the Cloudflare-native dev shell boots and renders page routes under the plugin.
 - [x] Confirm `/api/*` still routes through Hono in `app/app.ts` and `app/apis/mod.ts`.
 - [x] Verify `app/server.ts` and `app/worker.ts` still serve the shared Hono app.
 - [x] Run `deno task format:check`.
@@ -24,8 +24,7 @@ Purpose: document Phase 1 progress before moving to Phase 2.
 - `deno task lint` passes.
 - `deno task check` passes after fixing the browser Sentry option typing in `app/monitoring/sentry.ts`.
 - `deno task build:worker` completes successfully.
-- `deno task dev:app` boots under the restored Hono dev server path.
-- The Cloudflare-native worker dev path was tested, but it fails on SSR page routes with `ReferenceError: module is not defined` in React Router's runner.
-- That worker path still serves `/api/*`, but it does not reliably render `/`, `/about`, or `/ssr` in dev, so Hono dev server remains required for the page SSR path.
+- `deno task dev:app` boots with the Cloudflare Vite plugin and renders `/`, `/about`, and `/ssr`.
 - `/api/test` and `/api/rpc/hello` still return the expected Hono JSON responses in dev.
-- The local dev shell keeps `CLOUDFLARE_ENV=development` in `.env.development`, but the active page-rendering dev bootstrap is still Hono's server path until the worker runner issue is fixed.
+- `scripts/dev-spotlight.ts` waits for Spotlight to become ready before starting `dev:app`, which keeps the full dev shell stable.
+- Verification used Deno 2.7.11 from the archived binary because the local 2.7.12 binary reproduces the `TsconfigCache` NAPI regression during React Router/Rolldown builds.
