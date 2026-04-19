@@ -130,6 +130,7 @@ Current behavior:
 - lazy-loads `viewHierarchyIntegration()` after startup so captured frontend errors can include a DOM snapshot without delaying hydration
 - starts a short-lived `Client bootstrap` span around hydration so browser startup no longer shows up as an unexplained trace gap
 - lazy-loads browser profiling, HTTP client enrichment, extra error data, and HTML context lines after startup
+- browser profiling is session-scoped with `profileSessionSampleRate: 1.0` and `profileLifecycle: 'trace'`
 - wraps the idle browser integration loader in a `Lazy browser integrations` span so the deferred setup work is visible in traces
 - `replayIntegration()` remains commented out for now, because the local Spotlight sidecar can choke on replay envelopes during development
 - reads the session-scoped `app_session_id` cookie and creates a new session cookie in the browser only when one is missing before tagging browser telemetry with `app.session_id`
@@ -354,7 +355,7 @@ What each one is used for:
 | `SENTRY_DSN` | Deno server runtime / Worker runtime | server SDK config |
 | `VITE_SENTRY_SPOTLIGHT` | browser and Deno dev runtime | Spotlight sidecar URL for dev transports |
 | `SENTRY_AUTH_TOKEN` | Vite Sentry plugins | source map upload during builds |
-| `SENTRY_RELEASE` | build/runtime | release name for source map upload and runtime release tagging outside development |
+| `SENTRY_RELEASE` | build/runtime | release name for source map upload, runtime release tagging outside development, and CSP security-report attribution |
 
 Notes:
 

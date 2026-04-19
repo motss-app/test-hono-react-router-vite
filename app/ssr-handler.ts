@@ -6,10 +6,14 @@ import { createRequestHandler, RouterContextProvider } from 'react-router';
 
 import { logSentryEnvSnapshot } from '../vite-utils/sentry-env-log.ts';
 import type { App } from './app.ts';
-import { getSentryConnectSrc } from './monitoring/sentry.ts';
+import { getSentryConnectSrc, getSentryEnvironment } from './monitoring/sentry.ts';
 import { HonoContext } from './router-context.ts';
 import type { HonoEnv } from './types/hono.types.ts';
-import { cloudflareAnalyticsStyleHashes, csp } from './utils/csp.ts';
+import {
+  cloudflareAnalyticsStyleHashes,
+  createSentryCspReportingConfig,
+  csp,
+} from './utils/csp.ts';
 
 let hasLoggedSsrEnvSnapshot = false;
 const liveSsrCacheControl = 'no-store';
@@ -129,14 +133,32 @@ function applySsrResponseHeaders(
 
   logSsrEnvSnapshotOnce(c);
 
+  const sentryRelease = import.meta.env.SENTRY_RELEASE;
+
+  if (!sentryRelease) {
+    throw new Error(
+      'app/ssr-handler.ts requires SENTRY_RELEASE to be defined for production HTML responses.'
+    );
+  }
+
+  const cspPolicy = csp.buildPolicy({
+    connectSrc: getSentryConnectSrc(getSentryDsn(c)),
+    nonce: cspNonce,
+    styleHashes: cloudflareAnalyticsStyleHashes,
+  });
+  const sentryCspReportingConfig = createSentryCspReportingConfig({
+    dsn: getSentryDsn(c),
+    environment: getSentryEnvironment(import.meta.env.MODE),
+    release: sentryRelease,
+  });
+
+  responseHeaders.set('Content-Security-Policy', cspPolicy);
   responseHeaders.set(
-    'Content-Security-Policy',
-    csp.buildPolicy({
-      connectSrc: getSentryConnectSrc(getSentryDsn(c)),
-      nonce: cspNonce,
-      styleHashes: cloudflareAnalyticsStyleHashes,
-    })
+    'Content-Security-Policy-Report-Only',
+    `${cspPolicy}; report-uri ${sentryCspReportingConfig.reportUri}; report-to csp-endpoint`
   );
+  responseHeaders.set('Report-To', sentryCspReportingConfig.reportTo);
+  responseHeaders.set('Reporting-Endpoints', sentryCspReportingConfig.reportingEndpoints);
   responseHeaders.set('Document-Policy', csp.buildDocumentPolicy());
 
   return new Response(response.body, {

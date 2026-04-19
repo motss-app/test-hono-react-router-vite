@@ -4,7 +4,7 @@ import type { DenoOptions } from '@sentry/deno';
 export const sentrySpotlightSidecarDefaultUrl = 'http://localhost:8969/stream';
 export const sentryOrigin = 'https://sentry.io';
 const tracesSampleRate = 1.0;
-const profilesSampleRate = 1.0;
+const profileSessionSampleRate = 1.0;
 const replaysSessionSampleRate = 0.1;
 const replaysOnErrorSampleRate = 1.0;
 
@@ -96,7 +96,8 @@ export function createBrowserSentryOptions(mode: RuntimeMode, dsn?: string, rele
         }
       : {}),
     enableRpcTracePropagation: true,
-    profilesSampleRate,
+    profileLifecycle: 'trace',
+    profileSessionSampleRate,
     replaysOnErrorSampleRate,
     replaysSessionSampleRate,
     tracePropagationTargets: sentryTracePropagationTargets,

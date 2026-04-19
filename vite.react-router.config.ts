@@ -35,6 +35,7 @@ function logReactRouterSentryEnvSnapshot(mode: string): void {
 
 const reactRouterBuildConfig = {
   cssCodeSplit: false,
+  cssMinify: 'lightningcss',
   emptyOutDir: false,
   rolldownOptions: {
     experimental: {
@@ -90,6 +91,9 @@ export default function createViteConfig(config: ConfigEnv) {
       : [
           themeBuildPlugin(),
           stylex.vite({
+            lightningcssOptions: {
+              minify: true,
+            },
             useCSSLayers: true,
           }),
           reactRouter(),

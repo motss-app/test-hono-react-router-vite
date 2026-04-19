@@ -11,6 +11,24 @@ interface ContentSecurityPolicyOptions {
   styleHashes?: string[] | null;
 }
 
+interface SentryCspReportingOptions {
+  dsn: string;
+  environment: string;
+  release: string;
+}
+
+interface SentryCspReportingHeaders {
+  contentSecurityPolicyReportOnly: string;
+  reportTo: string;
+  reportingEndpoints: string;
+}
+
+interface SentryCspReportingConfig {
+  reportTo: string;
+  reportUri: string;
+  reportingEndpoints: string;
+}
+
 interface CspResult {
   buildPolicy(options: ContentSecurityPolicyOptions): string;
   buildDocumentPolicy(): string;
@@ -28,6 +46,7 @@ const cspDigestAlgorithm = 'SHA-384';
 const cspNonceByteLength = 16;
 const base64ChunkSize = 0x80_00;
 const cspNonceRequestHeader = 'x-internal-csp-nonce';
+const sentryProjectIdLeadingSlashPattern = /^\/+/;
 const defaultConnectSrc = [
   "'self'",
   'https://cloudflareinsights.com',
@@ -87,6 +106,69 @@ export async function collectInlineHashes(html: string, pattern: RegExp): Promis
 
 function createNonce(): string {
   return toBase64(crypto.getRandomValues(new Uint8Array(cspNonceByteLength)));
+}
+
+function createSentrySecurityReportUri({
+  dsn,
+  environment,
+  release,
+}: SentryCspReportingOptions): string {
+  const sentryDsn = new URL(dsn);
+  const sentryKey = sentryDsn.username;
+  const sentryProjectId = sentryDsn.pathname.replace(sentryProjectIdLeadingSlashPattern, '');
+
+  if (!sentryKey) {
+    throw new Error('Sentry DSN is missing a public key for security reporting.');
+  }
+
+  if (!sentryProjectId) {
+    throw new Error('Sentry DSN is missing a project id for security reporting.');
+  }
+
+  const reportUri = new URL(
+    `/api/${sentryProjectId}/security/`,
+    `${sentryDsn.protocol}//${sentryDsn.host}`
+  );
+
+  reportUri.searchParams.set('sentry_key', sentryKey);
+  reportUri.searchParams.set('sentry_environment', environment);
+  reportUri.searchParams.set('sentry_release', release);
+
+  return reportUri.toString();
+}
+
+export function createSentryCspReportingConfig(
+  options: SentryCspReportingOptions
+): SentryCspReportingConfig {
+  const reportUri = createSentrySecurityReportUri(options);
+
+  return {
+    reportingEndpoints: `csp-endpoint="${reportUri}"`,
+    reportTo: JSON.stringify({
+      endpoints: [
+        {
+          url: reportUri,
+        },
+      ],
+      group: 'csp-endpoint',
+      include_subdomains: true,
+      max_age: 10_886_400,
+    }),
+    reportUri,
+  };
+}
+
+export function createSentryCspReportingHeaders(
+  contentSecurityPolicy: string,
+  options: SentryCspReportingOptions
+): SentryCspReportingHeaders {
+  const reportingConfig = createSentryCspReportingConfig(options);
+
+  return {
+    contentSecurityPolicyReportOnly: `${contentSecurityPolicy}; report-uri ${reportingConfig.reportUri}; report-to csp-endpoint`,
+    reportingEndpoints: reportingConfig.reportingEndpoints,
+    reportTo: reportingConfig.reportTo,
+  };
 }
 
 function buildDocumentPolicy(): string {

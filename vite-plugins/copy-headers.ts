@@ -1,10 +1,11 @@
 import { dirname, join, resolve } from 'node:path';
 import type { Plugin } from 'vite';
 
-import { getSentryConnectSrc } from '../app/monitoring/sentry.ts';
+import { getSentryConnectSrc, getSentryEnvironment } from '../app/monitoring/sentry.ts';
 import {
   cloudflareAnalyticsStyleHashes,
   collectInlineHashes,
+  createSentryCspReportingConfig,
   csp,
   inlineScriptPattern,
   inlineStylePattern,
@@ -24,7 +25,14 @@ interface ProcessStaticRouteOptions {
   includeCloudflareAnalyticsStyleHashes: boolean;
   routePath: string;
   sentryDsn: string;
+  sentryCspReportingConfig: ReturnType<typeof createSentryCspReportingConfig>;
   staticPageCacheControl: string;
+}
+
+interface HeadersCopyPluginContext {
+  includeCloudflareAnalyticsStyleHashes: boolean;
+  sentryCspReportingConfig: ReturnType<typeof createSentryCspReportingConfig>;
+  sentryDsn: string;
 }
 
 const staticPageCacheControl =
@@ -50,9 +58,38 @@ function htmlFilePathFromRoute(clientDir: string, routePath: string): string {
   return join(clientDir, routePath.slice(1), 'index.html');
 }
 
+function createHeadersCopyPluginContext(mode: string): HeadersCopyPluginContext {
+  const includeCloudflareAnalyticsStyleHashes = mode !== 'development';
+
+  Deno.stderr.writeSync(
+    new TextEncoder().encode(
+      `[vite-plugins/copy-headers.ts] Sentry env snapshot ${JSON.stringify(createBuildSentryEnvSnapshot('vite-plugins/copy-headers.ts', mode))}\n`
+    )
+  );
+
+  const sentryDsn = readRequiredEnv('SENTRY_DSN', {
+    source: 'vite-plugins/copy-headers.ts',
+  });
+  const sentryRelease = readRequiredEnv('SENTRY_RELEASE', {
+    source: 'vite-plugins/copy-headers.ts',
+  });
+  const sentryEnvironment = getSentryEnvironment(mode);
+
+  return {
+    includeCloudflareAnalyticsStyleHashes,
+    sentryCspReportingConfig: createSentryCspReportingConfig({
+      dsn: sentryDsn,
+      environment: sentryEnvironment,
+      release: sentryRelease,
+    }),
+    sentryDsn,
+  };
+}
+
 function buildStaticRouteHeaders(
   routePath: string,
   cspDirective: string,
+  sentryCspReportingConfig: ReturnType<typeof createSentryCspReportingConfig>,
   staticPageCacheControl: string
 ): string {
   return [
@@ -60,6 +97,9 @@ function buildStaticRouteHeaders(
     '  ! Cache-Control',
     `  Cache-Control: ${staticPageCacheControl}`,
     `  Content-Security-Policy: ${cspDirective}`,
+    `  Content-Security-Policy-Report-Only: ${cspDirective}; report-uri ${sentryCspReportingConfig.reportUri}; report-to csp-endpoint`,
+    `  Report-To: ${sentryCspReportingConfig.reportTo}`,
+    `  Reporting-Endpoints: ${sentryCspReportingConfig.reportingEndpoints}`,
     `  Document-Policy: ${csp.buildDocumentPolicy()}`,
   ].join('\n');
 }
@@ -69,6 +109,7 @@ async function processStaticRoute({
   includeCloudflareAnalyticsStyleHashes,
   routePath,
   sentryDsn,
+  sentryCspReportingConfig,
   staticPageCacheControl,
 }: ProcessStaticRouteOptions): Promise<string | null> {
   const htmlFile = htmlFilePathFromRoute(clientDir, routePath);
@@ -94,6 +135,7 @@ async function processStaticRoute({
         ...(includeCloudflareAnalyticsStyleHashes ? cloudflareAnalyticsStyleHashes : []),
       ],
     }),
+    sentryCspReportingConfig,
     staticPageCacheControl
   );
 }
@@ -103,15 +145,8 @@ export function headersCopyPlugin(options: HeadersCopyPluginOptions): Plugin {
   const destPath = resolve(Deno.cwd(), options.dest);
   const clientDir = dirname(destPath);
   const mode = options.mode;
-  const includeCloudflareAnalyticsStyleHashes = mode !== 'development';
-  Deno.stderr.writeSync(
-    new TextEncoder().encode(
-      `[vite-plugins/copy-headers.ts] Sentry env snapshot ${JSON.stringify(createBuildSentryEnvSnapshot('vite-plugins/copy-headers.ts', mode))}\n`
-    )
-  );
-  const sentryDsn = readRequiredEnv('SENTRY_DSN', {
-    source: 'vite-plugins/copy-headers.ts',
-  });
+  const { includeCloudflareAnalyticsStyleHashes, sentryCspReportingConfig, sentryDsn } =
+    createHeadersCopyPluginContext(mode);
 
   return {
     apply: 'build',
@@ -134,6 +169,7 @@ export function headersCopyPlugin(options: HeadersCopyPluginOptions): Plugin {
             clientDir,
             includeCloudflareAnalyticsStyleHashes,
             routePath,
+            sentryCspReportingConfig,
             sentryDsn,
             staticPageCacheControl,
           })

@@ -78,6 +78,8 @@ For prerendered HTML:
 - it hashes inline `<script>` and `<style>` blocks
 - it appends route-specific `Cache-Control` and CSP entries to `build/client/_headers`
 - Cloudflare Analytics reuses `cloudflareAnalyticsStyleHashes`, so the generated SSG policy matches the runtime SSR policy.
+- it also appends `Content-Security-Policy-Report-Only`, `Report-To`, and `Reporting-Endpoints` so Sentry can receive CSP security reports from prerendered pages
+- the Sentry report URI is built from `SENTRY_DSN` and carries `sentry_environment` and `sentry_release`, so canary and production reports stay attributable to the right build
 
 This is used for both production and canary builds:
 
@@ -99,6 +101,16 @@ So:
 - it does **not** need a nonce
 - it does **not** need `integrity` just because it is same-origin
 - CSP only needs `'self'` in `script-src`
+
+### CSP reporting
+
+The repo emits a report-only CSP alongside the enforced policy so Sentry can collect browser-side CSP violations without blocking the request:
+
+- `Content-Security-Policy` remains the enforced policy for the page
+- `Content-Security-Policy-Report-Only` mirrors that policy and appends `report-uri` / `report-to csp-endpoint`
+- `Report-To` and `Reporting-Endpoints` both point at the Sentry security endpoint
+
+The reporting URI is derived from the Sentry DSN and includes the current build environment and release in the query string.
 
 ## Practical decisions
 
