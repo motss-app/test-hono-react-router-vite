@@ -40,13 +40,13 @@ export default defineConfig(({ mode }) => {
       },
       outDir: 'build',
       rolldownOptions: {
-        external: [
-          'node:async_hooks',
-        ],
         experimental: {
           chunkOptimization: true,
           lazyBarrel: true,
         },
+        external: [
+          'node:async_hooks',
+        ],
         input: './app/worker.ts',
         output: {
           codeSplitting: {

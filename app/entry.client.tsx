@@ -234,13 +234,15 @@ globalThis.requestIdleCallback(async function lazyLoadBrowserIntegration() {
           // },
         ].filter(n => n.enabled);
 
-        for await (const { loader } of lazyBrowserIntegrations) {
-          const integration = await loader();
+        await Promise.all(
+          lazyBrowserIntegrations.map(async ({ loader }) => {
+            const integration = await loader();
 
-          addIntegration(integration());
+            addIntegration(integration());
 
-          console.info('[entry.client] Lazy-loaded Sentry browser integration', integration.name);
-        }
+            console.info('[entry.client] Lazy-loaded Sentry browser integration', integration.name);
+          })
+        );
       }
     );
   } catch (error) {

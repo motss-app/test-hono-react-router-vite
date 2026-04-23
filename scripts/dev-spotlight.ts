@@ -1,3 +1,5 @@
+import { clearPortsInUse } from './dev-ports.ts';
+
 interface ManagedProcess {
   child: Deno.ChildProcess;
   name: string;
@@ -61,20 +63,26 @@ async function isSpotlightRunning(): Promise<boolean> {
   }
 }
 
-async function waitForSpotlightRunning(): Promise<boolean> {
-  const deadline = Date.now() + spotlightStartupTimeoutMs;
+function waitForSpotlightRunning(): Promise<boolean> {
+  const deadline = performance.now() + spotlightStartupTimeoutMs;
 
-  while (Date.now() < deadline) {
+  async function pollUntilDeadline(): Promise<boolean> {
     if (await isSpotlightRunning()) {
       return true;
+    }
+
+    if (performance.now() >= deadline) {
+      return false;
     }
 
     await new Promise<void>(resolve => {
       setTimeout(resolve, spotlightStartupPollIntervalMs);
     });
+
+    return pollUntilDeadline();
   }
 
-  return false;
+  return pollUntilDeadline();
 }
 
 const processes: ManagedProcess[] = [];
@@ -87,43 +95,47 @@ function logWarning(message: string): void {
 
 let spotlightProcess: ManagedProcess | undefined;
 
-if (!(await isSpotlightRunning())) {
-  try {
-    const launch = getSpotlightLaunchCommand();
-    spotlightProcess = {
-      child: new Deno.Command(launch.cmd, {
-        args: launch.args,
-        stderr: 'inherit',
-        stdin: 'inherit',
-        stdout: 'inherit',
-      }).spawn(),
-      name: 'Spotlight',
-    };
+try {
+  await clearPortsInUse([
+    8969,
+  ]);
 
-    processes.push(spotlightProcess);
+  const launch = getSpotlightLaunchCommand();
+  spotlightProcess = {
+    child: new Deno.Command(launch.cmd, {
+      args: launch.args,
+      stderr: 'inherit',
+      stdin: 'inherit',
+      stdout: 'inherit',
+    }).spawn(),
+    name: 'Spotlight',
+  };
 
-    // Keep it running but do not treat Spotlight sidecar failure as fatal.
-    spotlightProcess.child.status
-      .then(status => {
-        if (!status.success) {
-          logWarning(
-            `Spotlight process exited with code ${status.code ?? 'unknown'}. continuing without sidecar.`
-          );
-        }
-      })
-      .catch(error => {
-        logWarning(`Spotlight process status promise rejected: ${String(error)}`);
-      });
-  } catch (error) {
-    logWarning(`Failed to spawn Spotlight process; continuing without Spotlight: ${String(error)}`);
-  }
+  processes.push(spotlightProcess);
+
+  // Keep it running but do not treat Spotlight sidecar failure as fatal.
+  spotlightProcess.child.status
+    .then(status => {
+      if (!status.success) {
+        logWarning(
+          `Spotlight process exited with code ${status.code ?? 'unknown'}. continuing without sidecar.`
+        );
+      }
+    })
+    .catch(error => {
+      logWarning(`Spotlight process status promise rejected: ${String(error)}`);
+    });
+} catch (error) {
+  logWarning(`Failed to spawn Spotlight process; continuing without Spotlight: ${String(error)}`);
 }
 
 if (spotlightProcess) {
   const isReady = await waitForSpotlightRunning();
 
   if (!isReady) {
-    logWarning('Spotlight did not become ready before app startup; continuing without waiting any longer.');
+    logWarning(
+      'Spotlight did not become ready before app startup; continuing without waiting any longer.'
+    );
   }
 }
 

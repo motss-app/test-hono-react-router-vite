@@ -1,4 +1,22 @@
 {
+  "biome.lsp.bin": "./node_modules/.bin/biome",
+  "chat.mcp.autostart": "newAndOutdated",
+  "chat.mcp.serverSampling": {
+    "test-hono-react-router-vite/.vscode/mcp.json: io-github-getsentry-sentry-mcp": {
+      "allowedModels": [
+        "copilot/gpt-5-mini",
+        "copilot/gpt-5.4",
+        "copilot/oswe-vscode-prime"
+      ]
+    },
+    "test-hono-react-router-vite/.vscode/mcp.json: spotlight": {
+      "allowedModels": [
+        "copilot/gpt-5-mini",
+        "copilot/gpt-5.4-mini",
+        "copilot/oswe-vscode-prime"
+      ]
+    }
+  },
   "chat.tools.terminal.autoApprove": {
     "env": true
   },

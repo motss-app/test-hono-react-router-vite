@@ -1,6 +1,6 @@
+import type { BrowserOptions } from '@sentry/browser';
 import type { CloudflareOptions } from '@sentry/cloudflare';
 import type { DenoOptions } from '@sentry/deno';
-import type { BrowserOptions } from '@sentry/browser';
 
 export const sentrySpotlightSidecarDefaultUrl = 'http://localhost:8969/stream';
 export const sentryOrigin = 'https://sentry.io';
@@ -166,6 +166,9 @@ export const sentryMetricNames = {
   requestError: 'app.server.request.error',
 } as const;
 
+// Keep browser trace propagation on localhost and the motss app origins so module imports and asset loads stay out of traces.
 export const sentryTracePropagationTargets = [
-  /^\//,
+  /^(?:https?:\/\/)?(?:[^./?#]+\.)*localhost(?::\d+)?(?:\/|$)/i,
+  /^(?:https?:\/\/)?(?:[^./?#]+\.)*motss\.fyi(?::\d+)?(?:\/|$)/i,
+  /^(?:https?:\/\/)?(?:[^./?#]+\.)*motss\.workers\.dev(?::\d+)?(?:\/|$)/i,
 ];

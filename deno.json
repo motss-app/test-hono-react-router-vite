@@ -99,7 +99,7 @@
     "check": " deno run -P npm:@react-router/dev typegen && deno check --unstable-tsgo",
     "convert-fa-pro": "deno run -P=env scripts/convert-fa-pro.ts",
     "dev": "deno run -A scripts/dev-spotlight.ts",
-    "dev:app": "deno run -A npm:vite",
+    "dev:app": "deno run -A scripts/dev-app.ts",
     "format": "deno run -P=format npm:@biomejs/biome format --write .",
     "format:check": "deno run -P=format npm:@biomejs/biome format .",
     "lint": "deno lint && deno run -P=lint npm:@biomejs/biome check .",

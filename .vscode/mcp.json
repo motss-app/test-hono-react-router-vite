@@ -1,0 +1,16 @@
+{
+  "servers": {
+    "io-github-getsentry-sentry-mcp": {
+      "url": "https://mcp.sentry.dev/mcp"
+    },
+    "spotlight": {
+      "args": [
+        "dlx",
+        "@spotlightjs/spotlight@4.11.3",
+        "mcp"
+      ],
+      "command": "pnpm",
+      "type": "stdio"
+    }
+  }
+}
