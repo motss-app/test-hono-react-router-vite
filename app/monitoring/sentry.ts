@@ -96,7 +96,7 @@ export function createBrowserSentryOptions(mode: RuntimeMode, dsn?: string, rele
         }
       : {}),
     enableRpcTracePropagation: true,
-    profileLifecycle: 'trace',
+    profileLifecycle: 'trace' as const,
     profileSessionSampleRate,
     replaysOnErrorSampleRate,
     replaysSessionSampleRate,
