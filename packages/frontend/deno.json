@@ -33,8 +33,11 @@
   "name": "@motss-app/frontend",
   "tasks": {
     "build": "deno task build:react-router && deno task build:worker",
+    "build:canary": "deno task build:react-router:canary && deno task build:worker:canary",
     "build:react-router": "deno run -A npm:@react-router/dev build --config ./vite.react-router.config.ts",
+    "build:react-router:canary": "deno run -A npm:@react-router/dev build --config ./vite.react-router.config.ts --mode canary",
     "build:worker": "deno run -A npm:vite build --config ./vite.worker.config.ts",
+    "build:worker:canary": "deno run -A npm:vite build --config ./vite.worker.config.ts --mode canary",
     "dev": "deno run -A ../../scripts/run-with-cleared-ports.ts 5173 -- deno run -A npm:vite",
     "preview": "deno run -A npm:vite preview",
     "typecheck": "deno check --unstable-tsgo workers/app.ts react-router.config.ts vite.config.ts vite.react-router.config.ts vite.worker.config.ts"

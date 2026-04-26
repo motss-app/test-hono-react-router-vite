@@ -101,7 +101,7 @@
     "build:gateway:canary": "deno task --cwd=packages/gateway build",
     "build:worker": "deno task build:gateway",
     "build:worker:canary": "deno task build:gateway:canary",
-    "check": "deno task --cwd=packages/shared typecheck && deno task --cwd=packages/bff typecheck && deno task --cwd=packages/frontend typecheck && deno task --cwd=packages/gateway typecheck && deno check --unstable-tsgo",
+    "check": "deno task typegen && deno task --cwd=packages/shared typecheck && deno task --cwd=packages/bff typecheck && deno task --cwd=packages/frontend typecheck && deno task --cwd=packages/gateway typecheck && deno check --unstable-tsgo",
     "convert-fa-pro": "deno run -P=env scripts/convert-fa-pro.ts",
     "dev": "deno run -A scripts/dev-spotlight.ts",
     "dev:app": "deno task --cwd=packages/frontend dev",
@@ -112,6 +112,7 @@
     "lint:fix": "deno run -P=lint npm:@biomejs/biome check --write .",
     "preview": "deno task build && deno task --cwd=packages/gateway preview",
     "preview:worker": "deno task preview",
+    "typegen": "REACT_ROUTER_ROOT=$PWD deno run -A npm:@react-router/dev typegen --config packages/frontend/vite.react-router.config.ts",
     "spotlight": "pnpm dlx @spotlightjs/spotlight",
     "start": "deno task preview"
   },

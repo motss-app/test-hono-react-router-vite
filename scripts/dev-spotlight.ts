@@ -170,7 +170,7 @@ for (const signal of [
   }
 }
 
-if (!exitResult.status.success && exitResult.status.code !== 1) {
+if (!exitResult.status.success) {
   const exitCode = exitResult.status.code ?? -1;
 
   if (exitCode === 130 || exitCode === 143) {
