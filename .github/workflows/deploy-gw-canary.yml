@@ -31,6 +31,8 @@ jobs:
         run: deno install
 
       - name: Build Gateway
+        env:
+          CLOUDFLARE_ENV: canary
         run: |
           set -euo pipefail
 
@@ -44,7 +46,7 @@ jobs:
 
           echo "🚀 Deploying public gateway worker..."
 
-          if ! (cd packages/gateway && deno run -A npm:wrangler deploy --config .wrangler/deploy/config.json --env canary > deploy-gateway.log 2>&1); then
+          if ! (cd packages/gateway && deno run -A npm:wrangler deploy --env canary > deploy-gateway.log 2>&1); then
             cat packages/gateway/deploy-gateway.log
             exit 1
           fi

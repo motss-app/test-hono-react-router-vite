@@ -16,12 +16,13 @@ import { getThemeBootstrapEntryPoint, toErrorMessage } from './utils.ts';
 export async function configureThemeBuildServer(
   server: ViteDevServer,
   state: ThemeBuildServerState,
-  rootDir: string = Deno.cwd()
+  rootDir?: string
 ): Promise<void> {
-  const themeBootstrapEntryPoint = getThemeBootstrapEntryPoint(rootDir);
+  const normalizedRootDir = rootDir ?? Deno.cwd();
+  const themeBootstrapEntryPoint = getThemeBootstrapEntryPoint(normalizedRootDir);
 
   try {
-    state.devCode = (await buildThemeBootstrap(rootDir)).code;
+    state.devCode = (await buildThemeBootstrap(normalizedRootDir)).code;
   } catch (error) {
     server.config.logger.error(`vite:theme-bootstrap: ${toErrorMessage(error)}`);
   }
@@ -67,7 +68,7 @@ export async function configureThemeBuildServer(
 
     state.debounceTimer = setTimeout(async () => {
       try {
-        state.devCode = (await buildThemeBootstrap(rootDir)).code;
+        state.devCode = (await buildThemeBootstrap(normalizedRootDir)).code;
         server.ws.send({
           type: 'full-reload',
         });

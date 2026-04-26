@@ -59,5 +59,11 @@ const child = new Deno.Command(command, {
 const status = await child.status;
 
 if (!status.success) {
-  Deno.exit(status.code ?? 1);
+  const exitCode = status.code ?? 1;
+
+  if (exitCode === 130 || exitCode === 143) {
+    Deno.exit(0);
+  }
+
+  Deno.exit(exitCode);
 }

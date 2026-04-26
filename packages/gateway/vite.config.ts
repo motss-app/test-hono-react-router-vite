@@ -23,5 +23,9 @@ export default defineConfig(({ command }) => {
       port: 8787,
       strictPort: true,
     },
+    preview: {
+      port: 8787,
+      strictPort: true,
+    },
   };
 });

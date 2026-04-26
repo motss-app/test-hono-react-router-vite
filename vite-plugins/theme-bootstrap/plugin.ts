@@ -31,8 +31,8 @@ const resolveId = ((id: string): string | null => {
   return id;
 }) satisfies Plugin['resolveId'];
 
-export function themeBuildPlugin(options: ThemeBuildPluginOptions = {}): Plugin[] {
-  const rootDir = options.rootDir ?? Deno.cwd();
+export function themeBuildPlugin(options?: ThemeBuildPluginOptions): Plugin[] {
+  const rootDir = options?.rootDir ?? Deno.cwd();
   let buildArtifact: BuildArtifact | undefined;
   const serverState: ThemeBuildServerState = {
     debounceTimer: undefined,

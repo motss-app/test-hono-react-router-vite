@@ -30,6 +30,13 @@ jobs:
       - name: Install Dependencies
         run: deno install
 
+      - name: Generate Frontend React Router Types
+        run: |
+          set -euo pipefail
+
+          echo "🚀 Generating frontend React Router types..."
+          deno task --cwd=packages/frontend build:react-router
+
       - name: Typecheck BFF
         run: |
           set -euo pipefail

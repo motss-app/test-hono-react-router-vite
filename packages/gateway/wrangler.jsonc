@@ -1,7 +1,17 @@
 {
-  "$schema": "./node_modules/wrangler/config-schema.json",
+  "$schema": "../../node_modules/wrangler/config-schema.json",
   "env": {
     "canary": {
+      "services": [
+        {
+          "binding": "FRONTEND",
+          "service": "frontend-app-canary"
+        },
+        {
+          "binding": "BFF",
+          "service": "bff-api-canary"
+        }
+      ],
       "routes": [
         {
           "custom_domain": true,
