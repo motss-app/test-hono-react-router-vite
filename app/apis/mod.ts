@@ -1,21 +1,5 @@
-import { Hono } from 'hono';
+import type { ApiAppType as BffApiAppType } from '../../packages/bff/src/api.ts';
+import { apiApp as bffApiApp } from '../../packages/bff/src/api.ts';
 
-const rpcApp = new Hono().get('/hello', c => {
-  const response = {
-    message: 'Hello, World!',
-    server: 'Hono RPC',
-    timestamp: new Date().toISOString(),
-  } as const;
-
-  return c.json(response);
-});
-
-const testApp = new Hono().get('/', c => {
-  return c.json({
-    message: 'Hello from /api/test endpoint!',
-  } as const);
-});
-
-export const apiApp = new Hono().route('/rpc', rpcApp).route('/test', testApp);
-
-export type ApiAppType = typeof apiApp;
+export const apiApp = bffApiApp;
+export type ApiAppType = BffApiAppType;

@@ -1,0 +1,15 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "env": {
+    "canary": {},
+    "production": {}
+  },
+  "preview_urls": false,
+  "name": "bff-api",
+  "main": "./src/worker.ts",
+  "compatibility_date": "2026-04-25",
+  "workers_dev": false,
+  "dev": {
+    "inspector_port": 9231
+  }
+}

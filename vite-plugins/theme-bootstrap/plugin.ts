@@ -9,6 +9,10 @@ import {
 import { configureThemeBuildServer } from './dev-server.ts';
 import type { BuildArtifact, ThemeBuildServerState } from './types.ts';
 
+interface ThemeBuildPluginOptions {
+  rootDir?: string;
+}
+
 function loadModule(id: string, src: string): string | null {
   if (id !== RESOLVED_VIRTUAL_THEME_BOOTSTRAP_ID) {
     return null;
@@ -27,7 +31,8 @@ const resolveId = ((id: string): string | null => {
   return id;
 }) satisfies Plugin['resolveId'];
 
-export function themeBuildPlugin(): Plugin[] {
+export function themeBuildPlugin(options: ThemeBuildPluginOptions = {}): Plugin[] {
+  const rootDir = options.rootDir ?? Deno.cwd();
   let buildArtifact: BuildArtifact | undefined;
   const serverState: ThemeBuildServerState = {
     debounceTimer: undefined,
@@ -38,7 +43,7 @@ export function themeBuildPlugin(): Plugin[] {
     {
       apply: 'serve',
       async configureServer(server: ViteDevServer): Promise<void> {
-        await configureThemeBuildServer(server, serverState);
+        await configureThemeBuildServer(server, serverState, rootDir);
       },
       load(id: string): string | null {
         return loadModule(id, DEV_THEME_BOOTSTRAP_REQUEST_PATH);
@@ -49,7 +54,7 @@ export function themeBuildPlugin(): Plugin[] {
     {
       apply: 'build',
       async buildStart(): Promise<void> {
-        buildArtifact ??= await buildThemeBootstrap();
+        buildArtifact ??= await buildThemeBootstrap(rootDir);
 
         if (this.environment.name === 'client') {
           this.emitFile({

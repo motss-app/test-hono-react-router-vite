@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "lib": [
+      "esnext"
+    ],
+    "types": [
+      "@cloudflare/workers-types"
+    ]
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./bindings": "./src/bindings.ts"
+  },
+  "name": "@motss-app/shared",
+  "tasks": {
+    "typecheck": "deno check --unstable-tsgo src/index.ts"
+  },
+  "version": "0.1.0"
+}

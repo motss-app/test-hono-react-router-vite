@@ -5,8 +5,9 @@ const prerenderExcludedRoutes = [
   '/ssr',
 ];
 
-function discoverStaticRoutes(options: { exclude?: string[] } = {}): string[] {
-  const routesDir = './app/routes';
+function discoverStaticRoutes(options: { exclude?: string[]; rootDir?: string } = {}): string[] {
+  const rootDir = options.rootDir ?? Deno.cwd();
+  const routesDir = `${rootDir}/app/routes`;
   const routes: string[] = [];
   const { exclude = [] } = options;
 
@@ -64,10 +65,17 @@ function discoverStaticRoutes(options: { exclude?: string[] } = {}): string[] {
   return routes;
 }
 
-export function discoverPrerenderRoutes(): string[] {
-  const routes = discoverStaticRoutes({
-    exclude: prerenderExcludedRoutes,
-  });
+export function discoverPrerenderRoutes(options: { rootDir?: string } = {}): string[] {
+  const routes = discoverStaticRoutes(
+    options.rootDir === undefined
+      ? {
+          exclude: prerenderExcludedRoutes,
+        }
+      : {
+          exclude: prerenderExcludedRoutes,
+          rootDir: options.rootDir,
+        }
+  );
 
   // Explicitly add the index route since discoverStaticRoutes relies on file names
   // and doesn't know that home.tsx is mapped to /

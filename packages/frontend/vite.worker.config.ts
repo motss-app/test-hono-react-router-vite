@@ -1,13 +1,15 @@
 import { sentryVitePlugin } from '@sentry/vite-plugin';
 import { defineConfig } from 'vite';
 
-import { readRequiredEnv } from './vite-utils/get-required-env.ts';
-import { createImportMetaEnvDefine } from './vite-utils/import-meta-env.ts';
-import { loadConfigEnvironment } from './vite-utils/load-env.ts';
-import { readEnv } from './vite-utils/read-env.ts';
-import { createSentryVitePluginOptions } from './vite-utils/sentry-build.ts';
-import { sentryCodeSplittingGroup } from './vite-utils/sentry-chunking.ts';
-import { createBuildSentryEnvSnapshot } from './vite-utils/sentry-env-log.ts';
+import { readRequiredEnv } from '../../vite-utils/get-required-env.ts';
+import { createImportMetaEnvDefine } from '../../vite-utils/import-meta-env.ts';
+import { loadConfigEnvironment } from '../../vite-utils/load-env.ts';
+import { readEnv } from '../../vite-utils/read-env.ts';
+import { createSentryVitePluginOptions } from '../../vite-utils/sentry-build.ts';
+import { sentryCodeSplittingGroup } from '../../vite-utils/sentry-chunking.ts';
+import { createBuildSentryEnvSnapshot } from '../../vite-utils/sentry-env-log.ts';
+
+const repoRootPath = new URL('../../', import.meta.url).pathname;
 
 function getSentrySourceMapsGlobPatterns() {
   return [
@@ -18,10 +20,10 @@ function getSentrySourceMapsGlobPatterns() {
 
 export default defineConfig(({ mode }) => {
   const isDeploymentBuild = Deno.env.get('DEPLOYMENT_BUILD') === 'true';
-  loadConfigEnvironment(mode);
+  loadConfigEnvironment(mode, repoRootPath);
   Deno.stderr.writeSync(
     new TextEncoder().encode(
-      `[vite.worker.config.ts] Sentry env snapshot ${JSON.stringify(createBuildSentryEnvSnapshot('vite.worker.config.ts', mode))}\n`
+      `[packages/frontend/vite.worker.config.ts] Sentry env snapshot ${JSON.stringify(createBuildSentryEnvSnapshot('packages/frontend/vite.worker.config.ts', mode))}\n`
     )
   );
 
@@ -63,7 +65,7 @@ export default defineConfig(({ mode }) => {
     define: createImportMetaEnvDefine({
       SENTRY_RELEASE: isDeploymentBuild
         ? readRequiredEnv('SENTRY_RELEASE', {
-            source: 'vite.worker.config.ts',
+            source: 'packages/frontend/vite.worker.config.ts',
           })
         : readEnv('SENTRY_RELEASE'),
     }),
@@ -71,6 +73,7 @@ export default defineConfig(({ mode }) => {
     resolve: {
       tsconfigPaths: true,
     },
+    root: repoRootPath,
     ssr: {
       noExternal: true,
       target: 'webworker',

@@ -1,7 +1,8 @@
 import { type InlineConfig, build as viteBuild } from 'vite';
 
-import { THEME_BOOTSTRAP_ENTRY_POINT, THEME_BOOTSTRAP_OUT_FILE } from './constants.ts';
+import { THEME_BOOTSTRAP_OUT_FILE } from './constants.ts';
 import type { BuildArtifact } from './types.ts';
+import { getThemeBootstrapEntryPoint } from './utils.ts';
 
 type ViteBuildOutput = Extract<
   Awaited<ReturnType<typeof viteBuild>>,
@@ -16,7 +17,7 @@ type ViteOutputChunk = Extract<
   }
 >;
 
-async function buildThemeBootstrapCode(): Promise<{
+async function buildThemeBootstrapCode(rootDir: string): Promise<{
   code: string;
   src: string;
 }> {
@@ -24,7 +25,7 @@ async function buildThemeBootstrapCode(): Promise<{
     build: {
       emptyOutDir: false,
       lib: {
-        entry: THEME_BOOTSTRAP_ENTRY_POINT,
+        entry: getThemeBootstrapEntryPoint(rootDir),
         fileName: () => THEME_BOOTSTRAP_OUT_FILE,
         formats: [
           'iife',
@@ -44,7 +45,7 @@ async function buildThemeBootstrapCode(): Promise<{
     configFile: false,
     logLevel: 'silent',
     publicDir: false,
-    root: Deno.cwd(),
+    root: rootDir,
   });
 
   const resultList = Array.isArray(result)
@@ -70,8 +71,8 @@ async function buildThemeBootstrapCode(): Promise<{
   throw new Error('Unable to find the built theme bootstrap JavaScript chunk.');
 }
 
-export async function buildThemeBootstrap(): Promise<BuildArtifact> {
-  const { code, src } = await buildThemeBootstrapCode();
+export async function buildThemeBootstrap(rootDir: string = Deno.cwd()): Promise<BuildArtifact> {
+  const { code, src } = await buildThemeBootstrapCode(rootDir);
 
   return {
     code,

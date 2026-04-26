@@ -5,12 +5,15 @@ import { sentryReactRouter } from '@sentry/react-router';
 import stylex from '@stylexjs/unplugin';
 import { defineConfig } from 'vite';
 
-import { themeBuildPlugin } from './vite-plugins/theme-bootstrap/plugin.ts';
-import { loadConfigEnvironment } from './vite-utils/load-env.ts';
-import { createSentryBuildOptions } from './vite-utils/sentry-build.ts';
-import { createBuildSentryEnvSnapshot } from './vite-utils/sentry-env-log.ts';
+import { themeBuildPlugin } from '../../vite-plugins/theme-bootstrap/plugin.ts';
+import { loadConfigEnvironment } from '../../vite-utils/load-env.ts';
+import { createSentryBuildOptions } from '../../vite-utils/sentry-build.ts';
+import { createBuildSentryEnvSnapshot } from '../../vite-utils/sentry-env-log.ts';
 
+const repoRootPath = new URL('../../', import.meta.url).pathname;
+const appServerEntry = new URL('../../app/server.ts', import.meta.url).pathname;
 const isRegExpImport = /\?import$/;
+const isRegExpViteOptimizedDepsRequest = /\/node_modules\/\.vite\/deps\/.*$/;
 const isRegExpRouteImport = /\/app\/routes\/.*\?import$/;
 const isRegExpAppCssAssetRequest = /\/app\/.*\.css(?:\?(?:raw|inline)(?:=.*)?)?$/;
 const optimizeDepsInclude = [
@@ -30,10 +33,10 @@ export default defineConfig(async config => {
   const { mode } = config;
   const isDev = mode === 'development';
 
-  loadConfigEnvironment(mode);
+  loadConfigEnvironment(mode, repoRootPath);
   Deno.stderr.writeSync(
     new TextEncoder().encode(
-      `[vite.config.ts] Sentry env snapshot ${JSON.stringify(createBuildSentryEnvSnapshot('vite.config.ts', mode))}\n`
+      `[packages/frontend/vite.config.ts] Sentry env snapshot ${JSON.stringify(createBuildSentryEnvSnapshot('packages/frontend/vite.config.ts', mode))}\n`
     )
   );
 
@@ -45,16 +48,20 @@ export default defineConfig(async config => {
       include: optimizeDepsInclude,
     },
     plugins: [
-      themeBuildPlugin(),
+      themeBuildPlugin({
+        rootDir: repoRootPath,
+      }),
       ...(isDev
         ? [
             honoDevServer({
               adapter: nodeAdapter(),
-              entry: './app/server.ts',
+              entry: appServerEntry,
               exclude: [
                 ...defaultOptions.exclude,
                 // React Router dev server makes module requests with ?import; letting Hono see them returns HTML instead of JS
                 isRegExpImport,
+                // Vite optimized dependency chunks must be served by Vite, not the Hono SSR middleware.
+                isRegExpViteOptimizedDepsRequest,
                 // Raw app CSS requests should be served by Vite, not Hono SSR.
                 isRegExpAppCssAssetRequest,
                 // Route module requests (React Router lazy modules) must be handled by Vite, not Hono
@@ -84,6 +91,7 @@ export default defineConfig(async config => {
     resolve: {
       tsconfigPaths: false,
     },
+    root: repoRootPath,
     server: {
       port: 5173,
       strictPort: true,

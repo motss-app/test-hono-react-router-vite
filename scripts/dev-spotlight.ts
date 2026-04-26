@@ -1,10 +1,9 @@
+import { clearPorts } from './dev-ports.ts';
+
 interface ManagedProcess {
   child: Deno.ChildProcess;
   name: string;
 }
-
-const spotlightUrl = 'http://localhost:8969';
-const spotlightHealthcheckTimeoutMs = 1000;
 
 function getSpotlightLaunchCommand(): {
   cmd: string;
@@ -39,26 +38,6 @@ function getSpotlightLaunchCommand(): {
   };
 }
 
-async function isSpotlightRunning(): Promise<boolean> {
-  const abortController = new AbortController();
-  const timeoutId = setTimeout(() => {
-    abortController.abort();
-  }, spotlightHealthcheckTimeoutMs);
-
-  try {
-    const response = await fetch(spotlightUrl, {
-      method: 'GET',
-      signal: abortController.signal,
-    });
-
-    return response.ok;
-  } catch {
-    return false;
-  } finally {
-    clearTimeout(timeoutId);
-  }
-}
-
 const processes: ManagedProcess[] = [];
 
 function logWarning(message: string): void {
@@ -69,36 +48,40 @@ function logWarning(message: string): void {
 
 let spotlightProcess: ManagedProcess | undefined;
 
-if (!(await isSpotlightRunning())) {
-  try {
-    const launch = getSpotlightLaunchCommand();
-    spotlightProcess = {
-      child: new Deno.Command(launch.cmd, {
-        args: launch.args,
-        stderr: 'inherit',
-        stdin: 'inherit',
-        stdout: 'inherit',
-      }).spawn(),
-      name: 'Spotlight',
-    };
+await clearPorts([
+  8969,
+  5173,
+  8787,
+]);
 
-    processes.push(spotlightProcess);
+try {
+  const launch = getSpotlightLaunchCommand();
+  spotlightProcess = {
+    child: new Deno.Command(launch.cmd, {
+      args: launch.args,
+      stderr: 'inherit',
+      stdin: 'inherit',
+      stdout: 'inherit',
+    }).spawn(),
+    name: 'Spotlight',
+  };
 
-    // Keep it running but do not treat Spotlight sidecar failure as fatal.
-    spotlightProcess.child.status
-      .then(status => {
-        if (!status.success) {
-          logWarning(
-            `Spotlight process exited with code ${status.code ?? 'unknown'}. continuing without sidecar.`
-          );
-        }
-      })
-      .catch(error => {
-        logWarning(`Spotlight process status promise rejected: ${String(error)}`);
-      });
-  } catch (error) {
-    logWarning(`Failed to spawn Spotlight process; continuing without Spotlight: ${String(error)}`);
-  }
+  processes.push(spotlightProcess);
+
+  // Keep it running but do not treat Spotlight sidecar failure as fatal.
+  spotlightProcess.child.status
+    .then(status => {
+      if (!status.success) {
+        logWarning(
+          `Spotlight process exited with code ${status.code ?? 'unknown'}. continuing without sidecar.`
+        );
+      }
+    })
+    .catch(error => {
+      logWarning(`Spotlight process status promise rejected: ${String(error)}`);
+    });
+} catch (error) {
+  logWarning(`Failed to spawn Spotlight process; continuing without Spotlight: ${String(error)}`);
 }
 
 const appProcess: ManagedProcess = {
@@ -115,6 +98,21 @@ const appProcess: ManagedProcess = {
 };
 
 processes.push(appProcess);
+
+const gatewayProcess: ManagedProcess = {
+  child: new Deno.Command('deno', {
+    args: [
+      'task',
+      'dev:gateway',
+    ],
+    stderr: 'inherit',
+    stdin: 'inherit',
+    stdout: 'inherit',
+  }).spawn(),
+  name: 'Gateway',
+};
+
+processes.push(gatewayProcess);
 
 let isShuttingDown = false;
 
@@ -148,7 +146,16 @@ for (const signal of [
   Deno.addSignalListener(signal, listener);
 }
 
-const appStatus = await appProcess.child.status;
+const exitResult = await Promise.race([
+  appProcess.child.status.then(status => ({
+    name: appProcess.name,
+    status,
+  })),
+  gatewayProcess.child.status.then(status => ({
+    name: gatewayProcess.name,
+    status,
+  })),
+]);
 
 stopProcesses('SIGTERM');
 
@@ -163,6 +170,12 @@ for (const signal of [
   }
 }
 
-if (!appStatus.success && appStatus.code !== 1) {
-  throw new Error(`App exited with code ${appStatus.code ?? 'unknown'}`);
+if (!exitResult.status.success && exitResult.status.code !== 1) {
+  const exitCode = exitResult.status.code ?? -1;
+
+  if (exitCode === 130 || exitCode === 143) {
+    Deno.exit(0);
+  }
+
+  throw new Error(`${exitResult.name} exited with code ${exitResult.status.code ?? 'unknown'}`);
 }

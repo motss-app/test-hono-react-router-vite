@@ -1,0 +1,67 @@
+name: Deploy BFF Canary
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: BFF Canary
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      DEPLOYMENT_BUILD: 'true'
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      SENTRY_DSN: ${{ vars.SENTRY_DSN }}
+      SENTRY_RELEASE: ${{ github.sha }}
+      VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.7.11
+          cache: true
+
+      - name: Install Dependencies
+        run: deno install
+
+      - name: Typecheck BFF
+        run: |
+          set -euo pipefail
+
+          echo "🚀 Typechecking BFF..."
+          deno task --cwd=packages/bff typecheck
+
+      - name: Deploy BFF
+        id: deploy-bff
+        run: |
+          set -euo pipefail
+
+          echo "🚀 Deploying private BFF worker..."
+
+          if ! deno run -A npm:wrangler deploy --config packages/bff/wrangler.jsonc --env canary > deploy-bff.log 2>&1; then
+            cat deploy-bff.log
+            exit 1
+          fi
+
+          cat deploy-bff.log
+
+      - name: Show BFF deploy log on failure
+        if: ${{ failure() && steps.deploy-bff.outcome == 'failure' }}
+        run: |
+          set -euo pipefail
+
+          WRANGLER_LOG_FILE=$(sed -n 's/.*Logs were written to "\([^"]*\)".*/\1/p' deploy-bff.log | tail -n 1)
+
+          if [ -n "${WRANGLER_LOG_FILE}" ] && [ -f "${WRANGLER_LOG_FILE}" ]; then
+            echo "🪵 Showing Wrangler log: ${WRANGLER_LOG_FILE}"
+            cat "${WRANGLER_LOG_FILE}"
+          else
+            echo "Wrangler log file not found, showing deploy output instead"
+            cat deploy-bff.log
+          fi

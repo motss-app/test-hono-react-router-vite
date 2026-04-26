@@ -1,0 +1,39 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "env": {
+    "canary": {
+      "routes": [
+        {
+          "custom_domain": true,
+          "pattern": "hono-react-router-vite-canary.motss.fyi"
+        }
+      ]
+    },
+    "production": {
+      "routes": [
+        {
+          "custom_domain": true,
+          "pattern": "hono-react-router-vite.motss.fyi"
+        }
+      ]
+    }
+  },
+  "preview_urls": true,
+  "name": "edge-gateway",
+  "main": "./src/worker.ts",
+  "compatibility_date": "2026-04-25",
+  "workers_dev": true,
+  "services": [
+    {
+      "binding": "FRONTEND",
+      "service": "frontend-app"
+    },
+    {
+      "binding": "BFF",
+      "service": "bff-api"
+    }
+  ],
+  "dev": {
+    "inspector_port": 9230
+  }
+}

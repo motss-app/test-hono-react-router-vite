@@ -1,10 +1,10 @@
+import type { ApiAppType } from '@motss-app/bff';
 import { flush, logger, metrics, startNewTrace, startSpan } from '@sentry/react-router/cloudflare';
 import { create, keyframes, props } from '@stylexjs/stylex';
 import type { InferResponseType } from 'hono';
 import { hc } from 'hono/client';
 import { Fragment, type JSX, type ReactNode, useCallback, useEffect, useState } from 'react';
 
-import type { ApiAppType } from '../apis/mod.ts';
 import { Link } from '../components/Link.tsx';
 import { Skeleton } from '../components/skeleton.tsx';
 import { Text } from '../components/text.tsx';
