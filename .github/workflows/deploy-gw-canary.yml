@@ -24,7 +24,7 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v2
         with:
-          deno-version: v2.7.11
+          deno-version: v2.7.13
           cache: true
 
       - name: Install Dependencies
@@ -38,6 +38,43 @@ jobs:
 
           echo "🚀 Building Gateway..."
           deno task --cwd=packages/gateway build
+
+      - name: Wait for Canary Dependencies
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          wait_for_workflow_run() {
+            local workflow="$1"
+            local label="$2"
+
+            echo "⏳ Waiting for ${label} to finish for ${GITHUB_SHA}..."
+
+            while true; do
+              local status
+              local conclusion
+
+              status=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/${workflow}/runs?head_sha=${GITHUB_SHA}&per_page=1" --jq '.workflow_runs[0].status // empty')
+              conclusion=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/${workflow}/runs?head_sha=${GITHUB_SHA}&per_page=1" --jq '.workflow_runs[0].conclusion // empty')
+
+              if [[ "$status" == "completed" ]]; then
+                if [[ "$conclusion" == "success" ]]; then
+                  echo "✅ ${label} completed successfully"
+                  return 0
+                fi
+
+                echo "❌ ${label} completed with conclusion=${conclusion:-unknown}"
+                return 1
+              fi
+
+              echo "⏳ ${label} is ${status:-queued}; checking again soon..."
+              sleep 20
+            done
+          }
+
+          wait_for_workflow_run "deploy-fe-canary.yml" "Frontend Canary"
+          wait_for_workflow_run "deploy-bff-canary.yml" "BFF Canary"
 
       - name: Deploy Gateway
         id: deploy-gateway

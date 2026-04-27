@@ -14,6 +14,20 @@
     "moduleResolution": "bundler",
     "noEmit": true,
     "resolveJsonModule": true,
+    "paths": {
+      "@motss-app/bff": [
+        "./packages/bff/src/index.ts"
+      ],
+      "@motss-app/bff/*": [
+        "./packages/bff/src/*"
+      ],
+      "@motss-app/shared": [
+        "./packages/shared/src/index.ts"
+      ],
+      "@motss-app/shared/*": [
+        "./packages/shared/src/*"
+      ]
+    },
     "rootDirs": [
       ".",
       "./.react-router/types"
