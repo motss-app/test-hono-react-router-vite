@@ -14,16 +14,27 @@ function normalizePorts(ports: number[]): number[] {
 }
 
 async function getListeningPids(port: number): Promise<number[]> {
-  const process = new Deno.Command('lsof', {
-    args: [
-      '-nP',
-      '-iTCP:' + port,
-      '-sTCP:LISTEN',
-      '-t',
-    ],
-    stderr: 'piped',
-    stdout: 'piped',
-  }).spawn();
+  let process: Deno.ChildProcess;
+
+  try {
+    process = new Deno.Command('lsof', {
+      args: [
+        '-nP',
+        '-iTCP:' + port,
+        '-sTCP:LISTEN',
+        '-t',
+      ],
+      stderr: 'piped',
+      stdout: 'piped',
+    }).spawn();
+  } catch (error) {
+    if (error instanceof Deno.errors.NotFound) {
+      writeWarning(`[dev-ports] lsof is not available; skipping port ${port} cleanup`);
+      return [];
+    }
+
+    throw error;
+  }
 
   const { code, stderr, stdout } = await process.output();
 
