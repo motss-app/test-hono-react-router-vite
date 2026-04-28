@@ -29,10 +29,14 @@ jobs:
           - name: BFF Canary
             service: bff
     steps:
-      - uses: actions/checkout@v6
-      - uses: ./.github/actions/setup-deno
-      - uses: ./.github/actions/deploy-private-worker-canary
+      - name: Check out repository
+        uses: actions/checkout@v6
+      - name: Set up Deno environment
+        uses: ./.github/actions/setup-deno
+      - name: Deploy ${{ matrix.name }}
+        uses: ./.github/actions/deploy-private-worker-canary
         with:
+          display-name: ${{ matrix.name }}
           service: ${{ matrix.service }}
 
   gateway_canary:
@@ -41,6 +45,9 @@ jobs:
       - private_worker_canary
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: ./.github/actions/setup-deno
-      - uses: ./.github/actions/deploy-gateway-canary
+      - name: Check out repository
+        uses: actions/checkout@v6
+      - name: Set up Deno environment
+        uses: ./.github/actions/setup-deno
+      - name: Deploy Gateway Canary
+        uses: ./.github/actions/deploy-gateway-canary

@@ -4,7 +4,7 @@ description: Build, deploy, and verify the public canary gateway.
 runs:
   using: composite
   steps:
-    - name: Deploy gateway canary
+    - name: Run Gateway Canary deployment
       shell: bash
       env:
         ACTION_PATH: ${{ github.action_path }}

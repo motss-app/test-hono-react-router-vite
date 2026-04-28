@@ -4,13 +4,13 @@ description: Install the pinned Deno toolchain and repo dependencies for canary 
 runs:
   using: composite
   steps:
-    - name: Setup Deno
+    - name: Install Deno v2.7.11
       uses: denoland/setup-deno@v2
       with:
         deno-version: v2.7.11
         cache: true
 
-    - name: Install Dependencies
+    - name: Install repository dependencies
       shell: bash
       run: |
         set -euo pipefail
