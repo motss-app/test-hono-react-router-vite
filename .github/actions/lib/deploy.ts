@@ -9,9 +9,25 @@ type CommandResult = {
 };
 
 const textDecoder = new TextDecoder();
+const textEncoder = new TextEncoder();
+const wranglerLogPathPattern = /Logs were written to "([^"]+)"/;
+const cloudflareZoneIdPattern = /^[a-f0-9]{32}$/i;
+const trailingSlashPattern = /\/$/;
 
 function decodeCommandOutput(bytes: Uint8Array): string {
   return textDecoder.decode(bytes);
+}
+
+function writeStdoutText(text: string): void {
+  Deno.stdout.writeSync(textEncoder.encode(text));
+}
+
+function writeStdoutLine(message: string): void {
+  writeStdoutText(`${message}\n`);
+}
+
+function writeStderrLine(message: string): void {
+  Deno.stderr.writeSync(textEncoder.encode(`${message}\n`));
 }
 
 export function readRequiredEnv(name: string): string {
@@ -77,7 +93,7 @@ export async function writeLogFile(logFilePath: string, output: string): Promise
 }
 
 export function extractWranglerLogPath(output: string): string | null {
-  const match = output.match(/Logs were written to "([^"]+)"/);
+  const match = output.match(wranglerLogPathPattern);
 
   return match?.[1] ?? null;
 }
@@ -106,8 +122,9 @@ export async function printWranglerNestedLogIfPresent(output: string): Promise<v
     return;
   }
 
-  console.log(`🪵 Showing Wrangler log: ${wranglerLogPath}`);
-  console.log(await Deno.readTextFile(wranglerLogPath));
+  writeStdoutLine(`🪵 Showing Wrangler log: ${wranglerLogPath}`);
+  const nestedLog = await Deno.readTextFile(wranglerLogPath);
+  writeStdoutText(nestedLog.endsWith('\n') ? nestedLog : `${nestedLog}\n`);
 }
 
 export function printOutput(output: string): void {
@@ -115,7 +132,7 @@ export function printOutput(output: string): void {
     return;
   }
 
-  console.log(output);
+  writeStdoutText(`${output}\n`);
 }
 
 export async function runStep(
@@ -126,7 +143,7 @@ export async function runStep(
   ],
   options?: CommandExecutionOptions
 ): Promise<void> {
-  console.log(message);
+  writeStdoutLine(message);
 
   const result = await runCommand(command, options);
   printOutput(result.output);
@@ -145,7 +162,7 @@ export async function runDeployStep(
   logFilePath: string,
   options?: CommandExecutionOptions
 ): Promise<void> {
-  console.log(message);
+  writeStdoutLine(message);
 
   const result = await runCommand(command, options);
   await writeLogFile(logFilePath, result.output);
@@ -169,9 +186,78 @@ export async function appendStepSummary(lines: string[]): Promise<void> {
   });
 }
 
+type CloudflareZoneLookupResponse = {
+  errors?: Array<{
+    code: number;
+    message: string;
+  }>;
+  result?: Array<{
+    id: string;
+    name: string;
+  }>;
+  success: boolean;
+};
+
+function isCloudflareZoneId(value: string): boolean {
+  return cloudflareZoneIdPattern.test(value);
+}
+
+async function resolveCloudflareZoneId(
+  zoneIdentifier: string,
+  apiToken: string
+): Promise<string | null> {
+  if (isCloudflareZoneId(zoneIdentifier)) {
+    return zoneIdentifier;
+  }
+
+  const response = await fetch(
+    `https://api.cloudflare.com/client/v4/zones?name=${encodeURIComponent(zoneIdentifier)}&status=active&per_page=1`,
+    {
+      headers: {
+        Authorization: `Bearer ${apiToken}`,
+      },
+      method: 'GET',
+    }
+  );
+
+  if (!response.ok) {
+    writeStderrLine(
+      `⚠️ Cloudflare zone lookup failed with status ${response.status}; skipping cache purge.`
+    );
+    writeStderrLine(await response.text());
+    return null;
+  }
+
+  const body = (await response.json()) as CloudflareZoneLookupResponse;
+
+  if (!body.success) {
+    writeStderrLine(`⚠️ Cloudflare zone lookup failed for "${zoneIdentifier}"; skipping cache purge.`);
+
+    if (body.errors?.length) {
+      writeStderrLine(JSON.stringify(body.errors, null, 2));
+    }
+
+    return null;
+  }
+
+  const zoneId = body.result?.[0]?.id;
+
+  if (!zoneId) {
+    writeStderrLine(`⚠️ No active Cloudflare zone found for "${zoneIdentifier}"; skipping cache purge.`);
+    return null;
+  }
+
+  return zoneId;
+}
+
 export async function purgeCloudflareCache(hosts: string[]): Promise<void> {
-  const zoneId = readRequiredEnv('CLOUDFLARE_ZONE_ID');
+  const zoneIdentifier = readRequiredEnv('CLOUDFLARE_ZONE_ID');
   const apiToken = readRequiredEnv('CLOUDFLARE_API_TOKEN');
+  const zoneId = await resolveCloudflareZoneId(zoneIdentifier, apiToken);
+
+  if (!zoneId) {
+    return;
+  }
 
   const response = await fetch(`https://api.cloudflare.com/client/v4/zones/${zoneId}/cache/purge`, {
     body: JSON.stringify({
@@ -185,29 +271,52 @@ export async function purgeCloudflareCache(hosts: string[]): Promise<void> {
   });
 
   if (!response.ok) {
-    throw new Error(
-      `Cloudflare cache purge failed with status ${response.status}: ${await response.text()}`
+    writeStderrLine(
+      `⚠️ Cloudflare cache purge failed with status ${response.status}; continuing without purge.`
     );
+    writeStderrLine(await response.text());
   }
 }
 
 export async function warmRoutes(baseUrl: string, routes: string[]): Promise<void> {
+  const results = await Promise.all(
+    routes.map(async route => {
+      const target = `${baseUrl}/${route}`.replace(trailingSlashPattern, '');
+      writeStdoutLine(`Fetching ${target}...`);
+
+      try {
+        const response = await fetch(target, {
+          redirect: 'follow',
+        });
+
+        return {
+          status: response.status,
+          target,
+        };
+      } catch (error) {
+        return {
+          error: error instanceof Error ? error.message : String(error),
+          target,
+        };
+      }
+    })
+  );
+
   let allOk = true;
 
-  for (const route of routes) {
-    const target = `${baseUrl}/${route}`.replace(/\/$/, '');
-    console.log(`Fetching ${target}...`);
-
-    const response = await fetch(target, {
-      redirect: 'follow',
-    });
-
-    if (response.status === 200) {
-      console.log(`✅ ${target} is up!`);
+  for (const result of results) {
+    if ('error' in result) {
+      writeStderrLine(`⚠️ Failed to fetch ${result.target} (${result.error})`);
+      allOk = false;
       continue;
     }
 
-    console.log(`⚠️ Failed to fetch ${target} (status ${response.status})`);
+    if (result.status === 200) {
+      writeStdoutLine(`✅ ${result.target} is up!`);
+      continue;
+    }
+
+    writeStderrLine(`⚠️ Failed to fetch ${result.target} (status ${result.status})`);
     allOk = false;
   }
 
