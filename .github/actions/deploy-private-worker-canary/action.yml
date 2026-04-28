@@ -16,12 +16,4 @@ runs:
         SERVICE: ${{ inputs.service }}
       run: |
         set -euo pipefail
-
-        script="${ACTION_PATH}/services/${SERVICE}.sh"
-
-        if [[ ! -f "${script}" ]]; then
-          echo "Unknown private worker service: ${SERVICE}" >&2
-          exit 1
-        fi
-
-        bash "${script}"
+        deno run -A "${ACTION_PATH}/run.ts"
