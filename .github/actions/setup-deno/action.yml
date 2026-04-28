@@ -1,0 +1,17 @@
+name: Setup Deno
+description: Install the pinned Deno toolchain and repo dependencies for canary deploy jobs.
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Deno
+      uses: denoland/setup-deno@v2
+      with:
+        deno-version: v2.7.11
+        cache: true
+
+    - name: Install Dependencies
+      shell: bash
+      run: |
+        set -euo pipefail
+        deno install

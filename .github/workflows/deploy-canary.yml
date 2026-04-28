@@ -1,0 +1,46 @@
+name: Deploy Canary
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+  DEPLOYMENT_BUILD: 'true'
+  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+  SENTRY_DSN: ${{ vars.SENTRY_DSN }}
+  SENTRY_RELEASE: ${{ github.sha }}
+  VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
+
+jobs:
+  private_worker_canary:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Frontend Canary
+            service: frontend
+          - name: BFF Canary
+            service: bff
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-deno
+      - uses: ./.github/actions/deploy-private-worker-canary
+        with:
+          service: ${{ matrix.service }}
+
+  gateway_canary:
+    name: Gateway Canary
+    needs:
+      - private_worker_canary
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-deno
+      - uses: ./.github/actions/deploy-gateway-canary

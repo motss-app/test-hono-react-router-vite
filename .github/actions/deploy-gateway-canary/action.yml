@@ -1,0 +1,13 @@
+name: Deploy Gateway Canary
+description: Build, deploy, and verify the public canary gateway.
+
+runs:
+  using: composite
+  steps:
+    - name: Deploy gateway canary
+      shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+      run: |
+        set -euo pipefail
+        bash "${ACTION_PATH}/run.sh"

@@ -1,0 +1,27 @@
+name: Deploy Private Worker Canary
+description: Build, validate, and deploy a private canary worker service.
+
+inputs:
+  service:
+    description: Service name to deploy, such as frontend or bff.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Deploy ${{ inputs.service }} canary
+      shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+        SERVICE: ${{ inputs.service }}
+      run: |
+        set -euo pipefail
+
+        script="${ACTION_PATH}/services/${SERVICE}.sh"
+
+        if [[ ! -f "${script}" ]]; then
+          echo "Unknown private worker service: ${SERVICE}" >&2
+          exit 1
+        fi
+
+        bash "${script}"
