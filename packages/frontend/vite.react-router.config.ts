@@ -1,7 +1,7 @@
 import { reactRouter } from '@react-router/dev/vite';
 import { sentryVitePlugin } from '@sentry/vite-plugin';
 import stylex from '@stylexjs/unplugin';
-import type { ConfigEnv } from 'vite';
+import type { ConfigEnv, UserConfig } from 'vite';
 
 import { headersCopyPlugin } from '../../vite-plugins/copy-headers.ts';
 import { themeBuildPlugin } from '../../vite-plugins/theme-bootstrap/plugin.ts';
@@ -60,9 +60,19 @@ const reactRouterBuildConfig = {
   sourcemap: 'hidden',
 };
 
+const ciReactRouterTransformConfig = {
+  esbuild: {
+    jsx: 'automatic',
+    jsxDev: false,
+    jsxImportSource: 'react',
+  },
+  oxc: false,
+} satisfies Pick<UserConfig, 'esbuild' | 'oxc'>;
+
 export default function createViteConfig(config: ConfigEnv) {
   const { mode } = config;
   const isDev = mode === 'development';
+  const isCi = Deno.env.get('CI') === 'true';
   const isDeploymentBuild = Deno.env.get('DEPLOYMENT_BUILD') === 'true';
   loadConfigEnvironment(mode, repoRootPath);
   logReactRouterSentryEnvSnapshot(mode);
@@ -87,6 +97,7 @@ export default function createViteConfig(config: ConfigEnv) {
           })
         : readEnv('SENTRY_RELEASE'),
     }),
+    ...(isCi ? ciReactRouterTransformConfig : {}),
     plugins: isDev
       ? []
       : [
