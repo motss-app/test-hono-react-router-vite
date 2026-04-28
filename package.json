@@ -1,11 +1,11 @@
 {
   "dependencies": {
     "@base-ui/react": "1.4.1",
-    "@cloudflare/vite-plugin": "1.33.2",
+    "@cloudflare/vite-plugin": "1.34.0",
     "@fontsource-variable/open-sans": "5.2.7",
-    "@iconify-react/fa7-brands": "1.0.0",
-    "@iconify-react/fa7-regular": "1.0.0",
-    "@iconify-react/fa7-solid": "1.0.0",
+    "@iconify-react/fa7-brands": "1.0.1",
+    "@iconify-react/fa7-regular": "1.0.1",
+    "@iconify-react/fa7-solid": "1.0.1",
     "@sentry/browser": "10.50.0",
     "@sentry/cloudflare": "10.50.0",
     "@sentry/react-router": "10.50.0",
@@ -28,7 +28,7 @@
     "@types/react-dom": "19.2.3",
     "typescript": "6.0.3",
     "vite": "8.0.10",
-    "wrangler": "4.85.0"
+    "wrangler": "4.86.0"
   },
   "name": "test-hono-react-router-vite",
   "private": true,
