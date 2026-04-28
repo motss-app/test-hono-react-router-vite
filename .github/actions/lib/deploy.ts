@@ -28,7 +28,7 @@ function buildCommandEnv(options?: CommandExecutionOptions): Record<string, stri
   const extraEnv = options?.env;
 
   if (!extraEnv) {
-    return undefined;
+    return;
   }
 
   return {
@@ -38,7 +38,10 @@ function buildCommandEnv(options?: CommandExecutionOptions): Record<string, stri
 }
 
 export async function runCommand(
-  command: [string, ...string[]],
+  command: [
+    string,
+    ...string[],
+  ],
   options?: CommandExecutionOptions
 ): Promise<CommandResult> {
   const [executable, ...args] = command;
@@ -117,7 +120,10 @@ export function printOutput(output: string): void {
 
 export async function runStep(
   message: string,
-  command: [string, ...string[]],
+  command: [
+    string,
+    ...string[],
+  ],
   options?: CommandExecutionOptions
 ): Promise<void> {
   console.log(message);
@@ -132,7 +138,10 @@ export async function runStep(
 
 export async function runDeployStep(
   message: string,
-  command: [string, ...string[]],
+  command: [
+    string,
+    ...string[],
+  ],
   logFilePath: string,
   options?: CommandExecutionOptions
 ): Promise<void> {
@@ -165,7 +174,9 @@ export async function purgeCloudflareCache(hosts: string[]): Promise<void> {
   const apiToken = readRequiredEnv('CLOUDFLARE_API_TOKEN');
 
   const response = await fetch(`https://api.cloudflare.com/client/v4/zones/${zoneId}/cache/purge`, {
-    body: JSON.stringify({ hosts }),
+    body: JSON.stringify({
+      hosts,
+    }),
     headers: {
       Authorization: `Bearer ${apiToken}`,
       'Content-Type': 'application/json',
@@ -174,7 +185,9 @@ export async function purgeCloudflareCache(hosts: string[]): Promise<void> {
   });
 
   if (!response.ok) {
-    throw new Error(`Cloudflare cache purge failed with status ${response.status}: ${await response.text()}`);
+    throw new Error(
+      `Cloudflare cache purge failed with status ${response.status}: ${await response.text()}`
+    );
   }
 }
 

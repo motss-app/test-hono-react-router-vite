@@ -41,7 +41,9 @@ await runDeployStep(
 );
 
 console.log('🚀 Purging Cloudflare cache for Canary...');
-await purgeCloudflareCache(['hono-react-router-vite-canary.motss.fyi']);
+await purgeCloudflareCache([
+  'hono-react-router-vite-canary.motss.fyi',
+]);
 console.log('✅ Canary Cloudflare cache purged');
 
 await appendStepSummary([
@@ -50,4 +52,10 @@ await appendStepSummary([
 ]);
 
 console.log(`Warming up Canary: ${canaryUrl}...`);
-await warmRoutes(canaryUrl, ['', 'about', 'ssr', 'hono-rpc', 'errors']);
+await warmRoutes(canaryUrl, [
+  '',
+  'about',
+  'ssr',
+  'hono-rpc',
+  'errors',
+]);

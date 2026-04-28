@@ -1,4 +1,4 @@
-import { runDeployStep, runStep, readRequiredEnv } from '../lib/deploy.ts';
+import { readRequiredEnv, runDeployStep, runStep } from '../lib/deploy.ts';
 
 const service = readRequiredEnv('SERVICE');
 
