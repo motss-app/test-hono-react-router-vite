@@ -14,6 +14,17 @@ const wranglerLogPathPattern = /Logs were written to "([^"]+)"/;
 const cloudflareZoneIdPattern = /^[a-f0-9]{32}$/i;
 const trailingSlashPattern = /\/$/;
 
+type CloudflareZoneLookupResponse = {
+  errors?: Array<{
+    code: number;
+    message: string;
+  }>;
+  success: boolean;
+  result?: Array<{
+    id: string;
+  }>;
+};
+
 function decodeCommandOutput(bytes: Uint8Array): string {
   return textDecoder.decode(bytes);
 }
@@ -22,7 +33,7 @@ function writeStdoutText(text: string): void {
   Deno.stdout.writeSync(textEncoder.encode(text));
 }
 
-function writeStdoutLine(message: string): void {
+export function writeStdoutLine(message: string): void {
   writeStdoutText(`${message}\n`);
 }
 
@@ -185,18 +196,6 @@ export async function appendStepSummary(lines: string[]): Promise<void> {
     append: true,
   });
 }
-
-type CloudflareZoneLookupResponse = {
-  errors?: Array<{
-    code: number;
-    message: string;
-  }>;
-  result?: Array<{
-    id: string;
-    name: string;
-  }>;
-  success: boolean;
-};
 
 function isCloudflareZoneId(value: string): boolean {
   return cloudflareZoneIdPattern.test(value);

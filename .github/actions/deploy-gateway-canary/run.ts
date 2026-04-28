@@ -1,23 +1,40 @@
 import {
   appendStepSummary,
   purgeCloudflareCache,
-  writeStdoutLine,
   runDeployStep,
   runStep,
   warmRoutes,
+  writeStdoutLine,
 } from '../lib/deploy.ts';
 
 const canaryUrl = 'https://hono-react-router-vite-canary.motss.fyi';
 
-await runStep('🚀 Building Gateway...', ['deno', 'task', '--cwd=packages/gateway', 'build'], {
-  env: {
-    CLOUDFLARE_ENV: 'canary',
-  },
-});
+await runStep(
+  '🚀 Building Gateway...',
+  [
+    'deno',
+    'task',
+    '--cwd=packages/gateway',
+    'build',
+  ],
+  {
+    env: {
+      CLOUDFLARE_ENV: 'canary',
+    },
+  }
+);
 
 await runDeployStep(
   '🚀 Deploying public gateway worker...',
-  ['deno', 'run', '-A', 'npm:wrangler', 'deploy', '--env', 'canary'],
+  [
+    'deno',
+    'run',
+    '-A',
+    'npm:wrangler',
+    'deploy',
+    '--env',
+    'canary',
+  ],
   'packages/gateway/deploy-gateway.log',
   {
     cwd: 'packages/gateway',
