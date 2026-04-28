@@ -24,7 +24,7 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v2
         with:
-          deno-version: v2.7.13
+          deno-version: v2.7.11
           cache: true
 
       - name: Install Dependencies
@@ -35,7 +35,7 @@ jobs:
           set -euo pipefail
 
           echo "🚀 Generating frontend React Router types..."
-          deno task --cwd=packages/frontend build:react-router
+          deno task typegen
 
       - name: Typecheck BFF
         run: |
