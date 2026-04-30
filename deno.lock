@@ -6,15 +6,15 @@
     "npm:@base-ui/react@1.4.1": "1.4.1_@types+react@19.2.14_react@19.2.5_react-dom@19.2.5__react@19.2.5",
     "npm:@biomejs/biome@*": "2.4.13",
     "npm:@biomejs/biome@2.4.13": "2.4.13",
-    "npm:@cloudflare/vite-plugin@1.34.0": "1.34.0_vite@8.0.10_wrangler@4.86.0__@cloudflare+workers-types@4.20260430.1_@cloudflare+workers-types@4.20260430.1",
+    "npm:@cloudflare/vite-plugin@1.34.0": "1.34.0_vite@7.3.2_wrangler@4.86.0__@cloudflare+workers-types@4.20260430.1",
     "npm:@cloudflare/workers-types@4.20260430.1": "4.20260430.1",
     "npm:@fontsource-variable/open-sans@5.2.7": "5.2.7",
     "npm:@hono/vite-dev-server@0.25.3": "0.25.3_hono@4.12.16_wrangler@4.86.0__@cloudflare+workers-types@4.20260430.1_@cloudflare+workers-types@4.20260430.1",
     "npm:@iconify-react/fa7-brands@1.0.2": "1.0.2_react@19.2.5",
     "npm:@iconify-react/fa7-regular@1.0.2": "1.0.2_react@19.2.5",
     "npm:@iconify-react/fa7-solid@1.0.2": "1.0.2_react@19.2.5",
-    "npm:@react-router/dev@*": "7.14.2_react-router@7.14.2__react@19.2.5__react-dom@19.2.5___react@19.2.5_typescript@6.0.3_vite@8.0.10_wrangler@4.86.0__@cloudflare+workers-types@4.20260430.1_@cloudflare+workers-types@4.20260430.1",
-    "npm:@react-router/dev@7.14.2": "7.14.2_react-router@7.14.2__react@19.2.5__react-dom@19.2.5___react@19.2.5_typescript@6.0.3_vite@8.0.10_wrangler@4.86.0__@cloudflare+workers-types@4.20260430.1_@cloudflare+workers-types@4.20260430.1",
+    "npm:@react-router/dev@*": "7.14.2_react-router@7.14.2__react@19.2.5__react-dom@19.2.5___react@19.2.5_typescript@6.0.3_vite@7.3.2_wrangler@4.86.0__@cloudflare+workers-types@4.20260430.1",
+    "npm:@react-router/dev@7.14.2": "7.14.2_react-router@7.14.2__react@19.2.5__react-dom@19.2.5___react@19.2.5_typescript@6.0.3_vite@7.3.2_wrangler@4.86.0__@cloudflare+workers-types@4.20260430.1",
     "npm:@sentry/browser@10.51.0": "10.51.0",
     "npm:@sentry/cloudflare@10.51.0": "10.51.0_@cloudflare+workers-types@4.20260430.1",
     "npm:@sentry/deno@10.51.0": "10.51.0",
@@ -30,8 +30,8 @@
     "npm:react-router@7.14.2": "7.14.2_react@19.2.5_react-dom@19.2.5__react@19.2.5",
     "npm:react@19.2.5": "19.2.5",
     "npm:typescript@6.0.3": "6.0.3",
-    "npm:vite@*": "8.0.10",
-    "npm:vite@8.0.10": "8.0.10",
+    "npm:vite@*": "7.3.2",
+    "npm:vite@7.3.2": "7.3.2",
     "npm:wrangler@4.86.0": "4.86.0_@cloudflare+workers-types@4.20260430.1"
   },
   "jsr": {
@@ -369,13 +369,13 @@
         "workerd"
       ]
     },
-    "@cloudflare/vite-plugin@1.34.0_vite@8.0.10_wrangler@4.86.0__@cloudflare+workers-types@4.20260430.1_@cloudflare+workers-types@4.20260430.1": {
+    "@cloudflare/vite-plugin@1.34.0_vite@7.3.2_wrangler@4.86.0__@cloudflare+workers-types@4.20260430.1": {
       "integrity": "sha512-ZsdedDrK5WiJzelgKtgy3FHTbnG1dfrLNDy+5JPqrMx4el63eTYFLV89uI9LefVwyE6BfMz5UHbpYOdRbkUVlg==",
       "dependencies": [
         "@cloudflare/unenv-preset",
         "miniflare",
         "unenv",
-        "vite@8.0.10",
+        "vite",
         "wrangler",
         "ws"
       ]
@@ -417,21 +417,8 @@
     "@dual-bundle/import-meta-resolve@4.2.1": {
       "integrity": "sha512-id+7YRUgoUX6CgV0DtuhirQWodeeA7Lf4i2x71JS/vtA5pRb/hIGWlw+G6MeXvsM+MXrz0VAydTGElX1rAfgPg=="
     },
-    "@emnapi/core@1.10.0": {
-      "integrity": "sha512-yq6OkJ4p82CAfPl0u9mQebQHKPJkY7WrIuk205cTYnYe+k2Z8YBh11FrbRG/H6ihirqcacOgl2BIO8oyMQLeXw==",
-      "dependencies": [
-        "@emnapi/wasi-threads",
-        "tslib"
-      ]
-    },
     "@emnapi/runtime@1.10.0": {
       "integrity": "sha512-ewvYlk86xUoGI0zQRNq/mC+16R1QeDlKQy21Ki3oSYXNgLb45GV1P6A0M+/s6nyCuNDqe5VpaY84BzXGwVbwFA==",
-      "dependencies": [
-        "tslib"
-      ]
-    },
-    "@emnapi/wasi-threads@1.2.1": {
-      "integrity": "sha512-uTII7OYF+/Mes/MrcIOYp5yOtSMLBWSIoLPpcgwipoiKbli6k322tcoFsxoIIxPDqW01SQGAgko4EzZi2BNv2w==",
       "dependencies": [
         "tslib"
       ]
@@ -841,14 +828,6 @@
     "@mjackson/node-fetch-server@0.2.0": {
       "integrity": "sha512-EMlH1e30yzmTpGLQjlFmaDAjyOeZhng1/XCd7DExR8PNAnG/G1tyruZxEoUe11ClnwGhGrtsdnyyUx1frSzjng=="
     },
-    "@napi-rs/wasm-runtime@1.1.4_@emnapi+core@1.10.0_@emnapi+runtime@1.10.0": {
-      "integrity": "sha512-3NQNNgA1YSlJb/kMH1ildASP9HW7/7kYnRI2szWJaofaS1hWmbGI4H+d3+22aGzXXN9IJ+n+GiFVcGipJP18ow==",
-      "dependencies": [
-        "@emnapi/core",
-        "@emnapi/runtime",
-        "@tybys/wasm-util"
-      ]
-    },
     "@opentelemetry/api-logs@0.207.0": {
       "integrity": "sha512-lAb0jQRVyleQQGiuuvCOTDVspc14nx6XJjP4FspJ1sNARo3Regq4ZZbrc3rN4b1TYSuUCvgH+UXUPug4SLOqEQ==",
       "dependencies": [
@@ -1114,9 +1093,6 @@
         "@opentelemetry/core@2.7.1_@opentelemetry+api@1.9.1"
       ]
     },
-    "@oxc-project/types@0.127.0": {
-      "integrity": "sha512-aIYXQBo4lCbO4z0R3FHeucQHpF46l2LbMdxRvqvuRuW2OxdnSkcng5B8+K12spgLDj93rtN3+J2Vac/TIO+ciQ=="
-    },
     "@poppinss/colors@4.1.6": {
       "integrity": "sha512-H9xkIdFswbS8n1d6vmRd8+c10t2Qe+rZITbbDHHkQixH5+2x1FDGmi/0K+WgWiqQFKPSlIYB7jlH6Kpfn6Fleg==",
       "dependencies": [
@@ -1141,7 +1117,7 @@
         "@opentelemetry/instrumentation@0.207.0_@opentelemetry+api@1.9.1"
       ]
     },
-    "@react-router/dev@7.14.2_react-router@7.14.2__react@19.2.5__react-dom@19.2.5___react@19.2.5_typescript@6.0.3_vite@8.0.10_wrangler@4.86.0__@cloudflare+workers-types@4.20260430.1_@cloudflare+workers-types@4.20260430.1": {
+    "@react-router/dev@7.14.2_react-router@7.14.2__react@19.2.5__react-dom@19.2.5___react@19.2.5_typescript@6.0.3_vite@7.3.2_wrangler@4.86.0__@cloudflare+workers-types@4.20260430.1": {
       "integrity": "sha512-lU88Ls4iC78RdPOKkER54+hlsHzzS8WSZrf2/cGQumbIN2A5WvO0LDyv72cdJmLWujgZ9rpNoGzmqWINssShGQ==",
       "dependencies": [
         "@babel/core",
@@ -1173,7 +1149,7 @@
         "tinyglobby",
         "typescript",
         "valibot",
-        "vite@8.0.10",
+        "vite",
         "vite-node",
         "wrangler"
       ],
@@ -1196,88 +1172,6 @@
     },
     "@remix-run/node-fetch-server@0.13.0": {
       "integrity": "sha512-1EsNo0ZpgXu/90AWoRZf/oE3RVTUS80tiTUpt+hv5pjtAkw7icN4WskDwz/KdAw5ARbJLMhZBrO1NqThmy/McA=="
-    },
-    "@rolldown/binding-android-arm64@1.0.0-rc.17": {
-      "integrity": "sha512-s70pVGhw4zqGeFnXWvAzJDlvxhlRollagdCCKRgOsgUOH3N1l0LIxf83AtGzmb5SiVM4Hjl5HyarMRfdfj3DaQ==",
-      "os": ["android"],
-      "cpu": ["arm64"]
-    },
-    "@rolldown/binding-darwin-arm64@1.0.0-rc.17": {
-      "integrity": "sha512-4ksWc9n0mhlZpZ9PMZgTGjeOPRu8MB1Z3Tz0Mo02eWfWCHMW1zN82Qz/pL/rC+yQa+8ZnutMF0JjJe7PjwasYw==",
-      "os": ["darwin"],
-      "cpu": ["arm64"]
-    },
-    "@rolldown/binding-darwin-x64@1.0.0-rc.17": {
-      "integrity": "sha512-SUSDOI6WwUVNcWxd02QEBjLdY1VPHvlEkw6T/8nYG322iYWCTxRb1vzk4E+mWWYehTp7ERibq54LSJGjmouOsw==",
-      "os": ["darwin"],
-      "cpu": ["x64"]
-    },
-    "@rolldown/binding-freebsd-x64@1.0.0-rc.17": {
-      "integrity": "sha512-hwnz3nw9dbJ05EDO/PvcjaaewqqDy7Y1rn1UO81l8iIK1GjenME75dl16ajbvSSMfv66WXSRCYKIqfgq2KCfxw==",
-      "os": ["freebsd"],
-      "cpu": ["x64"]
-    },
-    "@rolldown/binding-linux-arm-gnueabihf@1.0.0-rc.17": {
-      "integrity": "sha512-IS+W7epTcwANmFSQFrS1SivEXHtl1JtuQA9wlxrZTcNi6mx+FDOYrakGevvvTwgj2JvWiK8B29/qD9BELZPyXQ==",
-      "os": ["linux"],
-      "cpu": ["arm"]
-    },
-    "@rolldown/binding-linux-arm64-gnu@1.0.0-rc.17": {
-      "integrity": "sha512-e6usGaHKW5BMNZOymS1UcEYGowQMWcgZ71Z17Sl/h2+ZziNJ1a9n3Zvcz6LdRyIW5572wBCTH/Z+bKuZouGk9Q==",
-      "os": ["linux"],
-      "cpu": ["arm64"]
-    },
-    "@rolldown/binding-linux-arm64-musl@1.0.0-rc.17": {
-      "integrity": "sha512-b/CgbwAJpmrRLp02RPfhbudf5tZnN9nsPWK82znefso832etkem8H7FSZwxrOI9djcdTP7U6YfNhbRnh7djErg==",
-      "os": ["linux"],
-      "cpu": ["arm64"]
-    },
-    "@rolldown/binding-linux-ppc64-gnu@1.0.0-rc.17": {
-      "integrity": "sha512-4EII1iNGRUN5WwGbF/kOh/EIkoDN9HsupgLQoXfY+D1oyJm7/F4t5PYU5n8SWZgG0FEwakyM8pGgwcBYruGTlA==",
-      "os": ["linux"],
-      "cpu": ["ppc64"]
-    },
-    "@rolldown/binding-linux-s390x-gnu@1.0.0-rc.17": {
-      "integrity": "sha512-AH8oq3XqQo4IibpVXvPeLDI5pzkpYn0WiZAfT05kFzoJ6tQNzwRdDYQ45M8I/gslbodRZwW8uxLhbSBbkv96rA==",
-      "os": ["linux"],
-      "cpu": ["s390x"]
-    },
-    "@rolldown/binding-linux-x64-gnu@1.0.0-rc.17": {
-      "integrity": "sha512-cLnjV3xfo7KslbU41Z7z8BH/E1y5mzUYzAqih1d1MDaIGZRCMqTijqLv76/P7fyHuvUcfGsIpqCdddbxLLK9rA==",
-      "os": ["linux"],
-      "cpu": ["x64"]
-    },
-    "@rolldown/binding-linux-x64-musl@1.0.0-rc.17": {
-      "integrity": "sha512-0phclDw1spsL7dUB37sIARuis2tAgomCJXAHZlpt8PXZ4Ba0dRP1e+66lsRqrfhISeN9bEGNjQs+T/Fbd7oYGw==",
-      "os": ["linux"],
-      "cpu": ["x64"]
-    },
-    "@rolldown/binding-openharmony-arm64@1.0.0-rc.17": {
-      "integrity": "sha512-0ag/hEgXOwgw4t8QyQvUCxvEg+V0KBcA6YuOx9g0r02MprutRF5dyljgm3EmR02O292UX7UeS6HzWHAl6KgyhA==",
-      "os": ["openharmony"],
-      "cpu": ["arm64"]
-    },
-    "@rolldown/binding-wasm32-wasi@1.0.0-rc.17": {
-      "integrity": "sha512-LEXei6vo0E5wTGwpkJ4KoT3OZJRnglwldt5ziLzOlc6qqb55z4tWNq2A+PFqCJuvWWdP53CVhG1Z9NtToDPJrA==",
-      "dependencies": [
-        "@emnapi/core",
-        "@emnapi/runtime",
-        "@napi-rs/wasm-runtime"
-      ],
-      "cpu": ["wasm32"]
-    },
-    "@rolldown/binding-win32-arm64-msvc@1.0.0-rc.17": {
-      "integrity": "sha512-gUmyzBl3SPMa6hrqFUth9sVfcLBlYsbMzBx5PlexMroZStgzGqlZ26pYG89rBb45Mnia+oil6YAIFeEWGWhoZA==",
-      "os": ["win32"],
-      "cpu": ["arm64"]
-    },
-    "@rolldown/binding-win32-x64-msvc@1.0.0-rc.17": {
-      "integrity": "sha512-3hkiolcUAvPB9FLb3UZdfjVVNWherN1f/skkGWJP/fgSQhYUZpSIRr0/I8ZK9TkF3F7kxvJAk0+IcKvPHk9qQg==",
-      "os": ["win32"],
-      "cpu": ["x64"]
-    },
-    "@rolldown/pluginutils@1.0.0-rc.17": {
-      "integrity": "sha512-n8iosDOt6Ig1UhJ2AYqoIhHWh/isz0xpicHTzpKBeotdVsTEcxsSA/i3EVM7gQAj0rU27OLAxCjzlj15IWY7bg=="
     },
     "@rollup/rollup-android-arm-eabi@4.60.2": {
       "integrity": "sha512-dnlp69efPPg6Uaw2dVqzWRfAWRnYVb1XJ8CyyhIbZeaq4CA5/mLeZ1IEt9QqQxmbdvagjLIm2ZL8BxXv5lH4Yw==",
@@ -1685,12 +1579,6 @@
         "browserslist",
         "lightningcss",
         "unplugin"
-      ]
-    },
-    "@tybys/wasm-util@0.10.1": {
-      "integrity": "sha512-9tTaPJLSiejZKx+Bmog4uSubteqTvFrVrURwkmHixBo0G4seD0zUxp98E1DzUBJxLQ3NPwXrGKDiVjwx/DpPsg==",
-      "dependencies": [
-        "tslib"
       ]
     },
     "@types/connect@3.4.38": {
@@ -2284,31 +2172,6 @@
     "reselect@5.1.1": {
       "integrity": "sha512-K/BG6eIky/SBpzfHZv/dd+9JBFiS4SWV7FIujVyJRux6e45+73RaUHXLmIR1f7WOMaQ0U1km6qwklRQxpJJY0w=="
     },
-    "rolldown@1.0.0-rc.17": {
-      "integrity": "sha512-ZrT53oAKrtA4+YtBWPQbtPOxIbVDbxT0orcYERKd63VJTF13zPcgXTvD4843L8pcsI7M6MErt8QtON6lrB9tyA==",
-      "dependencies": [
-        "@oxc-project/types",
-        "@rolldown/pluginutils"
-      ],
-      "optionalDependencies": [
-        "@rolldown/binding-android-arm64",
-        "@rolldown/binding-darwin-arm64",
-        "@rolldown/binding-darwin-x64",
-        "@rolldown/binding-freebsd-x64",
-        "@rolldown/binding-linux-arm-gnueabihf",
-        "@rolldown/binding-linux-arm64-gnu",
-        "@rolldown/binding-linux-arm64-musl",
-        "@rolldown/binding-linux-ppc64-gnu",
-        "@rolldown/binding-linux-s390x-gnu",
-        "@rolldown/binding-linux-x64-gnu",
-        "@rolldown/binding-linux-x64-musl",
-        "@rolldown/binding-openharmony-arm64",
-        "@rolldown/binding-wasm32-wasi",
-        "@rolldown/binding-win32-arm64-msvc",
-        "@rolldown/binding-win32-x64-msvc"
-      ],
-      "bin": true
-    },
     "rollup@4.60.2": {
       "integrity": "sha512-J9qZyW++QK/09NyN/zeO0dG/1GdGfyp9lV8ajHnRVLfo/uFsbji5mHnDgn/qYdUHyCkM2N+8VyspgZclfAh0eQ==",
       "dependencies": [
@@ -2471,7 +2334,7 @@
         "debug",
         "es-module-lexer",
         "pathe@2.0.3",
-        "vite@7.3.2"
+        "vite"
       ],
       "bin": true
     },
@@ -2483,20 +2346,6 @@
         "picomatch",
         "postcss",
         "rollup",
-        "tinyglobby"
-      ],
-      "optionalDependencies": [
-        "fsevents"
-      ],
-      "bin": true
-    },
-    "vite@8.0.10": {
-      "integrity": "sha512-rZuUu9j6J5uotLDs+cAA4O5H4K1SfPliUlQwqa6YEwSrWDZzP4rhm00oJR5snMewjxF5V/K3D4kctsUTsIU9Mw==",
-      "dependencies": [
-        "lightningcss",
-        "picomatch",
-        "postcss",
-        "rolldown",
         "tinyglobby"
       ],
       "optionalDependencies": [
@@ -2620,7 +2469,7 @@
         "npm:react-router@7.14.2",
         "npm:react@19.2.5",
         "npm:typescript@6.0.3",
-        "npm:vite@8.0.10",
+        "npm:vite@7.3.2",
         "npm:wrangler@4.86.0"
       ]
     }
