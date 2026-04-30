@@ -1,73 +1,52 @@
-import { readRequiredEnv, runDeployStep, runStep } from '../lib/deploy.ts';
+import { runOrDie, run, deploy, readEnv, writeLine } from '../lib/deploy.ts';
 
-const service = readRequiredEnv('SERVICE');
+const service = readEnv('SERVICE');
 
-async function runFrontendDeploy(): Promise<void> {
-  await runStep('🚀 Building private frontend...', [
-    'deno',
-    'task',
-    '--cwd=packages/frontend',
-    'build:canary',
-  ]);
+// Patch rolldown for Linux NAPI issue before building
+try {
+  const patchScript = new URL('../patch-rolldown.mjs', import.meta.url).pathname;
+  const code = await run(['deno', 'run', '-A', patchScript]);
+  if (code !== 0) console.warn('Failed to apply rolldown patch, continuing anyway...');
+} catch (e) {
+  console.warn('Error applying rolldown patch:', e instanceof Error ? e.message : e);
+}
 
-  await runDeployStep(
-    '🚀 Deploying private frontend worker...',
-    [
-      'deno',
-      'run',
-      '-A',
-      'npm:wrangler',
-      'deploy',
-      '--config',
-      'packages/frontend/wrangler.jsonc',
-      '--env',
-      'canary',
-    ],
-    'deploy-frontend.log'
+async function deployFrontend(): Promise<void> {
+  writeLine('🚀 Building private frontend...');
+  await runOrDie(['deno', 'task', '--cwd=packages/frontend', 'build:canary'], {
+    env: { CLOUDFLARE_ENV: 'canary' },
+  });
+
+  writeLine('🚀 Deploying private frontend worker...');
+  await deploy(
+    ['deno', 'run', '-A', 'npm:wrangler', 'deploy', '--config', 'packages/frontend/wrangler.jsonc', '--env', 'canary'],
+    'deploy-frontend.log',
+    'packages/frontend',
   );
 }
 
-async function runBffDeploy(): Promise<void> {
-  await runStep('🚀 Generating frontend React Router types...', [
-    'deno',
-    'task',
-    'typegen',
-  ]);
+async function deployBff(): Promise<void> {
+  writeLine('🚀 Generating frontend React Router types...');
+  await runOrDie(['deno', 'task', 'typegen']);
 
-  await runStep('🚀 Typechecking BFF...', [
-    'deno',
-    'task',
-    '--cwd=packages/bff',
-    'typecheck',
-  ]);
+  writeLine('🚀 Typechecking BFF...');
+  await runOrDie(['deno', 'task', '--cwd=packages/bff', 'typecheck']);
 
-  await runDeployStep(
-    '🚀 Deploying private BFF worker...',
-    [
-      'deno',
-      'run',
-      '-A',
-      'npm:wrangler',
-      'deploy',
-      '--config',
-      'packages/bff/wrangler.jsonc',
-      '--env',
-      'canary',
-    ],
-    'deploy-bff.log'
+  writeLine('🚀 Deploying private BFF worker...');
+  await deploy(
+    ['deno', 'run', '-A', 'npm:wrangler', 'deploy', '--config', 'packages/bff/wrangler.jsonc', '--env', 'canary'],
+    'deploy-bff.log',
+    'packages/bff',
   );
 }
 
 switch (service) {
-  case 'frontend': {
-    await runFrontendDeploy();
+  case 'frontend':
+    await deployFrontend();
     break;
-  }
-  case 'bff': {
-    await runBffDeploy();
+  case 'bff':
+    await deployBff();
     break;
-  }
-  default: {
+  default:
     throw new Error(`Unknown private worker service: ${service}`);
-  }
 }
