@@ -8,7 +8,13 @@ type CommandResult = {
   output: string;
 };
 
-const textDecoder = new TextDecoder();
+type CommandOutputSource = 'stdout' | 'stderr';
+
+type CommandOutputChunk = {
+  source: CommandOutputSource;
+  text: string;
+};
+
 const textEncoder = new TextEncoder();
 const wranglerLogPathPattern = /Logs were written to "([^"]+)"/;
 const cloudflareZoneIdPattern = /^[a-f0-9]{32}$/i;
@@ -25,12 +31,12 @@ type CloudflareZoneLookupResponse = {
   }>;
 };
 
-function decodeCommandOutput(bytes: Uint8Array): string {
-  return textDecoder.decode(bytes);
-}
-
 function writeStdoutText(text: string): void {
   Deno.stdout.writeSync(textEncoder.encode(text));
+}
+
+function writeStderrText(text: string): void {
+  Deno.stderr.writeSync(textEncoder.encode(text));
 }
 
 export function writeStdoutLine(message: string): void {
@@ -64,6 +70,65 @@ function buildCommandEnv(options?: CommandExecutionOptions): Record<string, stri
   };
 }
 
+async function streamCommandOutput(
+  stream: ReadableStream<Uint8Array>,
+  source: CommandOutputSource,
+  chunks: CommandOutputChunk[]
+): Promise<void> {
+  const reader = stream.getReader();
+  const decoder = new TextDecoder();
+
+  const pump = async (): Promise<void> => {
+    const { done, value } = await reader.read();
+
+    if (done) {
+      const tail = decoder.decode();
+
+      if (!tail) {
+        return;
+      }
+
+      chunks.push({
+        source,
+        text: tail,
+      });
+
+      if (source === 'stdout') {
+        writeStdoutText(tail);
+      } else {
+        writeStderrText(tail);
+      }
+
+      return;
+    }
+
+    const text = decoder.decode(value, {
+      stream: true,
+    });
+
+    if (text) {
+      chunks.push({
+        source,
+        text,
+      });
+
+      if (source === 'stdout') {
+        writeStdoutText(text);
+      } else {
+        writeStderrText(text);
+      }
+    }
+
+    await pump();
+  };
+
+  try {
+    await pump();
+  } finally {
+    reader.releaseLock();
+  }
+}
+
 export async function runCommand(
   command: [
     string,
@@ -90,8 +155,18 @@ export async function runCommand(
     stdout: 'piped',
   });
 
-  const { code, stderr, stdout } = await child.output();
-  const output = `${decodeCommandOutput(stdout)}${decodeCommandOutput(stderr)}`.trimEnd();
+  const process = child.spawn();
+  const chunks: CommandOutputChunk[] = [];
+  const stdoutTask = streamCommandOutput(process.stdout, 'stdout', chunks);
+  const stderrTask = streamCommandOutput(process.stderr, 'stderr', chunks);
+  const { code } = await process.status;
+
+  await Promise.all([stdoutTask, stderrTask]);
+
+  const output = chunks
+    .map(({ text }) => text)
+    .join('')
+    .trimEnd();
 
   return {
     code,
@@ -138,14 +213,6 @@ export async function printWranglerNestedLogIfPresent(output: string): Promise<v
   writeStdoutText(nestedLog.endsWith('\n') ? nestedLog : `${nestedLog}\n`);
 }
 
-export function printOutput(output: string): void {
-  if (output.length === 0) {
-    return;
-  }
-
-  writeStdoutText(`${output}\n`);
-}
-
 export async function runStep(
   message: string,
   command: [
@@ -157,7 +224,6 @@ export async function runStep(
   writeStdoutLine(message);
 
   const result = await runCommand(command, options);
-  printOutput(result.output);
 
   if (result.code !== 0) {
     Deno.exit(result.code);
@@ -177,7 +243,6 @@ export async function runDeployStep(
 
   const result = await runCommand(command, options);
   await writeLogFile(logFilePath, result.output);
-  printOutput(result.output);
 
   if (result.code !== 0) {
     await printWranglerNestedLogIfPresent(result.output);
