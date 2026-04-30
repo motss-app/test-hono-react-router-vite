@@ -230,7 +230,9 @@ async function resolveCloudflareZoneId(
   const body = (await response.json()) as CloudflareZoneLookupResponse;
 
   if (!body.success) {
-    writeStderrLine(`⚠️ Cloudflare zone lookup failed for "${zoneIdentifier}"; skipping cache purge.`);
+    writeStderrLine(
+      `⚠️ Cloudflare zone lookup failed for "${zoneIdentifier}"; skipping cache purge.`
+    );
 
     if (body.errors?.length) {
       writeStderrLine(JSON.stringify(body.errors, null, 2));
@@ -242,7 +244,9 @@ async function resolveCloudflareZoneId(
   const zoneId = body.result?.[0]?.id;
 
   if (!zoneId) {
-    writeStderrLine(`⚠️ No active Cloudflare zone found for "${zoneIdentifier}"; skipping cache purge.`);
+    writeStderrLine(
+      `⚠️ No active Cloudflare zone found for "${zoneIdentifier}"; skipping cache purge.`
+    );
     return null;
   }
 
