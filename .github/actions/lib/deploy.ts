@@ -28,26 +28,35 @@ export async function runOrDie(cmd: string[], opts?: { cwd?: string; env?: Recor
   }
 }
 
-export async function deploy(cmd: string[], logPath: string, cwd?: string): Promise<void> {
-  if (cmd.length === 0) throw new Error('Command array cannot be empty');
-  const proc = new Deno.Command(cmd[0]!, {
-    args: cmd.slice(1),
-    ...(cwd ? { cwd } : {}),
-    stdout: 'piped',
-    stderr: 'piped',
-  }).spawn();
-  const { code, stdout, stderr } = await proc.output();
-  const output = new TextDecoder().decode(stdout) + new TextDecoder().decode(stderr);
+export async function deploy(cmd: string[], logPath: string, cwd?: string, retries = 2): Promise<void> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    if (attempt > 0) {
+      writeLine(`Retrying deploy (attempt ${attempt + 1})...`);
+      await new Promise(r => setTimeout(r, 2000 * attempt));
+    }
 
-  if (code !== 0) {
+    const proc = new Deno.Command(cmd[0]!, {
+      args: cmd.slice(1),
+      ...(cwd ? { cwd } : {}),
+      stdout: 'piped',
+      stderr: 'piped',
+    }).spawn();
+    const { code, stdout, stderr } = await proc.output();
+    const output = new TextDecoder().decode(stdout) + new TextDecoder().decode(stderr);
+
+    if (code === 0) {
+      writeLine(output);
+      writeLine(`Deploy succeeded, log: ${logPath}`);
+      return;
+    }
+
     await Deno.writeTextFile(logPath, output);
-    writeLine(`Deploy failed (exit ${code}), log: ${logPath}`);
+    writeLine(`Deploy failed (exit ${code}), log: ${logPath}, attempt ${attempt + 1}`);
     writeLine(output);
-    Deno.exit(code);
   }
 
-  writeLine(output);
-  writeLine(`Deploy succeeded, log: ${logPath}`);
+  writeLine(`Deploy failed after ${retries + 1} attempts`);
+  Deno.exit(1);
 }
 
 export async function purgeCache(hosts: string[]): Promise<void> {
