@@ -9,11 +9,11 @@ async function deployFrontend(): Promise<void> {
   });
 
   writeLine('🚀 Deploying private frontend worker...');
-  await deploy(
-    ['deno', 'run', '-A', 'npm:wrangler', 'deploy', '--config', 'packages/frontend/wrangler.jsonc', '--env', 'canary'],
-    'deploy-frontend.log',
-    'packages/frontend',
-  );
+    await deploy(
+      ['deno', 'run', '-A', 'npm:wrangler', 'deploy', '--config', 'wrangler.jsonc', '--env', 'canary'],
+      'deploy-frontend.log',
+      'packages/frontend',
+    );
 }
 
 async function deployBff(): Promise<void> {
@@ -24,11 +24,11 @@ async function deployBff(): Promise<void> {
   await runOrDie(['deno', 'task', '--cwd=packages/bff', 'typecheck']);
 
   writeLine('🚀 Deploying private BFF worker...');
-  await deploy(
-    ['deno', 'run', '-A', 'npm:wrangler', 'deploy', '--config', 'packages/bff/wrangler.jsonc', '--env', 'canary'],
-    'deploy-bff.log',
-    'packages/bff',
-  );
+    await deploy(
+      ['deno', 'run', '-A', 'npm:wrangler', 'deploy', '--config', 'wrangler.jsonc', '--env', 'canary'],
+      'deploy-bff.log',
+      'packages/bff',
+    );
 }
 
 switch (service) {
