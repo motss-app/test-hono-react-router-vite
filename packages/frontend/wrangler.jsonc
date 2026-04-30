@@ -38,7 +38,6 @@
   },
   "find_additional_modules": true,
   "main": "../../build/worker.js",
-  "minify": false,
   "name": "frontend-app",
   "no_bundle": true,
   "observability": {
@@ -59,7 +58,6 @@
   "placement": {
     "mode": "smart"
   },
-  "preserve_file_names": true,
   "preview_urls": false,
   "rules": [
     {

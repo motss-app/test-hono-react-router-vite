@@ -16,7 +16,6 @@
     "production": {}
   },
   "main": "./src/worker.ts",
-  "minify": false,
   "name": "bff-api",
   "observability": {
     "enabled": true,
@@ -37,7 +36,6 @@
     "mode": "smart"
   },
   "preview_urls": false,
-  "preserve_file_names": true,
   "upload_source_maps": true,
   "workers_dev": false
 }

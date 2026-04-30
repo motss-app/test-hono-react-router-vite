@@ -1,62 +1,27 @@
-import {
-  appendStepSummary,
-  purgeCloudflareCache,
-  runDeployStep,
-  runStep,
-  warmRoutes,
-  writeStdoutLine,
-} from '../lib/deploy.ts';
+import { appendSummary, deploy, purgeCache, runOrDie, warmRoutes, writeLine } from '../lib/deploy.ts';
 
 const canaryUrl = 'https://hono-react-router-vite-canary.motss.fyi';
 
-await runStep(
-  '🚀 Building Gateway...',
-  [
-    'deno',
-    'task',
-    '--cwd=packages/gateway',
-    'build',
-  ],
-  {
-    env: {
-      CLOUDFLARE_ENV: 'canary',
-    },
-  }
-);
+writeLine('🚀 Building Gateway...');
+await runOrDie(['deno', 'task', '--cwd=packages/gateway', 'build'], {
+  env: { CLOUDFLARE_ENV: 'canary' },
+});
 
-await runDeployStep(
-  '🚀 Deploying public gateway worker...',
-  [
-    'deno',
-    'run',
-    '-A',
-    'npm:wrangler',
-    'deploy',
-    '--env',
-    'canary',
-  ],
+writeLine('🚀 Deploying public gateway worker...');
+await deploy(
+  ['deno', 'run', '-A', 'npm:wrangler', 'deploy', '--env', 'canary'],
   'packages/gateway/deploy-gateway.log',
-  {
-    cwd: 'packages/gateway',
-  }
+  'packages/gateway',
 );
 
-writeStdoutLine('🚀 Purging Cloudflare cache for Canary...');
-await purgeCloudflareCache([
-  'hono-react-router-vite-canary.motss.fyi',
-]);
-writeStdoutLine('✅ Canary Cloudflare cache purged');
+writeLine('🚀 Purging Cloudflare cache for Canary...');
+await purgeCache(['hono-react-router-vite-canary.motss.fyi']);
+writeLine('✅ Canary Cloudflare cache purged');
 
-await appendStepSummary([
+await appendSummary([
   '### 🚀 Canary Deployment Successful',
   `🐥 **Canary**: ${canaryUrl}`,
 ]);
 
-writeStdoutLine(`Warming up Canary: ${canaryUrl}...`);
-await warmRoutes(canaryUrl, [
-  '',
-  'about',
-  'ssr',
-  'hono-rpc',
-  'errors',
-]);
+writeLine(`Warming up Canary: ${canaryUrl}...`);
+await warmRoutes(canaryUrl, ['', 'about', 'ssr', 'hono-rpc', 'errors']);
