@@ -2,15 +2,6 @@ import { runOrDie, run, deploy, readEnv, writeLine } from '../lib/deploy.ts';
 
 const service = readEnv('SERVICE');
 
-// Patch rolldown for Linux NAPI issue before building
-try {
-  const patchScript = new URL('../patch-rolldown.mjs', import.meta.url).pathname;
-  const code = await run(['deno', 'run', '-A', patchScript]);
-  if (code !== 0) console.warn('Failed to apply rolldown patch, continuing anyway...');
-} catch (e) {
-  console.warn('Error applying rolldown patch:', e instanceof Error ? e.message : e);
-}
-
 async function deployFrontend(): Promise<void> {
   writeLine('🚀 Building private frontend...');
   await runOrDie(['deno', 'task', '--cwd=packages/frontend', 'build:canary'], {
