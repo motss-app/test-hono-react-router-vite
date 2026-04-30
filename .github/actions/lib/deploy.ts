@@ -5,19 +5,12 @@ type CommandExecutionOptions = {
 
 type CommandResult = {
   code: number;
-  output: string;
-};
-
-type CommandOutputSource = 'stdout' | 'stderr';
-
-type CommandOutputChunk = {
-  source: CommandOutputSource;
-  text: string;
 };
 
 const textEncoder = new TextEncoder();
 const wranglerLogPathPattern = /Logs were written to "([^"]+)"/;
 const cloudflareZoneIdPattern = /^[a-f0-9]{32}$/i;
+const shellSafePattern = /^[A-Za-z0-9_/@%+=:.,-]+$/;
 const trailingSlashPattern = /\/$/;
 
 type CloudflareZoneLookupResponse = {
@@ -33,10 +26,6 @@ type CloudflareZoneLookupResponse = {
 
 function writeStdoutText(text: string): void {
   Deno.stdout.writeSync(textEncoder.encode(text));
-}
-
-function writeStderrText(text: string): void {
-  Deno.stderr.writeSync(textEncoder.encode(text));
 }
 
 export function writeStdoutLine(message: string): void {
@@ -70,63 +59,28 @@ function buildCommandEnv(options?: CommandExecutionOptions): Record<string, stri
   };
 }
 
-async function streamCommandOutput(
-  stream: ReadableStream<Uint8Array>,
-  source: CommandOutputSource,
-  chunks: CommandOutputChunk[]
-): Promise<void> {
-  const reader = stream.getReader();
-  const decoder = new TextDecoder();
-
-  const pump = async (): Promise<void> => {
-    const { done, value } = await reader.read();
-
-    if (done) {
-      const tail = decoder.decode();
-
-      if (!tail) {
-        return;
-      }
-
-      chunks.push({
-        source,
-        text: tail,
-      });
-
-      if (source === 'stdout') {
-        writeStdoutText(tail);
-      } else {
-        writeStderrText(tail);
-      }
-
-      return;
-    }
-
-    const text = decoder.decode(value, {
-      stream: true,
-    });
-
-    if (text) {
-      chunks.push({
-        source,
-        text,
-      });
-
-      if (source === 'stdout') {
-        writeStdoutText(text);
-      } else {
-        writeStderrText(text);
-      }
-    }
-
-    await pump();
-  };
-
-  try {
-    await pump();
-  } finally {
-    reader.releaseLock();
+function shellQuote(value: string): string {
+  if (shellSafePattern.test(value)) {
+    return value;
   }
+
+  return `'${value.replaceAll("'", `'"'"'`)}'`;
+}
+
+function buildShellScript(
+  command: [
+    string,
+    ...string[],
+  ],
+  logFilePath?: string
+): string {
+  const commandLine = command.map(shellQuote).join(' ');
+
+  if (!logFilePath) {
+    return `set -euo pipefail; ${commandLine}`;
+  }
+
+  return `set -euo pipefail; ${commandLine} 2>&1 | tee ${shellQuote(logFilePath)}`;
 }
 
 export async function runCommand(
@@ -134,13 +88,16 @@ export async function runCommand(
     string,
     ...string[],
   ],
-  options?: CommandExecutionOptions
+  options?: CommandExecutionOptions,
+  logFilePath?: string
 ): Promise<CommandResult> {
-  const [executable, ...args] = command;
   const env = buildCommandEnv(options);
 
-  const child = new Deno.Command(executable, {
-    args,
+  const child = new Deno.Command('bash', {
+    args: [
+      '-lc',
+      buildShellScript(command, logFilePath),
+    ],
     ...(options?.cwd
       ? {
           cwd: options.cwd,
@@ -151,31 +108,16 @@ export async function runCommand(
           env,
         }
       : {}),
-    stderr: 'piped',
-    stdout: 'piped',
+    stderr: 'inherit',
+    stdout: 'inherit',
   });
 
   const process = child.spawn();
-  const chunks: CommandOutputChunk[] = [];
-  const stdoutTask = streamCommandOutput(process.stdout, 'stdout', chunks);
-  const stderrTask = streamCommandOutput(process.stderr, 'stderr', chunks);
   const { code } = await process.status;
-
-  await Promise.all([stdoutTask, stderrTask]);
-
-  const output = chunks
-    .map(({ text }) => text)
-    .join('')
-    .trimEnd();
 
   return {
     code,
-    output,
   };
-}
-
-export async function writeLogFile(logFilePath: string, output: string): Promise<void> {
-  await Deno.writeTextFile(logFilePath, `${output}\n`);
 }
 
 export function extractWranglerLogPath(output: string): string | null {
@@ -241,11 +183,15 @@ export async function runDeployStep(
 ): Promise<void> {
   writeStdoutLine(message);
 
-  const result = await runCommand(command, options);
-  await writeLogFile(logFilePath, result.output);
+  const result = await runCommand(command, options, logFilePath);
 
   if (result.code !== 0) {
-    await printWranglerNestedLogIfPresent(result.output);
+    if (!(await fileExists(logFilePath))) {
+      Deno.exit(result.code);
+    }
+
+    const output = await Deno.readTextFile(logFilePath);
+    await printWranglerNestedLogIfPresent(output);
     Deno.exit(result.code);
   }
 }
