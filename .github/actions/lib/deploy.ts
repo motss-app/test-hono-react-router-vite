@@ -1,95 +1,340 @@
-export function writeLine(message: string): void {
-  Deno.stdout.writeSync(new TextEncoder().encode(`${message}\n`));
+type CommandExecutionOptions = {
+  cwd?: string;
+  env?: Record<string, string>;
+};
+
+type CommandResult = {
+  code: number;
+};
+
+const textEncoder = new TextEncoder();
+const wranglerLogPathPattern = /Logs were written to "([^"]+)"/;
+const cloudflareZoneIdPattern = /^[a-f0-9]{32}$/i;
+const shellSafePattern = /^[A-Za-z0-9_/@%+=:.,-]+$/;
+const trailingSlashPattern = /\/$/;
+
+type CloudflareZoneLookupResponse = {
+  errors?: Array<{
+    code: number;
+    message: string;
+  }>;
+  success: boolean;
+  result?: Array<{
+    id: string;
+  }>;
+};
+
+function writeStdoutText(text: string): void {
+  Deno.stdout.writeSync(textEncoder.encode(text));
 }
 
-export function readEnv(name: string): string {
+export function writeStdoutLine(message: string): void {
+  writeStdoutText(`${message}\n`);
+}
+
+function writeStderrLine(message: string): void {
+  Deno.stderr.writeSync(textEncoder.encode(`${message}\n`));
+}
+
+export function readRequiredEnv(name: string): string {
   const value = Deno.env.get(name);
-  if (!value) throw new Error(`Missing env: ${name}`);
+
+  if (!value) {
+    throw new Error(`Missing required environment variable: ${name}`);
+  }
+
   return value;
 }
 
-export async function run(command: string[], cwd?: string): Promise<number> {
-  const proc = new Deno.Command(command[0], {
-    args: command.slice(1),
-    cwd,
-    stdout: 'inherit',
+function buildCommandEnv(options?: CommandExecutionOptions): Record<string, string> | undefined {
+  const extraEnv = options?.env;
+
+  if (!extraEnv) {
+    return;
+  }
+
+  return {
+    ...Deno.env.toObject(),
+    ...extraEnv,
+  };
+}
+
+function shellQuote(value: string): string {
+  if (shellSafePattern.test(value)) {
+    return value;
+  }
+
+  return `'${value.replaceAll("'", `'"'"'`)}'`;
+}
+
+function buildShellScript(
+  command: [
+    string,
+    ...string[],
+  ],
+  logFilePath?: string
+): string {
+  const commandLine = command.map(shellQuote).join(' ');
+
+  if (!logFilePath) {
+    return `set -euo pipefail; ${commandLine}`;
+  }
+
+  return `set -euo pipefail; ${commandLine} 2>&1 | tee ${shellQuote(logFilePath)}`;
+}
+
+export async function runCommand(
+  command: [
+    string,
+    ...string[],
+  ],
+  options?: CommandExecutionOptions,
+  logFilePath?: string
+): Promise<CommandResult> {
+  const env = buildCommandEnv(options);
+
+  const child = new Deno.Command('bash', {
+    args: [
+      '-lc',
+      buildShellScript(command, logFilePath),
+    ],
+    ...(options?.cwd
+      ? {
+          cwd: options.cwd,
+        }
+      : {}),
+    ...(env
+      ? {
+          env,
+        }
+      : {}),
     stderr: 'inherit',
-  }).spawn();
-  const { code } = await proc.status;
-  return code;
+    stdout: 'inherit',
+  });
+
+  const process = child.spawn();
+  const { code } = await process.status;
+
+  return {
+    code,
+  };
 }
 
-export async function runOrDie(command: string[], cwd?: string): Promise<void> {
-  const code = await run(command, cwd);
-  if (code !== 0) {
-    writeLine(`Command failed with exit code ${code}`);
-    Deno.exit(code);
+export function extractWranglerLogPath(output: string): string | null {
+  const match = output.match(wranglerLogPathPattern);
+
+  return match?.[1] ?? null;
+}
+
+async function fileExists(path: string): Promise<boolean> {
+  try {
+    await Deno.stat(path);
+    return true;
+  } catch (error) {
+    if (error instanceof Deno.errors.NotFound) {
+      return false;
+    }
+
+    throw error;
   }
 }
 
-export async function deploy(command: string[], logPath: string, cwd?: string): Promise<void> {
-  const proc = new Deno.Command(command[0], {
-    args: command.slice(1),
-    cwd,
-    stdout: 'piped',
-    stderr: 'piped',
-  }).spawn();
-  const { code, stdout, stderr } = await proc.output();
-  const output = new TextDecoder().decode(stdout) + new TextDecoder().decode(stderr);
+export async function printWranglerNestedLogIfPresent(output: string): Promise<void> {
+  const wranglerLogPath = extractWranglerLogPath(output);
 
-  if (code !== 0) {
-    await Deno.writeTextFile(logPath, output);
-    writeLine(`Deploy failed (exit ${code}), log: ${logPath}`);
-    writeLine(output);
-    Deno.exit(code);
+  if (!wranglerLogPath) {
+    return;
   }
 
-  writeLine(output);
-  writeLine(`Deploy succeeded, log: ${logPath}`);
+  if (!(await fileExists(wranglerLogPath))) {
+    return;
+  }
+
+  writeStdoutLine(`🪵 Showing Wrangler log: ${wranglerLogPath}`);
+  const nestedLog = await Deno.readTextFile(wranglerLogPath);
+  writeStdoutText(nestedLog.endsWith('\n') ? nestedLog : `${nestedLog}\n`);
 }
 
-export async function purgeCache(hosts: string[]): Promise<void> {
-  const zoneId = readEnv('CLOUDFLARE_ZONE_ID');
-  const token = readEnv('CLOUDFLARE_API_TOKEN');
+export async function runStep(
+  message: string,
+  command: [
+    string,
+    ...string[],
+  ],
+  options?: CommandExecutionOptions
+): Promise<void> {
+  writeStdoutLine(message);
 
-  const res = await fetch(`https://api.cloudflare.com/client/v4/zones/${zoneId}/cache/purge`, {
-    body: JSON.stringify({ hosts }),
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+  const result = await runCommand(command, options);
+
+  if (result.code !== 0) {
+    Deno.exit(result.code);
+  }
+}
+
+export async function runDeployStep(
+  message: string,
+  command: [
+    string,
+    ...string[],
+  ],
+  logFilePath: string,
+  options?: CommandExecutionOptions
+): Promise<void> {
+  writeStdoutLine(message);
+
+  const result = await runCommand(command, options, logFilePath);
+
+  if (result.code !== 0) {
+    if (!(await fileExists(logFilePath))) {
+      Deno.exit(result.code);
+    }
+
+    const output = await Deno.readTextFile(logFilePath);
+    await printWranglerNestedLogIfPresent(output);
+    Deno.exit(result.code);
+  }
+}
+
+export async function appendStepSummary(lines: string[]): Promise<void> {
+  const summaryPath = Deno.env.get('GITHUB_STEP_SUMMARY');
+
+  if (!summaryPath) {
+    return;
+  }
+
+  await Deno.writeTextFile(summaryPath, `${lines.join('\n')}\n`, {
+    append: true,
+  });
+}
+
+function isCloudflareZoneId(value: string): boolean {
+  return cloudflareZoneIdPattern.test(value);
+}
+
+async function resolveCloudflareZoneId(
+  zoneIdentifier: string,
+  apiToken: string
+): Promise<string | null> {
+  if (isCloudflareZoneId(zoneIdentifier)) {
+    return zoneIdentifier;
+  }
+
+  const response = await fetch(
+    `https://api.cloudflare.com/client/v4/zones?name=${encodeURIComponent(zoneIdentifier)}&status=active&per_page=1`,
+    {
+      headers: {
+        Authorization: `Bearer ${apiToken}`,
+      },
+      method: 'GET',
+    }
+  );
+
+  if (!response.ok) {
+    writeStderrLine(
+      `⚠️ Cloudflare zone lookup failed with status ${response.status}; skipping cache purge.`
+    );
+    writeStderrLine(await response.text());
+    return null;
+  }
+
+  const body = (await response.json()) as CloudflareZoneLookupResponse;
+
+  if (!body.success) {
+    writeStderrLine(
+      `⚠️ Cloudflare zone lookup failed for "${zoneIdentifier}"; skipping cache purge.`
+    );
+
+    if (body.errors?.length) {
+      writeStderrLine(JSON.stringify(body.errors, null, 2));
+    }
+
+    return null;
+  }
+
+  const zoneId = body.result?.[0]?.id;
+
+  if (!zoneId) {
+    writeStderrLine(
+      `⚠️ No active Cloudflare zone found for "${zoneIdentifier}"; skipping cache purge.`
+    );
+    return null;
+  }
+
+  return zoneId;
+}
+
+export async function purgeCloudflareCache(hosts: string[]): Promise<void> {
+  const zoneIdentifier = readRequiredEnv('CLOUDFLARE_ZONE_ID');
+  const apiToken = readRequiredEnv('CLOUDFLARE_API_TOKEN');
+  const zoneId = await resolveCloudflareZoneId(zoneIdentifier, apiToken);
+
+  if (!zoneId) {
+    return;
+  }
+
+  const response = await fetch(`https://api.cloudflare.com/client/v4/zones/${zoneId}/cache/purge`, {
+    body: JSON.stringify({
+      hosts,
+    }),
+    headers: {
+      Authorization: `Bearer ${apiToken}`,
+      'Content-Type': 'application/json',
+    },
     method: 'DELETE',
   });
 
-  if (!res.ok) {
-    writeLine(`Cache purge failed: ${res.status}`);
-    return;
+  if (!response.ok) {
+    writeStderrLine(
+      `⚠️ Cloudflare cache purge failed with status ${response.status}; continuing without purge.`
+    );
+    writeStderrLine(await response.text());
   }
-  writeLine('Cache purged');
 }
 
-export async function warmRoutes(base: string, paths: string[]): Promise<void> {
-  let failures = 0;
-  for (const path of paths) {
-    const url = `${base}/${path}`.replace(/\/+$/, '');
-    try {
-      const res = await fetch(url, { redirect: 'follow' });
-      if (res.status === 200) {
-        writeLine(`✅ ${url}`);
-      } else {
-        writeLine(`⚠️ ${url} (${res.status})`);
-        failures++;
+export async function warmRoutes(baseUrl: string, routes: string[]): Promise<void> {
+  const results = await Promise.all(
+    routes.map(async route => {
+      const target = `${baseUrl}/${route}`.replace(trailingSlashPattern, '');
+      writeStdoutLine(`Fetching ${target}...`);
+
+      try {
+        const response = await fetch(target, {
+          redirect: 'follow',
+        });
+
+        return {
+          status: response.status,
+          target,
+        };
+      } catch (error) {
+        return {
+          error: error instanceof Error ? error.message : String(error),
+          target,
+        };
       }
-    } catch (err) {
-      writeLine(`⚠️ ${url} (${err instanceof Error ? err.message : err})`);
-      failures++;
+    })
+  );
+
+  let allOk = true;
+
+  for (const result of results) {
+    if ('error' in result) {
+      writeStderrLine(`⚠️ Failed to fetch ${result.target} (${result.error})`);
+      allOk = false;
+      continue;
     }
+
+    if (result.status === 200) {
+      writeStdoutLine(`✅ ${result.target} is up!`);
+      continue;
+    }
+
+    writeStderrLine(`⚠️ Failed to fetch ${result.target} (status ${result.status})`);
+    allOk = false;
   }
-  if (failures > 0) {
-    writeLine(`${failures} route(s) failed to warm up`);
+
+  if (!allOk) {
     Deno.exit(1);
   }
-}
-
-export async function appendSummary(lines: string[]): Promise<void> {
-  const path = Deno.env.get('GITHUB_STEP_SUMMARY');
-  if (!path) return;
-  await Deno.writeTextFile(path, `${lines.join('\n')}\n`, { append: true });
 }

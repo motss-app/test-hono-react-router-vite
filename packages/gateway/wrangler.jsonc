@@ -40,6 +40,7 @@
     }
   },
   "main": "./src/worker.ts",
+  "minify": false,
   "name": "edge-gateway",
   "observability": {
     "enabled": true,
@@ -60,6 +61,7 @@
     "mode": "smart"
   },
   "preview_urls": true,
+  "preserve_file_names": true,
   "services": [
     {
       "binding": "FRONTEND",
