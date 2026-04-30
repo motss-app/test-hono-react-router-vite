@@ -1,5 +1,16 @@
 {
   "$schema": "../../node_modules/wrangler/config-schema.json",
+  "compatibility_date": "2026-04-25",
+  "compatibility_flags": [
+    "enable_request_signal",
+    "nodejs_als",
+    "nodejs_compat",
+    "pedantic_wpt",
+    "request_signal_passthrough"
+  ],
+  "dev": {
+    "inspector_port": 9230
+  },
   "env": {
     "canary": {
       "services": [
@@ -28,11 +39,29 @@
       ]
     }
   },
-  "preview_urls": true,
-  "name": "edge-gateway",
   "main": "./src/worker.ts",
-  "compatibility_date": "2026-04-25",
-  "workers_dev": true,
+  "minify": false,
+  "name": "edge-gateway",
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1.0,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1.0,
+      "invocation_logs": true,
+      "persist": true
+    },
+    "traces": {
+      "enabled": true,
+      "head_sampling_rate": 1.0,
+      "persist": true
+    }
+  },
+  "placement": {
+    "mode": "smart"
+  },
+  "preview_urls": true,
+  "preserve_file_names": true,
   "services": [
     {
       "binding": "FRONTEND",
@@ -43,7 +72,6 @@
       "service": "bff-api"
     }
   ],
-  "dev": {
-    "inspector_port": 9230
-  }
+  "upload_source_maps": true,
+  "workers_dev": true
 }
