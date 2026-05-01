@@ -14,27 +14,28 @@ await deployWithRetry(
   2
 );
 
+async function* retryGenerator(retries: number): AsyncGenerator<number, void, void> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    if (attempt > 0) {
+      writeLine(`Retrying deploy (attempt ${attempt + 1})...`);
+      await new Promise(r => setTimeout(r, 2000 * attempt));
+    }
+    yield attempt;
+  }
+  writeLine(`Deploy failed after ${retries + 1} attempts`);
+  Deno.exit(1);
+}
+
 async function deployWithRetry(
   cmd: string[],
   opts: { cwd?: string },
-  retries: number,
-  attempt = 0
+  retries: number
 ): Promise<void> {
-  if (attempt > retries) {
-    writeLine(`Deploy failed after ${retries + 1} attempts`);
-    Deno.exit(1);
+  for await (const attempt of retryGenerator(retries)) {
+    const code = await run(cmd, opts);
+    if (code === 0) return;
+    writeLine(`Deploy failed (exit ${code}), attempt ${attempt + 1}`);
   }
-
-  if (attempt > 0) {
-    writeLine(`Retrying deploy (attempt ${attempt + 1})...`);
-    await new Promise(r => setTimeout(r, 2000 * attempt));
-  }
-
-  const code = await run(cmd, opts);
-  if (code === 0) return;
-
-  writeLine(`Deploy failed (exit ${code}), attempt ${attempt + 1}`);
-  return deployWithRetry(cmd, opts, retries, attempt + 1);
 }
 
 writeLine('🚀 Purging Cloudflare cache for Canary...');
