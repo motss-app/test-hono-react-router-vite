@@ -6,8 +6,4 @@ runs:
   steps:
     - name: Run BFF Canary deployment
       shell: bash
-      env:
-        ACTION_PATH: ${{ github.action_path }}
-      run: |
-        set -euo pipefail
-        deno run -A "${ACTION_PATH}/run.ts"
+      run: deno run -A "${GITHUB_ACTION_PATH}/run.ts"
