@@ -2,6 +2,7 @@ const EXTENSION_REGEX = /\.(tsx|ts|jsx|js)$/;
 const prerenderExcludedRoutes = [
   '/errors/:code',
   '/home',
+  '/hono-rpc',
   '/ssr',
 ];
 
