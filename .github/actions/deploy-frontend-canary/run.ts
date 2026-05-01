@@ -1,4 +1,4 @@
-import { run, writeLine } from '../lib/deploy.ts';
+import { run, runOrDie, writeLine } from '../lib/deploy.ts';
 
 writeLine('🚀 Building private frontend...');
 await runOrDie(

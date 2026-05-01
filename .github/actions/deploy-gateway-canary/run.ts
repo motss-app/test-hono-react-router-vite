@@ -1,4 +1,4 @@
-import { appendSummary, purgeCache, run, warmRoutes, writeLine } from '../lib/deploy.ts';
+import { appendSummary, purgeCache, run, runOrDie, warmRoutes, writeLine } from '../lib/deploy.ts';
 
 const canaryUrl = 'https://hono-react-router-vite-canary.motss.fyi';
 
