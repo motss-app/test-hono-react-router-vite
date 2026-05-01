@@ -8,10 +8,13 @@ runs:
       uses: denoland/setup-deno@v2
       with:
         deno-version: 2.7.14
-        cache: false
-
+        cache: true
+    
     - name: Install repository dependencies
       shell: bash
-      run: |
-        set -euo pipefail
-        deno install
+      run: deno install
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22

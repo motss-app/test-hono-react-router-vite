@@ -18,10 +18,8 @@ await runOrDie(
 writeLine('🚀 Deploying private frontend worker...');
 await deploy(
   [
-    'deno',
-    'run',
-    '-A',
-    'npm:wrangler',
+    'npx',
+    'wrangler',
     'deploy',
     '--config',
     'wrangler.jsonc',
