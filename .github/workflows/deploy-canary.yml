@@ -41,8 +41,6 @@ jobs:
 
   gateway_canary:
     name: Gateway Canary
-    needs:
-      - private_worker_canary
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository

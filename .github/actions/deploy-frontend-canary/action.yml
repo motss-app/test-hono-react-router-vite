@@ -1,6 +1,13 @@
 name: Deploy Frontend Canary
-description: Build and deploy the frontend worker to Cloudflare Workers (canary environment)
+description: Build and deploy the frontend worker to Cloudflare Workers (canary).
 
 runs:
-  using: deno
-  main: run.ts
+  using: composite
+  steps:
+    - name: Run Frontend Canary deployment
+      shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+      run: |
+        set -euo pipefail
+        deno run -A "${ACTION_PATH}/run.ts"
