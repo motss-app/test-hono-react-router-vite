@@ -47,34 +47,6 @@ export async function runOrDie(
   }
 }
 
-export async function deployWrangler(options: {
-  config: string;
-  cwd?: string;
-  env: string;
-  logPath: string;
-}): Promise<void> {
-  const { config, cwd, env, logPath } = options;
-  const proc = new Deno.Command('deno', {
-    args: ['x', 'wrangler', 'deploy', '--config', config, '--env', env],
-    ...(cwd ? { cwd } : {}),
-    stderr: 'piped',
-    stdout: 'piped',
-  }).spawn();
-  const { code, stdout, stderr } = await proc.output();
-  const output = new TextDecoder().decode(stdout) + new TextDecoder().decode(stderr);
-
-  if (code === 0) {
-    writeLine(output);
-    writeLine(`Deploy succeeded, log: ${logPath}`);
-    return;
-  }
-
-  await Deno.writeTextFile(logPath, output);
-  writeLine(`Deploy failed (exit ${code}), log: ${logPath}`);
-  writeLine(output);
-  Deno.exit(1);
-}
-
 export async function purgeCache(hosts: string[]): Promise<void> {
   const zoneId = readEnv('CLOUDFLARE_ZONE_ID');
   const token = readEnv('CLOUDFLARE_API_TOKEN');

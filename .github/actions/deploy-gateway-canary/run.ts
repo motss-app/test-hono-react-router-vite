@@ -1,4 +1,4 @@
-import { appendSummary, deployWrangler, purgeCache, runOrDie, warmRoutes, writeLine } from '../lib/deploy.ts';
+import { appendSummary, purgeCache, runOrDie, warmRoutes, writeLine } from '../lib/deploy.ts';
 
 const canaryUrl = 'https://hono-react-router-vite-canary.motss.fyi';
 
@@ -8,12 +8,10 @@ await runOrDie(['deno', 'task', '--cwd=packages/gateway', 'build'], {
 });
 
 writeLine('🚀 Deploying public gateway worker...');
-await deployWrangler({
-  config: 'wrangler.jsonc',
-  cwd: 'packages/gateway',
-  env: 'canary',
-  logPath: 'packages/gateway/deploy-gateway.log',
-});
+await runOrDie(
+  ['deno', 'x', 'wrangler', 'deploy', '--env', 'canary'],
+  { cwd: 'packages/gateway' }
+);
 
 writeLine('🚀 Purging Cloudflare cache for Canary...');
 await purgeCache(['hono-react-router-vite-canary.motss.fyi']);
