@@ -1,4 +1,4 @@
-import { deploy, runOrDie, writeLine } from '../lib/deploy.ts';
+import { deployWrangler, runOrDie, writeLine } from '../lib/deploy.ts';
 
 writeLine('🚀 Building private frontend...');
 await runOrDie(
@@ -16,17 +16,9 @@ await runOrDie(
 );
 
 writeLine('🚀 Deploying private frontend worker...');
-await deploy(
-  [
-    'deno',
-    'x',
-    'wrangler',
-    'deploy',
-    '--config',
-    'wrangler.jsonc',
-    '--env',
-    'canary',
-  ],
-  'deploy-frontend.log',
-  'packages/frontend'
-);
+await deployWrangler({
+  config: 'wrangler.jsonc',
+  cwd: 'packages/frontend',
+  env: 'canary',
+  logPath: 'deploy-frontend.log',
+});

@@ -17,11 +17,7 @@ export async function run(
 ): Promise<number> {
   const proc = new Deno.Command(cmd[0]!, {
     args: cmd.slice(1),
-    ...(opts?.cwd
-      ? {
-          cwd: opts.cwd,
-        }
-      : {}),
+    ...(opts?.cwd ? { cwd: opts.cwd } : {}),
     ...(opts?.env
       ? {
           env: {
@@ -51,43 +47,31 @@ export async function runOrDie(
   }
 }
 
-export async function deploy(
-  cmd: string[],
-  logPath: string,
-  cwd?: string,
-  retries = 2
-): Promise<void> {
-  for (let attempt = 0; attempt <= retries; attempt++) {
-    if (attempt > 0) {
-      writeLine(`Retrying deploy (attempt ${attempt + 1})...`);
-      await new Promise(r => setTimeout(r, 2000 * attempt));
-    }
+export async function deployWrangler(options: {
+  config: string;
+  cwd?: string;
+  env: string;
+  logPath: string;
+}): Promise<void> {
+  const { config, cwd, env, logPath } = options;
+  const proc = new Deno.Command('deno', {
+    args: ['x', 'wrangler', 'deploy', '--config', config, '--env', env],
+    ...(cwd ? { cwd } : {}),
+    stderr: 'piped',
+    stdout: 'piped',
+  }).spawn();
+  const { code, stdout, stderr } = await proc.output();
+  const output = new TextDecoder().decode(stdout) + new TextDecoder().decode(stderr);
 
-    const proc = new Deno.Command(cmd[0]!, {
-      args: cmd.slice(1),
-      ...(cwd
-        ? {
-            cwd,
-          }
-        : {}),
-      stderr: 'piped',
-      stdout: 'piped',
-    }).spawn();
-    const { code, stdout, stderr } = await proc.output();
-    const output = new TextDecoder().decode(stdout) + new TextDecoder().decode(stderr);
-
-    if (code === 0) {
-      writeLine(output);
-      writeLine(`Deploy succeeded, log: ${logPath}`);
-      return;
-    }
-
-    await Deno.writeTextFile(logPath, output);
-    writeLine(`Deploy failed (exit ${code}), log: ${logPath}, attempt ${attempt + 1}`);
+  if (code === 0) {
     writeLine(output);
+    writeLine(`Deploy succeeded, log: ${logPath}`);
+    return;
   }
 
-  writeLine(`Deploy failed after ${retries + 1} attempts`);
+  await Deno.writeTextFile(logPath, output);
+  writeLine(`Deploy failed (exit ${code}), log: ${logPath}`);
+  writeLine(output);
   Deno.exit(1);
 }
 
@@ -96,9 +80,7 @@ export async function purgeCache(hosts: string[]): Promise<void> {
   const token = readEnv('CLOUDFLARE_API_TOKEN');
 
   const res = await fetch(`https://api.cloudflare.com/client/v4/zones/${zoneId}/cache/purge`, {
-    body: JSON.stringify({
-      hosts,
-    }),
+    body: JSON.stringify({ hosts }),
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -113,37 +95,30 @@ export async function purgeCache(hosts: string[]): Promise<void> {
   writeLine('Cache purged');
 }
 
-export async function warmRoutes(base: string, paths: string[], retries = 2): Promise<void> {
-  let failures = 0;
-
-  for (const path of paths) {
-    const url = `${base}/${path}`.replace(/\/+$/, '');
-    let ok = false;
-
-    for (let attempt = 0; attempt <= retries; attempt++) {
-      try {
-        const res = await fetch(url, {
-          redirect: 'follow',
-        });
-        if (res.status === 200) {
-          writeLine(`✅ ${url}`);
-          ok = true;
-          break;
+export async function warmRoutes(base: string, paths: string[]): Promise<void> {
+  const results = await Promise.all(
+    paths.map(path => {
+      const url = `${base}/${path}`.replace(/\/+$/, '');
+      return fetch(url, { redirect: 'follow' }).then(
+        res => {
+          if (res.status === 200) {
+            writeLine(`✅ ${url}`);
+            return true;
+          }
+          writeLine(`⚠️ ${url} (${res.status})`);
+          return false;
+        },
+        err => {
+          writeLine(`⚠️ ${url} (${err instanceof Error ? err.message : err})`);
+          return false;
         }
-        writeLine(`⚠️ ${url} (${res.status}), attempt ${attempt + 1}`);
-      } catch (err) {
-        writeLine(`⚠️ ${url} (${err instanceof Error ? err.message : err}), attempt ${attempt + 1}`);
-      }
-      if (attempt < retries) await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
-    }
+      );
+    })
+  );
 
-    if (!ok) {
-      failures++;
-    }
-  }
-
+  const failures = results.filter(r => !r).length;
   if (failures > 0) {
-    writeLine(`${failures} route(s) failed to warm up after ${retries + 1} attempts`);
+    writeLine(`${failures} route(s) failed to warm up`);
     Deno.exit(1);
   }
 }

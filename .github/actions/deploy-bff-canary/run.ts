@@ -1,4 +1,4 @@
-import { deploy, runOrDie, writeLine } from '../lib/deploy.ts';
+import { deployWrangler, runOrDie, writeLine } from '../lib/deploy.ts';
 
 writeLine('🚀 Generating frontend React Router types...');
 await runOrDie([
@@ -16,17 +16,9 @@ await runOrDie([
 ]);
 
 writeLine('🚀 Deploying private BFF worker...');
-await deploy(
-  [
-    'deno',
-    'x',
-    'wrangler',
-    'deploy',
-    '--config',
-    'wrangler.jsonc',
-    '--env',
-    'canary',
-  ],
-  'deploy-bff.log',
-  'packages/bff'
-);
+await deployWrangler({
+  config: 'wrangler.jsonc',
+  cwd: 'packages/bff',
+  env: 'canary',
+  logPath: 'deploy-bff.log',
+});

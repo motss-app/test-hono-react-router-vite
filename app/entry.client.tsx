@@ -234,13 +234,13 @@ globalThis.requestIdleCallback(async function lazyLoadBrowserIntegration() {
           // },
         ].filter(n => n.enabled);
 
-        const loadedIntegrations = await Promise.all(
-          lazyBrowserIntegrations.map(async ({ loader }) => {
-            const integration = await loader();
-            console.info('[entry.client] Lazy-loaded Sentry browser integration', integration.name);
-            return integration();
-          })
-        );
+        const loaderPromises = lazyBrowserIntegrations.map(({ loader }) => loader());
+        const integrations = await Promise.all(loaderPromises);
+
+        const loadedIntegrations = integrations.map(integration => {
+          console.info('[entry.client] Lazy-loaded Sentry browser integration', integration.name);
+          return integration();
+        });
 
         for (const integration of loadedIntegrations) {
           addIntegration(integration);
