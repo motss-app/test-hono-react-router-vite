@@ -19,9 +19,8 @@ writeLine('🚀 Deploying private frontend worker...');
 await deploy(
   [
     'deno',
-    'run',
-    '-A',
-    'npm:wrangler',
+    'x',
+    'wrangler',
     'deploy',
     '--config',
     'wrangler.jsonc',

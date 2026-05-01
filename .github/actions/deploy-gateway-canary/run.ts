@@ -9,7 +9,7 @@ await runOrDie(['deno', 'task', '--cwd=packages/gateway', 'build'], {
 
 writeLine('🚀 Deploying public gateway worker...');
 await deploy(
-  ['deno', 'run', '-A', 'npm:wrangler', 'deploy', '--env', 'canary'],
+  ['deno', 'x', 'wrangler', 'deploy', '--env', 'canary'],
   'packages/gateway/deploy-gateway.log',
   'packages/gateway',
 );

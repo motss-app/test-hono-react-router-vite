@@ -8,12 +8,8 @@ runs:
       uses: denoland/setup-deno@v2
       with:
         deno-version: 2.7.14
-        cache: npm
+        cache: true
     
     - name: Install repository dependencies
       shell: bash
       run: deno install
-
-    - name: Pre-cache wrangler
-      shell: bash
-      run: deno run -A npm:wrangler --version
