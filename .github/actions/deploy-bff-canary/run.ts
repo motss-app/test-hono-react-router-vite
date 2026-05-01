@@ -18,8 +18,10 @@ await runOrDie([
 writeLine('🚀 Deploying private BFF worker...');
 await deploy(
   [
-    'npx',
-    'wrangler',
+    'deno',
+    'run',
+    '-A',
+    'npm:wrangler',
     'deploy',
     '--config',
     'wrangler.jsonc',
