@@ -1,11 +1,6 @@
 name: Deploy BFF Canary
 description: Build and deploy the BFF worker to Cloudflare Workers (canary environment)
 
-inputs:
-  display-name:
-    description: Human-readable name shown in GitHub UI
-    required: true
-
 runs:
   using: deno
   main: run.ts

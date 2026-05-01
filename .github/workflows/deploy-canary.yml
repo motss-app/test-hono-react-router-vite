@@ -27,8 +27,6 @@ jobs:
         uses: ./.github/actions/setup-deno
       - name: Deploy Frontend Canary
         uses: ./.github/actions/deploy-frontend-canary
-        with:
-          display-name: Frontend Canary
 
   bff_canary:
     name: BFF Canary
@@ -40,8 +38,6 @@ jobs:
         uses: ./.github/actions/setup-deno
       - name: Deploy BFF Canary
         uses: ./.github/actions/deploy-bff-canary
-        with:
-          display-name: BFF Canary
 
   gateway_canary:
     name: Gateway Canary
