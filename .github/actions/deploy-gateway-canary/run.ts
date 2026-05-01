@@ -1,4 +1,4 @@
-import { appendSummary, purgeCache, runOrDie, warmRoutes, writeLine } from '../lib/deploy.ts';
+import { appendSummary, purgeCache, run, warmRoutes, writeLine } from '../lib/deploy.ts';
 
 const canaryUrl = 'https://hono-react-router-vite-canary.motss.fyi';
 
@@ -8,10 +8,34 @@ await runOrDie(['deno', 'task', '--cwd=packages/gateway', 'build'], {
 });
 
 writeLine('🚀 Deploying public gateway worker...');
-await runOrDie(
+await deployWithRetry(
   ['deno', 'x', 'wrangler', 'deploy', '--env', 'canary'],
-  { cwd: 'packages/gateway' }
+  { cwd: 'packages/gateway' },
+  2
 );
+
+async function deployWithRetry(
+  cmd: string[],
+  opts: { cwd?: string },
+  retries: number,
+  attempt = 0
+): Promise<void> {
+  if (attempt > retries) {
+    writeLine(`Deploy failed after ${retries + 1} attempts`);
+    Deno.exit(1);
+  }
+
+  if (attempt > 0) {
+    writeLine(`Retrying deploy (attempt ${attempt + 1})...`);
+    await new Promise(r => setTimeout(r, 2000 * attempt));
+  }
+
+  const code = await run(cmd, opts);
+  if (code === 0) return;
+
+  writeLine(`Deploy failed (exit ${code}), attempt ${attempt + 1}`);
+  return deployWithRetry(cmd, opts, retries, attempt + 1);
+}
 
 writeLine('🚀 Purging Cloudflare cache for Canary...');
 await purgeCache(['hono-react-router-vite-canary.motss.fyi']);
