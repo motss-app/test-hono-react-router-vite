@@ -17,27 +17,31 @@ env:
   VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
 
 jobs:
-  private_worker_canary:
-    name: ${{ matrix.name }}
+  frontend_canary:
+    name: Frontend Canary
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: Frontend Canary
-            service: frontend
-          - name: BFF Canary
-            service: bff
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
       - name: Set up Deno environment
         uses: ./.github/actions/setup-deno
-      - name: Deploy ${{ matrix.name }}
-        uses: ./.github/actions/deploy-private-worker-canary
+      - name: Deploy Frontend Canary
+        uses: ./.github/actions/deploy-frontend-canary
         with:
-          display-name: ${{ matrix.name }}
-          service: ${{ matrix.service }}
+          display-name: Frontend Canary
+
+  bff_canary:
+    name: BFF Canary
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+      - name: Set up Deno environment
+        uses: ./.github/actions/setup-deno
+      - name: Deploy BFF Canary
+        uses: ./.github/actions/deploy-bff-canary
+        with:
+          display-name: BFF Canary
 
   gateway_canary:
     name: Gateway Canary

@@ -8,27 +8,55 @@ export function readEnv(name: string): string {
   return value;
 }
 
-export async function run(cmd: string[], opts?: { cwd?: string; env?: Record<string, string> }): Promise<number> {
+export async function run(
+  cmd: string[],
+  opts?: {
+    cwd?: string;
+    env?: Record<string, string>;
+  }
+): Promise<number> {
   const proc = new Deno.Command(cmd[0]!, {
     args: cmd.slice(1),
-    ...(opts?.cwd ? { cwd: opts.cwd } : {}),
-    ...(opts?.env ? { env: { ...Deno.env.toObject(), ...opts.env } } : {}),
-    stdout: 'inherit',
+    ...(opts?.cwd
+      ? {
+          cwd: opts.cwd,
+        }
+      : {}),
+    ...(opts?.env
+      ? {
+          env: {
+            ...Deno.env.toObject(),
+            ...opts.env,
+          },
+        }
+      : {}),
     stderr: 'inherit',
+    stdout: 'inherit',
   }).spawn();
   const { code } = await proc.status;
   return code;
 }
 
-export async function runOrDie(cmd: string[], opts?: { cwd?: string; env?: Record<string, string> }): Promise<void> {
+export async function runOrDie(
+  cmd: string[],
+  opts?: {
+    cwd?: string;
+    env?: Record<string, string>;
+  }
+): Promise<void> {
   const code = await run(cmd, opts);
   if (code !== 0) {
-      writeLine("Failed: " + cmd.join(' ') + " (exit " + code + ")");
+    writeLine('Failed: ' + cmd.join(' ') + ' (exit ' + code + ')');
     Deno.exit(code);
   }
 }
 
-export async function deploy(cmd: string[], logPath: string, cwd?: string, retries = 2): Promise<void> {
+export async function deploy(
+  cmd: string[],
+  logPath: string,
+  cwd?: string,
+  retries = 2
+): Promise<void> {
   for (let attempt = 0; attempt <= retries; attempt++) {
     if (attempt > 0) {
       writeLine(`Retrying deploy (attempt ${attempt + 1})...`);
@@ -37,9 +65,13 @@ export async function deploy(cmd: string[], logPath: string, cwd?: string, retri
 
     const proc = new Deno.Command(cmd[0]!, {
       args: cmd.slice(1),
-      ...(cwd ? { cwd } : {}),
-      stdout: 'piped',
+      ...(cwd
+        ? {
+            cwd,
+          }
+        : {}),
       stderr: 'piped',
+      stdout: 'piped',
     }).spawn();
     const { code, stdout, stderr } = await proc.output();
     const output = new TextDecoder().decode(stdout) + new TextDecoder().decode(stderr);
@@ -64,8 +96,13 @@ export async function purgeCache(hosts: string[]): Promise<void> {
   const token = readEnv('CLOUDFLARE_API_TOKEN');
 
   const res = await fetch(`https://api.cloudflare.com/client/v4/zones/${zoneId}/cache/purge`, {
-    body: JSON.stringify({ hosts }),
-    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      hosts,
+    }),
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
     method: 'DELETE',
   });
 
@@ -85,7 +122,9 @@ export async function warmRoutes(base: string, paths: string[], retries = 2): Pr
 
     for (let attempt = 0; attempt <= retries; attempt++) {
       try {
-        const res = await fetch(url, { redirect: 'follow' });
+        const res = await fetch(url, {
+          redirect: 'follow',
+        });
         if (res.status === 200) {
           writeLine(`✅ ${url}`);
           ok = true;
@@ -112,5 +151,7 @@ export async function warmRoutes(base: string, paths: string[], retries = 2): Pr
 export async function appendSummary(lines: string[]): Promise<void> {
   const path = Deno.env.get('GITHUB_STEP_SUMMARY');
   if (!path) return;
-  await Deno.writeTextFile(path, `${lines.join('\n')}\n`, { append: true });
+  await Deno.writeTextFile(path, `${lines.join('\n')}\n`, {
+    append: true,
+  });
 }
