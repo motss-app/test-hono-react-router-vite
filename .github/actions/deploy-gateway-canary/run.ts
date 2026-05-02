@@ -1,11 +1,4 @@
-import {
-  appendSummary,
-  extractUrls,
-  purgeCache,
-  runCapture,
-  runOrDie,
-  writeLine,
-} from '../lib/deploy.ts';
+import { appendSummary, extractUrls, runCapture, runOrDie, writeLine } from '../lib/deploy.ts';
 
 const canaryUrl = 'https://hono-react-router-vite-canary.motss.fyi';
 
@@ -46,12 +39,6 @@ if (deployResult.code !== 0) {
 const workersDevUrls = extractUrls(`${deployResult.stdout}\n${deployResult.stderr}`).filter(url =>
   url.endsWith('.workers.dev')
 );
-
-writeLine('🚀 Purging Cloudflare cache for Canary...');
-await purgeCache([
-  'hono-react-router-vite-canary.motss.fyi',
-]);
-writeLine('✅ Canary Cloudflare cache purged');
 
 await appendSummary([
   '### 🚀 Canary Deployment Successful',
