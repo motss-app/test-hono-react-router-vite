@@ -49,3 +49,6 @@ jobs:
         uses: ./.github/actions/setup-deno
       - name: Deploy Gateway Canary
         uses: ./.github/actions/deploy-gateway-canary
+      - name: Warm Up Gateway Canary
+        continue-on-error: true
+        run: deno run -A ./.github/actions/deploy-gateway-canary/warmup.ts
