@@ -2,6 +2,16 @@ export function writeLine(message: string): void {
   Deno.stdout.writeSync(new TextEncoder().encode(`${message}\n`));
 }
 
+export async function withLogGroup<T>(title: string, fn: () => Promise<T> | T): Promise<T> {
+  writeLine(`::group::${title}`);
+
+  try {
+    return await fn();
+  } finally {
+    writeLine('::endgroup::');
+  }
+}
+
 const RETRY_DELAY_MS = 2000;
 const TRAILING_SLASHES_RE = /\/+$/;
 const URL_RE = /https?:\/\/[^\s"'<>`]+/g;
@@ -15,6 +25,17 @@ type CommandCapture = {
   code: number;
   stderr: string;
   stdout: string;
+};
+
+type CloudflareApiErrorResponse = {
+  errors?: Array<{
+    code?: number;
+    message?: string;
+  }>;
+  messages?: Array<{
+    code?: number;
+    message?: string;
+  }>;
 };
 
 function decode(bytes: Uint8Array): string {
@@ -167,10 +188,55 @@ export async function purgeCache(hosts: string[]): Promise<void> {
   });
 
   if (!res.ok) {
-    writeLine(`Cache purge failed: ${res.status}`);
-    return;
+    const body = await res.text();
+    const errorMessage = formatPurgeCacheError(res.status, res.statusText, body);
+
+    writeLine(errorMessage);
+    throw new Error(errorMessage);
   }
   writeLine('Cache purged');
+}
+
+function formatPurgeCacheError(status: number, statusText: string, body: string): string {
+  const lines = [
+    `Cache purge failed: ${status}${statusText ? ` ${statusText}` : ''}`,
+  ];
+  const responseDetails = formatCloudflareResponse(body);
+
+  if (responseDetails) {
+    lines.push(`Response: ${responseDetails}`);
+  }
+
+  return lines.join('\n');
+}
+
+function formatCloudflareResponse(body: string): string {
+  const trimmedBody = body.trim();
+
+  if (!trimmedBody) {
+    return '';
+  }
+
+  try {
+    const parsed = JSON.parse(trimmedBody) as CloudflareApiErrorResponse;
+    const details = [
+      ...(parsed.errors ?? []),
+      ...(parsed.messages ?? []),
+    ]
+      .map(({ code, message }) => {
+        const codeText = code === undefined ? '' : `${code}: `;
+        return `${codeText}${message ?? ''}`.trim();
+      })
+      .filter(Boolean);
+
+    if (details.length > 0) {
+      return details.join(' | ');
+    }
+  } catch {
+    // Fall through to the raw body snippet below.
+  }
+
+  return trimmedBody.slice(0, 500);
 }
 
 export async function warmRoutes(base: string, paths: string[]): Promise<void> {

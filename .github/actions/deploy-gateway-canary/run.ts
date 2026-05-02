@@ -1,40 +1,48 @@
-import { appendSummary, extractUrls, runCapture, runOrDie, writeLine } from '../lib/deploy.ts';
+import { appendSummary, extractUrls, run, runCapture, withLogGroup } from '../lib/deploy.ts';
 
 const canaryUrl = 'https://hono-react-router-vite-canary.motss.fyi';
 
-writeLine('🚀 Building Gateway...');
-await runOrDie(
-  [
-    'deno',
-    'task',
-    '--cwd=packages/gateway',
-    'build',
-  ],
-  {
-    env: {
-      CLOUDFLARE_ENV: 'canary',
-    },
-  }
-);
+await withLogGroup('🚀 Building Gateway', async () => {
+  const buildCode = await run(
+    [
+      'deno',
+      'task',
+      '--cwd=packages/gateway',
+      'build',
+    ],
+    {
+      env: {
+        CLOUDFLARE_ENV: 'canary',
+      },
+    }
+  );
 
-writeLine('🚀 Deploying public gateway worker...');
-const deployResult = await runCapture(
-  [
-    'deno',
-    'x',
-    'wrangler',
-    'deploy',
-    '--env',
-    'canary',
-  ],
-  {
-    cwd: 'packages/gateway',
+  if (buildCode !== 0) {
+    throw new Error(`Gateway build failed with exit code ${buildCode}`);
   }
-);
+});
 
-if (deployResult.code !== 0) {
-  Deno.exit(deployResult.code);
-}
+const deployResult = await withLogGroup('🚀 Deploying public gateway worker', async () => {
+  const result = await runCapture(
+    [
+      'deno',
+      'x',
+      'wrangler',
+      'deploy',
+      '--env',
+      'canary',
+    ],
+    {
+      cwd: 'packages/gateway',
+    }
+  );
+
+  if (result.code !== 0) {
+    throw new Error(`Gateway deploy failed with exit code ${result.code}`);
+  }
+
+  return result;
+});
 
 const workersDevUrls = extractUrls(`${deployResult.stdout}\n${deployResult.stderr}`).filter(url =>
   url.endsWith('.workers.dev')
