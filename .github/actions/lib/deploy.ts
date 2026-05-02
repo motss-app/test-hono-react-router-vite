@@ -4,11 +4,22 @@ export function writeLine(message: string): void {
 
 const RETRY_DELAY_MS = 2000;
 const TRAILING_SLASHES_RE = /\/+$/;
+const URL_RE = /https?:\/\/[^\s"'<>`]+/g;
 
 type CommandOptions = {
   cwd?: string;
   env?: Record<string, string>;
 };
+
+type CommandCapture = {
+  code: number;
+  stderr: string;
+  stdout: string;
+};
+
+function decode(bytes: Uint8Array): string {
+  return new TextDecoder().decode(bytes);
+}
 
 function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -49,6 +60,51 @@ export async function run(cmd: string[], opts?: CommandOptions): Promise<number>
   return code;
 }
 
+export async function runCapture(cmd: string[], opts?: CommandOptions): Promise<CommandCapture> {
+  const [command, ...args] = cmd;
+
+  if (!command) {
+    throw new Error('Command is required');
+  }
+
+  const proc = new Deno.Command(command, {
+    args,
+    ...(opts?.cwd
+      ? {
+          cwd: opts.cwd,
+        }
+      : {}),
+    ...(opts?.env
+      ? {
+          env: {
+            ...Deno.env.toObject(),
+            ...opts.env,
+          },
+        }
+      : {}),
+    stderr: 'piped',
+    stdout: 'piped',
+  }).spawn();
+
+  const { code, stderr, stdout } = await proc.output();
+  const stdoutText = decode(stdout);
+  const stderrText = decode(stderr);
+
+  if (stdout.length > 0) {
+    Deno.stdout.writeSync(stdout);
+  }
+
+  if (stderr.length > 0) {
+    Deno.stderr.writeSync(stderr);
+  }
+
+  return {
+    code,
+    stderr: stderrText,
+    stdout: stdoutText,
+  };
+}
+
 export async function runOrDie(cmd: string[], opts?: CommandOptions): Promise<void> {
   const code = await run(cmd, opts);
   if (code !== 0) {
@@ -87,6 +143,12 @@ export function retry(maxRetries: number): (cmd: string[], opts?: CommandOptions
     writeLine(`Failed: ${commandLabel} after ${maxRetries + 1} attempts`);
     Deno.exit(1);
   };
+}
+
+export function extractUrls(text: string): string[] {
+  return [
+    ...new Set(text.match(URL_RE) ?? []),
+  ];
 }
 
 export async function purgeCache(hosts: string[]): Promise<void> {
