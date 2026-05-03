@@ -1,33 +1,36 @@
-import { retry, runOrDie, writeLine } from '../lib/deploy.ts';
+import { runOrDie, withLogGroup } from '../lib/deploy.ts';
 
-writeLine('🚀 Generating frontend React Router types...');
-await runOrDie([
-  'deno',
-  'task',
-  'typegen',
-]);
-
-writeLine('🚀 Typechecking BFF...');
-await runOrDie([
-  'deno',
-  'task',
-  '--cwd=packages/bff',
-  'typecheck',
-]);
-
-writeLine('🚀 Deploying private BFF worker...');
-await retry(2)(
-  [
+await withLogGroup('🚀 Generating frontend React Router types', async () => {
+  await runOrDie([
     'deno',
-    'x',
-    'wrangler',
-    'deploy',
-    '--config',
-    'wrangler.jsonc',
-    '--env',
-    'canary',
-  ],
-  {
-    cwd: 'packages/bff',
-  }
-);
+    'task',
+    'typegen',
+  ]);
+});
+
+await withLogGroup('🚀 Typechecking BFF', async () => {
+  await runOrDie([
+    'deno',
+    'task',
+    '--cwd=packages/bff',
+    'typecheck',
+  ]);
+});
+
+await withLogGroup('🚀 Deploying private BFF worker', async () => {
+  await runOrDie(
+    [
+      'deno',
+      'x',
+      'wrangler',
+      'deploy',
+      '--config',
+      'wrangler.jsonc',
+      '--env',
+      'canary',
+    ],
+    {
+      cwd: 'packages/bff',
+    }
+  );
+});

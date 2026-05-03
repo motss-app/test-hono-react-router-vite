@@ -1,9 +1,9 @@
-import { appendSummary, extractUrls, run, runCapture, withLogGroup } from '../lib/deploy.ts';
+import { appendSummary, extractUrls, retry, runCapture, withLogGroup } from '../lib/deploy.ts';
 
 const canaryUrl = 'https://hono-react-router-vite-canary.motss.fyi';
 
 await withLogGroup('🚀 Building Gateway', async () => {
-  const buildCode = await run(
+  await retry(3)(
     [
       'deno',
       'task',
@@ -16,10 +16,6 @@ await withLogGroup('🚀 Building Gateway', async () => {
       },
     }
   );
-
-  if (buildCode !== 0) {
-    throw new Error(`Gateway build failed with exit code ${buildCode}`);
-  }
 });
 
 const deployResult = await withLogGroup('🚀 Deploying public gateway worker', async () => {
