@@ -16,7 +16,7 @@ await runOrDie(
 );
 
 writeLine('🚀 Deploying private frontend worker...');
-await retry(2)(
+await retry(3)(
   [
     'deno',
     'x',

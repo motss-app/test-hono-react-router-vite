@@ -139,14 +139,32 @@ export function retry(maxRetries: number): (cmd: string[], opts?: CommandOptions
     const commandLabel = cmd.join(' ');
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
-      // biome-ignore lint/performance/noAwaitInLoops: retry attempts are intentionally sequential.
-      const code = await run(cmd, opts);
+      const attemptNumber = attempt + 1;
+      const totalAttempts = maxRetries + 1;
+      const attemptLabel = `Attempt ${attemptNumber}/${totalAttempts}: ${commandLabel}`;
+
+      let code = 1;
+
+      await withLogGroup(attemptLabel, async () => {
+        try {
+          code = await run(cmd, opts);
+
+          if (code !== 0) {
+            writeLine(
+              `Failed: ${commandLabel} (exit ${code}), attempt ${attemptNumber}/${totalAttempts}`
+            );
+          }
+        } catch (error) {
+          writeLine(
+            `Failed: ${commandLabel} (${error instanceof Error ? error.message : String(error)}), attempt ${attemptNumber}/${totalAttempts}`
+          );
+          code = 1;
+        }
+      });
 
       if (code === 0) {
         return;
       }
-
-      writeLine(`Failed: ${commandLabel} (exit ${code}), attempt ${attempt + 1}/${maxRetries + 1}`);
 
       if (attempt === maxRetries) {
         break;
@@ -176,7 +194,7 @@ export async function purgeCache(hosts: string[]): Promise<void> {
   const zoneId = readEnv('CLOUDFLARE_ZONE_ID');
   const token = readEnv('CLOUDFLARE_API_TOKEN');
 
-  const res = await fetch(`https://api.cloudflare.com/client/v4/zones/${zoneId}/cache/purge`, {
+  const res = await fetch(`https://api.cloudflare.com/client/v4/zones/${zoneId}/purge_cache`, {
     body: JSON.stringify({
       hosts,
     }),
@@ -184,7 +202,7 @@ export async function purgeCache(hosts: string[]): Promise<void> {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
-    method: 'DELETE',
+    method: 'POST',
   });
 
   if (!res.ok) {
