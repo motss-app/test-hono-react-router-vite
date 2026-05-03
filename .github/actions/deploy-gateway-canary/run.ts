@@ -1,22 +1,28 @@
-import { appendSummary, extractUrls, retry, runCapture, withLogGroup } from '../lib/deploy.ts';
+import {
+  appendSummary,
+  extractUrls,
+  retry,
+  runCapture,
+  withLogGroup,
+  writeLine,
+} from '../lib/deploy.ts';
 
 const canaryUrl = 'https://hono-react-router-vite-canary.motss.fyi';
 
-await withLogGroup('🚀 Building Gateway', async () => {
-  await retry(3)(
-    [
-      'deno',
-      'task',
-      '--cwd=packages/gateway',
-      'build',
-    ],
-    {
-      env: {
-        CLOUDFLARE_ENV: 'canary',
-      },
-    }
-  );
-});
+writeLine('🚀 Building Gateway...');
+await retry(3)(
+  [
+    'deno',
+    'task',
+    '--cwd=packages/gateway',
+    'build',
+  ],
+  {
+    env: {
+      CLOUDFLARE_ENV: 'canary',
+    },
+  }
+);
 
 const deployResult = await withLogGroup('🚀 Deploying public gateway worker', async () => {
   const result = await runCapture(
