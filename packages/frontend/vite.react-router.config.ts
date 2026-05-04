@@ -109,7 +109,7 @@ export default function createViteConfig(config: ConfigEnv) {
           ...sentryPlugins,
         ],
     resolve: {
-      tsconfigPaths: false,
+      tsconfigPaths: true,
     },
     root: repoRootPath,
   };

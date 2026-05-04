@@ -89,7 +89,7 @@ export default defineConfig(async config => {
         : []),
     ],
     resolve: {
-      tsconfigPaths: false,
+      tsconfigPaths: true,
     },
     root: repoRootPath,
     server: {
