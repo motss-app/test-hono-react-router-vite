@@ -159,7 +159,10 @@
       "nursery": {
         "useExplicitType": "off"
       },
-      "performance": "error",
+      "performance": {
+        "noAwaitInLoops": "off",
+        "recommended": true
+      },
       "recommended": true,
       "security": {
         "noSecrets": "error",

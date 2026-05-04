@@ -17,6 +17,7 @@ import {
 
 let hasLoggedSsrEnvSnapshot = false;
 const liveSsrCacheControl = 'no-store';
+type RequestHandler = ReturnType<typeof createRequestHandler>;
 
 function loadServerBuild(): Promise<ServerBuild> {
   return import.meta.env.PROD
@@ -168,18 +169,13 @@ function applySsrResponseHeaders(
   });
 }
 
-async function handleSsrRequest(
-  c: Context<HonoEnv>,
-  handler: ReturnType<typeof createRequestHandler>
-): Promise<Response> {
+async function handleSsrRequest(c: Context<HonoEnv>, handler: RequestHandler): Promise<Response> {
   setHonoData(c);
 
   startTime(c, 'react-router-ssr');
   const cspNonce = import.meta.env.PROD ? csp.createNonce() : null;
-  const response = await handler(
-    await createRouterRequest(c.req.raw, cspNonce),
-    createRouterContext(c)
-  );
+  const loadContext = createRouterContext(c);
+  const response = await handler(await createRouterRequest(c.req.raw, cspNonce), loadContext);
   endTime(c, 'react-router-ssr');
 
   const responseHeaders = new Headers(response.headers);

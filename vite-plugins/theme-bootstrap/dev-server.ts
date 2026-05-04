@@ -7,19 +7,22 @@ import {
   HTTP_STATUS_OK,
   HTTP_STATUS_SERVICE_UNAVAILABLE,
   THEME_BOOTSTRAP_DEBOUNCE_MS,
-  THEME_BOOTSTRAP_ENTRY_POINT,
 } from './constants.ts';
 import type { ThemeBuildServerState } from './types.ts';
-import { toErrorMessage } from './utils.ts';
+import { getThemeBootstrapEntryPoint, toErrorMessage } from './utils.ts';
 
 // Serve the theme bootstrap as a standalone dev asset because it lives outside Vite's module graph.
 // When its entry file changes, rebuild the in-memory script and force a full reload so the browser reruns it.
 export async function configureThemeBuildServer(
   server: ViteDevServer,
-  state: ThemeBuildServerState
+  state: ThemeBuildServerState,
+  rootDir?: string
 ): Promise<void> {
+  const normalizedRootDir = rootDir ?? Deno.cwd();
+  const themeBootstrapEntryPoint = getThemeBootstrapEntryPoint(normalizedRootDir);
+
   try {
-    state.devCode = (await buildThemeBootstrap()).code;
+    state.devCode = (await buildThemeBootstrap(normalizedRootDir)).code;
   } catch (error) {
     server.config.logger.error(`vite:theme-bootstrap: ${toErrorMessage(error)}`);
   }
@@ -53,9 +56,9 @@ export async function configureThemeBuildServer(
     response.end(state.devCode);
   });
 
-  server.watcher.add(THEME_BOOTSTRAP_ENTRY_POINT);
+  server.watcher.add(themeBootstrapEntryPoint);
   server.watcher.on('change', file => {
-    if (path.resolve(file) !== THEME_BOOTSTRAP_ENTRY_POINT) {
+    if (path.resolve(file) !== themeBootstrapEntryPoint) {
       return;
     }
 
@@ -65,7 +68,7 @@ export async function configureThemeBuildServer(
 
     state.debounceTimer = setTimeout(async () => {
       try {
-        state.devCode = (await buildThemeBootstrap()).code;
+        state.devCode = (await buildThemeBootstrap(normalizedRootDir)).code;
         server.ws.send({
           type: 'full-reload',
         });

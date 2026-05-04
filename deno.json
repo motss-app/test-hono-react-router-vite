@@ -48,6 +48,8 @@
     "strictNullChecks": true,
     "strictPropertyInitialization": true,
     "types": [
+      "./.react-router/types/+future.ts",
+      "./app/types/vite-env.d.ts",
       "vite/client"
     ],
     "useUnknownInCatchVariables": true,
@@ -57,7 +59,7 @@
     ".wrangler"
   ],
   "imports": {
-    "@sentry/browser": "npm:@sentry/browser@10.50.0",
+    "@sentry/browser": "npm:@sentry/browser@10.51.0",
     "@std/path": "jsr:@std/path@1.1.4",
     "react-dom/server": "npm:react-dom@19.2.5/server.edge"
   },
@@ -91,23 +93,28 @@
     }
   },
   "tasks": {
-    "bench": "ulimit -n 9998999 && deno run build && ./http-bench --target 'deno:PORT=3000 deno run --v8-flags=\"--max-old-space-size=8192\" start' --duration 30 --connections 7999 --url http://localhost:3000/api/test",
-    "build": "rm -rf build/ && deno run build:react-router --mode production && deno run -P npm:vite build --config ./vite.hono.config.ts --mode production",
-    "build:react-router": "deno run -P npm:@react-router/dev build --config ./vite.react-router.config.ts",
-    "build:worker": "deno run build:react-router --mode production && deno run -P npm:vite build --config ./vite.worker.config.ts --mode production",
-    "build:worker:canary": "deno run build:react-router --mode canary && deno run -P npm:vite build --config ./vite.worker.config.ts --mode canary",
-    "check": " deno run -P npm:@react-router/dev typegen && deno check --unstable-tsgo",
+    "bench": "ulimit -n 9998999 && deno task build && ./http-bench --target 'deno:PORT=8787 deno task --cwd=packages/gateway preview' --duration 30 --connections 7999 --url http://localhost:8787/api/test",
+    "build": "deno task build:frontend && deno task build:gateway",
+    "build:bff": "deno task --cwd=packages/bff typecheck",
+    "build:frontend": "deno task --cwd=packages/frontend build",
+    "build:gateway": "deno task --cwd=packages/gateway build",
+    "build:gateway:canary": "CLOUDFLARE_ENV=canary deno task --cwd=packages/gateway build",
+    "build:worker": "deno task build:gateway",
+    "build:worker:canary": "deno task build:gateway:canary",
+    "check": "deno task typegen && deno task --cwd=packages/shared typecheck && deno task --cwd=packages/bff typecheck && deno task --cwd=packages/frontend typecheck && deno task --cwd=packages/gateway typecheck && deno check --unstable-tsgo",
     "convert-fa-pro": "deno run -P=env scripts/convert-fa-pro.ts",
     "dev": "deno run -A scripts/dev-spotlight.ts",
-    "dev:app": "deno run -A scripts/run-deno-with-optional-env.ts -P npm:vite",
+    "dev:app": "deno task --cwd=packages/frontend dev",
+    "dev:gateway": "deno task --cwd=packages/gateway dev",
     "format": "deno run -P=format npm:@biomejs/biome format --write .",
     "format:check": "deno run -P=format npm:@biomejs/biome format .",
     "lint": "deno lint && deno run -P=lint npm:@biomejs/biome check .",
     "lint:fix": "deno run -P=lint npm:@biomejs/biome check --write .",
-    "preview": "deno task build && deno task start",
-    "preview:worker": "deno task build:worker && deno run -A npm:wrangler dev --env preview",
+    "preview": "deno task build && deno task --cwd=packages/gateway preview",
+    "preview:worker": "deno task preview",
+    "typegen": "REACT_ROUTER_ROOT=$PWD deno run -A npm:@react-router/dev typegen --config packages/frontend/vite.react-router.config.ts",
     "spotlight": "pnpm dlx @spotlightjs/spotlight",
-    "start": "deno run -A scripts/run-deno-with-optional-env.ts -P=start ./build/server.js"
+    "start": "deno task preview"
   },
   "unstable": [
     "bare-node-builtins",
@@ -129,5 +136,8 @@
     "unsafe-proto",
     "webgpu",
     "worker-options"
+  ],
+  "workspace": [
+    "./packages/*"
   ]
 }

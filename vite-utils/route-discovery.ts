@@ -2,13 +2,16 @@ const EXTENSION_REGEX = /\.(tsx|ts|jsx|js)$/;
 const prerenderExcludedRoutes = [
   '/errors/:code',
   '/home',
+  '/hono-rpc',
   '/ssr',
 ];
 
-function discoverStaticRoutes(options: { exclude?: string[] } = {}): string[] {
-  const routesDir = './app/routes';
+function discoverStaticRoutes(options?: { exclude?: string[]; rootDir?: string }): string[] {
+  const normalizedOptions = options ?? {};
+  const rootDir = normalizedOptions.rootDir ?? Deno.cwd();
+  const routesDir = `${rootDir}/app/routes`;
   const routes: string[] = [];
-  const { exclude = [] } = options;
+  const { exclude = [] } = normalizedOptions;
 
   // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Recursive directory scanning
   function scan(currentDir: string, urlPrefix: string): void {
@@ -64,9 +67,11 @@ function discoverStaticRoutes(options: { exclude?: string[] } = {}): string[] {
   return routes;
 }
 
-export function discoverPrerenderRoutes(): string[] {
+export function discoverPrerenderRoutes(options?: { rootDir?: string }): string[] {
+  const { rootDir } = options ?? {};
   const routes = discoverStaticRoutes({
     exclude: prerenderExcludedRoutes,
+    ...(rootDir === undefined ? {} : { rootDir }),
   });
 
   // Explicitly add the index route since discoverStaticRoutes relies on file names

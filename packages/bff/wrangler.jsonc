@@ -1,0 +1,43 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "compatibility_date": "2026-04-25",
+  "compatibility_flags": [
+    "enable_request_signal",
+    "nodejs_als",
+    "nodejs_compat",
+    "pedantic_wpt",
+    "request_signal_passthrough"
+  ],
+  "dev": {
+    "inspector_port": 9231
+  },
+  "env": {
+    "canary": {},
+    "production": {}
+  },
+  "main": "./src/worker.ts",
+  "minify": false,
+  "name": "bff-api",
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1.0,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1.0,
+      "invocation_logs": true,
+      "persist": true
+    },
+    "traces": {
+      "enabled": true,
+      "head_sampling_rate": 1.0,
+      "persist": true
+    }
+  },
+  "placement": {
+    "mode": "smart"
+  },
+  "preview_urls": false,
+  "preserve_file_names": true,
+  "upload_source_maps": true,
+  "workers_dev": false
+}

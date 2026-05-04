@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "lib": [
+      "esnext"
+    ],
+    "types": [
+      "@cloudflare/workers-types"
+    ]
+  },
+  "exports": {
+    ".": "./src/api.ts",
+    "./api": "./src/api.ts",
+    "./worker": "./src/worker.ts"
+  },
+  "name": "@motss-app/bff",
+  "tasks": {
+    "typecheck": "deno check --unstable-tsgo src/api.ts"
+  },
+  "version": "0.1.0"
+}

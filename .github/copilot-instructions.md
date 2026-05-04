@@ -22,8 +22,9 @@ This repository is a **Deno-first** project using **Hono** and **React Router v7
   - `app/worker.ts`: Entry point for Cloudflare Workers.
 - **Configuration**:
   - `deno.json`: Main configuration for Deno tasks and compiler options.
-  - `wrangler.jsonc`: Configuration for Cloudflare Workers.
-  - `vite.hono.config.ts`: *never* include the `@stylexjs/unplugin` plugin; the only config allowed to hold `stylex.vite()` is `vite.config.ts`.
+  - `packages/frontend/wrangler.jsonc`: Frontend Cloudflare Worker deploy configuration.
+  - `packages/frontend/vite.config.ts`: frontend dev server config; keep `@stylexjs/unplugin` here, not in Hono or gateway configs.
+  - `packages/frontend/vite.react-router.config.ts`: frontend React Router production build config; this is also allowed to use StyleX.
   - **Never create or import a global stylesheet such as `app.css`**. All global helpers and resets must be expressed via StyleX tokens, utilities, or components.
 
 ## Coding conventions
@@ -38,7 +39,7 @@ This repository is a **Deno-first** project using **Hono** and **React Router v7
 ## Hono + React Router integration
 
 - Access Hono context in React Router loaders/actions via `context`.
-- Use `v8_middleware: true` in `react-router.config.ts`.
+- Use `v8_middleware: true` in `packages/frontend/react-router.config.ts`.
 - Define context keys using `Symbol.for` (e.g. `app/router-context.ts`).
 - In `app/ssr-handler.ts`, initialize context with `new RouterContextProvider(new Map([[HonoContext, c.var]]))`.
 - In loaders, use `context.get(HonoContext)`.

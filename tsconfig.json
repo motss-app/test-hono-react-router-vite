@@ -13,6 +13,20 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "noEmit": true,
+    "paths": {
+      "@motss-app/bff": [
+        "./packages/bff/src/api.ts"
+      ],
+      "@motss-app/bff/*": [
+        "./packages/bff/src/*"
+      ],
+      "@motss-app/shared": [
+        "./packages/shared/src/bindings.ts"
+      ],
+      "@motss-app/shared/*": [
+        "./packages/shared/src/*"
+      ]
+    },
     "resolveJsonModule": true,
     "rootDirs": [
       ".",

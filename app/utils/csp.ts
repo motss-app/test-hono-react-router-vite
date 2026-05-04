@@ -99,9 +99,10 @@ export async function collectInlineHashes(html: string, pattern: RegExp): Promis
     .map(match => match[1])
     .filter((inlineContent): inlineContent is string => Boolean(inlineContent?.trim()));
 
-  return await Promise.all(
-    inlineContents.map(async inlineContent => `'${await createDigestToken(inlineContent)}'`)
-  );
+  const tokens = inlineContents.map(inlineContent => createDigestToken(inlineContent));
+  const digests = await Promise.all(tokens);
+
+  return digests.map(token => `'${token}'`);
 }
 
 function createNonce(): string {

@@ -1,0 +1,77 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "compatibility_date": "2026-04-25",
+  "compatibility_flags": [
+    "enable_request_signal",
+    "nodejs_als",
+    "nodejs_compat",
+    "pedantic_wpt",
+    "request_signal_passthrough"
+  ],
+  "dev": {
+    "inspector_port": 9230
+  },
+  "env": {
+    "canary": {
+      "services": [
+        {
+          "binding": "FRONTEND",
+          "service": "frontend-app-canary"
+        },
+        {
+          "binding": "BFF",
+          "service": "bff-api-canary"
+        }
+      ],
+      "routes": [
+        {
+          "custom_domain": true,
+          "pattern": "hono-react-router-vite-canary.motss.fyi"
+        }
+      ]
+    },
+    "production": {
+      "routes": [
+        {
+          "custom_domain": true,
+          "pattern": "hono-react-router-vite.motss.fyi"
+        }
+      ]
+    }
+  },
+  "main": "./src/worker.ts",
+  "minify": false,
+  "name": "edge-gateway",
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1.0,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1.0,
+      "invocation_logs": true,
+      "persist": true
+    },
+    "traces": {
+      "enabled": true,
+      "head_sampling_rate": 1.0,
+      "persist": true
+    }
+  },
+  "placement": {
+    "mode": "smart"
+  },
+  "preview_urls": true,
+  "preserve_file_names": true,
+  "services": [
+    {
+      "binding": "FRONTEND",
+      "service": "frontend-app"
+    },
+    {
+      "binding": "BFF",
+      "service": "bff-api"
+    }
+  ],
+  "upload_source_maps": true,
+  "workers_dev": true
+}

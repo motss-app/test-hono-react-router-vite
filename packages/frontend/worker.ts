@@ -1,23 +1,23 @@
 import { getIsolationScope, logger, metrics, setTag, withSentry } from '@sentry/cloudflare';
 
-import { logSentryEnvSnapshot } from '../vite-utils/sentry-env-log.ts';
-import { createApp } from './app.ts';
+import { createApp } from '../../app/app.ts';
 import {
   applyAppSessionIdToSpan,
   appSessionIdTagName,
   attachAppSessionCookie,
   createAppSessionId,
   getAppSessionIdFromCookieString,
-} from './monitoring/app-session.ts';
+} from '../../app/monitoring/app-session.ts';
 import {
   createCloudflareSentryOptions,
   createRequestMetricAttributes,
   isDevelopmentSentryMode,
   sentryMetricNames,
-} from './monitoring/sentry.ts';
-import { createSsrHandler } from './ssr-handler.ts';
-import type { HonoEnv } from './types/hono.types.ts';
-import { PromiseFrom } from './utils/promise-from.ts';
+} from '../../app/monitoring/sentry.ts';
+import { createSsrHandler } from '../../app/ssr-handler.ts';
+import type { HonoEnv } from '../../app/types/hono.types.ts';
+import { PromiseFrom } from '../../app/utils/promise-from.ts';
+import { logSentryEnvSnapshot } from '../../vite-utils/sentry-env-log.ts';
 
 const app = createApp();
 const isDevSentryMode = isDevelopmentSentryMode(import.meta.env.MODE);
@@ -121,23 +121,26 @@ export default withSentry<HonoEnv['Bindings']>(
     if (!hasLoggedWorkerEnvSnapshot) {
       hasLoggedWorkerEnvSnapshot = true;
 
-      console.info(
-        '[app/worker.ts] Sentry env snapshot',
-        logSentryEnvSnapshot({
-          deploymentBuild: import.meta.env.PROD,
-          mode: import.meta.env.MODE,
-          phase: 'worker',
-          source: 'app/worker.ts',
-          values: {
-            port: undefined,
-            sentryAuthToken: undefined,
-            sentryDsn: env.SENTRY_DSN,
-            sentryRelease: import.meta.env.SENTRY_RELEASE,
-            sentrySpotlight: undefined,
-            viteSentryDsn: undefined,
-            viteSentrySpotlight: undefined,
-          },
-        })
+      const workerEnvSnapshot = logSentryEnvSnapshot({
+        deploymentBuild: import.meta.env.PROD,
+        mode: import.meta.env.MODE,
+        phase: 'worker',
+        source: 'packages/frontend/worker.ts',
+        values: {
+          port: undefined,
+          sentryAuthToken: undefined,
+          sentryDsn: env.SENTRY_DSN,
+          sentryRelease: import.meta.env.SENTRY_RELEASE,
+          sentrySpotlight: undefined,
+          viteSentryDsn: undefined,
+          viteSentrySpotlight: undefined,
+        },
+      });
+
+      Deno.stdout.writeSync(
+        new TextEncoder().encode(
+          `[packages/frontend/worker.ts] Sentry env snapshot ${JSON.stringify(workerEnvSnapshot)}\n`
+        )
       );
     }
 

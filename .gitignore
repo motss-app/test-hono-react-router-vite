@@ -5,12 +5,17 @@
 .dev.vars
 .dev.vars.*
 .wrangler/
-/dist/
-/node_modules/
+dist/
+node_modules/
 
 # React Router
 /.react-router/
 /build/
+/app/+types/
+/app/**/+types/
+/packages/frontend/.react-router/
+/packages/frontend/app/+types/
+/packages/frontend/app/**/+types/
 
 # AI coding assistant internal data
 .opencode/

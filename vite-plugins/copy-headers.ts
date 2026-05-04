@@ -18,6 +18,7 @@ interface HeadersCopyPluginOptions {
   dest: string;
   headersDir: string;
   mode: string;
+  rootDir?: string;
 }
 
 interface ProcessStaticRouteOptions {
@@ -141,8 +142,9 @@ async function processStaticRoute({
 }
 
 export function headersCopyPlugin(options: HeadersCopyPluginOptions): Plugin {
-  const headersDir = resolve(Deno.cwd(), options.headersDir);
-  const destPath = resolve(Deno.cwd(), options.dest);
+  const rootDir = options.rootDir ?? Deno.cwd();
+  const headersDir = resolve(rootDir, options.headersDir);
+  const destPath = resolve(rootDir, options.dest);
   const clientDir = dirname(destPath);
   const mode = options.mode;
   const { includeCloudflareAnalyticsStyleHashes, sentryCspReportingConfig, sentryDsn } =
@@ -162,7 +164,9 @@ export function headersCopyPlugin(options: HeadersCopyPluginOptions): Plugin {
       });
 
       let headersText = await Deno.readTextFile(src);
-      const prerenderRoutes = discoverPrerenderRoutes();
+      const prerenderRoutes = discoverPrerenderRoutes({
+        rootDir,
+      });
       const staticRouteHeadersResults = await Promise.all(
         prerenderRoutes.map(routePath =>
           processStaticRoute({

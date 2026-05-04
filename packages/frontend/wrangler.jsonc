@@ -1,11 +1,11 @@
 {
-  "$schema": "./node_modules/wrangler/config-schema.json",
+  "$schema": "../../node_modules/wrangler/config-schema.json",
   "assets": {
     "binding": "ASSETS",
-    "directory": "./build/client",
+    "directory": "../../build/client",
     "html_handling": "drop-trailing-slash"
   },
-  "base_dir": "./build",
+  "base_dir": "../../build",
   "compatibility_date": "2026-04-13",
   "compatibility_flags": [
     "enable_request_signal",
@@ -14,20 +14,16 @@
     "pedantic_wpt",
     "request_signal_passthrough"
   ],
+  "dev": {
+    "inspector_port": 9232
+  },
   "env": {
     "canary": {
-      "routes": [
-        {
-          "custom_domain": true,
-          "pattern": "hono-react-router-vite-canary.motss.fyi"
-        }
-      ],
       "vars": {
         "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
       }
     },
     "preview": {
-      // Local preview bundles the Worker so Wrangler can resolve the generated chunk graph.
       "minify": false,
       "no_bundle": false,
       "vars": {
@@ -35,25 +31,15 @@
       }
     },
     "production": {
-      "routes": [
-        {
-          "custom_domain": true,
-          "pattern": "hono-react-router-vite.motss.fyi"
-        }
-      ],
       "vars": {
         "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
       }
     }
   },
-  // Include the Vite-emitted Worker chunks as ES modules so worker.js can import
-  // the generated runtime files during no-bundle deploys.
   "find_additional_modules": true,
-  "main": "./build/worker.js",
+  "main": "../../build/worker.js",
   "minify": false,
-  "name": "test-hono-react-router-vite",
-  // Production deploys stay no-bundle so the Vite output remains byte-for-byte
-  // aligned with the source maps uploaded from build/.
+  "name": "frontend-app",
   "no_bundle": true,
   "observability": {
     "enabled": true,
@@ -74,7 +60,7 @@
     "mode": "smart"
   },
   "preserve_file_names": true,
-  "preview_urls": true,
+  "preview_urls": false,
   "rules": [
     {
       "globs": [
@@ -87,5 +73,5 @@
   "vars": {
     "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
   },
-  "workers_dev": true
+  "workers_dev": false
 }

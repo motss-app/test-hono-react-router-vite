@@ -64,7 +64,7 @@ For Worker Debug-ID symbolication, source maps alone are not sufficient: Sentry 
 source artifacts (`worker.js` and emitted `assets/**/*.js` chunks with Debug IDs) and their matching
 `.map` files from the same build output.
 
-The deployment build configs minify in Vite, and `wrangler.jsonc` keeps `"no_bundle": true`, `"preserve_file_names": true`, and `minify: false` so Cloudflare deploys the exact Worker artifact that produced the uploaded `worker.js.map`.
+The deployment build configs minify in Vite, and `packages/frontend/wrangler.jsonc` keeps `"no_bundle": true`, `"preserve_file_names": true`, and `minify: false` so Cloudflare deploys the exact Worker artifact that produced the uploaded `worker.js.map`.
 
 The browser trace now also includes a short-lived `Client bootstrap` span around hydration, plus a `Lazy browser integrations` span for the deferred profiling/replay setup work, so startup gaps show up in Sentry instead of remaining as `No Instrumentation`.
 
@@ -129,7 +129,7 @@ Worker runtime setup:
 
 - Cloudflare Worker runtime DSN now comes from Wrangler `vars.SENTRY_DSN`
 - deployed Worker request ownership stays in `app/worker.ts` via `@sentry/cloudflare`
-- `wrangler.jsonc` keeps `"no_bundle": true`, `"preserve_file_names": true`, `"find_additional_modules": true`, `base_dir: "./build"`, and an `ESModule` rule for `assets/**/*.js` so the deployed Worker stays aligned with the Vite-built `build/worker.js`
+- `packages/frontend/wrangler.jsonc` keeps `"no_bundle": true`, `"preserve_file_names": true`, `"find_additional_modules": true`, `base_dir: "../../build"`, and an `ESModule` rule for `assets/**/*.js` so the deployed Worker stays aligned with the Vite-built `build/worker.js`
 - the React Router SSR branch in `app/entry.server.tsx` uses `@sentry/react-router/cloudflare`
   helpers such as `wrapSentryHandleRequest()` and `injectTraceMetaTags()`
 - local Deno dev uses `.env`

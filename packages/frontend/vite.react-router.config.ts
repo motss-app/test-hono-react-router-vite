@@ -3,13 +3,13 @@ import { sentryVitePlugin } from '@sentry/vite-plugin';
 import stylex from '@stylexjs/unplugin';
 import type { ConfigEnv } from 'vite';
 
-import { headersCopyPlugin } from './vite-plugins/copy-headers.ts';
-import { themeBuildPlugin } from './vite-plugins/theme-bootstrap/plugin.ts';
-import { readRequiredEnv } from './vite-utils/get-required-env.ts';
-import { createImportMetaEnvDefine } from './vite-utils/import-meta-env.ts';
-import { loadConfigEnvironment } from './vite-utils/load-env.ts';
-import { readEnv } from './vite-utils/read-env.ts';
-import { createSentryVitePluginOptions } from './vite-utils/sentry-build.ts';
+import { headersCopyPlugin } from '../../vite-plugins/copy-headers.ts';
+import { themeBuildPlugin } from '../../vite-plugins/theme-bootstrap/plugin.ts';
+import { readRequiredEnv } from '../../vite-utils/get-required-env.ts';
+import { createImportMetaEnvDefine } from '../../vite-utils/import-meta-env.ts';
+import { loadConfigEnvironment } from '../../vite-utils/load-env.ts';
+import { readEnv } from '../../vite-utils/read-env.ts';
+import { createSentryVitePluginOptions } from '../../vite-utils/sentry-build.ts';
 import {
   sentryBrowserProfilingCodeSplittingGroup,
   sentryCodeSplittingGroup,
@@ -17,9 +17,10 @@ import {
   sentryExtraErrorDataCodeSplittingGroup,
   sentryHttpClientCodeSplittingGroup,
   sentryViewHierarchyCodeSplittingGroup,
-} from './vite-utils/sentry-chunking.ts';
-import { createBuildSentryEnvSnapshot } from './vite-utils/sentry-env-log.ts';
+} from '../../vite-utils/sentry-chunking.ts';
+import { createBuildSentryEnvSnapshot } from '../../vite-utils/sentry-env-log.ts';
 
+const repoRootPath = new URL('../../', import.meta.url).pathname;
 const reactRouterSourceMapsGlobPatterns = [
   './build/client/**/*.map',
   './build/server/**/*.map',
@@ -28,7 +29,7 @@ const reactRouterSourceMapsGlobPatterns = [
 function logReactRouterSentryEnvSnapshot(mode: string): void {
   Deno.stderr.writeSync(
     new TextEncoder().encode(
-      `[vite.react-router.config.ts] Sentry env snapshot ${JSON.stringify(createBuildSentryEnvSnapshot('vite.react-router.config.ts', mode))}\n`
+      `[packages/frontend/vite.react-router.config.ts] Sentry env snapshot ${JSON.stringify(createBuildSentryEnvSnapshot('packages/frontend/vite.react-router.config.ts', mode))}\n`
     )
   );
 }
@@ -63,7 +64,7 @@ export default function createViteConfig(config: ConfigEnv) {
   const { mode } = config;
   const isDev = mode === 'development';
   const isDeploymentBuild = Deno.env.get('DEPLOYMENT_BUILD') === 'true';
-  loadConfigEnvironment(mode);
+  loadConfigEnvironment(mode, repoRootPath);
   logReactRouterSentryEnvSnapshot(mode);
 
   const sentryVitePluginOptions = isDev
@@ -82,14 +83,16 @@ export default function createViteConfig(config: ConfigEnv) {
     define: createImportMetaEnvDefine({
       SENTRY_RELEASE: isDeploymentBuild
         ? readRequiredEnv('SENTRY_RELEASE', {
-            source: 'vite.react-router.config.ts',
+            source: 'packages/frontend/vite.react-router.config.ts',
           })
         : readEnv('SENTRY_RELEASE'),
     }),
     plugins: isDev
       ? []
       : [
-          themeBuildPlugin(),
+          themeBuildPlugin({
+            rootDir: repoRootPath,
+          }),
           stylex.vite({
             lightningcssOptions: {
               minify: true,
@@ -101,11 +104,13 @@ export default function createViteConfig(config: ConfigEnv) {
             dest: 'build/client/_headers',
             headersDir: 'headers',
             mode,
+            rootDir: repoRootPath,
           }),
           ...sentryPlugins,
         ],
     resolve: {
-      tsconfigPaths: false,
+      tsconfigPaths: true,
     },
+    root: repoRootPath,
   };
 }
