@@ -13,21 +13,21 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "noEmit": true,
-    "resolveJsonModule": true,
     "paths": {
       "@motss-app/bff": [
-        "./packages/bff/src/index.ts"
+        "./packages/bff/src/api.ts"
       ],
       "@motss-app/bff/*": [
         "./packages/bff/src/*"
       ],
       "@motss-app/shared": [
-        "./packages/shared/src/index.ts"
+        "./packages/shared/src/bindings.ts"
       ],
       "@motss-app/shared/*": [
         "./packages/shared/src/*"
       ]
     },
+    "resolveJsonModule": true,
     "rootDirs": [
       ".",
       "./.react-router/types"

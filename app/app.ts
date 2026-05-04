@@ -1,7 +1,7 @@
+import { apiApp } from '@motss-app/bff';
 import { Hono } from 'hono';
 import { timing } from 'hono/timing';
 
-import { apiApp } from './apis/mod.ts';
 import type { HonoEnv } from './types/hono.types.ts';
 
 export function createApp() {

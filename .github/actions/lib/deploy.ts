@@ -13,7 +13,6 @@ export async function withLogGroup<T>(title: string, fn: () => Promise<T> | T): 
 }
 
 const RETRY_DELAY_MS = 2000;
-const TRAILING_SLASHES_RE = /\/+$/;
 const URL_RE = /https?:\/\/[^\s"'<>`]+/g;
 
 type CommandOptions = {
@@ -27,16 +26,77 @@ type CommandCapture = {
   stdout: string;
 };
 
-type CloudflareApiErrorResponse = {
-  errors?: Array<{
-    code?: number;
-    message?: string;
-  }>;
-  messages?: Array<{
-    code?: number;
-    message?: string;
-  }>;
-};
+function createCommand(
+  cmd: string[],
+  opts: CommandOptions | undefined,
+  captureOutput: boolean
+): Deno.Command {
+  const [command, ...args] = cmd;
+
+  if (!command) {
+    throw new Error('Command is required');
+  }
+
+  const commandOptions = {
+    args,
+    ...(opts?.cwd
+      ? {
+          cwd: opts.cwd,
+        }
+      : {}),
+    ...(opts?.env
+      ? {
+          env: {
+            ...Deno.env.toObject(),
+            ...opts.env,
+          },
+        }
+      : {}),
+    stderr: captureOutput ? 'piped' : 'inherit',
+    stdout: captureOutput ? 'piped' : 'inherit',
+  } satisfies Deno.CommandOptions;
+
+  return new Deno.Command(command, commandOptions);
+}
+
+function writeCapturedOutput(stdout: Uint8Array, stderr: Uint8Array): void {
+  if (stdout.length > 0) {
+    Deno.stdout.writeSync(stdout);
+  }
+
+  if (stderr.length > 0) {
+    Deno.stderr.writeSync(stderr);
+  }
+}
+
+async function executeCommand(
+  cmd: string[],
+  opts: CommandOptions | undefined,
+  captureOutput: boolean
+): Promise<CommandCapture> {
+  const proc = createCommand(cmd, opts, captureOutput).spawn();
+
+  if (!captureOutput) {
+    const { code } = await proc.status;
+    return {
+      code,
+      stderr: '' as const,
+      stdout: '' as const,
+    };
+  }
+
+  const { code, stderr, stdout } = await proc.output();
+  const stdoutText = decode(stdout);
+  const stderrText = decode(stderr);
+
+  writeCapturedOutput(stdout, stderr);
+
+  return {
+    code,
+    stderr: stderrText,
+    stdout: stdoutText,
+  };
+}
 
 function decode(bytes: Uint8Array): string {
   return new TextDecoder().decode(bytes);
@@ -53,77 +113,12 @@ export function readEnv(name: string): string {
 }
 
 export async function run(cmd: string[], opts?: CommandOptions): Promise<number> {
-  const [command, ...args] = cmd;
-
-  if (!command) {
-    throw new Error('Command is required');
-  }
-
-  const proc = new Deno.Command(command, {
-    args,
-    ...(opts?.cwd
-      ? {
-          cwd: opts.cwd,
-        }
-      : {}),
-    ...(opts?.env
-      ? {
-          env: {
-            ...Deno.env.toObject(),
-            ...opts.env,
-          },
-        }
-      : {}),
-    stderr: 'inherit',
-    stdout: 'inherit',
-  }).spawn();
-  const { code } = await proc.status;
+  const { code } = await executeCommand(cmd, opts, false);
   return code;
 }
 
-export async function runCapture(cmd: string[], opts?: CommandOptions): Promise<CommandCapture> {
-  const [command, ...args] = cmd;
-
-  if (!command) {
-    throw new Error('Command is required');
-  }
-
-  const proc = new Deno.Command(command, {
-    args,
-    ...(opts?.cwd
-      ? {
-          cwd: opts.cwd,
-        }
-      : {}),
-    ...(opts?.env
-      ? {
-          env: {
-            ...Deno.env.toObject(),
-            ...opts.env,
-          },
-        }
-      : {}),
-    stderr: 'piped',
-    stdout: 'piped',
-  }).spawn();
-
-  const { code, stderr, stdout } = await proc.output();
-  const stdoutText = decode(stdout);
-  const stderrText = decode(stderr);
-
-  if (stdout.length > 0) {
-    Deno.stdout.writeSync(stdout);
-  }
-
-  if (stderr.length > 0) {
-    Deno.stderr.writeSync(stderr);
-  }
-
-  return {
-    code,
-    stderr: stderrText,
-    stdout: stdoutText,
-  };
+export function runCapture(cmd: string[], opts?: CommandOptions): Promise<CommandCapture> {
+  return executeCommand(cmd, opts, true);
 }
 
 export async function runOrDie(cmd: string[], opts?: CommandOptions): Promise<void> {
@@ -188,105 +183,6 @@ export function extractUrls(text: string): string[] {
   return [
     ...new Set(text.match(URL_RE) ?? []),
   ];
-}
-
-export async function purgeCache(hosts: string[]): Promise<void> {
-  const zoneId = readEnv('CLOUDFLARE_ZONE_ID');
-  const token = readEnv('CLOUDFLARE_API_TOKEN');
-
-  const res = await fetch(`https://api.cloudflare.com/client/v4/zones/${zoneId}/purge_cache`, {
-    body: JSON.stringify({
-      hosts,
-    }),
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    method: 'POST',
-  });
-
-  if (!res.ok) {
-    const body = await res.text();
-    const errorMessage = formatPurgeCacheError(res.status, res.statusText, body);
-
-    writeLine(errorMessage);
-    throw new Error(errorMessage);
-  }
-  writeLine('Cache purged');
-}
-
-function formatPurgeCacheError(status: number, statusText: string, body: string): string {
-  const lines = [
-    `Cache purge failed: ${status}${statusText ? ` ${statusText}` : ''}`,
-  ];
-  const responseDetails = formatCloudflareResponse(body);
-
-  if (responseDetails) {
-    lines.push(`Response: ${responseDetails}`);
-  }
-
-  return lines.join('\n');
-}
-
-function formatCloudflareResponse(body: string): string {
-  const trimmedBody = body.trim();
-
-  if (!trimmedBody) {
-    return '';
-  }
-
-  try {
-    const parsed = JSON.parse(trimmedBody) as CloudflareApiErrorResponse;
-    const details = [
-      ...(parsed.errors ?? []),
-      ...(parsed.messages ?? []),
-    ]
-      .map(({ code, message }) => {
-        const codeText = code === undefined ? '' : `${code}: `;
-        return `${codeText}${message ?? ''}`.trim();
-      })
-      .filter(Boolean);
-
-    if (details.length > 0) {
-      return details.join(' | ');
-    }
-  } catch {
-    // Fall through to the raw body snippet below.
-  }
-
-  return trimmedBody.slice(0, 500);
-}
-
-export async function warmRoutes(base: string, paths: string[]): Promise<void> {
-  const normalizedBase = `${base.replace(TRAILING_SLASHES_RE, '')}/`;
-
-  const results = await Promise.all(
-    paths.map(path => {
-      const url = new URL(path, normalizedBase).toString().replace(TRAILING_SLASHES_RE, '');
-      return fetch(url, {
-        redirect: 'follow',
-      }).then(
-        res => {
-          if (res.status === 200) {
-            writeLine(`✅ ${url}`);
-            return true;
-          }
-          writeLine(`⚠️ ${url} (${res.status})`);
-          return false;
-        },
-        err => {
-          writeLine(`⚠️ ${url} (${err instanceof Error ? err.message : err})`);
-          return false;
-        }
-      );
-    })
-  );
-
-  const failures = results.filter(r => !r).length;
-  if (failures > 0) {
-    writeLine(`${failures} route(s) failed to warm up`);
-    Deno.exit(1);
-  }
 }
 
 export async function appendSummary(lines: string[]): Promise<void> {

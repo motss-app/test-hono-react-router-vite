@@ -46,7 +46,7 @@ export default defineConfig(({ mode }) => {
           chunkOptimization: true,
           lazyBarrel: true,
         },
-        input: './app/worker.ts',
+        input: './packages/frontend/worker.ts',
         output: {
           codeSplitting: {
             groups: [

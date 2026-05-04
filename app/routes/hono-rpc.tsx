@@ -719,7 +719,7 @@ function HonoRpcView({ action, isLoading, response }: HonoRpcViewProps): JSX.Ele
                   </div>
                   <div>
                     <dt {...props(s.dataLabel)}>Implementation</dt>
-                    <dd {...props(s.dataValue)}>app/apis/mod.ts</dd>
+                    <dd {...props(s.dataValue)}>packages/bff/src/api.ts</dd>
                   </div>
                   <div>
                     <dt {...props(s.dataLabel)}>Initial source</dt>
