@@ -19,19 +19,6 @@ import type { HonoEnv } from '../../app/types/hono.types.ts';
 import { PromiseFrom } from '../../app/utils/promise-from.ts';
 import { logSentryEnvSnapshot } from '../../vite-utils/sentry-env-log.ts';
 
-const loaderIoTokenSuffix = [
-  '7682',
-  '2513',
-  'c896',
-  '38ec',
-  '7c92',
-  '071b',
-  'f675',
-  'aa93',
-].join('');
-const loaderIoToken = ['loaderio', '-', loaderIoTokenSuffix].join('');
-const loaderIoTokenPath = `/${loaderIoToken}.txt`;
-
 const app = createApp();
 const isDevSentryMode = isDevelopmentSentryMode(import.meta.env.MODE);
 let hasLoggedWorkerEnvSnapshot = false;
@@ -173,16 +160,6 @@ export default withSentry<HonoEnv['Bindings']>(
       executionContext: ExecutionContext
     ): Promise<Response> {
       const requestUrl = new URL(request.url);
-
-      if (requestUrl.pathname === loaderIoTokenPath) {
-        return new Response(loaderIoToken, {
-          headers: {
-            'Cache-Control': 'no-store',
-            'Content-Type': 'text/plain; charset=utf-8',
-          },
-        });
-      }
-
       const requestStartedAt = performance.now();
 
       try {

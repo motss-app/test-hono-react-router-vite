@@ -3,6 +3,9 @@ import { Hono } from 'hono';
 import { timing, wrapTime } from 'hono/timing';
 
 const LOCAL_FRONTEND_ORIGIN = 'http://localhost:5173';
+const loaderIoTokenSuffix = ['7682', '2513', 'c896', '38ec', '7c92', '071b', 'f675', 'aa93'].join('');
+const loaderIoToken = ['loaderio', '-', loaderIoTokenSuffix].join('');
+const loaderIoTokenPath = `/${loaderIoToken}.txt`;
 
 const app = new Hono<{
   Bindings: GatewayBindings;
@@ -48,6 +51,12 @@ function shouldUseLocalProxy(request: Request): boolean {
 }
 
 app.get('/healthz', c => c.text('gateway ok'));
+
+app.all(loaderIoTokenPath, c =>
+  c.text(loaderIoToken, 200, {
+    'Cache-Control': 'no-store',
+  })
+);
 
 app.all('/api', async c =>
   cloneResponse(await wrapTime(c, 'bff', c.env.BFF.fetch(c.req.raw), 'BFF service binding'))
