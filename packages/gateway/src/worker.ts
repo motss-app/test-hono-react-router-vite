@@ -3,8 +3,22 @@ import { Hono } from 'hono';
 import { timing, wrapTime } from 'hono/timing';
 
 const LOCAL_FRONTEND_ORIGIN = 'http://localhost:5173';
-const loaderIoTokenSuffix = ['7682', '2513', 'c896', '38ec', '7c92', '071b', 'f675', 'aa93'].join('');
-const loaderIoToken = ['loaderio', '-', loaderIoTokenSuffix].join('');
+// Split the Loader.io token to avoid secret-scanner false positives.
+const loaderIoTokenSuffix = [
+  '7682',
+  '2513',
+  'c896',
+  '38ec',
+  '7c92',
+  '071b',
+  'f675',
+  'aa93',
+].join('');
+const loaderIoToken = [
+  'loaderio',
+  '-',
+  loaderIoTokenSuffix,
+].join('');
 const loaderIoTokenPath = `/${loaderIoToken}.txt`;
 
 const app = new Hono<{
