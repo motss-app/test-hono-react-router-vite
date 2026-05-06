@@ -34,6 +34,7 @@ import {
 
 const isDevSentryMode = isDevelopmentSentryMode(import.meta.env.MODE);
 const spotlightSidecarUrl = getSpotlightSidecarUrl(import.meta.env.VITE_SENTRY_SPOTLIGHT);
+const sentryTunnel = isDevSentryMode ? undefined : '/api/tunnel';
 // Get the current app session ID for tagging Sentry events
 const appSessionId = getBrowserAppSessionId();
 const browserWindow = window as Window & {
@@ -89,6 +90,11 @@ init({
     import.meta.env.VITE_SENTRY_DSN,
     import.meta.env.SENTRY_RELEASE
   ),
+  ...(sentryTunnel
+    ? {
+        tunnel: sentryTunnel,
+      }
+    : {}),
   beforeSendSpan: span => applyAppSessionIdToSpan(span, appSessionId),
   ...(appSessionId
     ? {

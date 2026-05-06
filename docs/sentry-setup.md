@@ -13,7 +13,7 @@ It covers the current wiring, the required environment variables, and the main g
 
 ## What is instrumented today
 
-The current setup covers four different runtime/build surfaces:
+The current setup covers six different runtime/build surfaces:
 
 | Surface | Package | Entry/config | Current destination |
 | --- | --- | --- | --- |
@@ -21,6 +21,7 @@ The current setup covers four different runtime/build surfaces:
 | React Router SSR branch | `@sentry/react-router/cloudflare` | `app/entry.server.tsx` | Worker-safe request wrapper, handled SSR error capture, and trace meta tags |
 | Deno server runtime | `@sentry/deno` | `app/server.ts` | Spotlight in dev, real Sentry outside dev |
 | Cloudflare Worker runtime | `@sentry/cloudflare` | `app/worker.ts` | Single initialized server SDK for deployed Worker requests |
+| BFF tunnel proxy | `@motss-app/bff` | `packages/bff/src/sentry-tunnel.ts` via `packages/bff/src/api.ts` | Same-origin `/api/tunnel` browser envelope proxy to Sentry ingest |
 | SSG-only pages | `—` at runtime | `react-router.config.ts` prerender and/or client entry | No server/runtime SDK; use the browser SDK only if the prerendered page hydrates |
 
 Build-time artifact upload is handled separately by Sentry Vite plugins in the Vite build configs.
@@ -75,6 +76,7 @@ These are the key files involved in the current setup:
   - manual hydration/bootstrap span
   - idle browser integration span
   - Replay, profiling, view hierarchy, logs
+  - same-origin Sentry tunnel option outside development
   - dev Spotlight browser transport
 - `app/root.tsx`
   - shared route root
@@ -93,6 +95,14 @@ These are the key files involved in the current setup:
 - `app/worker.ts`
   - Cloudflare Worker SDK init
   - request metrics/logging
+- `packages/bff/src/api.ts`
+  - BFF API router that mounts the tunnel endpoint under `/api/tunnel`
+- `packages/bff/src/sentry-tunnel.ts`
+  - raw envelope parser and forwarder for the private BFF tunnel proxy
+- `packages/bff/src/bindings.ts`
+  - Cloudflare Worker bindings used by the BFF tunnel validation path
+- `packages/bff/wrangler.jsonc`
+  - private BFF runtime vars/bindings for the tunnel DSN allowlist
 - `app/monitoring/sentry-spotlight-browser.ts`
   - custom browser transport to Spotlight sidecar
 - `app/monitoring/sentry-spotlight-deno.ts`
@@ -136,6 +146,7 @@ Current behavior:
 - reads the session-scoped `app_session_id` cookie and creates a new session cookie in the browser only when one is missing before tagging browser telemetry with `app.session_id`
 - stamps `app.session_id` onto emitted browser span data via `beforeSendSpan`
 - uses `VITE_SENTRY_DSN` for the browser config
+- sets `tunnel: '/api/tunnel'` outside development so browser envelopes stay same-origin and flow through the BFF proxy
 - overrides transport in development so browser envelopes go to Spotlight instead of real Sentry
 
 Important detail:
@@ -149,6 +160,24 @@ Important detail:
 - `elementTimingIntegration()` is initialized eagerly in `app/entry.client.tsx` so Chromium browsers can report the earliest render/load metrics
 - the optional browser integrations (`viewHierarchyIntegration()`, `browserProfilingIntegration()`, `httpClientIntegration()`, `extraErrorDataIntegration()`, and `contextLinesIntegration()`) are loaded with `import()` and added later via `addIntegration(...)` to keep the initial browser bundle smaller
 - browser-side Sentry tracing is still owned by `@sentry/react-router`; the cloudflare subpath only applies to shared route modules and Worker-side helper code
+
+### BFF tunnel proxy
+
+The private BFF worker owns the browser envelope tunnel in deployed modes.
+
+Current behavior:
+
+- exposes `POST /api/tunnel` from `packages/bff/src/api.ts`
+- reads only the first envelope header line from the raw request body
+- validates the envelope DSN host and project id against `packages/bff/wrangler.jsonc`'s `SENTRY_DSN`
+- forwards the original envelope bytes to `https://<dsn-host>/api/<project-id>/envelope/`
+- keeps browser telemetry same-origin so ad blockers are less likely to block it
+- stays disabled in development, where the browser uses the existing Spotlight transport instead
+
+Important detail:
+
+- CSP reporting still goes direct to Sentry; the tunnel only proxies browser SDK envelopes
+- the BFF uses the public `SENTRY_DSN` value as the tunnel validation source, so the Wrangler binding must stay in sync with the browser DSN
 
 ### Browser integration gzip snapshot
 
@@ -352,7 +381,7 @@ What each one is used for:
 | Variable | Used by | Purpose |
 | --- | --- | --- |
 | `VITE_SENTRY_DSN` | browser build/runtime | browser SDK config |
-| `SENTRY_DSN` | Deno server runtime / Worker runtime | server SDK config |
+| `SENTRY_DSN` | Deno server runtime / Worker runtime / BFF tunnel proxy | server SDK config and tunnel allowlist |
 | `VITE_SENTRY_SPOTLIGHT` | browser and Deno dev runtime | Spotlight sidecar URL for dev transports |
 | `SENTRY_AUTH_TOKEN` | Vite Sentry plugins | source map upload during builds |
 | `SENTRY_RELEASE` | build/runtime | release name for source map upload, runtime release tagging outside development, and CSP security-report attribution |

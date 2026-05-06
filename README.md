@@ -129,6 +129,7 @@ Worker runtime setup:
 
 - Cloudflare Worker runtime DSN now comes from Wrangler `vars.SENTRY_DSN`
 - deployed Worker request ownership stays in `app/worker.ts` via `@sentry/cloudflare`
+- browser envelopes are tunneled through the private BFF at `/api/tunnel` so ad blockers have less to complain about
 - `packages/frontend/wrangler.jsonc` keeps `"no_bundle": true`, `"preserve_file_names": true`, `"find_additional_modules": true`, `base_dir: "../../build"`, and an `ESModule` rule for `assets/**/*.js` so the deployed Worker stays aligned with the Vite-built `build/worker.js`
 - the React Router SSR branch in `app/entry.server.tsx` uses `@sentry/react-router/cloudflare`
   helpers such as `wrapSentryHandleRequest()` and `injectTraceMetaTags()`

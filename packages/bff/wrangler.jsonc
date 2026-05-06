@@ -11,9 +11,20 @@
   "dev": {
     "inspector_port": 9231
   },
+  "vars": {
+    "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
+  },
   "env": {
-    "canary": {},
-    "production": {}
+    "canary": {
+      "vars": {
+        "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
+      }
+    },
+    "production": {
+      "vars": {
+        "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
+      }
+    }
   },
   "main": "./src/worker.ts",
   "minify": false,

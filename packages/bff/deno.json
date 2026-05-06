@@ -14,7 +14,7 @@
   },
   "name": "@motss-app/bff",
   "tasks": {
-    "typecheck": "deno check --unstable-tsgo src/api.ts"
+    "typecheck": "deno check --unstable-tsgo src/api.ts src/worker.ts"
   },
   "version": "0.1.0"
 }
