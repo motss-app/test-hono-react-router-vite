@@ -137,11 +137,7 @@ export default withSentry<HonoEnv['Bindings']>(
         },
       });
 
-      Deno.stdout.writeSync(
-        new TextEncoder().encode(
-          `[packages/frontend/worker.ts] Sentry env snapshot ${JSON.stringify(workerEnvSnapshot)}\n`
-        )
-      );
+      logger.info('[packages/frontend/worker.ts] Sentry env snapshot', workerEnvSnapshot);
     }
 
     return {
