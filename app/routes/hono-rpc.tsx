@@ -72,7 +72,11 @@ async function fetchHelloResponse(): Promise<HelloResponse> {
   let response: Awaited<ReturnType<typeof client.rpc.hello.$get>>;
 
   try {
-    response = await client.rpc.hello.$get();
+    response = await client.rpc.hello.$get(undefined, {
+      headers: {
+        'cache-control': 'no-cache',
+      },
+    });
   } catch (error) {
     const duration = performance.now() - requestStartedAt;
     const metricAttributes = createRequestMetricAttributes({

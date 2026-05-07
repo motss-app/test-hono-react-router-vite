@@ -12,7 +12,11 @@ const rpcApp = new Hono<{
     timestamp: new Date().toISOString(),
   } as const;
 
-  return c.json(response);
+  return c.json(response, {
+    headers: {
+      'cache-control': 'no-store',
+    },
+  });
 });
 
 const testApp = new Hono<{
