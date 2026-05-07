@@ -22,19 +22,10 @@ import {
   appSessionIdTagName,
   getBrowserAppSessionId,
 } from './monitoring/app-session.ts';
-import {
-  createBrowserSentryOptions,
-  getSpotlightSidecarUrl,
-  isDevelopmentSentryMode,
-} from './monitoring/sentry.ts';
-import {
-  createSpotlightBrowserTransport,
-  type SpotlightBrowserTransportOptions,
-} from './monitoring/sentry-spotlight-browser.ts';
+import { createBrowserSentryOptions, isDevelopmentSentryMode } from './monitoring/sentry.ts';
 
 const isDevSentryMode = isDevelopmentSentryMode(import.meta.env.MODE);
-const spotlightSidecarUrl = getSpotlightSidecarUrl(import.meta.env.VITE_SENTRY_SPOTLIGHT);
-const sentryTunnel = isDevSentryMode ? undefined : '/api/tunnel';
+const sentryTunnel = '/api/tunnel';
 // Get the current app session ID for tagging Sentry events
 const appSessionId = getBrowserAppSessionId();
 const browserWindow = window as Window & {
@@ -90,12 +81,8 @@ init({
     import.meta.env.VITE_SENTRY_DSN,
     import.meta.env.SENTRY_RELEASE
   ),
-  ...(sentryTunnel
-    ? {
-        tunnel: sentryTunnel,
-      }
-    : {}),
   beforeSendSpan: span => applyAppSessionIdToSpan(span, appSessionId),
+  tunnel: sentryTunnel,
   ...(appSessionId
     ? {
         initialScope: {
@@ -118,12 +105,6 @@ init({
     tracing,
     elementTimingIntegration(),
   ],
-  ...(isDevSentryMode
-    ? {
-        transport: (options: SpotlightBrowserTransportOptions) =>
-          createSpotlightBrowserTransport(options, spotlightSidecarUrl),
-      }
-    : {}),
 });
 
 // Set the app session ID tag on the active Sentry scope after initialization
@@ -140,13 +121,13 @@ if (isDevSentryMode) {
     appSessionId,
     initializedAt,
     mode: import.meta.env.MODE,
-    sidecarUrl: spotlightSidecarUrl,
+    tunnel: sentryTunnel,
   });
-  logger.info('Sentry Spotlight browser logging enabled', {
+  logger.info('Sentry browser tunneling enabled', {
     appSessionId,
     initializedAt,
     runtime: 'browser',
-    sidecarUrl: spotlightSidecarUrl,
+    tunnel: sentryTunnel,
   });
   captureMessage('entry.client initialized', {
     level: 'info',

@@ -30,6 +30,9 @@ import { PromiseFrom } from './utils/promise-from.ts';
 
 const isDevSentryMode = isDevelopmentSentryMode(import.meta.env.MODE);
 const sentryDsn = Deno.env.get('SENTRY_DSN') ?? undefined;
+const spotlightSidecarUrl = getSpotlightSidecarUrl(
+  Deno.env.get('VITE_SENTRY_SPOTLIGHT') ?? undefined
+);
 
 console.info(
   '[app/server.ts] Sentry env snapshot',
@@ -51,10 +54,6 @@ console.info(
 );
 
 if (sentryDsn) {
-  const spotlightSidecarUrl = getSpotlightSidecarUrl(
-    Deno.env.get('VITE_SENTRY_SPOTLIGHT') ?? undefined
-  );
-
   init({
     ...createDenoSentryOptions(import.meta.env.MODE, sentryDsn),
     beforeSendSpan: span =>
@@ -70,6 +69,36 @@ if (sentryDsn) {
       : {}),
   });
 }
+
+  async function handleDevSentryTunnel(request: Request): Promise<Response> {
+    if (!request.body) {
+      return new Response('Missing Sentry envelope body.', {
+        headers: {
+          'Cache-Control': 'no-store',
+          'Content-Type': 'text/plain; charset=utf-8',
+        },
+        status: 400,
+      });
+    }
+
+    try {
+      return await fetch(spotlightSidecarUrl, {
+        body: request.body as BodyInit,
+        headers: {
+          'Content-Type': 'application/x-sentry-envelope',
+        },
+        method: 'POST',
+      });
+    } catch {
+      return new Response('Failed to forward Sentry envelope to Spotlight.', {
+        headers: {
+          'Cache-Control': 'no-store',
+          'Content-Type': 'text/plain; charset=utf-8',
+        },
+        status: 502,
+      });
+    }
+  }
 
 const [{ createApp }, { createSsrHandler }] = await Promise.all([
   import('./app.ts'),
@@ -115,6 +144,12 @@ function handleAppRequest(request: Request): Promise<Response> {
 }
 
 function handleFetch(request: Request): Promise<Response> {
+  const requestUrl = new URL(request.url);
+
+  if (import.meta.env.DEV && requestUrl.pathname === '/api/tunnel') {
+    return handleDevSentryTunnel(request);
+  }
+
   const existingAppSessionId = getAppSessionIdFromCookieString(
     request.headers.get('cookie') ?? undefined
   );

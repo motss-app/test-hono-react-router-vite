@@ -78,7 +78,7 @@ the React Router SSR branch instead of initializing a second server SDK.
 so the Worker build stays on the Worker-safe entrypoint, while `app/entry.client.tsx` continues to
 use `@sentry/react-router` for browser tracing, replay, profiling, and logs.
 
-In local development, the browser SDK now targets Spotlight instead of real Sentry, and the Deno server uses a local Spotlight transport.
+In local development, the browser SDK now targets the same-origin `/api/tunnel`, and the Deno server forwards that tunnel to the local Spotlight sidecar. The Deno server also uses a local Spotlight transport for its own envelopes.
 
 Start the app, API, and Spotlight together with:
 

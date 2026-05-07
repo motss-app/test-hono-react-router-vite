@@ -17,14 +17,16 @@ The current setup covers six different runtime/build surfaces:
 
 | Surface | Package | Entry/config | Current destination |
 | --- | --- | --- | --- |
-| Browser app | `@sentry/react-router` | `app/entry.client.tsx` | Spotlight in dev, real Sentry outside dev |
+| Browser app | `@sentry/react-router` | `app/entry.client.tsx` | Same-origin `/api/tunnel` in dev, real Sentry outside dev |
 | React Router SSR branch | `@sentry/react-router/cloudflare` | `app/entry.server.tsx` | Worker-safe request wrapper, handled SSR error capture, and trace meta tags |
-| Deno server runtime | `@sentry/deno` | `app/server.ts` | Spotlight in dev, real Sentry outside dev |
+| Deno server runtime | `@sentry/deno` | `app/server.ts` | Spotlight in dev, including the `/api/tunnel` relay, real Sentry outside dev |
 | Cloudflare Worker runtime | `@sentry/cloudflare` | `app/worker.ts` | Single initialized server SDK for deployed Worker requests |
 | BFF tunnel proxy | `@motss-app/bff` | `packages/bff/src/sentry-tunnel.ts` via `packages/bff/src/api.ts` | Same-origin `/api/tunnel` browser envelope proxy to Sentry ingest |
 | SSG-only pages | `—` at runtime | `react-router.config.ts` prerender and/or client entry | No server/runtime SDK; use the browser SDK only if the prerendered page hydrates |
 
 Build-time artifact upload is handled separately by Sentry Vite plugins in the Vite build configs.
+
+In development, `app/server.ts` owns `POST /api/tunnel` and relays envelopes to Spotlight before the shared API router runs. Deployed environments keep the private BFF tunnel pointed at Sentry ingest.
 
 Important Debug ID requirement:
 
@@ -76,8 +78,7 @@ These are the key files involved in the current setup:
   - manual hydration/bootstrap span
   - idle browser integration span
   - Replay, profiling, view hierarchy, logs
-  - same-origin Sentry tunnel option outside development
-  - dev Spotlight browser transport
+  - same-origin Sentry tunnel option in every mode
 - `app/root.tsx`
   - shared route root
   - uses `@sentry/react-router/cloudflare` so the Worker build does not resolve the Node entrypoint
@@ -92,6 +93,7 @@ These are the key files involved in the current setup:
   - Deno server entry
   - Deno SDK init
   - dev request-scope isolation for exported `fetch`
+  - dev `/api/tunnel` relay to the local Spotlight sidecar
 - `app/worker.ts`
   - Cloudflare Worker SDK init
   - request metrics/logging
@@ -104,7 +106,7 @@ These are the key files involved in the current setup:
 - `packages/bff/wrangler.jsonc`
   - private BFF runtime vars/bindings for the tunnel DSN allowlist
 - `app/monitoring/sentry-spotlight-browser.ts`
-  - custom browser transport to Spotlight sidecar
+  - legacy direct browser transport helper kept for reference
 - `app/monitoring/sentry-spotlight-deno.ts`
   - custom Deno transport to Spotlight sidecar
 - `vite.config.ts`
@@ -146,13 +148,13 @@ Current behavior:
 - reads the session-scoped `app_session_id` cookie and creates a new session cookie in the browser only when one is missing before tagging browser telemetry with `app.session_id`
 - stamps `app.session_id` onto emitted browser span data via `beforeSendSpan`
 - uses `VITE_SENTRY_DSN` for the browser config
-- sets `tunnel: '/api/tunnel'` outside development so browser envelopes stay same-origin and flow through the BFF proxy
-- overrides transport in development so browser envelopes go to Spotlight instead of real Sentry
+- sets `tunnel: '/api/tunnel'` so browser envelopes stay same-origin in every mode
+- lets `app/server.ts` relay dev tunnel traffic to the local Spotlight sidecar while deployed tunnel traffic still goes through the BFF
 
 Important detail:
 
 - in development, the browser does **not** use the fake Spotlight DSN
-- instead, it uses a custom transport in `app/monitoring/sentry-spotlight-browser.ts`
+- instead, it sends envelopes to `/api/tunnel`, and `app/server.ts` forwards them to the local Spotlight sidecar
 - this avoids browser requests to fake endpoints like `https://local/api/0/envelope/...`
 - the React Router tracing integration stays eager because `HydratedRouter` needs its client instrumentation during hydration
 - the view hierarchy integration is deferred to the idle browser integrations path, so very early errors may not include a DOM snapshot
@@ -172,7 +174,7 @@ Current behavior:
 - validates the envelope DSN host and project id against `packages/bff/wrangler.jsonc`'s `SENTRY_DSN`
 - forwards the original envelope bytes to `https://<dsn-host>/api/<project-id>/envelope/`
 - keeps browser telemetry same-origin so ad blockers are less likely to block it
-- stays disabled in development, where the browser uses the existing Spotlight transport instead
+- stays deployed-only; local development uses the Deno app server's `/api/tunnel` relay to Spotlight instead
 
 Important detail:
 
@@ -504,7 +506,7 @@ That means:
 
 It is not enough to configure Sentry only in production-only build configs if you want dev browser instrumentation to work correctly.
 
-### 2. Browser dev should use a transport, not a fake Spotlight DSN
+### 2. Browser dev should use `/api/tunnel`, not a fake Spotlight DSN
 
 Using the fake Spotlight DSN in the browser caused requests like:
 
@@ -515,8 +517,8 @@ That produced browser-side CORS/network noise.
 The correct approach for this setup is:
 
 - keep a real browser DSN in config
-- override transport in development
-- send browser envelopes directly to `http://localhost:8969/stream`
+- set `tunnel: '/api/tunnel'`
+- let `app/server.ts` forward dev tunnel requests to `http://localhost:8969/stream`
 
 ### 3. Deno server tracing needs both the SDK and request isolation
 
