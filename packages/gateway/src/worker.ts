@@ -72,6 +72,19 @@ app.all(loaderIoTokenPath, c =>
   })
 );
 
+app.all('/api/tunnel', async c =>
+  cloneResponse(
+    await wrapTime(
+      c,
+      'frontend',
+      shouldUseLocalProxy(c.req.raw)
+        ? fetch(proxyRequest(c.req.raw, LOCAL_FRONTEND_ORIGIN))
+        : c.env.BFF.fetch(c.req.raw),
+      shouldUseLocalProxy(c.req.raw) ? 'Frontend local fetch' : 'BFF service binding'
+    )
+  )
+);
+
 app.all('/api', async c =>
   cloneResponse(await wrapTime(c, 'bff', c.env.BFF.fetch(c.req.raw), 'BFF service binding'))
 );
