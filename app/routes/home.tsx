@@ -74,6 +74,7 @@ const s = create({
       },
       transform: 'translate3d(0, -0.125rem, 0)',
     },
+    alignItems: 'center',
     animationDelay: '320ms',
     animationDuration: '700ms',
     animationFillMode: 'both',
@@ -96,9 +97,11 @@ const s = create({
     },
     display: 'inline-grid',
     fontWeight: fontWeightTokens.fontWeightSemibold,
+    gridAutoFlow: 'column',
     padding: '0.92rem 1.45rem',
     textDecoration: 'none',
     transition: 'background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease',
+    whiteSpace: 'nowrap',
   },
   hero: {
     backgroundColor: {

@@ -15,7 +15,7 @@ Read this file before making changes.
 
 - Load `frontend-skill` when the task is primarily about visual direction, layout, landing pages, demos, or premium UI polish.
 - Load `skill-vite-plugin-creation` when the task is about creating or updating a Vite plugin that watches a TypeScript entry and emits a JavaScript artifact.
-- Load `one-shot-commit-push` when the user explicitly invokes the one-shot commit/push trigger and wants the current staged changes committed and pushed exactly once. Treat that invocation as one-time permission only; do not reuse it until the user says so again.
+- Load `commit-push-once` when the user explicitly invokes the commit-push-once trigger and wants the current staged changes committed and pushed exactly once. Treat that invocation as one-time permission only; do not reuse it until the user says so again.
 
 ## Default Workflow
 
@@ -31,7 +31,7 @@ Read this file before making changes.
 |-------|----------|----------|-------|
 | `frontend-skill` | `.github/skills/frontend-skill/SKILL.md` | The task depends on strong art direction, hierarchy, motion, landing-page composition, demo polish, or premium UI quality. | Use for both marketing surfaces and visually led app UI. |
 | `skill-vite-plugin-creation` | `.github/skills/skill-vite-plugin-creation/SKILL.md` | The task is to create or update a Vite plugin that watches a TypeScript entry file and emits a built JS artifact for dev and production. | Especially relevant for files under `vite-plugins/**`. |
-| `one-shot-commit-push` | `.github/skills/one-shot-commit-push/SKILL.md` | The user explicitly wants the staged changes committed and pushed once, as a command-like trigger. | One-time authorization only; do not persist permission beyond the current invocation. |
+| `commit-push-once` | `.github/skills/commit-push-once/SKILL.md` | The user explicitly wants the staged changes committed and pushed once, as a command-like trigger. | One-time authorization only; do not persist permission beyond the current invocation. |
 
 ## Repository Rules
 

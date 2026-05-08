@@ -54,6 +54,7 @@ const s = create({
       },
       transform: 'translate3d(0, -0.125rem, 0)',
     },
+    alignItems: 'center',
     animationDelay: '240ms',
     animationDuration: '700ms',
     animationFillMode: 'both',
@@ -66,14 +67,16 @@ const s = create({
     borderRadius: '9999px',
     color: {
       [themeConditions.dataThemeDark]: colorTokens.slate900,
-      default: colorTokens.white,
+      default: colorTokens.slate900,
     },
     display: 'inline-grid',
     fontWeight: fontWeightTokens.fontWeightSemibold,
     gap: '0.5rem',
+    gridAutoFlow: 'column',
     padding: '0.92rem 1.45rem',
     textDecoration: 'none',
     transition: 'background-color 0.2s ease, transform 0.2s ease',
+    whiteSpace: 'nowrap',
   },
   ctaSecondary: {
     ':hover': {

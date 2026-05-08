@@ -1,11 +1,11 @@
 ---
-name: one-shot-commit-push
-description: "Use when the user explicitly invokes the one-shot commit/push trigger to git commit already staged changes and push them once. Do not auto-load for general git work."
+name: commit-push-once
+description: "Use when the user explicitly invokes the commit-push-once trigger to git commit already staged changes and push them once. Do not auto-load for general git work."
 argument-hint: "commit staged changes and push once"
 disable-model-invocation: true
 ---
 
-# One-shot commit and push
+# Commit push once
 
 Purpose
 - Treat a user invocation as one-time authorization to commit only the staged changes and push the current branch once.
