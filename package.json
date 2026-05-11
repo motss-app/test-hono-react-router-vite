@@ -8,6 +8,7 @@
     "@iconify-react/fa7-solid": "1.0.2",
     "@sentry/browser": "10.52.0",
     "@sentry/cloudflare": "10.52.0",
+    "@sentry/hono": "^10.52.0",
     "@sentry/react-router": "10.52.0",
     "@stylexjs/stylex": "0.18.3",
     "hono": "4.12.18",

@@ -1,5 +1,5 @@
 import type { GatewayBindings } from '@motss-app/shared';
-import { withSentry } from '@sentry/cloudflare';
+import { sentry } from '@sentry/hono/cloudflare';
 import { Hono } from 'hono';
 import { timing, wrapTime } from 'hono/timing';
 
@@ -40,6 +40,10 @@ app.use(
     totalDescription: 'Gateway total',
   })
 );
+
+app.use(sentry(app, (env: GatewayBindings) =>
+  createCloudflareSentryOptions(import.meta.env.MODE, env.SENTRY_DSN, import.meta.env.SENTRY_RELEASE)
+));
 
 function cloneResponse(response: Response): Response {
   if (response.status === 101 || response.status < 200 || response.status > 599) {
@@ -98,23 +102,4 @@ app.all('*', async c =>
   )
 );
 
-export default withSentry<GatewayBindings>(
-  // The gateway is the browser-facing trace root for page and API requests in this architecture.
-  // Child hops into the frontend worker and BFF continue from this request rather than opening a
-  // separate unrelated local trace tree.
-  env =>
-    createCloudflareSentryOptions(
-      import.meta.env.MODE,
-      env.SENTRY_DSN,
-      import.meta.env.SENTRY_RELEASE
-    ),
-  {
-    fetch(
-      request: Request,
-      env: GatewayBindings,
-      executionContext: ExecutionContext
-    ): Promise<Response> {
-      return Promise.resolve(app.fetch(request, env, executionContext));
-    },
-  }
-);
+export default app;
