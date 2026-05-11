@@ -15,6 +15,8 @@
     "npm:@react-router/dev@7.15.0": "7.15.0_react-router@7.15.0__react@19.2.6__react-dom@19.2.6___react@19.2.6_typescript@6.0.3_vite@8.0.12_wrangler@4.90.0__@cloudflare+workers-types@4.20260511.1_@cloudflare+workers-types@4.20260511.1_react@19.2.6_react-dom@19.2.6__react@19.2.6",
     "npm:@sentry/browser@10.52.0": "10.52.0",
     "npm:@sentry/cloudflare@10.52.0": "10.52.0_@cloudflare+workers-types@4.20260511.1",
+    "npm:@sentry/hono@*": "10.52.0_@cloudflare+workers-types@4.20260511.1_@sentry+cloudflare@10.52.0__@cloudflare+workers-types@4.20260511.1_hono@4.12.18",
+    "npm:@sentry/hono@^10.52.0": "10.52.0_@cloudflare+workers-types@4.20260511.1_@sentry+cloudflare@10.52.0__@cloudflare+workers-types@4.20260511.1_hono@4.12.18",
     "npm:@sentry/react-router@10.52.0": "10.52.0_@react-router+node@7.15.0__react-router@7.15.0___react@19.2.6___react-dom@19.2.6____react@19.2.6__typescript@6.0.3__react@19.2.6__react-dom@19.2.6___react@19.2.6_react@19.2.6_react-router@7.15.0__react@19.2.6__react-dom@19.2.6___react@19.2.6_react-dom@19.2.6__react@19.2.6_typescript@6.0.3",
     "npm:@sentry/vite-plugin@5.2.1": "5.2.1",
     "npm:@stylexjs/stylex@0.18.3": "0.18.3",
@@ -1540,6 +1542,20 @@
     "@sentry/core@10.52.0": {
       "integrity": "sha512-VA/kAqLhkMnRWY2RXdBLyTemR9D4m7MVRy/gyapoq9yvllVPx9WXbvKgnMP2LQp7mFgT/oLFvw58aQKaYTGn3A=="
     },
+    "@sentry/hono@10.52.0_@cloudflare+workers-types@4.20260511.1_@sentry+cloudflare@10.52.0__@cloudflare+workers-types@4.20260511.1_hono@4.12.18": {
+      "integrity": "sha512-LkVUbYOTqqkieo1iupyVOEJ0CEsdx00gAxA6zSpVNegA19SO3jdEzhnSA6F8VlkxO2wGwfpjihIfERcweELeIQ==",
+      "dependencies": [
+        "@cloudflare/workers-types",
+        "@opentelemetry/api",
+        "@sentry/cloudflare",
+        "@sentry/core",
+        "hono"
+      ],
+      "optionalPeers": [
+        "@cloudflare/workers-types",
+        "@sentry/cloudflare"
+      ]
+    },
     "@sentry/node-core@10.52.0_@opentelemetry+api@1.9.1_@opentelemetry+core@2.7.1__@opentelemetry+api@1.9.1_@opentelemetry+instrumentation@0.214.0__@opentelemetry+api@1.9.1_@opentelemetry+sdk-trace-base@2.7.1__@opentelemetry+api@1.9.1_@opentelemetry+semantic-conventions@1.40.0": {
       "integrity": "sha512-IG7MBtLRPQ2LuU+kbD14AFZroZgAeUmJQTP1FI/F8n56O31+p+9R703LuBTpvZr6sm+eRYDMWcGYYkfLHRVjwg==",
       "dependencies": [
@@ -2905,6 +2921,7 @@
         "npm:@react-router/dev@7.15.0",
         "npm:@sentry/browser@10.52.0",
         "npm:@sentry/cloudflare@10.52.0",
+        "npm:@sentry/hono@^10.52.0",
         "npm:@sentry/react-router@10.52.0",
         "npm:@sentry/vite-plugin@5.2.1",
         "npm:@stylexjs/stylex@0.18.3",
