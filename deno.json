@@ -60,7 +60,6 @@
   ],
   "imports": {
     "@sentry/browser": "npm:@sentry/browser@10.52.0",
-    "@sentry/hono": "npm:@sentry/hono@10.52.0",
     "@std/path": "jsr:@std/path@1.1.4",
     "react-dom/server": "npm:react-dom@19.2.6/server.edge"
   },
