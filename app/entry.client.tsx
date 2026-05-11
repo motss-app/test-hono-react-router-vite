@@ -151,7 +151,7 @@ startTransition(() => {
       <BrowserBootstrapSpanEnder />
       {/* Keep this prop wiring for future Framework Mode support; do not remove it lightly. */}
       <HydratedRouter
-        unstable_instrumentations={[
+        instrumentations={[
           tracing.clientInstrumentation,
         ]}
       />
