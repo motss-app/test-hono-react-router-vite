@@ -25,7 +25,14 @@ import {
 import { createBrowserSentryOptions, isDevelopmentSentryMode } from './monitoring/sentry.ts';
 
 const isDevSentryMode = isDevelopmentSentryMode(import.meta.env.MODE);
+const spotlightStreamTunnel = '/api/stream';
 const sentryTunnel = '/api/tunnel';
+const browserDsn = import.meta.env.VITE_SENTRY_DSN;
+// In development the browser still uses the real DSN, but it posts envelopes to the
+// same-origin `/api/stream` endpoint first. The BFF then forwards those raw envelopes to
+// Spotlight. This keeps local browser traffic same-origin and lets gateway/frontend/server
+// traces stay in the same local story instead of sending the browser directly to the sidecar.
+const browserTunnel = isDevSentryMode ? spotlightStreamTunnel : sentryTunnel;
 // Get the current app session ID for tagging Sentry events
 const appSessionId = getBrowserAppSessionId();
 const browserWindow = window as Window & {
@@ -59,11 +66,9 @@ console.info(
     values: {
       port: undefined,
       sentryAuthToken: undefined,
-      sentryDsn: import.meta.env.VITE_SENTRY_DSN,
+      sentryDsn: browserDsn,
       sentryRelease: import.meta.env.SENTRY_RELEASE,
-      sentrySpotlight: undefined,
-      viteSentryDsn: undefined,
-      viteSentrySpotlight: import.meta.env.VITE_SENTRY_SPOTLIGHT,
+      viteSentryDsn: import.meta.env.VITE_SENTRY_DSN,
     },
   })
 );
@@ -76,13 +81,9 @@ const tracing = reactRouterTracingIntegration({
 });
 
 init({
-  ...createBrowserSentryOptions(
-    import.meta.env.MODE,
-    import.meta.env.VITE_SENTRY_DSN,
-    import.meta.env.SENTRY_RELEASE
-  ),
+  ...createBrowserSentryOptions(import.meta.env.MODE, browserDsn, import.meta.env.SENTRY_RELEASE),
   beforeSendSpan: span => applyAppSessionIdToSpan(span, appSessionId),
-  tunnel: sentryTunnel,
+  tunnel: browserTunnel,
   ...(appSessionId
     ? {
         initialScope: {
@@ -93,11 +94,6 @@ init({
       }
     : {}),
   integrations: [
-    // consoleLoggingIntegration({
-    //   levels: [
-    //     'log',
-    //     'info',
-    //     'warn',
     //     'error',
     //     'debug',
     //   ],
@@ -121,13 +117,13 @@ if (isDevSentryMode) {
     appSessionId,
     initializedAt,
     mode: import.meta.env.MODE,
-    tunnel: sentryTunnel,
+    tunnel: browserTunnel,
   });
-  logger.info('Sentry browser tunneling enabled', {
+  logger.info('Sentry browser Spotlight tunnel enabled', {
     appSessionId,
     initializedAt,
     runtime: 'browser',
-    tunnel: sentryTunnel,
+    tunnel: browserTunnel,
   });
   captureMessage('entry.client initialized', {
     level: 'info',
@@ -141,6 +137,9 @@ browserBootstrapSpan = startInactiveSpan({
     'app.entry': 'app/entry.client.tsx',
     'app.phase': 'hydrate',
   },
+  // This is a short child span that brackets hydration work. It is not meant to become the
+  // root page transaction; the page/load transaction still comes from the browser tracing
+  // integration and continues the SSR trace metadata injected by the server.
   name: 'Client bootstrap',
   op: 'ui.load',
 });

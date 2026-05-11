@@ -81,6 +81,7 @@ export default function createViteConfig(config: ConfigEnv) {
   return {
     build: reactRouterBuildConfig,
     define: createImportMetaEnvDefine({
+      SENTRY_DSN: readEnv('SENTRY_DSN'),
       SENTRY_RELEASE: isDeploymentBuild
         ? readRequiredEnv('SENTRY_RELEASE', {
             source: 'packages/frontend/vite.react-router.config.ts',

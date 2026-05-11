@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 
 import type { BffBindings } from './bindings.ts';
-import { sentryTunnelApp } from './sentry-tunnel.ts';
+import { sentrySpotlightStreamApp, sentryTunnelApp } from './sentry-tunnel.ts';
 
 const rpcApp = new Hono<{
   Bindings: BffBindings;
@@ -31,6 +31,10 @@ export const apiApp = new Hono<{
   Bindings: BffBindings;
 }>()
   .route('/rpc', rpcApp)
+  // Keep the browser same-origin in both cases:
+  // - `/api/stream` forwards development envelopes to the local Spotlight sidecar
+  // - `/api/tunnel` forwards deployed envelopes to Sentry ingest
+  .route('/stream', sentrySpotlightStreamApp)
   .route('/test', testApp)
   .route('/tunnel', sentryTunnelApp);
 

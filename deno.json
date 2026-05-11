@@ -112,9 +112,9 @@
     "lint:fix": "deno run -P=lint npm:@biomejs/biome check --write .",
     "preview": "deno task build && deno task --cwd=packages/gateway preview",
     "preview:worker": "deno task preview",
-    "typegen": "REACT_ROUTER_ROOT=$PWD deno run -A npm:@react-router/dev typegen --config packages/frontend/vite.react-router.config.ts",
     "spotlight": "pnpm dlx @spotlightjs/spotlight",
-    "start": "deno task preview"
+    "start": "deno task preview",
+    "typegen": "REACT_ROUTER_ROOT=$PWD deno run -A npm:@react-router/dev typegen --config packages/frontend/vite.react-router.config.ts"
   },
   "unstable": [
     "bare-node-builtins",

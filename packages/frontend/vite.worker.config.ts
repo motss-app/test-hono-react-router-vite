@@ -63,6 +63,7 @@ export default defineConfig(({ mode }) => {
       ssr: true,
     },
     define: createImportMetaEnvDefine({
+      SENTRY_DSN: readEnv('SENTRY_DSN'),
       SENTRY_RELEASE: isDeploymentBuild
         ? readRequiredEnv('SENTRY_RELEASE', {
             source: 'packages/frontend/vite.worker.config.ts',

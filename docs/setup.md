@@ -4,28 +4,29 @@ Complete setup for React Router v7 + Hono + Vite integration.
 
 ## Architecture
 
-### Development (Port 5173)
-- **Vite Dev Server** with HMR
-- **Hono** handles `/api/*` routes
-- **React Router** handles all page routes
-- **Features**: Hot reload, Fast Refresh, instant updates
+### Development
+- **Gateway Worker** on `8787`
+- **Frontend Worker** on `5173`
+- **BFF Worker** mounted as an auxiliary worker behind the gateway
+- **Features**: Hot reload, Fast Refresh, Spotlight sidecar, and local Worker runtime parity
 
-### Production (Port 3000)
-- **Hono server** with Node.js
+### Production
+- **Gateway Worker** as the public entrypoint
+- **Frontend Worker** for page shell, SSR, and assets
+- **BFF Worker** for `/api/*`
 - **Hybrid rendering**: SSG + SSR + CSR
-- **Static files** served from `build/client`
 
 ## Key Files
 
 ```
 app/
-├── server.ts          # Hono API server
 ├── root.tsx           # Root layout
 ├── routes.ts          # Route definitions
 └── routes/            # Page components
 
-vite.config.ts         # Vite + React Router + Hono
-react-router.config.ts # Rendering config
+packages/frontend/vite.config.ts  # Frontend Cloudflare Vite dev config
+packages/gateway/vite.config.ts   # Gateway Cloudflare Vite dev config + BFF auxiliary worker
+react-router.config.ts            # Rendering config
 ```
 
 ## Configuration
@@ -40,37 +41,40 @@ export default {
 } satisfies Config;
 ```
 
-### `vite.config.ts`
-- Integrates React Router plugin
-- Configures Hono dev server for API routes
-- Enables hot reload in development
+### `packages/frontend/vite.config.ts`
+- Integrates the Cloudflare Vite plugin for the frontend worker
+- Enables React Router, StyleX, and HMR for local development
 
-### `app/server.ts`
-- **Dev**: Hono handles `/api/*` routes only
+### `packages/gateway/vite.config.ts`
+- Integrates the Cloudflare Vite plugin for the gateway worker
+- Registers the BFF worker as an auxiliary worker during local dev
+
+### `packages/frontend/worker.ts`
+- **Dev**: Cloudflare Vite dev server handles the frontend worker, SSR, and static assets
 - **Prod**: Serves static files + handles SSR
 
 ## Request Flow
 
 ### Development
 ```
-http://localhost:5173/api/test  → Hono API
-http://localhost:5173/          → React Router (HMR)
-http://localhost:5173/about     → React Router (HMR)
+http://localhost:8787/api/test  → Gateway → BFF worker
+http://localhost:8787/          → Gateway → frontend worker
+http://localhost:5173/          → Frontend worker directly (useful for debugging)
 ```
 
 ### Production
 ```
-http://localhost:3000/api/test  → Hono API
-http://localhost:3000/          → Static HTML (SSG)
-http://localhost:3000/ssr       → Server-rendered (SSR)
+https://<gateway-domain>/api/test  → Gateway → BFF worker
+https://<gateway-domain>/          → Gateway → frontend worker
+https://<gateway-domain>/ssr       → Gateway → frontend worker SSR
 ```
 
 ## Scripts
 
 ```bash
-deno task dev      # Development with HMR + Spotlight
+deno task dev      # Gateway + frontend worker + BFF + Spotlight
 deno task build    # Production build
-deno task start    # Production server
+deno task start    # Preview the built worker stack locally
 deno task preview  # Preview build locally
 ```
 
@@ -78,7 +82,7 @@ deno task preview  # Preview build locally
 
 ### API Route
 ```typescript
-// app/server.ts
+// packages/bff/src/api.ts
 app.get('/api/users', (c) => {
   return c.json({ users: [] });
 });
@@ -107,7 +111,7 @@ Add to `prerender()` array in `react-router.config.ts`
 
 ## Troubleshooting
 
-- **Dev server won't start**: Check port 5173
+- **Dev server won't start**: Check ports 8787, 5173, and 8969
 - **API not working**: Use `/api/*` prefix
 - **Build fails**: Run `deno check`
 - **HMR not working**: Check for TypeScript errors

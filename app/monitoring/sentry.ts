@@ -1,12 +1,30 @@
 import type { CloudflareOptions } from '@sentry/cloudflare';
-import type { DenoOptions } from '@sentry/deno';
 
-export const sentrySpotlightSidecarDefaultUrl = 'http://localhost:8969/stream';
-export const sentryOrigin = 'https://sentry.io';
+const sentryGatewayDevTunnelUrl = 'http://127.0.0.1:8787/api/stream';
 const tracesSampleRate = 1.0;
 const profileSessionSampleRate = 1.0;
 const replaysSessionSampleRate = 0.1;
 const replaysOnErrorSampleRate = 1.0;
+// Browser tracing should follow same-origin relative URLs, any localhost/127.0.0.1 dev origin
+// regardless of port, and deployed motss.fyi hosts. That covers the current local multi-worker
+// topology as well as the public domains used outside local development.
+const localhostTracePropagationTarget = /^https?:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?(?:\/|$)/;
+const motssFyiTracePropagationTarget = /^https?:\/\/(?:[a-z0-9-]+\.)*motss\.fyi(?:\/|$)/i;
+// The gateway forwards local envelopes to `/api/stream`; if we keep transactions for that route,
+// the app starts tracing the act of reporting traces, which quickly becomes recursive noise.
+const sentryIgnoredDevTunnelTransactions = [
+  /^POST \/api\/stream$/,
+  /^GET \/.*\.(?:avif|bmp|css|gif|ico|jpe?g|js|json|map|mjs|png|svg|ts|tsx|txt|webp|woff2?)(?:\?.*)?$/i,
+  /^GET \/(?:@fs|@id|__manifest|node_modules\/|virtual:|~virtual:)/,
+];
+// `ignoreTransactions` works on the transaction name, but React Router's request handler can emit
+// generic catch-all names such as `GET /*` before the concrete request path is reflected in the
+// transaction name. We therefore also inspect the request URL in `beforeSendTransaction` so noisy
+// Vite asset/module requests are dropped even when the transaction name is generic.
+const sentryIgnoredDevTransactionPaths = [
+  /^\/.*\.(?:avif|bmp|css|gif|ico|jpe?g|js|json|map|mjs|png|svg|ts|tsx|txt|webp|woff2?)(?:\?.*)?$/i,
+  /^\/(?:@fs|@id|__manifest|node_modules\/|virtual:|~virtual:)/,
+];
 
 type RuntimeMode = 'canary' | 'development' | 'production' | string;
 
@@ -18,6 +36,10 @@ interface RequestMetricAttributesOptions {
   runtime: 'browser' | 'cloudflare' | 'deno';
   statusCode?: number;
 }
+
+type SentryTransactionEvent = Parameters<
+  NonNullable<CloudflareOptions['beforeSendTransaction']>
+>[0];
 
 export function getSentryEnvironment(mode: RuntimeMode): string {
   return mode === 'canary' || mode === 'production' ? mode : 'development';
@@ -55,10 +77,6 @@ function getDsnOrigin(dsn?: string): string | undefined {
   }
 }
 
-export function getSpotlightSidecarUrl(spotlight?: string): string {
-  return spotlight && spotlight !== '1' ? spotlight : sentrySpotlightSidecarDefaultUrl;
-}
-
 export function getSentryConnectSrc(dsn?: string): string[] {
   const sentryOrigin = getDsnOrigin(dsn);
 
@@ -69,6 +87,90 @@ export function getSentryConnectSrc(dsn?: string): string[] {
     : [];
 }
 
+/**
+ * Normalize request URLs into pathnames so transaction shaping can work with both absolute URLs
+ * (for example Worker/runtime request objects) and same-origin relative browser URLs.
+ */
+function getRequestPathname(url?: string): string | undefined {
+  if (!url) {
+    return;
+  }
+
+  if (url.startsWith('/')) {
+    return url.split('?')[0];
+  }
+
+  try {
+    return new URL(url).pathname;
+  } catch {
+    return;
+  }
+}
+
+function isIgnoredDevTransactionPath(pathname: string): boolean {
+  return sentryIgnoredDevTransactionPaths.some(pattern => pattern.test(pathname));
+}
+
+/**
+ * React Router's request handler can emit a generic `METHOD /*` transaction name for catch-all
+ * handlers even when the underlying request was something concrete like `/hono-rpc`.
+ *
+ * For document/API requests we want to keep, rename that catch-all transaction to the actual
+ * request pathname so Spotlight shows a meaningful top-level route instead of `GET /*`.
+ */
+function normalizeTransactionName(event: SentryTransactionEvent): SentryTransactionEvent {
+  const requestMethod = event.request?.method;
+  const requestPathname = getRequestPathname(event.request?.url);
+
+  if (!requestMethod) {
+    return event;
+  }
+
+  if (!requestPathname) {
+    return event;
+  }
+
+  if (event.transaction !== `${requestMethod} /*`) {
+    return event;
+  }
+
+  return {
+    ...event,
+    transaction: `${requestMethod} ${requestPathname}`,
+  };
+}
+
+/**
+ * Local development uses a Vite + gateway + frontend-worker topology that can generate a huge
+ * amount of asset/module traffic. We intentionally shape those transactions before send so:
+ *
+ * 1. noisy Vite asset/module requests are dropped as standalone top-level transactions, and
+ * 2. legitimate catch-all document/API requests are renamed from `METHOD /*` to the real path.
+ *
+ * That keeps Spotlight focused on the page/API traces we actually care about and avoids confusing
+ * orphan `GET /*` traces whose parents were filtered out earlier in the pipeline.
+ */
+function createBeforeSendTransaction(mode: RuntimeMode) {
+  return function beforeSendTransaction(event: SentryTransactionEvent) {
+    const requestPathname = getRequestPathname(event.request?.url);
+
+    if (
+      isDevelopmentSentryMode(mode) &&
+      requestPathname &&
+      isIgnoredDevTransactionPath(requestPathname)
+    ) {
+      // Returning `null` drops the transaction entirely, so this stays development-only on purpose.
+      // The ignored path patterns are tuned for Vite/local-worker noise (`/@fs`, `node_modules`,
+      // source maps, CSS, etc.). In production/canary those broad patterns could hide legitimate
+      // observability data, so outside local development we prefer to keep the transaction and only
+      // normalize generic catch-all names like `GET /*`.
+      return null;
+    }
+
+    return normalizeTransactionName(event);
+  };
+}
+
 function createBaseOptions(mode: RuntimeMode, dsn?: string) {
   return {
     ...(dsn
@@ -76,6 +178,7 @@ function createBaseOptions(mode: RuntimeMode, dsn?: string) {
           dsn,
         }
       : {}),
+    beforeSendTransaction: createBeforeSendTransaction(mode),
     debug: isDevelopmentSentryMode(mode),
     dist: getSentryDist(mode),
     enableLogs: true,
@@ -104,19 +207,6 @@ export function createBrowserSentryOptions(mode: RuntimeMode, dsn?: string, rele
   };
 }
 
-export function createDenoSentryOptions(mode: RuntimeMode, dsn?: string): DenoOptions {
-  const release = getRequiredRuntimeRelease(mode, Deno.env.get('SENTRY_RELEASE') ?? undefined);
-
-  return {
-    ...createBaseOptions(mode, dsn),
-    ...(release
-      ? {
-          release,
-        }
-      : {}),
-  };
-}
-
 export function createCloudflareSentryOptions(
   mode: RuntimeMode,
   dsn?: string,
@@ -126,9 +216,16 @@ export function createCloudflareSentryOptions(
 
   return {
     ...createBaseOptions(mode, dsn),
+    enableRpcTracePropagation: true,
     ...(runtimeRelease
       ? {
           release: runtimeRelease,
+        }
+      : {}),
+    ...(isDevelopmentSentryMode(mode)
+      ? {
+          ignoreTransactions: sentryIgnoredDevTunnelTransactions,
+          tunnel: sentryGatewayDevTunnelUrl,
         }
       : {}),
   };
@@ -161,6 +258,11 @@ export const sentryMetricNames = {
   requestError: 'app.server.request.error',
 } as const;
 
-export const sentryTracePropagationTargets = [
+// Relative URLs still matter because the browser SDK sees same-origin fetches as `/api/...`, but
+// we also explicitly allow localhost/127.0.0.1 on any port and all motss.fyi subdomains so trace
+// propagation stays intact across the local multi-worker stack and deployed public domains.
+const sentryTracePropagationTargets = [
   /^\//,
+  localhostTracePropagationTarget,
+  motssFyiTracePropagationTarget,
 ];

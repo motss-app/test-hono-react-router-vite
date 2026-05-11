@@ -6,7 +6,7 @@ Project builds everything into a single `build/` folder for easy deployment.
 
 ```
 build/
-├── index.js              # Hono server (production entry)
+├── worker.js             # Frontend Worker production entry
 ├── assets/               # Server bundle assets
 ├── client/               # React Router client build
 │   ├── index.html        # SSG pages
@@ -19,11 +19,11 @@ build/
 ## Build Process
 
 ```bash
-deno task build  # Runs: react-router build && vite build --mode server
+deno task build  # Runs frontend and gateway builds
 ```
 
-1. **React Router build**: Creates client + SSR bundles
-2. **Vite server build**: Compiles `app/server.ts` to `build/index.js`
+1. **React Router build**: Creates client + SSR bundles from `packages/frontend/vite.react-router.config.ts`
+2. **Frontend Worker build**: Compiles `packages/frontend/worker.ts` to `build/worker.js` via `packages/frontend/vite.worker.config.ts`
 
 When Sentry is enabled, the build may also print source-map upload progress, telemetry notices, and plugin timing warnings. Those lines are usually informational.
 
@@ -56,9 +56,13 @@ Rule of thumb: do not disable future flags preemptively; only turn one off if it
 
 ## Configuration
 
-### `vite.config.ts`
-- `--mode server` triggers Hono server build
-- `emptyOutDir: false` preserves React Router builds
+### `packages/frontend/vite.react-router.config.ts`
+- Builds the browser client and SSR graph
+- Copies `_headers` into `build/client/_headers`
+
+### `packages/frontend/vite.worker.config.ts`
+- Builds the frontend Cloudflare Worker entry
+- Preserves `build/client/` while writing `build/worker.js`
 
 ### Sentry note
 
@@ -66,15 +70,14 @@ For this repo, the browser-facing React Router build keeps legacy sourcemap uplo
 
 ### Production Start
 ```bash
-deno task start  # NODE_ENV=production node ./build/index.js
+deno task start  # Alias for deno task preview (Cloudflare Worker preview)
 ```
 
-## Docker Deployment
+## Deployment
 
-- **Base**: Deno runtime
-- **Package manager**: Deno
-- **Multi-stage build**: Optimized for size
-- **Deployment**: Only `build/`
+- **Runtime**: Cloudflare Workers
+- **Build output**: `build/`
+- **Entry points**: `packages/frontend/worker.ts` and `packages/gateway/src/worker.ts`
 
 ## Key Features
 

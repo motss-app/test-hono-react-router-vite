@@ -57,7 +57,7 @@ See [CSP for SSG and SSR](csp-ssg-ssr-guide.md) for general CSP patterns; the fo
 - `app/types/hono.types.ts`
 - `app/apis/mod.ts` or a new `app/apis/turnstile.ts`
 - the route/component that renders the protected form
-- `app/server.ts` if local Deno development needs the secret threaded into request handling
+- `packages/bff/src/api.ts` if local Worker development needs the secret threaded into request handling
 - `app/ssr-handler.ts` and `vite-plugins/copy-headers.ts` if the CSP allowlist needs to flow through the shared header generation path
 
 ## Validation checklist

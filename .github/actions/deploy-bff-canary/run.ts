@@ -17,6 +17,15 @@ await withLogGroup('🚀 Typechecking BFF', async () => {
   ]);
 });
 
+await withLogGroup('🚀 Building BFF', async () => {
+  await runOrDie([
+    'deno',
+    'task',
+    '--cwd=packages/bff',
+    'build',
+  ]);
+});
+
 await withLogGroup('🚀 Deploying private BFF worker', async () => {
   await runOrDie(
     [
@@ -24,8 +33,6 @@ await withLogGroup('🚀 Deploying private BFF worker', async () => {
       'x',
       'wrangler',
       'deploy',
-      '--config',
-      'wrangler.jsonc',
       '--env',
       'canary',
     ],

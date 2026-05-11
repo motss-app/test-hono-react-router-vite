@@ -269,8 +269,6 @@
     },
     {
       "includes": [
-        "app/server.ts",
-        "app/worker.ts",
         "scripts/convert-fa-pro.ts"
       ],
       "linter": {

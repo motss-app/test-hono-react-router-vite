@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "@base-ui/react": "1.4.1",
-    "@cloudflare/vite-plugin": "1.35.0",
+    "@cloudflare/vite-plugin": "1.36.3",
     "@fontsource-variable/open-sans": "5.2.7",
     "@iconify-react/fa7-brands": "1.0.2",
     "@iconify-react/fa7-regular": "1.0.2",
@@ -19,16 +19,14 @@
   "devDependencies": {
     "@biomejs/biome": "2.4.13",
     "@cloudflare/workers-types": "4.20260430.1",
-    "@hono/vite-dev-server": "0.25.3",
     "@react-router/dev": "7.14.2",
-    "@sentry/deno": "10.51.0",
     "@sentry/vite-plugin": "5.2.1",
     "@stylexjs/unplugin": "0.18.3",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "typescript": "6.0.3",
     "vite": "8.0.10",
-    "wrangler": "4.87.0"
+    "wrangler": "4.90.0"
   },
   "name": "test-hono-react-router-vite",
   "private": true,

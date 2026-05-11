@@ -16,14 +16,15 @@ This repository is a **Deno-first** project using **Hono** and **React Router v7
 
 ## Project structure
 
-- **Runtime**: Deno (Development & Production), Cloudflare Workers (Production).
+- **Runtime**: Deno for task orchestration and builds; Cloudflare Workers for app runtime.
 - **Entry Points**:
-  - `app/server.ts`: Entry point for Deno / Node.js (Dev).
-  - `app/worker.ts`: Entry point for Cloudflare Workers.
+  - `packages/frontend/worker.ts`: Frontend Cloudflare Worker entry point used by local dev and production builds.
+  - `packages/gateway/src/worker.ts`: Gateway Cloudflare Worker entry point.
+  - `app/ssr-handler.ts`: Shared SSR helper used by the frontend worker.
 - **Configuration**:
   - `deno.json`: Main configuration for Deno tasks and compiler options.
   - `packages/frontend/wrangler.jsonc`: Frontend Cloudflare Worker deploy configuration.
-  - `packages/frontend/vite.config.ts`: frontend dev server config; keep `@stylexjs/unplugin` here, not in Hono or gateway configs.
+  - `packages/frontend/vite.config.ts`: frontend Cloudflare Vite dev config; keep `@stylexjs/unplugin` here, not in gateway configs.
   - `packages/frontend/vite.react-router.config.ts`: frontend React Router production build config; this is also allowed to use StyleX.
   - **Never create or import a global stylesheet such as `app.css`**. All global helpers and resets must be expressed via StyleX tokens, utilities, or components.
 

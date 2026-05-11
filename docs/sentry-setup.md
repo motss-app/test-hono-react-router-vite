@@ -13,20 +13,19 @@ It covers the current wiring, the required environment variables, and the main g
 
 ## What is instrumented today
 
-The current setup covers six different runtime/build surfaces:
+The current setup covers five different runtime/build surfaces:
 
 | Surface | Package | Entry/config | Current destination |
 | --- | --- | --- | --- |
-| Browser app | `@sentry/react-router` | `app/entry.client.tsx` | Same-origin `/api/tunnel` in dev, real Sentry outside dev |
+| Browser app | `@sentry/react-router` | `app/entry.client.tsx` | Same-origin `/api/stream` in dev, same-origin `/api/tunnel` outside dev |
 | React Router SSR branch | `@sentry/react-router/cloudflare` | `app/entry.server.tsx` | Worker-safe request wrapper, handled SSR error capture, and trace meta tags |
-| Deno server runtime | `@sentry/deno` | `app/server.ts` | Spotlight in dev, including the `/api/tunnel` relay, real Sentry outside dev |
-| Cloudflare Worker runtime | `@sentry/cloudflare` | `app/worker.ts` | Single initialized server SDK for deployed Worker requests |
+| Frontend Worker runtime | `@sentry/cloudflare` | `packages/frontend/worker.ts` | Single initialized server SDK for deployed frontend Worker requests |
 | BFF tunnel proxy | `@motss-app/bff` | `packages/bff/src/sentry-tunnel.ts` via `packages/bff/src/api.ts` | Same-origin `/api/tunnel` browser envelope proxy to Sentry ingest |
 | SSG-only pages | `—` at runtime | `react-router.config.ts` prerender and/or client entry | No server/runtime SDK; use the browser SDK only if the prerendered page hydrates |
 
 Build-time artifact upload is handled separately by Sentry Vite plugins in the Vite build configs.
 
-In development, `app/server.ts` owns `POST /api/tunnel` and relays envelopes to Spotlight before the shared API router runs. Deployed environments keep the private BFF tunnel pointed at Sentry ingest.
+In development, the browser sends envelopes to same-origin `/api/stream`, and the local BFF worker forwards them to Spotlight on `http://localhost:8969/stream`. Deployed environments keep the private BFF tunnel pointed at Sentry ingest.
 
 Important Debug ID requirement:
 
@@ -37,19 +36,14 @@ Important Debug ID requirement:
 
 Current source-map glob layout:
 
-- `vite.react-router.config.ts` uploads `./build/client/**/*.map` and `./build/server/**/*.map`
-- `vite.hono.config.ts` uploads `./build/assets/**/*.map` and `./build/server.js.map`
-- `vite.worker.config.ts` uses `useModernDebugIdUpload: true` and keeps `./build/assets/**/*.map` and `./build/worker.js.map` in `filesToDeleteAfterUpload`
+- `packages/frontend/vite.react-router.config.ts` uploads `./build/client/**/*.map` and `./build/server/**/*.map`
+- `packages/frontend/vite.worker.config.ts` uploads `./build/assets/**/*.map` and `./build/worker.js.map`
 
-The Worker build does not pass `uploadLegacySourcemaps`; the modern Debug-ID path discovers the built JS artifacts directly, while the glob list stays in sync with the generated maps for cleanup after upload.
+The React Router build keeps the legacy upload path for SRI safety. The frontend Worker build uses modern Debug-ID upload with `useModernDebugIdUpload: true`, and its glob list stays in `filesToDeleteAfterUpload` so the generated maps are cleaned up after upload.
 
-The Worker build also injects Debug IDs into the emitted `worker.js` and hashed worker chunks before
-deploy, so the deployed artifact carries the same Debug IDs that Sentry sees in the event payload.
-The browser-facing builds still use the SRI-safe legacy upload path.
+The Worker build also injects Debug IDs into the emitted `worker.js` and hashed worker chunks before deploy, so the deployed artifact carries the same Debug IDs that Sentry sees in the event payload. The browser-facing builds still use the SRI-safe legacy upload path.
 
-Each build surface now keeps its own explicit glob pattern set in the relevant upload or cleanup path instead of a broad `build/**/*.map` sweep.
-
-The deployment Vite configs (`vite.react-router.config.ts`, `vite.hono.config.ts`, and `vite.worker.config.ts`) minify their outputs, and the Worker deploy keeps `wrangler.jsonc` on `"no_bundle": true` plus `"preserve_file_names": true` so Wrangler does not re-bundle or rename the already-built `worker.js` after the source maps are uploaded. The Worker config also sets `base_dir: "./build"`, `find_additional_modules: true`, and an `ESModule` rule for `assets/**/*.js` so the generated chunk graph is uploaded alongside `worker.js`. That keeps the deployed runtime aligned with the exact bytes Sentry indexed.
+The deployment Vite configs (`packages/frontend/vite.react-router.config.ts` and `packages/frontend/vite.worker.config.ts`) minify their outputs, and the frontend Worker deploy keeps `packages/frontend/wrangler.jsonc` on "no_bundle": true plus "preserve_file_names": true so Wrangler does not re-bundle or rename the already-built `worker.js` after the source maps are uploaded. The Worker config also sets `base_dir: "./build"`, `find_additional_modules: true`, and an `ESModule` rule for `assets/**/*.js` so the generated chunk graph is uploaded alongside `worker.js`. That keeps the deployed runtime aligned with the exact bytes Sentry indexed.
 
 Shared SSR-included route modules like `app/root.tsx` and `app/routes/hono-rpc.tsx` also use
 `@sentry/react-router/cloudflare`. That keeps the Worker/server build on the Worker-safe entrypoint
@@ -78,7 +72,7 @@ These are the key files involved in the current setup:
   - manual hydration/bootstrap span
   - idle browser integration span
   - Replay, profiling, view hierarchy, logs
-  - same-origin Sentry tunnel option in every mode
+  - same-origin Spotlight stream in local dev and same-origin Sentry tunnel in deployed modes
 - `app/root.tsx`
   - shared route root
   - uses `@sentry/react-router/cloudflare` so the Worker build does not resolve the Node entrypoint
@@ -89,12 +83,9 @@ These are the key files involved in the current setup:
   - Worker-safe React Router SSR wrapper
   - handled SSR error capture
   - trace meta tag injection
-- `app/server.ts`
-  - Deno server entry
-  - Deno SDK init
-  - dev request-scope isolation for exported `fetch`
-  - dev `/api/tunnel` relay to the local Spotlight sidecar
-- `app/worker.ts`
+- `packages/gateway/src/worker.ts`
+  - browser-facing routing to the frontend and BFF workers
+- `packages/frontend/worker.ts`
   - Cloudflare Worker SDK init
   - request metrics/logging
 - `packages/bff/src/api.ts`
@@ -105,26 +96,20 @@ These are the key files involved in the current setup:
   - Cloudflare Worker bindings used by the BFF tunnel validation path
 - `packages/bff/wrangler.jsonc`
   - private BFF runtime vars/bindings for the tunnel DSN allowlist
-- `app/monitoring/sentry-spotlight-browser.ts`
-  - legacy direct browser transport helper kept for reference
-- `app/monitoring/sentry-spotlight-deno.ts`
-  - custom Deno transport to Spotlight sidecar
-- `vite.config.ts`
+- `packages/frontend/vite.config.ts`
   - the actual development Vite config
   - dev React Router plugin wiring
   - dev Sentry React Router plugin wiring
   - `themeBuildPlugin()` so `virtual:theme-bootstrap` resolves during local SSR
-- `vite.react-router.config.ts`
+- `packages/frontend/vite.react-router.config.ts`
   - production React Router build config
   - `themeBuildPlugin()` so the hashed theme bootstrap asset is emitted
-- `vite.hono.config.ts`
-  - production Deno server build config
-- `vite.worker.config.ts`
+- `packages/frontend/vite.worker.config.ts`
   - production Cloudflare Worker build config
-- `wrangler.jsonc`
-  - Cloudflare Worker runtime vars/bindings
-- `.github/workflows/deploy-cf-worker.yml`
-  - CI/CD env wiring for build and deploy
+- `packages/frontend/wrangler.jsonc`
+  - frontend Worker runtime vars/bindings
+- `packages/gateway/wrangler.jsonc`
+  - gateway service bindings for the frontend and BFF workers
 
 ## How the current setup works
 
@@ -147,15 +132,16 @@ Current behavior:
 - `replayIntegration()` remains commented out for now, because the local Spotlight sidecar can choke on replay envelopes during development
 - reads the session-scoped `app_session_id` cookie and creates a new session cookie in the browser only when one is missing before tagging browser telemetry with `app.session_id`
 - stamps `app.session_id` onto emitted browser span data via `beforeSendSpan`
-- uses `VITE_SENTRY_DSN` for the browser config
-- sets `tunnel: '/api/tunnel'` so browser envelopes stay same-origin in every mode
-- lets `app/server.ts` relay dev tunnel traffic to the local Spotlight sidecar while deployed tunnel traffic still goes through the BFF
+- uses the shared `VITE_SENTRY_DSN` env name for the browser config, keeping the production DSN in development
+- sets `tunnel: '/api/stream'` in development so browser envelopes stay same-origin before the BFF forwards them to Spotlight
+- sets `tunnel: '/api/tunnel'` outside development so browser envelopes stay same-origin in deployed modes
+- lets `packages/gateway/src/worker.ts` relay browser tunnel traffic to the BFF in every mode
 
 Important detail:
 
-- in development, the browser does **not** use the fake Spotlight DSN
-- instead, it sends envelopes to `/api/tunnel`, and `app/server.ts` forwards them to the local Spotlight sidecar
-- this avoids browser requests to fake endpoints like `https://local/api/0/envelope/...`
+- in development, the browser keeps the configured DSN but sends envelopes to `/api/stream`
+- the BFF forwards those dev envelopes to `http://localhost:8969/stream`
+- the local Spotlight sidecar is started by `scripts/dev-spotlight.ts`; no placeholder DSN is needed in the browser bundle
 - the React Router tracing integration stays eager because `HydratedRouter` needs its client instrumentation during hydration
 - the view hierarchy integration is deferred to the idle browser integrations path, so very early errors may not include a DOM snapshot
 - we intentionally keep the Framework Mode client instrumentation wiring in `app/entry.client.tsx` for future React Router support, even though Sentry currently says those client hooks are not invoked yet
@@ -165,16 +151,17 @@ Important detail:
 
 ### BFF tunnel proxy
 
-The private BFF worker owns the browser envelope tunnel in deployed modes.
+The private BFF worker owns the browser envelope proxy in both local development and deployed modes.
 
 Current behavior:
 
+- exposes `POST /api/stream` from `packages/bff/src/api.ts` in local development and forwards the raw envelope to Spotlight
 - exposes `POST /api/tunnel` from `packages/bff/src/api.ts`
 - reads only the first envelope header line from the raw request body
 - validates the envelope DSN host and project id against `packages/bff/wrangler.jsonc`'s `SENTRY_DSN`
 - forwards the original envelope bytes to `https://<dsn-host>/api/<project-id>/envelope/`
 - keeps browser telemetry same-origin so ad blockers are less likely to block it
-- stays deployed-only; local development uses the Deno app server's `/api/tunnel` relay to Spotlight instead
+- keeps the dev Spotlight stream same-origin as well, so the browser never has to post directly to `http://localhost:8969/stream`
 
 Important detail:
 
@@ -205,7 +192,7 @@ The following gzip sizes were measured from the current browser integration expe
 - `captureException(...)` from the exported `handleError`
 
 This layer enriches the React Router SSR branch inside the active request that was already opened by
-`@sentry/cloudflare` in `app/worker.ts`.
+`@sentry/cloudflare` in `packages/frontend/worker.ts`.
 
 Recent change note:
 
@@ -236,48 +223,101 @@ Future-watch:
   instrumentation export lands later and actually reduces noise, we can revisit it then
 - for now, the current lean Worker-safe helper path is enough and avoids extra span noise
 
-### Deno server runtime
+### Gateway routing
 
-`app/server.ts` initializes `@sentry/deno` for the local Deno server entry.
+`packages/gateway/src/worker.ts` is the browser-facing entrypoint for local and deployed traffic.
 
 Current behavior:
 
-- serves the app in Deno-based local and built-server flows
-- uses `SENTRY_DSN` for the server runtime
-- sends Deno server envelopes to Spotlight in development
-- sends Deno server envelopes to Sentry outside development
-- keeps the old duplicate-root fix by creating a fresh isolation scope per request in the dev exported-`fetch` path
-- adds a dev-only `/api/*` server transaction in `app/server.ts` so Hono API routes like `/api/rpc/hello` show up as server traces in Spotlight
-- reads or creates an `app_session_id` cookie before request handling so the first SSR request, later browser telemetry, and later API requests share the same `app.session_id`
-- receives the same cookie automatically on same-origin browser requests once the browser or server has set it
-- stamps `app.session_id` onto emitted Deno span data via `beforeSendSpan`
-- does not use a manual `http.server` request span wrapper
-- does not reintroduce the removed Deno-side request logging
+- forwards `/api/*` requests to the BFF worker
+- proxies page/document requests to the frontend worker in local development
+- uses the `FRONTEND` service binding outside local development
+
+### Local Spotlight trace shaping
+
+The current local development stack is intentionally opinionated about which transactions should be
+visible in Spotlight.
+
+Why this exists:
+
+- the gateway is the browser-facing request root
+- the frontend worker handles the actual React Router SSR request
+- Vite dev serves many module, source-map, virtual-module, and asset requests as individual HTTP requests
+
+Without any shaping, Spotlight becomes noisy in two ways:
+
+- every Vite-served asset/module request can appear as its own top-level server transaction
+- React Router catch-all handlers can show up as generic `GET /*` transaction names even when the
+  real request was something concrete like `/hono-rpc`
+
+The shared rules in `app/monitoring/sentry.ts` now do three things in local development:
+
+1. drop standalone top-level dev transactions for noisy asset/module requests such as:
+  - `@fs/...`
+  - `@id/...`
+  - `node_modules/...`
+  - `__manifest`
+  - `.js`, `.ts`, `.tsx`, `.css`, `.map`, `.woff2`, and similar asset URLs
+2. rename kept catch-all transactions from `GET /*` to the actual request path by reading the
+  request URL before the transaction is sent
+3. keep the envelope-reporting route itself (`POST /api/stream`) out of the trace list so the app
+  does not trace the act of tracing itself
+
+Important nuance:
+
+- the `beforeSendTransaction` path returns `null` only in development
+- that is intentional because `return null` means “discard this transaction entirely”
+- the ignored-path patterns are broad and optimized for local Vite/worker noise, not for deployed traffic
+- outside development we would rather keep the transaction and only normalize catch-all names such as `GET /*`
+  than risk hiding legitimate canary/production requests that happen to match a broad asset/path rule
+
+That means the Spotlight trace list stays focused on meaningful browser-facing requests such as:
+
+- `GET /hono-rpc`
+- `GET /ssr`
+- `GET /api/rpc/hello`
+
+instead of showing one top-level server trace for every dev asset fetch.
+
+This shaping also prevents confusing orphan `GET /*` traces. Those happened when a generic
+catch-all transaction survived, but the real parent asset/module transaction had already been
+filtered out.
+
+### Trace propagation targets
+
+The browser `tracePropagationTargets` config in `app/monitoring/sentry.ts` currently allows:
+
+- relative same-origin paths such as `/api/rpc/hello`
+- `localhost` and `127.0.0.1` on any port, for example `http://localhost:5173/...` and `http://127.0.0.1:8787/...`
+- all `motss.fyi` subdomains, for example `https://hono-react-router-vite.motss.fyi/...`
+
+That is deliberate. It keeps trace headers flowing across the local gateway/frontend/BFF split and
+across the deployed public domains without propagating headers to unrelated third-party origins.
 
 ### Environment snapshot logging
 
 To make SSR/build failures easier to diagnose, the repo now logs a sanitized Sentry env snapshot in the places that actually consume those values:
 
-- build configs: `vite.config.ts`, `vite.hono.config.ts`, `vite.react-router.config.ts`, `vite.worker.config.ts`
+- build configs: `vite.config.ts`, `packages/frontend/vite.react-router.config.ts`, `packages/frontend/vite.worker.config.ts`, `packages/gateway/vite.config.ts`
 - browser runtime: `app/entry.client.tsx`
-- Deno runtime: `app/server.ts`
-- Cloudflare Worker runtime: `app/worker.ts`
+- gateway tunnel relay: `packages/gateway/src/worker.ts`
+- Cloudflare Worker runtime: `packages/frontend/worker.ts`
 - SSR response header path: `app/ssr-handler.ts`
 - build-time header copying: `vite-plugins/copy-headers.ts`
 
 Secrets such as `SENTRY_AUTH_TOKEN` are redacted. DSNs are summarized so we can confirm the host and path without dumping the full token value into logs.
 
-### Cloudflare Worker runtime
+### Frontend Worker runtime
 
-The Worker runtime is initialized in `app/worker.ts` with `withSentry` from `@sentry/cloudflare`.
+The Worker runtime is initialized in `packages/frontend/worker.ts` with `withSentry` from `@sentry/cloudflare`.
 
 Current behavior:
 
 - runtime DSN comes from `env.SENTRY_DSN`
 - release comes from the Worker build-time `SENTRY_RELEASE` value so runtime events match uploaded source maps
-- all deployed requests enter `withSentry(...)` in `app/worker.ts` before Hono dispatches `/api/*` or the React Router catch-all
+- all deployed frontend requests enter `withSentry(...)` in `packages/frontend/worker.ts` before asset routing or the React Router catch-all
 - non-API routes like `/ssr`, document/data requests, and `__manifest` are therefore still captured as Worker runtime traces
-- reads or creates an `app_session_id` session cookie before request handling so deployed Worker SSR/API requests share the same `app.session_id` as the browser
+- reads or creates an `app_session_id` session cookie before request handling so deployed frontend SSR requests share the same `app.session_id` as the browser
 - tags Worker telemetry with `app.session_id`
 - stamps `app.session_id` onto emitted Worker span data via `beforeSendSpan`
 - request metrics and logs are recorded for Worker requests
@@ -302,28 +342,26 @@ Build-time Sentry plugin options are created in `vite-utils/sentry-build.ts`:
 Each build config passes its own explicit Sentry dist into those helpers:
 
 - `vite.config.ts` uses `react-router-dev`
-- `vite.react-router.config.ts` uses `react-router`
-- `vite.hono.config.ts` uses `hono`
-- `vite.worker.config.ts` uses `worker`
+- `packages/frontend/vite.react-router.config.ts` uses `react-router`
+- `packages/frontend/vite.worker.config.ts` uses `worker`
 
 These are used by:
 
 - `vite.config.ts`
-- `vite.react-router.config.ts`
-- `vite.hono.config.ts`
-- `vite.worker.config.ts`
+- `packages/frontend/vite.react-router.config.ts`
+- `packages/frontend/vite.worker.config.ts`
 
 Build helper split:
 
-- `vite.react-router.config.ts` and `vite.hono.config.ts` keep legacy sourcemap upload with explicit glob patterns
-- `vite.worker.config.ts` opts into modern Debug-ID upload with `useModernDebugIdUpload: true` and keeps its map globs only in `filesToDeleteAfterUpload`
+- `packages/frontend/vite.react-router.config.ts` keeps legacy sourcemap upload with explicit glob patterns
+- `packages/frontend/vite.worker.config.ts` opts into modern Debug-ID upload with `useModernDebugIdUpload: true` and keeps its map globs only in `filesToDeleteAfterUpload`
 
 Artifact and source-map upload only happens when the required Sentry build credentials are present.
 
 Current deployment-build behavior:
 
-- `vite.react-router.config.ts` and `vite.hono.config.ts` keep legacy upload with explicit glob patterns
-- `vite.worker.config.ts` uses modern Debug-ID upload; its explicit map glob list is retained only for post-upload cleanup
+- `packages/frontend/vite.react-router.config.ts` keeps legacy upload with explicit glob patterns
+- `packages/frontend/vite.worker.config.ts` uses modern Debug-ID upload; its explicit map glob list is retained only for post-upload cleanup
 - the build configs pass explicit Sentry `dist` values at the call site, so release attribution stays stable even when the build mode changes
 - for Debug-ID mode (Worker build), keep the emitted built `.js` artifacts and `.map` files together for
   the same build output; if the `.js` artifact with matching Debug ID is missing, Sentry will report
@@ -368,12 +406,10 @@ itself carries Debug IDs, and Wrangler deploys the exact Vite-built artifact.
 
 ### Browser local development
 
-Recommended local `.env` values:
+Recommended local `.env.local` values:
 
 ```bash
-VITE_SENTRY_DSN=your-public-dsn
 SENTRY_DSN=your-public-dsn
-VITE_SENTRY_SPOTLIGHT=http://localhost:8969/stream
 ```
 
 If you are only running development, you can omit `SENTRY_AUTH_TOKEN` and `SENTRY_RELEASE`.
@@ -382,9 +418,7 @@ What each one is used for:
 
 | Variable | Used by | Purpose |
 | --- | --- | --- |
-| `VITE_SENTRY_DSN` | browser build/runtime | browser SDK config |
-| `SENTRY_DSN` | Deno server runtime / Worker runtime / BFF tunnel proxy | server SDK config and tunnel allowlist |
-| `VITE_SENTRY_SPOTLIGHT` | browser and Deno dev runtime | Spotlight sidecar URL for dev transports |
+| `SENTRY_DSN` | browser build/runtime / Deno server runtime / Worker runtime / BFF tunnel proxy | shared browser + server SDK config and tunnel allowlist |
 | `SENTRY_AUTH_TOKEN` | Vite Sentry plugins | source map upload during builds |
 | `SENTRY_RELEASE` | build/runtime | release name for source map upload, runtime release tagging outside development, and CSP security-report attribution |
 
@@ -412,7 +446,7 @@ The following gzip sizes were measured from the current browser integration expe
 
 ### Cloudflare Worker runtime
 
-`wrangler.jsonc` currently provides:
+`packages/frontend/wrangler.jsonc` currently provides:
 
 - `vars.SENTRY_DSN`
 - `env.canary.vars.SENTRY_DSN`
@@ -422,7 +456,7 @@ These are the important Worker runtime values:
 
 | Wrangler value | Used by | Purpose |
 | --- | --- | --- |
-| `SENTRY_DSN` | `app/worker.ts` | Worker runtime DSN |
+| `SENTRY_DSN` | browser build/runtime and `packages/frontend/worker.ts` | shared browser + Worker runtime DSN |
 
 ### GitHub Actions deploy workflow
 
@@ -433,14 +467,13 @@ SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 SENTRY_DSN: ${{ vars.SENTRY_DSN }}
 SENTRY_RELEASE: ${{ github.sha }}
 DEPLOYMENT_BUILD: 'true'
-VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
 ```
 
 This covers the current build/deploy requirements for:
 
 - React Router build-time Sentry plugin usage
 - Worker build-time source map upload
-- browser DSN injection at build time
+- shared DSN injection at build time
 
 ## Commands
 
@@ -452,15 +485,15 @@ deno task dev
 
 Starts the normal local dev stack. This uses:
 
-- browser -> Spotlight
-- Deno server runtime -> Spotlight
-- `/api/*` Hono requests -> explicit dev server transactions in Spotlight
+- browser -> same-origin `/api/stream` in development
+- BFF `/api/stream` -> Spotlight sidecar on `8969`
+- production only -> same-origin `/api/tunnel` relay
 
 ```bash
 deno task spotlight
 ```
 
-Starts Spotlight by itself (MCP mode).
+Starts Spotlight by itself (MCP mode) if you want the sidecar on its own.
 
 For local native Spotlight or blocked npm registry environments:
 
@@ -487,11 +520,10 @@ For this project, the intended setup is:
 
 1. Browser app uses `@sentry/react-router`.
 2. React Router SSR on Workers uses `@sentry/react-router/cloudflare` helpers only.
-3. Deno server runtime uses `@sentry/deno`.
-4. Cloudflare Worker runtime uses `@sentry/cloudflare` as the single initialized server SDK.
-5. Dev browser and Deno server telemetry go to Spotlight with custom transports.
-6. Worker runtime uses Wrangler runtime vars and sends to real Sentry.
-7. Build-time source maps are uploaded by Sentry Vite plugins when credentials exist.
+3. Cloudflare Worker runtime uses `@sentry/cloudflare` as the single initialized server SDK for the frontend worker.
+4. Dev browser uses same-origin `/api/stream`, and the BFF forwards that stream to the Spotlight sidecar that `deno task dev` starts before launching the frontend and gateway dev tasks.
+5. Worker runtime uses Wrangler runtime vars and sends to real Sentry.
+6. Build-time source maps are uploaded by Sentry Vite plugins when credentials exist.
 
 ## Learnings and findings
 
@@ -506,35 +538,32 @@ That means:
 
 It is not enough to configure Sentry only in production-only build configs if you want dev browser instrumentation to work correctly.
 
-### 2. Browser dev should use `/api/tunnel`, not a fake Spotlight DSN
+### 2. Browser dev should stay same-origin through the BFF
 
-Using the fake Spotlight DSN in the browser caused requests like:
-
-- `https://local/api/0/envelope/...`
-
-That produced browser-side CORS/network noise.
+Official Spotlight docs use `spotlight: process.env.NODE_ENV === "development"` (or an explicit Spotlight URL) in the browser and wire the sidecar with `spotlight run`.
 
 The correct approach for this setup is:
 
-- keep a real browser DSN in config
-- set `tunnel: '/api/tunnel'`
-- let `app/server.ts` forward dev tunnel requests to `http://localhost:8969/stream`
+- use the shared `VITE_SENTRY_DSN` env name in browser config
+- keep the production DSN in development
+- send browser envelopes to same-origin `/api/stream`
+- let the BFF forward those envelopes to the local Spotlight sidecar on `/stream`
 
-### 3. Deno server tracing needs both the SDK and request isolation
+### 3. The local worker split keeps responsibilities clear
 
-The React Router server instrumentation in `app/entry.server.tsx` is only half of the server story.
+The React Router server instrumentation in `app/entry.server.tsx` is only part of the overall request story.
 
-For local Deno server traces to appear correctly, this repo also needs:
+For local development to stay close to production, this repo keeps the responsibilities split:
 
-- a live `@sentry/deno` SDK in `app/server.ts`
-- a fresh isolation scope per request in the dev exported-`fetch` path
-- `continueTrace()` / `startNewTrace()` so React Router server instrumentation gets clean per-request trace context
+- the gateway owns browser-facing routing
+- the frontend worker owns page shell, asset, and SSR handling
+- the BFF owns the deployed `/api/tunnel` proxy and the `/api/*` surface
 
-Without that runtime ownership, local server traces either disappear entirely or can regress into stale/multi-root request context behavior.
+That split keeps the local multi-process Cloudflare setup aligned with the deployed worker topology.
 
 ### 4. Worker-side Spotlight routing is not wired today
 
-The current Worker path is:
+The current Worker path is still:
 
 - local/prod Worker runtime -> `env.SENTRY_DSN`
 

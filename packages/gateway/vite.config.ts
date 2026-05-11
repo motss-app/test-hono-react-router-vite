@@ -19,11 +19,11 @@ export default defineConfig(({ command }) => {
         configPath: './wrangler.jsonc',
       }),
     ],
-    server: {
+    preview: {
       port: 8787,
       strictPort: true,
     },
-    preview: {
+    server: {
       port: 8787,
       strictPort: true,
     },

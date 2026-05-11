@@ -11,11 +11,13 @@
   "dev": {
     "inspector_port": 9231
   },
-  "vars": {
-    "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
-  },
   "env": {
     "canary": {
+      "vars": {
+        "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
+      }
+    },
+    "dev": {
       "vars": {
         "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
       }
@@ -47,8 +49,8 @@
   "placement": {
     "mode": "smart"
   },
-  "preview_urls": false,
   "preserve_file_names": true,
+  "preview_urls": false,
   "upload_source_maps": true,
   "workers_dev": false
 }

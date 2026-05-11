@@ -6,7 +6,7 @@ A modern full-stack web application using React Router v7, Hono, and Vite with h
 
 ```bash
 deno install
-deno task dev      # App + API + Spotlight at http://localhost:5173
+deno task dev      # Gateway + frontend worker + BFF + Spotlight
 deno task build && deno task start  # Production at http://localhost:3000
 ```
 
@@ -14,8 +14,8 @@ deno task build && deno task start  # Production at http://localhost:3000
 
 ### Development Mode
 - **Port**: 5173
-- **Server**: Vite dev server with HMR + Spotlight sidecar
-- **API**: Hono handles `/api/*` routes
+- **Server**: Cloudflare Vite dev server with HMR + Spotlight sidecar
+- **API**: Gateway forwards `/api/*` routes to the BFF worker
 - **Pages**: React Router handles all other routes
 - **Worker parity**: use `deno task preview:worker` when you want to run the app and API inside local Cloudflare `workerd` instead of the Deno dev server
 
@@ -41,16 +41,24 @@ deno task build && deno task start  # Production at http://localhost:3000
 ### Project Structure
 ```
 app/
-├── server.ts          # Hono API server
 ├── root.tsx           # Root layout
 ├── routes.ts          # Route definitions
 └── routes/            # Page components
-    ├── home.tsx
-    ├── about.tsx
-    └── ...
+  ├── home.tsx
+  ├── about.tsx
+  └── ...
 
-vite.config.ts         # Vite + React Router config
-react-router.config.ts # Rendering config
+packages/frontend/
+├── worker.ts               # Frontend Cloudflare Worker entrypoint
+├── vite.config.ts          # Frontend Cloudflare Vite dev config
+└── wrangler.jsonc          # Frontend Worker deploy config
+
+packages/gateway/
+├── src/worker.ts           # Public gateway Worker entrypoint
+├── vite.config.ts          # Gateway dev config + BFF auxiliary worker wiring
+└── wrangler.jsonc          # Gateway deploy config
+
+react-router.config.ts      # Rendering config
 ```
 
 ### Key Config Files
@@ -65,9 +73,9 @@ export default {
 } satisfies Config;
 ```
 
-**`vite.config.ts`**: Integrates React Router and Hono dev server.
+**`vite.config.ts`**: Integrates React Router and the Cloudflare Vite dev plugin.
 
-**`app/server.ts`**: Hono app with API routes and production static file serving.
+**`packages/bff/src/api.ts`**: Hono API routes for `/api/*`.
 
 ## Error Handling
 
@@ -174,19 +182,13 @@ View in Chrome DevTools → Network tab → Response Headers.
 
 ## Deployment
 
-### Docker
-```dockerfile
-FROM denoland/deno:latest
+### Cloudflare Workers
 
-COPY . /app
-WORKDIR /app
-RUN deno cache deno.json
-RUN deno task build
+This repo is deployed through Cloudflare Workers and the workspace build tasks, not through a standalone Docker runtime.
 
-ENV NODE_ENV=production
-EXPOSE 3000
-ENTRYPOINT ["deno", "run", "-P=start", "--check", "./build/server.js"]
-```
+- build locally with `deno task build`
+- preview the built worker stack with `deno task preview` or `deno task start`
+- keep the Cloudflare worker configs in `packages/frontend/` and `packages/gateway/` as the source of truth
 
 ### Production Checklist
 - [ ] Environment variables set
@@ -197,7 +199,7 @@ ENTRYPOINT ["deno", "run", "-P=start", "--check", "./build/server.js"]
 
 ## API Routes
 
-Define in `app/server.ts`:
+Define in `packages/bff/src/api.ts`:
 
 ```typescript
 const app = new Hono();

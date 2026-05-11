@@ -1,11 +1,10 @@
 import { logger } from '@sentry/cloudflare';
-import type { Context } from 'hono';
+import type { Context, Hono } from 'hono';
 import { endTime, startTime } from 'hono/timing';
 import type { ServerBuild } from 'react-router';
 import { createRequestHandler, RouterContextProvider } from 'react-router';
 
 import { logSentryEnvSnapshot } from '../vite-utils/sentry-env-log.ts';
-import type { App } from './app.ts';
 import { getSentryConnectSrc, getSentryEnvironment } from './monitoring/sentry.ts';
 import { HonoContext } from './router-context.ts';
 import type { HonoEnv } from './types/hono.types.ts';
@@ -92,9 +91,7 @@ function logSsrEnvSnapshotOnce(c: Context<HonoEnv>): void {
         sentryAuthToken: undefined,
         sentryDsn: c.env.SENTRY_DSN,
         sentryRelease: import.meta.env.SENTRY_RELEASE,
-        sentrySpotlight: undefined,
         viteSentryDsn: undefined,
-        viteSentrySpotlight: undefined,
       },
     })
   );
@@ -183,7 +180,7 @@ async function handleSsrRequest(c: Context<HonoEnv>, handler: RequestHandler): P
   return applySsrResponseHeaders(c, response, responseHeaders, cspNonce);
 }
 
-export function createSsrHandler(app: App): void {
+export function createSsrHandler(app: Pick<Hono<HonoEnv>, 'use'>): void {
   const handler = createRequestHandler(loadServerBuild, import.meta.env.MODE);
 
   app.use('*', (c: Context<HonoEnv>) => {

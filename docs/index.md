@@ -29,15 +29,15 @@ This project combines React Router v7, Hono, and Vite for a modern full-stack we
 
 ## Quick Start
 
-1. **Install dependencies**: `deno task install`
-2. **Start development**: `deno task dev` (app + API + Spotlight at http://localhost:5173)
-3. **Test API**: Visit http://localhost:5173/api/test
+1. **Install dependencies**: `deno install`
+2. **Start development**: `deno task dev` (gateway + frontend worker + BFF + Spotlight at http://localhost:8787)
+3. **Test API**: Visit http://localhost:8787/api/test
 4. **Build for production**: `deno task build && deno task start`
 
 ## Architecture Overview
 
-- **Development**: Vite dev server with HMR, Hono for API routes, React Router for pages
-- **Production**: Hono server serving static files + SSR, API routes
+- **Development**: Gateway worker on `8787`, frontend worker on `5173`, and BFF as an auxiliary worker
+- **Production**: Gateway worker routing to private frontend and BFF workers
 - **Rendering**: Hybrid - SSG for static pages, SSR for dynamic, CSR for interactivity
 
 ## Key Features
@@ -45,10 +45,10 @@ This project combines React Router v7, Hono, and Vite for a modern full-stack we
 ✅ Hot Module Replacement (HMR)  
 ✅ Server-Side Rendering (SSR)  
 ✅ Static Site Generation (SSG)  
-✅ API routes with Hono  
+✅ API routes through the BFF worker  
 ✅ TypeScript support  
 ✅ Production-ready build  
-✅ Docker deployment ready  
+✅ Cloudflare Worker deployment ready  
 
 ## Routes
 
@@ -66,4 +66,4 @@ This project combines React Router v7, Hono, and Vite for a modern full-stack we
 
 - Check the specific guides above
 - Run `deno check` for type errors
-- Use `deno task preview` to test production build locally
+- Use `deno task preview` or `deno task start` to test the built worker stack locally

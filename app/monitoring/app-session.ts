@@ -64,7 +64,7 @@ export function createAppSessionId(): string {
   return crypto.randomUUID();
 }
 
-export function createAppSessionSetCookieHeader(appSessionId: string, isSecure: boolean): string {
+function createAppSessionSetCookieHeader(appSessionId: string, isSecure: boolean): string {
   return [
     `${appSessionIdCookieName}=${encodeURIComponent(appSessionId)}`,
     'Path=/',
