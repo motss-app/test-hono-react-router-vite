@@ -59,7 +59,7 @@
     ".wrangler"
   ],
   "imports": {
-    "@sentry/browser": "npm:@sentry/browser@10.52.0",
+    "@sentry/browser": "npm:@sentry/browser@10.53.1",
     "@std/path": "jsr:@std/path@1.1.4",
     "react-dom/server": "npm:react-dom@19.2.6/server.edge"
   },
