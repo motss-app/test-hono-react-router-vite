@@ -1,6 +1,7 @@
 import { withSentry } from '@sentry/cloudflare';
 import { Hono } from 'hono';
 import { timing, wrapTime } from 'hono/timing';
+import { problemDetailsHandler } from 'hono-problem-details';
 
 import { createCloudflareSentryOptions } from '../../../app/monitoring/sentry.ts';
 import type { GatewayBindings } from './bindings.ts';
@@ -36,6 +37,8 @@ app.use(
     totalDescription: 'Gateway total',
   })
 );
+
+app.onError(problemDetailsHandler());
 
 function cloneResponse(response: Response): Response {
   if (response.status === 101 || response.status < 200 || response.status > 599) {

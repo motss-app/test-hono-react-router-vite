@@ -76,9 +76,11 @@
 
 ## Priority 8: Code Quality Nits
 
-### 8a. Strip `Content-Length` in sentry-tunnel.ts
+### ✅ 8a. Strip `Content-Length` in sentry-tunnel.ts (Done)
 
 **File:** `packages/bff/src/sentry-tunnel.ts:163`
+
+**Issue:** `createForwardRequest` copies original headers, overrides `Content-Type`, but leaves `Content-Length` intact. Since the body is unchanged (`request.body`), the length is still accurate — no bug today. Defensive pattern: deleting `Content-Length` lets the runtime recompute it, avoiding potential mismatch if headers ever drift from body.
 
 ```ts
 const headers = new Headers(request.headers);
@@ -86,23 +88,51 @@ headers.delete('Content-Length'); // add this
 headers.set('Content-Type', envelopeContentType);
 ```
 
-### 8b. Make `cloneResponse` a true clone
+### ~~8b. `response.clone()` vs manual wrap~~ (Invalid)
 
 **File:** `packages/gateway/src/worker.ts:44`
 
+**Issue:** `cloneResponse` wraps `response.body` in a new Response, but `response.clone()` already returns a full copy (status, headers, body). Manual re-wrapping is redundant. The function only exists to guard invalid statuses (101, <200, >599) where `clone()` throws — for normal proxied responses from service bindings, you can return the fetch result directly.
+
+**Why it's invalid:** `response.clone()` already gives you a complete Response copy. There's no need to rebuild it. The guard for invalid statuses is the only reason the function exists — but those statuses are unlikely from normal service binding responses.
+
+### ✅ 8c. Standardize error response shape with RFC 9457 (Done)
+
+[`hono-problem-details`](https://github.com/paveg/hono-problem-details) provides `application/problem+json` error responses across BFF and gateway.
+
+**Changes:**
+- BFF worker — added `app.onError(problemDetailsHandler())`
+- BFF `sentry-tunnel.ts` — replaced `createTunnelResponse` plain-text errors with `throw problemDetails({ status, title })`; `validateEnvelopeRequest` now throws instead of returning `Response | ParsedDsn`
+- Gateway worker — added `app.onError(problemDetailsHandler())`
+
+**Before (plain text):**
 ```ts
-function cloneResponse(response: Response): Response {
-  if (response.status === 101 || response.status < 200 || response.status > 599) {
-    return response;
-  }
-  return new Response(response.clone().body, {
-    headers: response.headers,
-    status: response.status,
-    statusText: response.statusText,
-  });
+function createTunnelResponse(status: number, message: string): Response {
+  return new Response(message, {
+    status,
+    headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
+  })
 }
+return createTunnelResponse(503, 'Sentry tunnel DSN is unavailable.')
 ```
 
-### 8c. Standardize error response shape
+**After (RFC 9457):**
+```ts
+throw problemDetails({ status: 503, title: 'Sentry tunnel DSN is unavailable.' })
 
-Define a shared `ApiErrorResponse` type (in the gateway or a new shared module) and use it across BFF and gateway error responses.
+// With extension members:
+throw problemDetails({
+  status: 403,
+  title: 'Envelope DSN does not match the configured Sentry project.',
+  extensions: { expectedDsn: configuredDsn }
+})
+```
+
+**Response:**
+```json
+{
+  "type": "about:blank",
+  "status": 503,
+  "title": "Sentry tunnel DSN is unavailable."
+}
+```

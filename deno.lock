@@ -22,6 +22,7 @@
     "npm:@stylexjs/unplugin@0.18.3": "0.18.3_unplugin@2.3.11",
     "npm:@types/react-dom@19.2.3": "19.2.3_@types+react@19.2.14",
     "npm:@types/react@19.2.14": "19.2.14",
+    "npm:hono-problem-details@~0.6.1": "0.6.1_hono@4.12.18",
     "npm:hono@4.12.18": "4.12.18",
     "npm:isbot@5.1.40": "5.1.40",
     "npm:jq@*": "1.7.2",
@@ -2070,6 +2071,12 @@
       ],
       "deprecated": true
     },
+    "hono-problem-details@0.6.1_hono@4.12.18": {
+      "integrity": "sha512-sORffY4NpxeXf+k7y/lovi6Ci/KBGPWBgDVR92TaFLPCxZKIt9Th0qaHWIsHT23Xpp6w/qGz2zTe3BPZEp0M0A==",
+      "dependencies": [
+        "hono"
+      ]
+    },
     "hono@4.12.18": {
       "integrity": "sha512-RWzP96k/yv0PQfyXnWjs6zot20TqfpfsNXhOnev8d1InAxubW93L11/oNUc3tQqn2G0bSdAOBpX+2uDFHV7kdQ=="
     },
@@ -2911,6 +2918,7 @@
         "npm:@stylexjs/unplugin@0.18.3",
         "npm:@types/react-dom@19.2.3",
         "npm:@types/react@19.2.14",
+        "npm:hono-problem-details@~0.6.1",
         "npm:hono@4.12.18",
         "npm:isbot@5.1.40",
         "npm:react-dom@19.2.6",
