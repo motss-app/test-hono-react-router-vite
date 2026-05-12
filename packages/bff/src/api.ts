@@ -30,6 +30,7 @@ const testApp = new Hono<{
 export const apiApp = new Hono<{
   Bindings: BffBindings;
 }>()
+  .get('/healthz', c => c.text('bff ok'))
   .route('/rpc', rpcApp)
   // Keep the browser same-origin in both cases:
   // - `/api/stream` forwards development envelopes to the local Spotlight sidecar

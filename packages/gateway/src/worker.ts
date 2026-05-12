@@ -1,9 +1,9 @@
-import type { GatewayBindings } from '@motss-app/shared';
 import { withSentry } from '@sentry/cloudflare';
 import { Hono } from 'hono';
 import { timing, wrapTime } from 'hono/timing';
 
 import { createCloudflareSentryOptions } from '../../../app/monitoring/sentry.ts';
+import type { GatewayBindings } from './bindings.ts';
 
 const LOCAL_FRONTEND_ORIGIN = 'http://localhost:5173';
 // Split the Loader.io token to avoid secret-scanner false positives.
@@ -17,11 +17,7 @@ const loaderIoTokenSuffix = [
   'f675',
   'aa93',
 ].join('');
-const loaderIoToken = [
-  'loaderio',
-  '-',
-  loaderIoTokenSuffix,
-].join('');
+const loaderIoToken = ['loaderio', '-', loaderIoTokenSuffix].join('');
 const loaderIoTokenPath = `/${loaderIoToken}.txt`;
 
 type GatewayEnv = {
@@ -81,11 +77,24 @@ app.all('/api/*', async c => {
   return cloneResponse(await wrapTime(c, 'bff', c.env.BFF.fetch(c.req.raw), 'BFF service binding'));
 });
 
+app.all('/fe/:path', async c => {
+  const path = c.req.param('path');
+  const frontendRequest = new Request(
+    new URL(`/${path}`, shouldUseLocalProxy(c.req.raw) ? LOCAL_FRONTEND_ORIGIN : c.req.url),
+    c.req.raw
+  );
+
+  return cloneResponse(
+    await wrapTime(
+      c,
+      'frontend',
+      shouldUseLocalProxy(c.req.raw) ? fetch(frontendRequest) : c.env.FRONTEND.fetch(frontendRequest),
+      'Frontend route'
+    )
+  );
+});
+
 app.all('*', async c =>
-  // The gateway owns the browser-facing root request and forwards non-API traffic to the frontend
-  // worker. React Router's request handler can still surface a generic `GET /*` transaction for a
-  // catch-all handler, so `app/monitoring/sentry.ts` normalizes kept document/API traffic to the
-  // concrete request path and drops noisy dev-only asset/module requests.
   cloneResponse(
     await wrapTime(
       c,

@@ -20,15 +20,18 @@ import type { HonoEnv } from '../../app/types/hono.types.ts';
 import { PromiseFrom } from '../../app/utils/promise-from.ts';
 import { logSentryEnvSnapshot } from '../../vite-utils/sentry-env-log.ts';
 
-const app = new Hono<HonoEnv>().use('*', timing()).get('/assets/*', async c => {
-  const response = await c.env.ASSETS.fetch(c.req.raw);
+const app = new Hono<HonoEnv>()
+  .use('*', timing())
+  .get('/assets/*', async c => {
+    const response = await c.env.ASSETS.fetch(c.req.raw);
 
-  return new Response(response.body, {
-    headers: new Headers(response.headers),
-    status: response.status,
-    statusText: response.statusText,
-  });
-});
+    return new Response(response.body, {
+      headers: new Headers(response.headers),
+      status: response.status,
+      statusText: response.statusText,
+    });
+  })
+  .get('/healthz', c => c.text('frontend ok'));
 
 const isDevSentryMode = isDevelopmentSentryMode(import.meta.env.MODE);
 let hasLoggedWorkerEnvSnapshot = false;

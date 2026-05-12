@@ -101,7 +101,7 @@
     "build:gateway:canary": "CLOUDFLARE_ENV=canary deno task --cwd=packages/gateway build",
     "build:worker": "deno task build:gateway",
     "build:worker:canary": "deno task build:gateway:canary",
-    "check": "deno task typegen && deno task --cwd=packages/shared typecheck && deno task --cwd=packages/bff typecheck && deno task --cwd=packages/frontend typecheck && deno task --cwd=packages/gateway typecheck && deno check --unstable-tsgo",
+    "check": "deno task typegen && deno task --cwd=packages/bff typecheck && deno task --cwd=packages/frontend typecheck && deno task --cwd=packages/gateway typecheck && deno check --unstable-tsgo",
     "convert-fa-pro": "deno run -P=env scripts/convert-fa-pro.ts",
     "dev": "deno run -A scripts/dev-spotlight.ts",
     "dev:app": "deno task --cwd=packages/frontend dev",
@@ -138,6 +138,8 @@
     "worker-options"
   ],
   "workspace": [
-    "./packages/*"
+    "./packages/bff",
+    "./packages/frontend",
+    "./packages/gateway"
   ]
 }
