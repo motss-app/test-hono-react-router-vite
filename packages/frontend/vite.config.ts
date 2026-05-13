@@ -72,6 +72,16 @@ export default defineConfig(async config => {
         : []),
     ],
     resolve: {
+      alias: [
+        {
+          find: /^@motss-app\/frontend\/utils\/?(.*)/,
+          replacement: `${repoRootPath}packages/frontend/app/utils/$1`,
+        },
+        {
+          find: /^@motss-app\/frontend\/monitoring\/sentry$/,
+          replacement: `${repoRootPath}packages/frontend/app/monitoring/sentry.ts`,
+        },
+      ],
       tsconfigPaths: true,
     },
     root: repoRootPath,
