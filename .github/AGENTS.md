@@ -38,6 +38,7 @@ Read this file before making changes.
 
 - **Package management**: Use `deno install` for dependencies. Do not use `npm install`.
 - **Task execution**: Prefer `deno task [script-name]` for project scripts. Do not use `npm run` or `pnpm run` for repo tasks.
+- **CLI tools**: Prefer Rust-based CLI tools when available (e.g. `rg` over `grep`, `bat` over `cat`, `fd` over `find`, `sd` over `sed`).
 - **Styling**: Use StyleX (`@stylexjs/stylex`). Do not create or import global CSS files such as `app.css`.
 - **Function signatures**: Avoid default parameter values. Do not use `= {}` or any other default parameter value; normalize options inside the function body instead.
 - **Verification**: Run `deno task check` after code changes unless the task is docs-only or the user explicitly says not to.
