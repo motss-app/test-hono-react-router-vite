@@ -180,7 +180,7 @@
       "includes": [
         "**/routes/*.ts",
         "**/routes/*.tsx",
-        "app/**/*.tsx"
+        "packages/frontend/app/**/*.tsx"
       ],
       "linter": {
         "domains": {
@@ -231,7 +231,7 @@
         "**/vite.config.ts",
         "**/vite.*.config.ts",
         "react-router.config.ts",
-        "app/routes.ts"
+        "packages/frontend/app/routes.ts"
       ],
       "linter": {
         "rules": {

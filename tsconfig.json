@@ -19,6 +19,12 @@
       ],
       "@motss-app/bff/*": [
         "./packages/bff/src/*"
+      ],
+      "@motss-app/frontend/monitoring/sentry": [
+        "./packages/frontend/app/monitoring/sentry.ts"
+      ],
+      "@motss-app/frontend/utils/*": [
+        "./packages/frontend/app/utils/*"
       ]
     },
     "resolveJsonModule": true,
@@ -36,7 +42,7 @@
   },
   "include": [
     "./*.ts",
-    "app/**/*",
+    "packages/frontend/app/**/*",
     "vite-plugins/**/*.ts"
   ]
 }

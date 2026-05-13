@@ -61,16 +61,19 @@
 
 ---
 
-## Priority 7: Move `app/` Into Frontend Package
+## ✅ Priority 7: Move `app/` Into Frontend Package (Done)
 
-**Files:** `app/` directory, all consumers
+**Files:** `app/` → `packages/frontend/app/`
 
-**Issue:** The `app/` directory lives at the root but is exclusively used by the frontend worker (and partially by the gateway for Sentry config). This couples the root workspace to the frontend implementation and makes it harder to extract shared logic.
-
-**Fix:** Move `app/` into `packages/frontend/app/`:
-- Update the frontend's `deno.json` exports and imports
-- The gateway imports `../../../app/monitoring/sentry.ts` - extract reusable Sentry utils into a gateway-local module instead
-- Update root `tsconfig.json` paths and deno workspace config
+**Changes:**
+- Moved `app/` to `packages/frontend/app/`
+- Updated frontend worker imports from `../../app/` to `./app/`
+- Updated gateway import from `../../../app/` to `../../frontend/app/`
+- Updated vite-plugins/vite-utils imports from `../app/` to `../packages/frontend/app/`
+- Updated `.github/actions/deploy-gateway-canary/warmup.ts` import path
+- Updated `tsconfig.json` include and `deno.json` types path
+- Updated `biome.jsonc` lint override patterns
+- Cleaned up `.gitignore` obsolete root `app/+types/` entries
 
 ---
 

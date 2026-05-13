@@ -22,8 +22,9 @@ Read this file before making changes.
 1. Inspect the relevant files before editing. Do not guess how the project is structured.
 2. Prefer targeted changes over broad rewrites unless the user explicitly asks for a larger refactor.
 3. Follow repository rules in this file even when a skill is loaded, unless the skill gives a more specific instruction for the same area.
-4. After code changes, run the appropriate verification commands. At minimum, run `deno task check` unless the task is documentation-only or the user says not to.
-5. Report what changed, what was verified, and any remaining risks or blockers.
+4. After code changes, run `deno task check` unless the task is documentation-only or the user says not to.
+5. After verification passes, probe every URL in `docs/dev-urls.md` to ensure all return 200. Run these against the gateway at `localhost:8787` (and `localhost:5173` for direct frontend URLs). If the dev servers are not running, skip this step.
+6. Report what changed, what was verified, the URL probe results, and any remaining risks or blockers.
 
 ## Skills
 
@@ -45,5 +46,6 @@ Read this file before making changes.
 
 - `.github/copilot-instructions.md`: repository-specific GitHub Copilot instructions.
 - `.github/LLMS.md`: external LLM reference material used by this repo.
+- `docs/dev-urls.md`: all health check, SSR, and API URLs to probe after changes.
 
 If repository conventions change, keep this file and `.github/copilot-instructions.md` aligned where they intentionally overlap.

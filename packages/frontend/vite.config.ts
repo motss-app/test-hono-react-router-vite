@@ -46,6 +46,7 @@ export default defineConfig(async config => {
         ? [
             cloudflare({
               configPath: './packages/frontend/wrangler.jsonc',
+              viteEnvironment: { name: 'ssr' },
             }),
             themeBuildPlugin({
               rootDir: repoRootPath,

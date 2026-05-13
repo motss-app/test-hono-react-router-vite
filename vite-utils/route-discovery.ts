@@ -9,7 +9,7 @@ const prerenderExcludedRoutes = [
 function discoverStaticRoutes(options?: { exclude?: string[]; rootDir?: string }): string[] {
   const normalizedOptions = options ?? {};
   const rootDir = normalizedOptions.rootDir ?? Deno.cwd();
-  const routesDir = `${rootDir}/app/routes`;
+  const routesDir = `${rootDir}/packages/frontend/app/routes`;
   const routes: string[] = [];
   const { exclude = [] } = normalizedOptions;
 

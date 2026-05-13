@@ -2,23 +2,23 @@ import { getIsolationScope, logger, metrics, setTag, withSentry } from '@sentry/
 import { Hono } from 'hono';
 import { timing } from 'hono/timing';
 
+import { logSentryEnvSnapshot } from '../../vite-utils/sentry-env-log.ts';
 import {
   applyAppSessionIdToSpan,
   appSessionIdTagName,
   attachAppSessionCookie,
   createAppSessionId,
   getAppSessionIdFromCookieString,
-} from '../../app/monitoring/app-session.ts';
+} from './app/monitoring/app-session.ts';
 import {
   createCloudflareSentryOptions,
   createRequestMetricAttributes,
   isDevelopmentSentryMode,
   sentryMetricNames,
-} from '../../app/monitoring/sentry.ts';
-import { createSsrHandler } from '../../app/ssr-handler.ts';
-import type { HonoEnv } from '../../app/types/hono.types.ts';
-import { PromiseFrom } from '../../app/utils/promise-from.ts';
-import { logSentryEnvSnapshot } from '../../vite-utils/sentry-env-log.ts';
+} from './app/monitoring/sentry.ts';
+import { createSsrHandler } from './app/ssr-handler.ts';
+import type { HonoEnv } from './app/types/hono.types.ts';
+import { PromiseFrom } from './app/utils/promise-from.ts';
 
 const app = new Hono<HonoEnv>()
   .use('*', timing())

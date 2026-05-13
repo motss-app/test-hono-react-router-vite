@@ -28,6 +28,9 @@
   },
   "exports": {
     ".": "./worker.ts",
+    "./monitoring/sentry": "./app/monitoring/sentry.ts",
+    "./utils/csp": "./app/utils/csp.ts",
+    "./utils/error-scenarios": "./app/utils/error-scenarios.ts",
     "./worker": "./worker.ts"
   },
   "name": "@motss-app/frontend",

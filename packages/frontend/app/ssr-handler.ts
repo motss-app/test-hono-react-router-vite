@@ -4,7 +4,7 @@ import { endTime, startTime } from 'hono/timing';
 import type { ServerBuild } from 'react-router';
 import { createRequestHandler, RouterContextProvider } from 'react-router';
 
-import { logSentryEnvSnapshot } from '../vite-utils/sentry-env-log.ts';
+import { logSentryEnvSnapshot } from '../../../vite-utils/sentry-env-log.ts';
 import { getSentryConnectSrc, getSentryEnvironment } from './monitoring/sentry.ts';
 import { HonoContext } from './router-context.ts';
 import type { HonoEnv } from './types/hono.types.ts';

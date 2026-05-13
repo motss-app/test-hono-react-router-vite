@@ -49,7 +49,7 @@
     "strictPropertyInitialization": true,
     "types": [
       "./.react-router/types/+future.ts",
-      "./app/types/vite-env.d.ts",
+      "./packages/frontend/app/types/vite-env.d.ts",
       "vite/client"
     ],
     "useUnknownInCatchVariables": true,

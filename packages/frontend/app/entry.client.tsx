@@ -16,7 +16,7 @@ import { HydratedRouter } from 'react-router/dom';
 
 import './polyfills/request-idle-callback.ts';
 
-import { logSentryEnvSnapshot } from '../vite-utils/sentry-env-log.ts';
+import { logSentryEnvSnapshot } from '../../../vite-utils/sentry-env-log.ts';
 import {
   applyAppSessionIdToSpan,
   appSessionIdTagName,

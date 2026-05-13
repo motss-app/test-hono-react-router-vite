@@ -3,7 +3,7 @@ import { Hono } from 'hono';
 import { timing, wrapTime } from 'hono/timing';
 import { problemDetailsHandler } from 'hono-problem-details';
 
-import { createCloudflareSentryOptions } from '../../../app/monitoring/sentry.ts';
+import { createCloudflareSentryOptions } from '../../frontend/app/monitoring/sentry.ts';
 import type { GatewayBindings } from './bindings.ts';
 
 const LOCAL_FRONTEND_ORIGIN = 'http://localhost:5173';
@@ -18,7 +18,11 @@ const loaderIoTokenSuffix = [
   'f675',
   'aa93',
 ].join('');
-const loaderIoToken = ['loaderio', '-', loaderIoTokenSuffix].join('');
+const loaderIoToken = [
+  'loaderio',
+  '-',
+  loaderIoTokenSuffix,
+].join('');
 const loaderIoTokenPath = `/${loaderIoToken}.txt`;
 
 type GatewayEnv = {
@@ -91,7 +95,9 @@ app.all('/fe/:path', async c => {
     await wrapTime(
       c,
       'frontend',
-      shouldUseLocalProxy(c.req.raw) ? fetch(frontendRequest) : c.env.FRONTEND.fetch(frontendRequest),
+      shouldUseLocalProxy(c.req.raw)
+        ? fetch(frontendRequest)
+        : c.env.FRONTEND.fetch(frontendRequest),
       'Frontend route'
     )
   );

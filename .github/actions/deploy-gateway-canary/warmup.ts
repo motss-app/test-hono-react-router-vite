@@ -1,4 +1,5 @@
-import { errorScenarios } from '../../../app/utils/error-scenarios.ts';
+import { errorScenarios } from '@motss-app/frontend/utils/error-scenarios';
+
 import { discoverPrerenderRoutes } from '../../../vite-utils/route-discovery.ts';
 import { withLogGroup, writeLine } from '../lib/deploy.ts';
 
