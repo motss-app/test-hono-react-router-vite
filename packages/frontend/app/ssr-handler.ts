@@ -20,7 +20,7 @@ type RequestHandler = ReturnType<typeof createRequestHandler>;
 
 function loadServerBuild(): Promise<ServerBuild> {
   return import.meta.env.PROD
-    ? import('../build/server/index.js' as never)
+    ? import('../../../build/server/index.js' as never)
     : import('virtual:react-router/server-build' as never);
 }
 
