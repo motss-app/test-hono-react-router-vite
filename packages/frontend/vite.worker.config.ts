@@ -71,6 +71,7 @@ export default defineConfig(({ mode }) => {
         : readEnv('SENTRY_RELEASE'),
     }),
     plugins: sentryVitePluginOptions ? sentryVitePlugin(sentryVitePluginOptions) : [],
+    publicDir: false,
     resolve: {
       tsconfigPaths: true,
     },

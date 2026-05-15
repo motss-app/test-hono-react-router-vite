@@ -21,6 +21,7 @@ import {
 import { createBuildSentryEnvSnapshot } from '../../vite-utils/sentry-env-log.ts';
 
 const repoRootPath = new URL('../../', import.meta.url).pathname;
+const publicDirPath = new URL('./public', import.meta.url).pathname;
 const reactRouterSourceMapsGlobPatterns = [
   './build/client/**/*.map',
   './build/server/**/*.map',
@@ -119,6 +120,7 @@ export default function createViteConfig(config: ConfigEnv) {
           }),
           ...sentryPlugins,
         ],
+    publicDir: publicDirPath,
     resolve: {
       alias: frontendResolveAlias,
       tsconfigPaths: true,

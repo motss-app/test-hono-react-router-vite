@@ -10,6 +10,7 @@ import { createSentryBuildOptions } from '../../vite-utils/sentry-build.ts';
 import { createBuildSentryEnvSnapshot } from '../../vite-utils/sentry-env-log.ts';
 
 const repoRootPath = new URL('../../', import.meta.url).pathname;
+const publicDirPath = new URL('./public', import.meta.url).pathname;
 const optimizeDepsInclude = [
   '@sentry/react-router',
   '@stylexjs/stylex',
@@ -73,6 +74,7 @@ export default defineConfig(async config => {
           ]
         : []),
     ],
+    publicDir: publicDirPath,
     resolve: {
       alias: [
         {
