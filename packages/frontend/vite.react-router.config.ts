@@ -25,6 +25,16 @@ const reactRouterSourceMapsGlobPatterns = [
   './build/client/**/*.map',
   './build/server/**/*.map',
 ];
+const frontendResolveAlias = [
+  {
+    find: /^@motss-app\/frontend\/utils\/?(.*)/,
+    replacement: `${repoRootPath}packages/frontend/app/utils/$1`,
+  },
+  {
+    find: /^@motss-app\/frontend\/monitoring\/sentry$/,
+    replacement: `${repoRootPath}packages/frontend/app/monitoring/sentry.ts`,
+  },
+];
 
 function logReactRouterSentryEnvSnapshot(mode: string): void {
   Deno.stderr.writeSync(
@@ -110,16 +120,7 @@ export default function createViteConfig(config: ConfigEnv) {
           ...sentryPlugins,
         ],
     resolve: {
-      alias: [
-        {
-          find: /^@motss-app\/frontend\/utils\/?(.*)/,
-          replacement: `${repoRootPath}packages/frontend/app/utils/$1`,
-        },
-        {
-          find: /^@motss-app\/frontend\/monitoring\/sentry$/,
-          replacement: `${repoRootPath}packages/frontend/app/monitoring/sentry.ts`,
-        },
-      ],
+      alias: frontendResolveAlias,
       tsconfigPaths: true,
     },
     root: repoRootPath,
