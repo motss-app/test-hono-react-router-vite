@@ -13,6 +13,8 @@
   },
   "env": {
     "canary": {
+      "main": "./dist/edge_gateway/index.js",
+      "no_bundle": true,
       "routes": [
         {
           "custom_domain": true,
@@ -51,6 +53,8 @@
       }
     },
     "production": {
+      "main": "./dist/edge_gateway/index.js",
+      "no_bundle": true,
       "routes": [
         {
           "custom_domain": true,
@@ -72,10 +76,9 @@
       }
     }
   },
-  "main": "./dist/edge_gateway/index.js",
+  "main": "./src/worker.ts",
   "minify": false,
   "name": "edge-gateway",
-  "no_bundle": true,
   "observability": {
     "enabled": true,
     "head_sampling_rate": 1.0,
