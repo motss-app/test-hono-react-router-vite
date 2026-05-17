@@ -139,6 +139,15 @@ Port for the Chrome DevTools inspector during local development.
 | bff-api | `9231` |
 | edge-gateway | `9230` |
 
+### `main`
+Entry point for the worker. The top-level config always points to the source file so that `@cloudflare/vite-plugin` does not fail during CI builds (the dist directory is gitignored and does not exist until after Vite builds). Deployment environments (`production`, `canary`) override this to the pre-built Vite output.
+
+| Worker | Top-level `main` | Deployment envs (`production`/`canary`) `main` |
+|--------|-----------------|------------------------------------------------|
+| frontend-app | `../../build/worker.js` | _(inherits top-level — frontend build doesn't use cloudflare plugin)_ |
+| bff-api | `./src/worker.ts` | `./dist/bff_api/index.js` |
+| edge-gateway | `./src/worker.ts` | `./dist/edge_gateway/index.js` |
+
 ---
 
 ## Worker-Specific Settings
@@ -189,8 +198,8 @@ ESModule rules for JavaScript assets:
 ### bff-api
 
 Minimal configuration - a pure API worker that:
-- Serves from `./src/worker.ts`
-- Has empty `canary` and `production` environment overrides
+- Serves from `./src/worker.ts` (top-level `main`)
+- Deployments (`production`, `canary`) override `main` to `./dist/bff_api/index.js` with `no_bundle: true` — Vite pre-bundles the worker and Wrangler deploys it as-is
 - No external services or routes (internal only)
 
 ---
@@ -227,6 +236,12 @@ Both have `custom_domain: true`.
 ---
 
 ## Environment-Specific Configuration
+
+### `CLOUDFLARE_ENV` during builds
+
+Do NOT set `CLOUDFLARE_ENV` during `deno task build` for workers that use `@cloudflare/vite-plugin` (BFF, gateway). The build must use the top-level config so the plugin can resolve `main: ./src/worker.ts` (which always exists). The `--env` flag is only passed to `wrangler deploy`, which reads the pre-built dist output after Vite has finished.
+
+The CI deploy actions follow this pattern: the build step runs without `CLOUDFLARE_ENV`, and `wrangler deploy --env canary` (or `--env production`) uses the environment-specific `main` and `no_bundle` settings.
 
 ### Sentry DSN
 The frontend worker configures Sentry for error monitoring:

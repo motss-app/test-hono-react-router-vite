@@ -16,12 +16,7 @@ await retry(3)(
     'task',
     '--cwd=packages/gateway',
     'build',
-  ],
-  {
-    env: {
-      CLOUDFLARE_ENV: 'canary',
-    },
-  }
+  ]
 );
 
 const deployResult = await withLogGroup('🚀 Deploying public gateway worker', async () => {

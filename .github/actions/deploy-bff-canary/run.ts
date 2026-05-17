@@ -24,12 +24,7 @@ await withLogGroup('🚀 Building BFF', async () => {
       'task',
       '--cwd=packages/bff',
       'build',
-    ],
-    {
-      env: {
-        CLOUDFLARE_ENV: 'canary',
-      },
-    }
+    ]
   );
 });
 
