@@ -7,6 +7,7 @@ import { Text } from '../components/text.tsx';
 import { IconArrowLeft, IconCircleInfo, IconHome } from '../icons.ts';
 import { iconStyles } from '../styles/icon.stylex.ts';
 import { colorTokens, fontWeightTokens, themeConditions } from '../styles/tokens.stylex.ts';
+import { createBackgroundSvgPreloadLinks } from '../utils/background-svg-preload.ts';
 import {
   type ErrorScenario,
   getErrorScenario,
@@ -54,6 +55,22 @@ export function meta(): Route.MetaDescriptors {
   ];
 }
 
+export const links: Route.LinksFunction = () =>
+  createBackgroundSvgPreloadLinks([
+    '/assets/error-code-hero-dark.svg',
+    '/assets/error-code-hero-light.svg',
+    '/assets/runtime-error-hero-dark.svg',
+    '/assets/runtime-error-hero-light.svg',
+  ]);
+
+function getRouteCodeParam(params: Record<string, string | undefined>): string | undefined {
+  return (
+    params as {
+      code?: string;
+    }
+  ).code;
+}
+
 function throwRouteResponse(
   start: number,
   status: number,
@@ -71,21 +88,22 @@ function throwRouteResponse(
 
 export function loader({ params }: Route.LoaderArgs) {
   const start = performance.now();
-  const scenario = getErrorScenario(params.code);
+  const routeCode = getRouteCodeParam(params);
+  const scenario = getErrorScenario(routeCode);
 
   if (scenario?.kind === 'response' && scenario.status && scenario.statusText) {
     return throwRouteResponse(start, scenario.status, scenario.statusText);
   }
 
-  if (params.code === 'runtime') {
-    throw new Error(`Runtime error for code: ${params.code}`);
+  if (routeCode === 'runtime') {
+    throw new Error(`Runtime error for code: ${routeCode}`);
   }
 
   return throwRouteResponse(
     start,
     unknownErrorStatusCode,
     unknownErrorStatusText,
-    `Unknown error code: ${params.code}`
+    `Unknown error code: ${routeCode}`
   );
 }
 
@@ -1044,7 +1062,7 @@ function ErrorIncidentView({
 }
 
 export function ErrorBoundary({ error, params }: Route.ErrorBoundaryProps): JSX.Element {
-  const routeCode = params.code;
+  const routeCode = getRouteCodeParam(params);
   let statusCode = serverErrorStatusCode;
   let statusText = 'Internal Server Error';
   let message = 'An unexpected error occurred';
@@ -1080,7 +1098,7 @@ export function ErrorBoundary({ error, params }: Route.ErrorBoundaryProps): JSX.
 }
 
 export default function ErrorCode({ params }: Route.ComponentProps): JSX.Element {
-  const routeCode = params.code;
+  const routeCode = getRouteCodeParam(params);
   const scenario = getErrorScenario(routeCode);
 
   return (

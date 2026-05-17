@@ -26,8 +26,8 @@ export function RootDocumentHead({ cspNonce }: RootDocumentHeadProps): JSX.Eleme
         href={themeBootstrapSrc}
         rel="preload"
       />
-      <script src={themeBootstrapSrc} />
       <Links />
+      <script src={themeBootstrapSrc} />
 
       {import.meta.env.DEV ? (
         <>

@@ -16,6 +16,7 @@ import {
 } from '../monitoring/sentry.ts';
 import { iconStyles } from '../styles/icon.stylex.ts';
 import { colorTokens, fontWeightTokens, themeConditions } from '../styles/tokens.stylex.ts';
+import { createBackgroundSvgPreloadLinks } from '../utils/background-svg-preload.ts';
 import type { Route } from './+types/hono-rpc.ts';
 
 type HelloResponse = InferResponseType<typeof client.rpc.hello.$get>;
@@ -58,6 +59,12 @@ export function meta(): Route.MetaDescriptors {
     },
   ];
 }
+
+export const links: Route.LinksFunction = () =>
+  createBackgroundSvgPreloadLinks([
+    '/assets/hono-rpc-hero-dark.svg',
+    '/assets/hono-rpc-hero-light.svg',
+  ]);
 
 export function loader(): HelloResponse {
   return {

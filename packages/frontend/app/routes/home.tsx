@@ -4,6 +4,7 @@ import type { JSX } from 'react';
 import { Link } from '../components/Link.tsx';
 import { Text } from '../components/text.tsx';
 import { colorTokens, fontWeightTokens, themeConditions } from '../styles/tokens.stylex.ts';
+import { createBackgroundSvgPreloadLinks } from '../utils/background-svg-preload.ts';
 import type { Route } from './+types/home.ts';
 
 const heroReveal = keyframes({
@@ -435,6 +436,12 @@ const routes = [
     to: '/errors',
   },
 ] as const;
+
+export const links: Route.LinksFunction = () =>
+  createBackgroundSvgPreloadLinks([
+    '/assets/home-hero-dark.svg',
+    '/assets/home-hero-light.svg',
+  ]);
 
 export function meta(_args: Route.MetaArgs): Route.MetaDescriptors {
   return [

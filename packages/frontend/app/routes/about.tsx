@@ -13,6 +13,7 @@ import {
 } from '../icons.ts';
 import { iconStyles } from '../styles/icon.stylex.ts';
 import { colorTokens, fontWeightTokens, themeConditions } from '../styles/tokens.stylex.ts';
+import { createBackgroundSvgPreloadLinks } from '../utils/background-svg-preload.ts';
 import type { Route } from './+types/about.ts';
 
 const heroReveal = keyframes({
@@ -635,6 +636,12 @@ const nextRoutes = [
     to: '/errors',
   },
 ] as const;
+
+export const links: Route.LinksFunction = () =>
+  createBackgroundSvgPreloadLinks([
+    '/assets/about-hero-dark.svg',
+    '/assets/about-hero-light.svg',
+  ]);
 
 export function meta(_args: Route.MetaArgs): Route.MetaDescriptors {
   return [

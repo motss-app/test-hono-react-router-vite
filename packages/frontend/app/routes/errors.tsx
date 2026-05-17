@@ -6,6 +6,7 @@ import { Text } from '../components/text.tsx';
 import { IconArrowLeft, IconCircleInfo, IconHome, IconTriangleExclamation } from '../icons.ts';
 import { iconStyles } from '../styles/icon.stylex.ts';
 import { colorTokens, fontWeightTokens, themeConditions } from '../styles/tokens.stylex.ts';
+import { createBackgroundSvgPreloadLinks } from '../utils/background-svg-preload.ts';
 import { errorScenarios } from '../utils/error-scenarios.ts';
 import type { Route } from './+types/errors.ts';
 
@@ -44,6 +45,12 @@ export function meta(): Route.MetaDescriptors {
     },
   ];
 }
+
+export const links: Route.LinksFunction = () =>
+  createBackgroundSvgPreloadLinks([
+    '/assets/errors-hero-dark.svg',
+    '/assets/errors-hero-light.svg',
+  ]);
 
 const s = create({
   ctaPrimary: {

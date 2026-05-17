@@ -9,6 +9,7 @@ import { HonoContext } from '../router-context.ts';
 import { iconStyles } from '../styles/icon.stylex.ts';
 import { colorTokens, fontWeightTokens, themeConditions } from '../styles/tokens.stylex.ts';
 import type { HonoEnv } from '../types/hono.types.ts';
+import { createBackgroundSvgPreloadLinks } from '../utils/background-svg-preload.ts';
 import type { Route } from './+types/ssr.ts';
 
 const SIMULATION_DELAY_MS = 5;
@@ -437,6 +438,12 @@ type SsrStyles = {
 };
 
 const styles = s as SsrStyles;
+
+export const links: Route.LinksFunction = () =>
+  createBackgroundSvgPreloadLinks([
+    '/assets/ssr-hero-dark.svg',
+    '/assets/ssr-hero-light.svg',
+  ]);
 
 /** This loader makes this page SSR - it runs on EVERY request */
 export async function loader({ context, request }: Route.LoaderArgs) {
