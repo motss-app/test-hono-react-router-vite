@@ -18,6 +18,7 @@
       }
     },
     "dev": {
+      "main": "./src/worker.ts",
       "vars": {
         "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
       }
@@ -28,9 +29,10 @@
       }
     }
   },
-  "main": "./src/worker.ts",
+  "main": "./dist/bff_api/index.js",
   "minify": false,
   "name": "bff-api",
+  "no_bundle": true,
   "observability": {
     "enabled": true,
     "head_sampling_rate": 1.0,

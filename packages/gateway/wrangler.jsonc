@@ -19,9 +19,6 @@
           "pattern": "hono-react-router-vite-canary.motss.fyi"
         }
       ],
-      "vars": {
-        "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
-      },
       "services": [
         {
           "binding": "FRONTEND",
@@ -31,13 +28,14 @@
           "binding": "BFF",
           "service": "bff-api-canary"
         }
-      ]
-    },
-    "dev": {
-      "routes": [],
+      ],
       "vars": {
         "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
-      },
+      }
+    },
+    "dev": {
+      "main": "./src/worker.ts",
+      "routes": [],
       "services": [
         {
           "binding": "FRONTEND",
@@ -47,7 +45,10 @@
           "binding": "BFF",
           "service": "bff-api-dev"
         }
-      ]
+      ],
+      "vars": {
+        "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
+      }
     },
     "production": {
       "routes": [
@@ -56,9 +57,6 @@
           "pattern": "hono-react-router-vite.motss.fyi"
         }
       ],
-      "vars": {
-        "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
-      },
       "services": [
         {
           "binding": "FRONTEND",
@@ -68,15 +66,16 @@
           "binding": "BFF",
           "service": "bff-api-production"
         }
-      ]
+      ],
+      "vars": {
+        "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
+      }
     }
   },
-  "main": "./src/worker.ts",
+  "main": "./dist/edge_gateway/index.js",
   "minify": false,
   "name": "edge-gateway",
-  "vars": {
-    "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
-  },
+  "no_bundle": true,
   "observability": {
     "enabled": true,
     "head_sampling_rate": 1.0,
@@ -108,5 +107,8 @@
     }
   ],
   "upload_source_maps": true,
+  "vars": {
+    "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
+  },
   "workers_dev": true
 }
