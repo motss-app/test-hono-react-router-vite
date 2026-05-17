@@ -12,6 +12,7 @@
     "npm:@iconify-react/fa7-brands@1.0.2": "1.0.2_react@19.2.6",
     "npm:@iconify-react/fa7-regular@1.0.2": "1.0.2_react@19.2.6",
     "npm:@iconify-react/fa7-solid@1.0.2": "1.0.2_react@19.2.6",
+    "npm:@react-router/dev@*": "7.15.1_react-router@7.15.1__react@19.2.6__react-dom@19.2.6___react@19.2.6_typescript@6.0.3_vite@8.0.13_wrangler@4.92.0__@cloudflare+workers-types@4.20260517.1_@cloudflare+workers-types@4.20260517.1_react@19.2.6_react-dom@19.2.6__react@19.2.6",
     "npm:@react-router/dev@7.15.1": "7.15.1_react-router@7.15.1__react@19.2.6__react-dom@19.2.6___react@19.2.6_typescript@6.0.3_vite@8.0.13_wrangler@4.92.0__@cloudflare+workers-types@4.20260517.1_@cloudflare+workers-types@4.20260517.1_react@19.2.6_react-dom@19.2.6__react@19.2.6",
     "npm:@sentry/browser@10.53.1": "10.53.1",
     "npm:@sentry/cloudflare@10.53.1": "10.53.1_@cloudflare+workers-types@4.20260517.1",
@@ -29,7 +30,9 @@
     "npm:react-router@7.15.1": "7.15.1_react@19.2.6_react-dom@19.2.6__react@19.2.6",
     "npm:react@19.2.6": "19.2.6",
     "npm:typescript@6.0.3": "6.0.3",
+    "npm:vite@*": "8.0.13",
     "npm:vite@8.0.13": "8.0.13",
+    "npm:wrangler@*": "4.92.0_@cloudflare+workers-types@4.20260517.1",
     "npm:wrangler@4.92.0": "4.92.0_@cloudflare+workers-types@4.20260517.1"
   },
   "jsr": {
