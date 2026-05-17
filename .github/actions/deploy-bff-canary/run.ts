@@ -18,12 +18,19 @@ await withLogGroup('🚀 Typechecking BFF', async () => {
 });
 
 await withLogGroup('🚀 Building BFF', async () => {
-  await runOrDie([
-    'deno',
-    'task',
-    '--cwd=packages/bff',
-    'build',
-  ]);
+  await runOrDie(
+    [
+      'deno',
+      'task',
+      '--cwd=packages/bff',
+      'build',
+    ],
+    {
+      env: {
+        CLOUDFLARE_ENV: 'canary',
+      },
+    }
+  );
 });
 
 await withLogGroup('🚀 Deploying private BFF worker', async () => {
@@ -33,6 +40,8 @@ await withLogGroup('🚀 Deploying private BFF worker', async () => {
       'x',
       'wrangler',
       'deploy',
+      '--config',
+      'wrangler.jsonc',
       '--env',
       'canary',
     ],

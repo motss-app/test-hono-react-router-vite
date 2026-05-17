@@ -48,7 +48,7 @@ That is why the browser-facing flow still uses two public local ports in develop
 
 `deno task dev` starts the full local stack by launching the package-local frontend task and the gateway task.
 
-When the gateway and frontend tasks run with `CLOUDFLARE_ENV=dev`, Wrangler registers the local workers with a `-dev` suffix, so the dev bindings resolve to names like `edge-gateway-dev`, `frontend-app-dev`, and `bff-api-dev`. That is why the dev service bindings in `packages/gateway/wrangler.jsonc` must point at the `-dev` worker names even though the deployed workers keep the plain names.
+When the gateway and frontend tasks run with `CLOUDFLARE_ENV=dev`, Wrangler registers the local workers with a `-dev` suffix, so the dev bindings resolve to names like `edge-gateway-dev`, `frontend-app-dev`, and `bff-api-dev`. Deployed environment workers use the same suffixing convention (`frontend-app-canary`, `bff-api-canary`, `edge-gateway-canary`), so the service bindings in `packages/gateway/wrangler.jsonc` must target the environment-suffixed worker names.
 
 `deno task build` runs the package frontend build first and then the gateway build, so the production artifact set is assembled from the package-local build steps instead of a single root Vite config.
 
