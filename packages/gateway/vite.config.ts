@@ -1,8 +1,8 @@
 import { cloudflare } from '@cloudflare/vite-plugin';
 import { defineConfig } from 'vite';
 
-import { createImportMetaEnvDefine } from '../../vite-utils/import-meta-env.ts';
 import { readRequiredEnv } from '../../vite-utils/get-required-env.ts';
+import { createImportMetaEnvDefine } from '../../vite-utils/import-meta-env.ts';
 
 export default defineConfig(({ command }) => {
   const isDev = command === 'serve';
