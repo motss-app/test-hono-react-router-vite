@@ -12,7 +12,7 @@ import type { Plugin } from 'vite';
 
 import { readRequiredEnv } from '../vite-utils/get-required-env.ts';
 import { discoverPrerenderRoutes } from '../vite-utils/route-discovery.ts';
-import { createBuildSentryEnvSnapshot } from '../vite-utils/sentry-env-log.ts';
+import { createBuildSentryEnvSnapshot } from '../vite-utils/sentry-build-env-log.ts';
 
 interface HeadersCopyPluginOptions {
   dest: string;

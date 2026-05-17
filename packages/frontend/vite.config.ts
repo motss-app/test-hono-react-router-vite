@@ -7,7 +7,7 @@ import { defineConfig } from 'vite';
 import { themeBuildPlugin } from '../../vite-plugins/theme-bootstrap/plugin.ts';
 import { loadConfigEnvironment } from '../../vite-utils/load-env.ts';
 import { createSentryBuildOptions } from '../../vite-utils/sentry-build.ts';
-import { createBuildSentryEnvSnapshot } from '../../vite-utils/sentry-env-log.ts';
+import { createBuildSentryEnvSnapshot } from '../../vite-utils/sentry-build-env-log.ts';
 
 const repoRootPath = new URL('../../', import.meta.url).pathname;
 const publicDirPath = new URL('./public', import.meta.url).pathname;
