@@ -1,6 +1,6 @@
 import type { CloudflareOptions } from '@sentry/cloudflare';
 
-const sentryGatewayDevTunnelUrl = 'http://127.0.0.1:8787/api/stream';
+const sentryGatewayDevTunnelUrl = 'http://127.0.0.1:8787/api/tunnel';
 const tracesSampleRate = 1.0;
 const profileSessionSampleRate = 1.0;
 const replaysSessionSampleRate = 0.1;
@@ -10,10 +10,10 @@ const replaysOnErrorSampleRate = 1.0;
 // topology as well as the public domains used outside local development.
 const localhostTracePropagationTarget = /^https?:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?(?:\/|$)/;
 const motssFyiTracePropagationTarget = /^https?:\/\/(?:[a-z0-9-]+\.)*motss\.fyi(?:\/|$)/i;
-// The gateway forwards local envelopes to `/api/stream`; if we keep transactions for that route,
+// The gateway forwards local envelopes to `/api/tunnel`; if we keep transactions for that route,
 // the app starts tracing the act of reporting traces, which quickly becomes recursive noise.
 const sentryIgnoredDevTunnelTransactions = [
-  /^POST \/api\/stream$/,
+  /^POST \/api\/tunnel$/,
   /^GET \/.*\.(?:avif|bmp|css|gif|ico|jpe?g|js|json|map|mjs|png|svg|ts|tsx|txt|webp|woff2?)(?:\?.*)?$/i,
   /^GET \/(?:@fs|@id|__manifest|node_modules\/|virtual:|~virtual:)/,
 ];

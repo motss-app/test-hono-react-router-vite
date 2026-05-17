@@ -25,14 +25,12 @@ import {
 import { createBrowserSentryOptions, isDevelopmentSentryMode } from './monitoring/sentry.ts';
 
 const isDevSentryMode = isDevelopmentSentryMode(import.meta.env.MODE);
-const spotlightStreamTunnel = '/api/stream';
-const sentryTunnel = '/api/tunnel';
+const browserTunnel = '/api/tunnel';
 const browserDsn = import.meta.env.VITE_SENTRY_DSN;
-// In development the browser still uses the real DSN, but it posts envelopes to the
-// same-origin `/api/stream` endpoint first. The BFF then forwards those raw envelopes to
-// Spotlight. This keeps local browser traffic same-origin and lets gateway/frontend/server
-// traces stay in the same local story instead of sending the browser directly to the sidecar.
-const browserTunnel = isDevSentryMode ? spotlightStreamTunnel : sentryTunnel;
+// The browser always posts envelopes to the same-origin `/api/tunnel` endpoint first.
+// In local development the BFF forwards those raw envelopes to Spotlight; deployed modes
+// forward the same tunnel traffic to real Sentry ingest. That keeps browser traffic
+// same-origin everywhere while preserving the local multi-worker trace story.
 // Get the current app session ID for tagging Sentry events
 const appSessionId = getBrowserAppSessionId();
 const browserWindow = window as Window & {

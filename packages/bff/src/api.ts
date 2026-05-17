@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 
 import type { BffBindings } from './bindings.ts';
-import { sentrySpotlightStreamApp, sentryTunnelApp } from './sentry-tunnel.ts';
+import { sentryTunnelApp } from './sentry-tunnel.ts';
 
 const rpcApp = new Hono<{
   Bindings: BffBindings;
@@ -32,11 +32,9 @@ export const apiApp = new Hono<{
 }>()
   .get('/healthz', c => c.text('bff ok'))
   .route('/rpc', rpcApp)
-  // Keep the browser same-origin in both cases:
-  // - `/api/stream` forwards development envelopes to the local Spotlight sidecar
-  // - `/api/tunnel` forwards deployed envelopes to Sentry ingest
-  .route('/stream', sentrySpotlightStreamApp)
   .route('/test', testApp)
+  // Keep browser and local Worker envelopes same-origin behind a single public path.
+  // The tunnel forwards to Spotlight in local development and to Sentry ingest elsewhere.
   .route('/tunnel', sentryTunnelApp);
 
 export type ApiAppType = typeof apiApp;

@@ -5,9 +5,9 @@ import type { BffBindings } from './bindings.ts';
 
 const envelopeContentType = 'application/x-sentry-envelope';
 const envelopeLineFeed = 10;
-// Spotlight still expects raw Sentry envelopes on `/stream`. The browser never posts directly to
-// this sidecar URL; it uses same-origin `/api/stream`, and the BFF forwards only after validating
-// that the envelope belongs to the configured DSN/project.
+// Spotlight still expects raw Sentry envelopes on `/stream`. Browsers and local Worker runtimes
+// never post directly to this sidecar URL; they use the same-origin `/api/tunnel` endpoint, and
+// the BFF forwards only after validating that the envelope belongs to the configured DSN/project.
 const spotlightStreamUrl = new URL('http://localhost:8969/stream');
 const textDecoder = new TextDecoder();
 
@@ -101,6 +101,10 @@ function createUpstreamEnvelopeUrl(dsn: ParsedSentryDsn): URL {
   return new URL(`/api/${dsn.projectId}/envelope/`, dsn.origin);
 }
 
+function createTunnelUpstreamUrl(dsn: ParsedSentryDsn): URL {
+  return import.meta.env.DEV ? spotlightStreamUrl : createUpstreamEnvelopeUrl(dsn);
+}
+
 /**
  * Validate only the envelope header line first so we can reject cross-project traffic without
  * eagerly reading and buffering the full payload.
@@ -110,19 +114,28 @@ async function validateEnvelopeRequest(
   configuredDsn?: string
 ): Promise<ParsedSentryDsn> {
   if (!configuredDsn) {
-    throw problemDetails({ status: 503, title: 'Sentry tunnel DSN is unavailable.' });
+    throw problemDetails({
+      status: 503,
+      title: 'Sentry tunnel DSN is unavailable.',
+    });
   }
 
   const expectedDsn = parseSentryDsn(configuredDsn);
 
   if (!expectedDsn) {
-    throw problemDetails({ status: 503, title: 'Sentry tunnel DSN is invalid.' });
+    throw problemDetails({
+      status: 503,
+      title: 'Sentry tunnel DSN is invalid.',
+    });
   }
 
   const envelopeHeaderLine = await readFirstEnvelopeLine(request);
 
   if (!envelopeHeaderLine) {
-    throw problemDetails({ status: 400, title: 'Missing Sentry envelope header.' });
+    throw problemDetails({
+      status: 400,
+      title: 'Missing Sentry envelope header.',
+    });
   }
 
   let envelopeHeader: SentryEnvelopeHeader;
@@ -130,18 +143,27 @@ async function validateEnvelopeRequest(
   try {
     envelopeHeader = JSON.parse(envelopeHeaderLine) as SentryEnvelopeHeader;
   } catch {
-    throw problemDetails({ status: 400, title: 'Invalid Sentry envelope header.' });
+    throw problemDetails({
+      status: 400,
+      title: 'Invalid Sentry envelope header.',
+    });
   }
 
   const envelopeDsn =
     typeof envelopeHeader.dsn === 'string' ? parseSentryDsn(envelopeHeader.dsn) : undefined;
 
   if (!envelopeDsn) {
-    throw problemDetails({ status: 400, title: 'Missing or invalid envelope DSN.' });
+    throw problemDetails({
+      status: 400,
+      title: 'Missing or invalid envelope DSN.',
+    });
   }
 
   if (!isMatchingSentryDsn(expectedDsn, envelopeDsn)) {
-    throw problemDetails({ status: 403, title: 'Envelope DSN does not match the configured Sentry project.' });
+    throw problemDetails({
+      status: 403,
+      title: 'Envelope DSN does not match the configured Sentry project.',
+    });
   }
 
   return expectedDsn;
@@ -163,34 +185,23 @@ function createForwardRequest(request: Request, url: URL): Request {
   });
 }
 
+function getTunnelForwardFailureTitle(): string {
+  return import.meta.env.DEV
+    ? 'Failed to forward Sentry envelope to Spotlight.'
+    : 'Failed to forward Sentry envelope.';
+}
+
 export const sentryTunnelApp = new Hono<{
   Bindings: BffBindings;
 }>().post('/', async c => {
   const parsedDsn = await validateEnvelopeRequest(c.req.raw, c.env.SENTRY_DSN);
 
   try {
-    return await fetch(
-      createForwardRequest(c.req.raw, createUpstreamEnvelopeUrl(parsedDsn))
-    );
+    return await fetch(createForwardRequest(c.req.raw, createTunnelUpstreamUrl(parsedDsn)));
   } catch {
-    return problemDetails({ status: 502, title: 'Failed to forward Sentry envelope.' }).getResponse();
-  }
-});
-
-export const sentrySpotlightStreamApp = new Hono<{
-  Bindings: BffBindings;
-}>().post('/', async c => {
-  // `/api/stream` only exists for local development. Deployed environments should continue to use
-  // the private `/api/tunnel` path that forwards to real Sentry ingest instead of a local sidecar.
-  if (!import.meta.env.DEV) {
-    return problemDetails({ status: 404, title: 'Spotlight stream is only available in local development.' }).getResponse();
-  }
-
-  await validateEnvelopeRequest(c.req.raw, c.env.SENTRY_DSN);
-
-  try {
-    return await fetch(createForwardRequest(c.req.raw, spotlightStreamUrl));
-  } catch {
-    return problemDetails({ status: 502, title: 'Failed to forward Sentry envelope to Spotlight.' }).getResponse();
+    return problemDetails({
+      status: 502,
+      title: getTunnelForwardFailureTitle(),
+    }).getResponse();
   }
 });

@@ -78,7 +78,7 @@ the React Router SSR branch instead of initializing a second server SDK.
 so the Worker build stays on the Worker-safe entrypoint, while `app/entry.client.tsx` continues to
 use `@sentry/react-router` for browser tracing, replay, profiling, and logs.
 
-In local development, the browser SDK sends envelopes to same-origin `/api/stream`, and the BFF forwards those envelopes to the local Spotlight sidecar on `8969`. `deno task dev` starts the Spotlight sidecar first and then launches the frontend and gateway dev tasks, so you do not need to launch the sidecar separately unless you want it on its own.
+In local development, the browser SDK sends envelopes to same-origin `/api/tunnel`, and the BFF forwards those envelopes to the local Spotlight sidecar on `8969`. `deno task dev` starts the Spotlight sidecar first and then launches the frontend and gateway dev tasks, so you do not need to launch the sidecar separately unless you want it on its own.
 
 Start the app, API, and Spotlight together with:
 
@@ -117,7 +117,7 @@ Worker runtime setup:
 
 - Cloudflare Worker runtime DSN now comes from Wrangler `vars.SENTRY_DSN`
 - deployed Worker request ownership stays in `packages/frontend/worker.ts` via `@sentry/cloudflare`
-- browser envelopes are tunneled through the private BFF at `/api/tunnel` so ad blockers have less to complain about
+- browser and local Worker envelopes are tunneled through the private BFF at `/api/tunnel`, which forwards to Spotlight in local development and to Sentry ingest in deployed environments so ad blockers have less to complain about
 - `packages/frontend/wrangler.jsonc` keeps `"no_bundle": true`, `"preserve_file_names": true`, `"find_additional_modules": true`, `base_dir: "../../build"`, and an `ESModule` rule for `assets/**/*.js` so the deployed Worker stays aligned with the Vite-built `build/worker.js`
 - the React Router SSR branch in `app/entry.server.tsx` uses `@sentry/react-router/cloudflare`
   helpers such as `wrapSentryHandleRequest()` and `injectTraceMetaTags()`

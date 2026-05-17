@@ -17,15 +17,15 @@ The current setup covers five different runtime/build surfaces:
 
 | Surface | Package | Entry/config | Current destination |
 | --- | --- | --- | --- |
-| Browser app | `@sentry/react-router` | `app/entry.client.tsx` | Same-origin `/api/stream` in dev, same-origin `/api/tunnel` outside dev |
+| Browser app | `@sentry/react-router` | `app/entry.client.tsx` | Same-origin `/api/tunnel` in every mode |
 | React Router SSR branch | `@sentry/react-router/cloudflare` | `app/entry.server.tsx` | Worker-safe request wrapper, handled SSR error capture, and trace meta tags |
 | Frontend Worker runtime | `@sentry/cloudflare` | `packages/frontend/worker.ts` | Single initialized server SDK for deployed frontend Worker requests |
-| BFF tunnel proxy | `@motss-app/bff` | `packages/bff/src/sentry-tunnel.ts` via `packages/bff/src/api.ts` | Same-origin `/api/tunnel` browser envelope proxy to Sentry ingest |
+| BFF tunnel proxy | `@motss-app/bff` | `packages/bff/src/sentry-tunnel.ts` via `packages/bff/src/api.ts` | Same-origin `/api/tunnel` browser/local-Worker envelope proxy to Spotlight in dev and Sentry ingest outside dev |
 | SSG-only pages | `—` at runtime | `react-router.config.ts` prerender and/or client entry | No server/runtime SDK; use the browser SDK only if the prerendered page hydrates |
 
 Build-time artifact upload is handled separately by Sentry Vite plugins in the Vite build configs.
 
-In development, the browser sends envelopes to same-origin `/api/stream`, and the local BFF worker forwards them to Spotlight on `http://localhost:8969/stream`. Deployed environments keep the private BFF tunnel pointed at Sentry ingest.
+In development, the browser sends envelopes to same-origin `/api/tunnel`, and the local BFF worker forwards them to Spotlight on `http://localhost:8969/stream`. Deployed environments keep that same private BFF tunnel pointed at Sentry ingest.
 
 Important Debug ID requirement:
 
@@ -72,7 +72,7 @@ These are the key files involved in the current setup:
   - manual hydration/bootstrap span
   - idle browser integration span
   - Replay, profiling, view hierarchy, logs
-  - same-origin Spotlight stream in local dev and same-origin Sentry tunnel in deployed modes
+  - same-origin `/api/tunnel` in every mode, with dev forwarding to Spotlight and deployed forwarding to Sentry ingest
 - `app/root.tsx`
   - shared route root
   - uses `@sentry/react-router/cloudflare` so the Worker build does not resolve the Node entrypoint
@@ -133,14 +133,13 @@ Current behavior:
 - reads the session-scoped `app_session_id` cookie and creates a new session cookie in the browser only when one is missing before tagging browser telemetry with `app.session_id`
 - stamps `app.session_id` onto emitted browser span data via `beforeSendSpan`
 - uses the shared `VITE_SENTRY_DSN` env name for the browser config, keeping the production DSN in development
-- sets `tunnel: '/api/stream'` in development so browser envelopes stay same-origin before the BFF forwards them to Spotlight
-- sets `tunnel: '/api/tunnel'` outside development so browser envelopes stay same-origin in deployed modes
+- sets `tunnel: '/api/tunnel'` in every mode so browser envelopes stay same-origin before the BFF forwards them to Spotlight in development or Sentry ingest outside development
 - lets `packages/gateway/src/worker.ts` relay browser tunnel traffic to the BFF in every mode
 
 Important detail:
 
-- in development, the browser keeps the configured DSN but sends envelopes to `/api/stream`
-- the BFF forwards those dev envelopes to `http://localhost:8969/stream`
+- in development, the browser keeps the configured DSN but sends envelopes to `/api/tunnel`
+- the BFF forwards those dev envelopes from `/api/tunnel` to `http://localhost:8969/stream`
 - the local Spotlight sidecar is started by `scripts/dev-spotlight.ts`; no placeholder DSN is needed in the browser bundle
 - the React Router tracing integration stays eager because `HydratedRouter` needs its client instrumentation during hydration
 - the view hierarchy integration is deferred to the idle browser integrations path, so very early errors may not include a DOM snapshot
@@ -155,13 +154,13 @@ The private BFF worker owns the browser envelope proxy in both local development
 
 Current behavior:
 
-- exposes `POST /api/stream` from `packages/bff/src/api.ts` in local development and forwards the raw envelope to Spotlight
 - exposes `POST /api/tunnel` from `packages/bff/src/api.ts`
 - reads only the first envelope header line from the raw request body
 - validates the envelope DSN host and project id against `packages/bff/wrangler.jsonc`'s `SENTRY_DSN`
-- forwards the original envelope bytes to `https://<dsn-host>/api/<project-id>/envelope/`
+- forwards the original envelope bytes to Spotlight on `http://localhost:8969/stream` in local development
+- forwards the original envelope bytes to `https://<dsn-host>/api/<project-id>/envelope/` outside local development
 - keeps browser telemetry same-origin so ad blockers are less likely to block it
-- keeps the dev Spotlight stream same-origin as well, so the browser never has to post directly to `http://localhost:8969/stream`
+- keeps the dev Spotlight stream same-origin as well, so the browser and local Worker runtimes never have to post directly to `http://localhost:8969/stream`
 
 Important detail:
 
@@ -260,7 +259,7 @@ The shared rules in `app/monitoring/sentry.ts` now do three things in local deve
   - `.js`, `.ts`, `.tsx`, `.css`, `.map`, `.woff2`, and similar asset URLs
 2. rename kept catch-all transactions from `GET /*` to the actual request path by reading the
   request URL before the transaction is sent
-3. keep the envelope-reporting route itself (`POST /api/stream`) out of the trace list so the app
+3. keep the envelope-reporting route itself (`POST /api/tunnel`) out of the trace list so the app
   does not trace the act of tracing itself
 
 Important nuance:
@@ -485,9 +484,10 @@ deno task dev
 
 Starts the normal local dev stack. This uses:
 
-- browser -> same-origin `/api/stream` in development
-- BFF `/api/stream` -> Spotlight sidecar on `8969`
-- production only -> same-origin `/api/tunnel` relay
+- browser -> same-origin `/api/tunnel` in development
+- local Worker runtime -> gateway `http://127.0.0.1:8787/api/tunnel` in development
+- BFF `/api/tunnel` -> Spotlight sidecar on `8969` in development
+- deployed environments -> same-origin `/api/tunnel` relay to Sentry ingest
 
 ```bash
 deno task spotlight
@@ -521,7 +521,7 @@ For this project, the intended setup is:
 1. Browser app uses `@sentry/react-router`.
 2. React Router SSR on Workers uses `@sentry/react-router/cloudflare` helpers only.
 3. Cloudflare Worker runtime uses `@sentry/cloudflare` as the single initialized server SDK for the frontend worker.
-4. Dev browser uses same-origin `/api/stream`, and the BFF forwards that stream to the Spotlight sidecar that `deno task dev` starts before launching the frontend and gateway dev tasks.
+4. Browser and local Worker dev telemetry both use same-origin/public `/api/tunnel`, and the BFF forwards that tunnel traffic to the Spotlight sidecar that `deno task dev` starts before launching the frontend and gateway dev tasks.
 5. Worker runtime uses Wrangler runtime vars and sends to real Sentry.
 6. Build-time source maps are uploaded by Sentry Vite plugins when credentials exist.
 
@@ -546,8 +546,8 @@ The correct approach for this setup is:
 
 - use the shared `VITE_SENTRY_DSN` env name in browser config
 - keep the production DSN in development
-- send browser envelopes to same-origin `/api/stream`
-- let the BFF forward those envelopes to the local Spotlight sidecar on `/stream`
+- send browser envelopes to same-origin `/api/tunnel`
+- let the BFF forward those envelopes to the local Spotlight sidecar on `/stream` in development and to Sentry ingest outside development
 
 ### 3. The local worker split keeps responsibilities clear
 
@@ -557,7 +557,7 @@ For local development to stay close to production, this repo keeps the responsib
 
 - the gateway owns browser-facing routing
 - the frontend worker owns page shell, asset, and SSR handling
-- the BFF owns the deployed `/api/tunnel` proxy and the `/api/*` surface
+- the BFF owns the `/api/tunnel` proxy in every mode and the `/api/*` surface
 
 That split keeps the local multi-process Cloudflare setup aligned with the deployed worker topology.
 
@@ -633,7 +633,7 @@ Use this checklist when changing the setup:
 
 As of the current setup:
 
-- browser dev -> Spotlight
+- browser dev -> Spotlight through `/api/tunnel`
 - browser non-dev -> real Sentry
 - Deno dev `/api/*` routes -> explicit server transactions in Spotlight
 - Worker runtime -> real Sentry with `app_session_id` correlation
