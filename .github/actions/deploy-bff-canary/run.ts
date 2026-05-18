@@ -23,7 +23,7 @@ await withLogGroup('🚀 Building BFF', async () => {
       'deno',
       'task',
       '--cwd=packages/bff',
-      'build',
+      'build:canary',
     ]
   );
 });

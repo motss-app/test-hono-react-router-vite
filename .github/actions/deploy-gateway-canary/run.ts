@@ -15,7 +15,7 @@ await retry(3)(
     'deno',
     'task',
     '--cwd=packages/gateway',
-    'build',
+    'build:canary',
   ]
 );
 

@@ -17,6 +17,7 @@
   "name": "@motss-app/bff",
   "tasks": {
     "build": "deno run -A npm:vite build",
+    "build:canary": "deno run -A npm:vite build --mode canary",
     "typecheck": "deno check --unstable-tsgo src/api.ts src/worker.ts vite.config.ts"
   },
   "version": "0.1.0"
