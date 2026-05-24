@@ -20,6 +20,20 @@ const loaderIoToken = [
   loaderIoTokenSuffix,
 ].join('');
 const loaderIoTokenPath = `/${loaderIoToken}.txt`;
+const loadtestVerifyTokenSuffix = [
+  'ffdb9763',
+  '681d115a',
+  'a602d6b1',
+  'f667926c',
+  'ffcdc495',
+  'ab5686cf',
+  '7a3fa639',
+  '8c69396e',
+].join('');
+const loadtestVerifyToken = [
+  loadtestVerifyTokenSuffix,
+].join('');
+const loadtestVerifyTokenPath = '/loadtest-verify-1fe8c75826607e59.txt';
 
 const app = new Hono<{
   Bindings: GatewayBindings;
@@ -68,6 +82,12 @@ app.get('/healthz', c => c.text('gateway ok'));
 
 app.all(loaderIoTokenPath, c =>
   c.text(loaderIoToken, 200, {
+    'Cache-Control': 'no-store',
+  })
+);
+
+app.all(loadtestVerifyTokenPath, c =>
+  c.text(loadtestVerifyToken, 200, {
     'Cache-Control': 'no-store',
   })
 );
