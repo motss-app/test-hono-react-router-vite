@@ -77,6 +77,8 @@ For prerendered HTML:
 - `vite-plugins/copy-headers.ts` reads each prerendered HTML file
 - it hashes inline `<script>` and `<style>` blocks
 - it appends route-specific `Cache-Control` and CSP entries to `build/client/_headers`
+- generated SSG HTML uses `Cache-Control: no-transform` so Cloudflare does not inject
+  per-response JavaScript Detection snippets after the build has computed CSP hashes
 - Cloudflare Analytics reuses `cloudflareAnalyticsStyleHashes`, so the generated SSG policy matches the runtime SSR policy.
 - it also appends `Content-Security-Policy-Report-Only`, `Report-To`, and `Reporting-Endpoints` so Sentry can receive CSP security reports from prerendered pages
 - the Sentry report URI is built from `SENTRY_DSN` and carries `sentry_environment` and `sentry_release`, so canary and production reports stay attributable to the right build
@@ -126,6 +128,7 @@ The reporting URI is derived from the Sentry DSN and includes the current build 
 - Using `integrity` for inline code
 - Using a nonce for static SSG HTML
 - Assuming same-origin inline code is allowed without a nonce or hash
+- Expecting build-time CSP hashes to cover CDN-injected inline scripts
 - Treating `integrity` as a replacement for CSP
 - Forgetting to thread the nonce through React Router's component tree, causing hydration failures on SSR pages
 
