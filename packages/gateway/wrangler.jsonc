@@ -1,6 +1,6 @@
 {
   "$schema": "../../node_modules/wrangler/config-schema.json",
-  "compatibility_date": "2026-04-25",
+  "compatibility_date": "2026-05-13",
   "compatibility_flags": [
     "enable_request_signal",
     "nodejs_als",
@@ -13,6 +13,14 @@
   },
   "env": {
     "canary": {
+      "main": "./dist/edge_gateway/index.js",
+      "no_bundle": true,
+      "routes": [
+        {
+          "custom_domain": true,
+          "pattern": "hono-react-router-vite-canary.motss.fyi"
+        }
+      ],
       "services": [
         {
           "binding": "FRONTEND",
@@ -23,20 +31,49 @@
           "service": "bff-api-canary"
         }
       ],
-      "routes": [
+      "vars": {
+        "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
+      }
+    },
+    "dev": {
+      "main": "./src/worker.ts",
+      "routes": [],
+      "services": [
         {
-          "custom_domain": true,
-          "pattern": "hono-react-router-vite-canary.motss.fyi"
+          "binding": "FRONTEND",
+          "service": "frontend-app-dev"
+        },
+        {
+          "binding": "BFF",
+          "service": "bff-api-dev"
         }
-      ]
+      ],
+      "vars": {
+        "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
+      }
     },
     "production": {
+      "main": "./dist/edge_gateway/index.js",
+      "no_bundle": true,
       "routes": [
         {
           "custom_domain": true,
           "pattern": "hono-react-router-vite.motss.fyi"
         }
-      ]
+      ],
+      "services": [
+        {
+          "binding": "FRONTEND",
+          "service": "frontend-app-production"
+        },
+        {
+          "binding": "BFF",
+          "service": "bff-api-production"
+        }
+      ],
+      "vars": {
+        "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
+      }
     }
   },
   "main": "./src/worker.ts",
@@ -60,8 +97,8 @@
   "placement": {
     "mode": "smart"
   },
-  "preview_urls": true,
   "preserve_file_names": true,
+  "preview_urls": true,
   "services": [
     {
       "binding": "FRONTEND",
@@ -73,5 +110,8 @@
     }
   ],
   "upload_source_maps": true,
+  "vars": {
+    "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
+  },
   "workers_dev": true
 }

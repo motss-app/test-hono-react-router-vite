@@ -9,6 +9,7 @@ import { HonoContext } from '../router-context.ts';
 import { iconStyles } from '../styles/icon.stylex.ts';
 import { colorTokens, fontWeightTokens, themeConditions } from '../styles/tokens.stylex.ts';
 import type { HonoEnv } from '../types/hono.types.ts';
+import { createBackgroundSvgPreloadLinks } from '../utils/background-svg-preload.ts';
 import type { Route } from './+types/ssr.ts';
 
 const SIMULATION_DELAY_MS = 5;
@@ -82,6 +83,7 @@ const s = create({
       },
       transform: 'translate3d(0, -0.125rem, 0)',
     },
+    alignItems: 'center',
     animationDelay: '320ms',
     animationDuration: '700ms',
     animationFillMode: 'both',
@@ -105,9 +107,11 @@ const s = create({
     display: 'inline-grid',
     fontWeight: fontWeightTokens.fontWeightSemibold,
     gap: '0.5rem',
+    gridAutoFlow: 'column',
     padding: '0.92rem 1.45rem',
     textDecoration: 'none',
     transition: 'background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease',
+    whiteSpace: 'nowrap',
   },
   dataLabel: {
     color: {
@@ -116,7 +120,6 @@ const s = create({
     },
     fontSize: '0.86rem',
     letterSpacing: '0.08em',
-    marginBottom: '0.3rem',
     textTransform: 'uppercase',
   },
   dataList: {
@@ -162,7 +165,7 @@ const s = create({
     animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
     color: {
       [themeConditions.dataThemeDark]: colorTokens.slate300,
-      default: colorTokens.slate800,
+      default: colorTokens.slate900,
     },
     fontSize: '1rem',
     lineHeight: '1.7',
@@ -435,6 +438,12 @@ type SsrStyles = {
 };
 
 const styles = s as SsrStyles;
+
+export const links: Route.LinksFunction = () =>
+  createBackgroundSvgPreloadLinks([
+    '/assets/ssr-hero-dark.svg',
+    '/assets/ssr-hero-light.svg',
+  ]);
 
 /** This loader makes this page SSR - it runs on EVERY request */
 export async function loader({ context, request }: Route.LoaderArgs) {

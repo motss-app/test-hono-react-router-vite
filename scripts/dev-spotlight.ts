@@ -15,7 +15,7 @@ function getSpotlightLaunchCommand(): {
   if (binary) {
     return {
       args:
-        useMcp === '1' || useMcp?.toLowerCase() === 'true'
+        useMcp === '1' || useMcp.toLowerCase() === 'true'
           ? [
               'mcp',
             ]
@@ -28,7 +28,7 @@ function getSpotlightLaunchCommand(): {
     args: [
       'dlx',
       '@spotlightjs/spotlight',
-      ...(useMcp === '1' || useMcp?.toLowerCase() === 'true'
+      ...(useMcp === '1' || useMcp.toLowerCase() === 'true'
         ? [
             'mcp',
           ]
@@ -39,11 +39,10 @@ function getSpotlightLaunchCommand(): {
 }
 
 const processes: ManagedProcess[] = [];
+const textEncoder = new TextEncoder();
 
 function logWarning(message: string): void {
-  Deno.stderr.write(new TextEncoder().encode(`${message}\n`)).catch(() => {
-    // ignore stderr write errors
-  });
+  Deno.stderr.writeSync(textEncoder.encode(`${message}\n`));
 }
 
 let spotlightProcess: ManagedProcess | undefined;
@@ -56,6 +55,7 @@ await clearPorts([
 
 try {
   const launch = getSpotlightLaunchCommand();
+
   spotlightProcess = {
     child: new Deno.Command(launch.cmd, {
       args: launch.args,
@@ -68,7 +68,6 @@ try {
 
   processes.push(spotlightProcess);
 
-  // Keep it running but do not treat Spotlight sidecar failure as fatal.
   spotlightProcess.child.status
     .then(status => {
       if (!status.success) {

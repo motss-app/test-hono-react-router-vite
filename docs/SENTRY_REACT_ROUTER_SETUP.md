@@ -20,7 +20,6 @@ For the broader build, environment-variable, and Spotlight setup, see
 | --- | --- | --- |
 | Browser app | `@sentry/react-router` | Browser errors, tracing, replay, profiling, logs |
 | Shared SSR-included route modules | `@sentry/react-router/cloudflare` | `app/root.tsx`, `app/routes/hono-rpc.tsx`, and any other modules shared by the browser and Worker builds |
-| Deno local/runtime server | `@sentry/deno` | Local server/runtime ownership in Deno flows |
 | Cloudflare Worker runtime | `@sentry/cloudflare` | Single initialized server SDK for deployed Worker requests |
 | React Router SSR branch on Worker | `@sentry/react-router/cloudflare` | Worker-safe helper layer around `handleRequest`, trace meta tags, handled SSR error capture |
 
@@ -34,10 +33,9 @@ Important nuance:
 Source-map upload for this stack is split by build surface, not by a catch-all `build/**/*.map` glob:
 
 - React Router build: `./build/client/**/*.map` and `./build/server/**/*.map`
-- Deno/Hono build: `./build/assets/**/*.map` and `./build/server.js.map`
-- Worker build: `useModernDebugIdUpload: true` with `./build/assets/**/*.map` and `./build/worker.js.map` kept in `filesToDeleteAfterUpload`
+- Frontend Worker build: `./build/assets/**/*.map` and `./build/worker.js.map`
 
-That means the Worker build does not need `uploadLegacySourcemaps`; the modern Debug-ID path discovers the built JS artifacts directly and only uses the glob list to clean up the generated maps after upload.
+That means the frontend Worker build does not need `uploadLegacySourcemaps`; the modern Debug-ID path discovers the built JS artifacts directly and only uses the glob list to clean up the generated maps after upload.
 
 For Debug-ID mode, treat this as an artifact pair requirement:
 
@@ -68,16 +66,16 @@ Use this rule of thumb:
 
 In production, request ownership looks like this:
 
-1. `@sentry/cloudflare` wraps the exported Worker handler in `app/worker.ts`.
-2. Hono dispatches `/api/*` routes first.
-3. Non-API requests fall through to the React Router catch-all in `app/ssr-handler.ts`.
+1. `@sentry/cloudflare` wraps the exported Worker handler in `packages/frontend/worker.ts`.
+2. The frontend worker serves static asset requests before SSR handling.
+3. Document, data, and route requests fall through to the React Router catch-all in `app/ssr-handler.ts`.
 4. `app/entry.server.tsx` wraps the React Router SSR branch with `wrapSentryHandleRequest(...)`.
 
 That means:
 
-- `/api/*` is handled by Hono route handlers
+- `/api/*` stays on the gateway/BFF side of the stack rather than the frontend worker
 - `/ssr`, `__manifest`, document requests, and data requests are handled by React Router
-- all of those requests still belong to the same Worker runtime request that started in `app/worker.ts`
+- all of those requests still belong to the same Worker runtime request that started in `packages/frontend/worker.ts`
 
 The important distinction is route ownership versus runtime ownership:
 
@@ -107,7 +105,7 @@ Use these Worker-safe helpers instead:
 
 ## Current repo pattern
 
-`app/worker.ts` remains the single initialized server SDK boundary:
+`packages/frontend/worker.ts` remains the single initialized server SDK boundary:
 
 ```ts
 import { withSentry } from '@sentry/cloudflare';
@@ -180,7 +178,7 @@ That does not mean the setup is conflicting. It means the server/runtime owner i
 Do not call `Sentry.init(...)`, `withSentry(...)`, or any equivalent runtime initialization inside
 `app/entry.server.tsx` or `app/ssr-handler.ts`.
 
-On the Worker path, the runtime client is already initialized in `app/worker.ts`.
+On the Worker path, the runtime client is already initialized in `packages/frontend/worker.ts`.
 
 ### 2. Importing Node-only React Router server helpers in the Worker build
 
@@ -210,13 +208,13 @@ entrypoint and its build-time dependencies.
 
 When changing the Worker-side React Router Sentry setup, verify locally:
 
-- `vite.hono.config.ts`, `vite.react-router.config.ts`, and `vite.worker.config.ts` minify their outputs
+- `packages/frontend/vite.react-router.config.ts` and `packages/frontend/vite.worker.config.ts` minify their outputs
 - `wrangler.jsonc` keeps `"no_bundle": true`, `"preserve_file_names": true`, `"find_additional_modules": true`, `base_dir: "./build"`, and `minify: false` so Wrangler does not re-bundle, rename, or omit the generated Worker chunks after source maps are uploaded
-- `vite.react-router.config.ts`, `vite.hono.config.ts`, and `vite.worker.config.ts` each keep their own explicit source-map glob patterns
+- `packages/frontend/vite.react-router.config.ts` keeps its own explicit source-map glob patterns, and `packages/frontend/vite.worker.config.ts` keeps its modern Debug-ID cleanup glob list
 - the Worker build sets `useModernDebugIdUpload: true` and keeps `./build/assets/**/*.map` plus `./build/worker.js.map` only in `filesToDeleteAfterUpload`
 - the Worker deploy includes the generated `worker.js` plus `assets/**/*.js` chunks from that same build output so Debug IDs match uploaded maps
 - the build configs pass explicit Sentry dist strings at the callsite (`react-router-dev`, `react-router`, `hono`, and `worker`), so release attribution is stable across build modes
-- `app/worker.ts` remains the only place that initializes the Worker runtime SDK
+- `packages/frontend/worker.ts` remains the only place that initializes the Worker runtime SDK
 - `app/entry.server.tsx` only uses Worker-safe React Router helper imports
 - no Node-only React Router server helpers remain in the Worker path
 

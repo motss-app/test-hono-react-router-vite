@@ -20,11 +20,11 @@
       "@motss-app/bff/*": [
         "./packages/bff/src/*"
       ],
-      "@motss-app/shared": [
-        "./packages/shared/src/bindings.ts"
+      "@motss-app/frontend/monitoring/sentry": [
+        "./packages/frontend/app/monitoring/sentry.ts"
       ],
-      "@motss-app/shared/*": [
-        "./packages/shared/src/*"
+      "@motss-app/frontend/utils/*": [
+        "./packages/frontend/app/utils/*"
       ]
     },
     "resolveJsonModule": true,
@@ -42,7 +42,7 @@
   },
   "include": [
     "./*.ts",
-    "app/**/*",
+    "packages/frontend/app/**/*",
     "vite-plugins/**/*.ts"
   ]
 }

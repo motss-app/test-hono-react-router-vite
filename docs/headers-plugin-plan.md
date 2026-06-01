@@ -24,11 +24,11 @@ The plugin hooks into `writeBundle` to copy the environment-specific headers fil
   4. Copy file to `dest` using `Deno.copyFileSync`.
 
 ### Configuration
-- **`vite.react-router.config.ts`**:
+- **`packages/frontend/vite.react-router.config.ts`**:
   - Imports `headersCopyPlugin`.
   - Passes `mode`, `headersDir: 'headers'`, and `dest: 'build/client/_headers'`.
   - This ensures the headers are copied during the client build.
-- **`vite.hono.config.ts`**:
+- **`packages/frontend/vite.worker.config.ts`**:
   - **Does NOT** include the plugin.
   - Relies on `emptyOutDir: false` to preserve the `build/client` folder created by the React Router build.
 
@@ -40,7 +40,7 @@ The plugin hooks into `writeBundle` to copy the environment-specific headers fil
                v
     +-----------------------------+
     | 1. Client Build (RR7)       |
-    | vite.react-router.config.ts |
+    | packages/frontend/vite.react-router.config.ts |
     +-------------+---------------+
                   |
                   | (writeBundle)
@@ -55,8 +55,8 @@ The plugin hooks into `writeBundle` to copy the environment-specific headers fil
                    |
                    v
     +-----------------------------+
-    | 2. Server Build (Hono)      |
-    | vite.hono.config.ts         |
+    | 2. Frontend Worker Build    |
+    | packages/frontend/vite.worker.config.ts |
     +-------------+---------------+
                   |
                   | (emptyOutDir: false)
@@ -66,8 +66,8 @@ The plugin hooks into `writeBundle` to copy the environment-specific headers fil
 ```
 
 1. `deno task build` triggers:
-   - `vite build --config vite.react-router.config.ts` (Client Build) -> **Plugin runs, copies headers**.
-   - `vite build --config vite.hono.config.ts` (Server Build) -> **Preserves headers**.
+  - `vite build --config packages/frontend/vite.react-router.config.ts` (Client Build) -> **Plugin runs, copies headers**.
+  - `vite build --config packages/frontend/vite.worker.config.ts` (Frontend Worker Build) -> **Preserves headers**.
 
 ## Caching Expectations
 

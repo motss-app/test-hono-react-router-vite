@@ -1,25 +1,38 @@
 import { getIsolationScope, logger, metrics, setTag, withSentry } from '@sentry/cloudflare';
+import { Hono } from 'hono';
+import { timing } from 'hono/timing';
 
-import { createApp } from '../../app/app.ts';
+import { logSentryEnvSnapshot } from '../../vite-utils/sentry-env-log.ts';
 import {
   applyAppSessionIdToSpan,
   appSessionIdTagName,
   attachAppSessionCookie,
   createAppSessionId,
   getAppSessionIdFromCookieString,
-} from '../../app/monitoring/app-session.ts';
+} from './app/monitoring/app-session.ts';
 import {
   createCloudflareSentryOptions,
   createRequestMetricAttributes,
   isDevelopmentSentryMode,
   sentryMetricNames,
-} from '../../app/monitoring/sentry.ts';
-import { createSsrHandler } from '../../app/ssr-handler.ts';
-import type { HonoEnv } from '../../app/types/hono.types.ts';
-import { PromiseFrom } from '../../app/utils/promise-from.ts';
-import { logSentryEnvSnapshot } from '../../vite-utils/sentry-env-log.ts';
+} from './app/monitoring/sentry.ts';
+import { createSsrHandler } from './app/ssr-handler.ts';
+import type { HonoEnv } from './app/types/hono.types.ts';
+import { PromiseFrom } from './app/utils/promise-from.ts';
 
-const app = createApp();
+const app = new Hono<HonoEnv>()
+  .use('*', timing())
+  .get('/assets/*', async c => {
+    const response = await c.env.ASSETS.fetch(c.req.raw);
+
+    return new Response(response.body, {
+      headers: new Headers(response.headers),
+      status: response.status,
+      statusText: response.statusText,
+    });
+  })
+  .get('/healthz', c => c.text('frontend ok'));
+
 const isDevSentryMode = isDevelopmentSentryMode(import.meta.env.MODE);
 let hasLoggedWorkerEnvSnapshot = false;
 
@@ -111,10 +124,8 @@ function recordWorkerRequestError(
   });
 }
 
-// Production: Serve React Router SSR
-if (import.meta.env.PROD) {
-  createSsrHandler(app);
-}
+// Serve React Router SSR in both dev and production.
+createSsrHandler(app);
 
 export default withSentry<HonoEnv['Bindings']>(
   env => {
@@ -131,9 +142,7 @@ export default withSentry<HonoEnv['Bindings']>(
           sentryAuthToken: undefined,
           sentryDsn: env.SENTRY_DSN,
           sentryRelease: import.meta.env.SENTRY_RELEASE,
-          sentrySpotlight: undefined,
           viteSentryDsn: undefined,
-          viteSentrySpotlight: undefined,
         },
       });
 

@@ -1,6 +1,6 @@
 {
   "$schema": "../../node_modules/wrangler/config-schema.json",
-  "compatibility_date": "2026-04-25",
+  "compatibility_date": "2026-05-13",
   "compatibility_flags": [
     "enable_request_signal",
     "nodejs_als",
@@ -12,8 +12,26 @@
     "inspector_port": 9231
   },
   "env": {
-    "canary": {},
-    "production": {}
+    "canary": {
+      "main": "./dist/bff_api/index.js",
+      "no_bundle": true,
+      "vars": {
+        "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
+      }
+    },
+    "dev": {
+      "main": "./src/worker.ts",
+      "vars": {
+        "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
+      }
+    },
+    "production": {
+      "main": "./dist/bff_api/index.js",
+      "no_bundle": true,
+      "vars": {
+        "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
+      }
+    }
   },
   "main": "./src/worker.ts",
   "minify": false,
@@ -36,8 +54,8 @@
   "placement": {
     "mode": "smart"
   },
-  "preview_urls": false,
   "preserve_file_names": true,
+  "preview_urls": false,
   "upload_source_maps": true,
   "workers_dev": false
 }

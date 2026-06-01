@@ -5,4 +5,5 @@ export interface WorkerFetcher {
 export interface GatewayBindings {
   FRONTEND: WorkerFetcher;
   BFF: WorkerFetcher;
+  SENTRY_DSN?: string;
 }

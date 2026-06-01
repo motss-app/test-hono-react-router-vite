@@ -2,7 +2,6 @@ interface ImportMetaEnv {
   PORT: string;
   SENTRY_RELEASE?: string;
   VITE_SENTRY_DSN?: string;
-  VITE_SENTRY_SPOTLIGHT?: string;
 }
 
 interface ImportMeta {

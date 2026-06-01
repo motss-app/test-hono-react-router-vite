@@ -10,9 +10,7 @@ interface SentryEnvSnapshotValues {
   sentryAuthToken: string | undefined;
   sentryDsn: string | undefined;
   sentryRelease: string | undefined;
-  sentrySpotlight: string | undefined;
   viteSentryDsn: string | undefined;
-  viteSentrySpotlight: string | undefined;
 }
 
 export interface SentryEnvSnapshot {
@@ -50,7 +48,7 @@ function redactSecret(value?: string): string {
   return value ? '[redacted]' : '[missing]';
 }
 
-export function createSentryEnvSnapshot(snapshot: SentryEnvSnapshot): Record<string, unknown> {
+function createSentryEnvSnapshot(snapshot: SentryEnvSnapshot): Record<string, unknown> {
   return {
     deploymentBuild: snapshot.deploymentBuild,
     mode: snapshot.mode,
@@ -60,40 +58,9 @@ export function createSentryEnvSnapshot(snapshot: SentryEnvSnapshot): Record<str
       SENTRY_AUTH_TOKEN: redactSecret(snapshot.values.sentryAuthToken),
       SENTRY_DSN: describeDsn(snapshot.values.sentryDsn),
       SENTRY_RELEASE: snapshot.values.sentryRelease ?? '[missing]',
-      SENTRY_SPOTLIGHT: snapshot.values.sentrySpotlight ?? '[missing]',
       VITE_SENTRY_DSN: describeDsn(snapshot.values.viteSentryDsn),
-      VITE_SENTRY_SPOTLIGHT: snapshot.values.viteSentrySpotlight ?? '[missing]',
     },
   };
-}
-
-export function createBuildSentryEnvSnapshot(
-  source: string,
-  mode: string
-): Record<string, unknown> {
-  const port = Deno.env.get('PORT') ?? undefined;
-  const sentryAuthToken = Deno.env.get('SENTRY_AUTH_TOKEN') ?? undefined;
-  const sentryDsn = Deno.env.get('SENTRY_DSN') ?? undefined;
-  const sentryRelease = Deno.env.get('SENTRY_RELEASE') ?? undefined;
-  const sentrySpotlight = Deno.env.get('SENTRY_SPOTLIGHT') ?? undefined;
-  const viteSentryDsn = Deno.env.get('VITE_SENTRY_DSN') ?? undefined;
-  const viteSentrySpotlight = Deno.env.get('VITE_SENTRY_SPOTLIGHT') ?? undefined;
-
-  return createSentryEnvSnapshot({
-    deploymentBuild: Deno.env.get('DEPLOYMENT_BUILD') === 'true',
-    mode,
-    phase: 'build',
-    source,
-    values: {
-      port,
-      sentryAuthToken,
-      sentryDsn,
-      sentryRelease,
-      sentrySpotlight,
-      viteSentryDsn,
-      viteSentrySpotlight,
-    },
-  });
 }
 
 export function logSentryEnvSnapshot(snapshot: SentryEnvSnapshot): Record<string, unknown> {

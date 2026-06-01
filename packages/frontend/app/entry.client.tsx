@@ -16,24 +16,21 @@ import { HydratedRouter } from 'react-router/dom';
 
 import './polyfills/request-idle-callback.ts';
 
-import { logSentryEnvSnapshot } from '../vite-utils/sentry-env-log.ts';
+import { logSentryEnvSnapshot } from '../../../vite-utils/sentry-env-log.ts';
 import {
   applyAppSessionIdToSpan,
   appSessionIdTagName,
   getBrowserAppSessionId,
 } from './monitoring/app-session.ts';
-import {
-  createBrowserSentryOptions,
-  getSpotlightSidecarUrl,
-  isDevelopmentSentryMode,
-} from './monitoring/sentry.ts';
-import {
-  createSpotlightBrowserTransport,
-  type SpotlightBrowserTransportOptions,
-} from './monitoring/sentry-spotlight-browser.ts';
+import { createBrowserSentryOptions, isDevelopmentSentryMode } from './monitoring/sentry.ts';
 
 const isDevSentryMode = isDevelopmentSentryMode(import.meta.env.MODE);
-const spotlightSidecarUrl = getSpotlightSidecarUrl(import.meta.env.VITE_SENTRY_SPOTLIGHT);
+const browserTunnel = '/api/tunnel';
+const browserDsn = import.meta.env.VITE_SENTRY_DSN;
+// The browser always posts envelopes to the same-origin `/api/tunnel` endpoint first.
+// In local development the BFF forwards those raw envelopes to Spotlight; deployed modes
+// forward the same tunnel traffic to real Sentry ingest. That keeps browser traffic
+// same-origin everywhere while preserving the local multi-worker trace story.
 // Get the current app session ID for tagging Sentry events
 const appSessionId = getBrowserAppSessionId();
 const browserWindow = window as Window & {
@@ -67,11 +64,9 @@ console.info(
     values: {
       port: undefined,
       sentryAuthToken: undefined,
-      sentryDsn: import.meta.env.VITE_SENTRY_DSN,
+      sentryDsn: browserDsn,
       sentryRelease: import.meta.env.SENTRY_RELEASE,
-      sentrySpotlight: undefined,
-      viteSentryDsn: undefined,
-      viteSentrySpotlight: import.meta.env.VITE_SENTRY_SPOTLIGHT,
+      viteSentryDsn: import.meta.env.VITE_SENTRY_DSN,
     },
   })
 );
@@ -84,12 +79,9 @@ const tracing = reactRouterTracingIntegration({
 });
 
 init({
-  ...createBrowserSentryOptions(
-    import.meta.env.MODE,
-    import.meta.env.VITE_SENTRY_DSN,
-    import.meta.env.SENTRY_RELEASE
-  ),
+  ...createBrowserSentryOptions(import.meta.env.MODE, browserDsn, import.meta.env.SENTRY_RELEASE),
   beforeSendSpan: span => applyAppSessionIdToSpan(span, appSessionId),
+  tunnel: browserTunnel,
   ...(appSessionId
     ? {
         initialScope: {
@@ -100,11 +92,6 @@ init({
       }
     : {}),
   integrations: [
-    // consoleLoggingIntegration({
-    //   levels: [
-    //     'log',
-    //     'info',
-    //     'warn',
     //     'error',
     //     'debug',
     //   ],
@@ -112,12 +99,6 @@ init({
     tracing,
     elementTimingIntegration(),
   ],
-  ...(isDevSentryMode
-    ? {
-        transport: (options: SpotlightBrowserTransportOptions) =>
-          createSpotlightBrowserTransport(options, spotlightSidecarUrl),
-      }
-    : {}),
 });
 
 // Set the app session ID tag on the active Sentry scope after initialization
@@ -134,13 +115,13 @@ if (isDevSentryMode) {
     appSessionId,
     initializedAt,
     mode: import.meta.env.MODE,
-    sidecarUrl: spotlightSidecarUrl,
+    tunnel: browserTunnel,
   });
-  logger.info('Sentry Spotlight browser logging enabled', {
+  logger.info('Sentry browser Spotlight tunnel enabled', {
     appSessionId,
     initializedAt,
     runtime: 'browser',
-    sidecarUrl: spotlightSidecarUrl,
+    tunnel: browserTunnel,
   });
   captureMessage('entry.client initialized', {
     level: 'info',
@@ -154,6 +135,9 @@ browserBootstrapSpan = startInactiveSpan({
     'app.entry': 'app/entry.client.tsx',
     'app.phase': 'hydrate',
   },
+  // This is a short child span that brackets hydration work. It is not meant to become the
+  // root page transaction; the page/load transaction still comes from the browser tracing
+  // integration and continues the SSR trace metadata injected by the server.
   name: 'Client bootstrap',
   op: 'ui.load',
 });
@@ -165,7 +149,7 @@ startTransition(() => {
       <BrowserBootstrapSpanEnder />
       {/* Keep this prop wiring for future Framework Mode support; do not remove it lightly. */}
       <HydratedRouter
-        unstable_instrumentations={[
+        instrumentations={[
           tracing.clientInstrumentation,
         ]}
       />

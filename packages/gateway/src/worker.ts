@@ -1,6 +1,10 @@
-import type { GatewayBindings } from '@motss-app/shared';
+import { withSentry } from '@sentry/cloudflare';
 import { Hono } from 'hono';
 import { timing, wrapTime } from 'hono/timing';
+import { problemDetailsHandler } from 'hono-problem-details';
+
+import { createCloudflareSentryOptions } from '../../frontend/app/monitoring/sentry.ts';
+import type { GatewayBindings } from './bindings.ts';
 
 const LOCAL_FRONTEND_ORIGIN = 'http://localhost:5173';
 // Split the Loader.io token to avoid secret-scanner false positives.
@@ -35,9 +39,11 @@ const loadtestVerifyToken = [
 ].join('');
 const loadtestVerifyTokenPath = '/loadtest-verify-1fe8c75826607e59.txt';
 
-const app = new Hono<{
+type GatewayEnv = {
   Bindings: GatewayBindings;
-}>();
+};
+
+const app = new Hono<GatewayEnv>();
 
 function isWebSocketUpgrade(request: Request): boolean {
   return request.headers.get('upgrade')?.toLowerCase() === 'websocket';
@@ -49,6 +55,8 @@ app.use(
     totalDescription: 'Gateway total',
   })
 );
+
+app.onError(problemDetailsHandler());
 
 function cloneResponse(response: Response): Response {
   if (response.status === 101 || response.status < 200 || response.status > 599) {
@@ -92,13 +100,28 @@ app.all(loadtestVerifyTokenPath, c =>
   })
 );
 
-app.all('/api', async c =>
-  cloneResponse(await wrapTime(c, 'bff', c.env.BFF.fetch(c.req.raw), 'BFF service binding'))
-);
+app.all('/api/*', async c => {
+  return cloneResponse(await wrapTime(c, 'bff', c.env.BFF.fetch(c.req.raw), 'BFF service binding'));
+});
 
-app.all('/api/*', async c =>
-  cloneResponse(await wrapTime(c, 'bff', c.env.BFF.fetch(c.req.raw), 'BFF service binding'))
-);
+app.all('/fe/:path', async c => {
+  const path = c.req.param('path');
+  const frontendRequest = new Request(
+    new URL(`/${path}`, shouldUseLocalProxy(c.req.raw) ? LOCAL_FRONTEND_ORIGIN : c.req.url),
+    c.req.raw
+  );
+
+  return cloneResponse(
+    await wrapTime(
+      c,
+      'frontend',
+      shouldUseLocalProxy(c.req.raw)
+        ? fetch(frontendRequest)
+        : c.env.FRONTEND.fetch(frontendRequest),
+      'Frontend route'
+    )
+  );
+});
 
 app.all('*', async c =>
   cloneResponse(
@@ -113,4 +136,23 @@ app.all('*', async c =>
   )
 );
 
-export default app;
+export default withSentry<GatewayBindings>(
+  // The gateway is the browser-facing trace root for page and API requests in this architecture.
+  // Child hops into the frontend worker and BFF continue from this request rather than opening a
+  // separate unrelated local trace tree.
+  env =>
+    createCloudflareSentryOptions(
+      import.meta.env.MODE,
+      env.SENTRY_DSN,
+      import.meta.env.SENTRY_RELEASE
+    ),
+  {
+    fetch(
+      request: Request,
+      env: GatewayBindings,
+      executionContext: ExecutionContext
+    ): Promise<Response> {
+      return Promise.resolve(app.fetch(request, env, executionContext));
+    },
+  }
+);

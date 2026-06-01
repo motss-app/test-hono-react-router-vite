@@ -10,6 +10,7 @@ import { createImportMetaEnvDefine } from '../../vite-utils/import-meta-env.ts';
 import { loadConfigEnvironment } from '../../vite-utils/load-env.ts';
 import { readEnv } from '../../vite-utils/read-env.ts';
 import { createSentryVitePluginOptions } from '../../vite-utils/sentry-build.ts';
+import { createBuildSentryEnvSnapshot } from '../../vite-utils/sentry-build-env-log.ts';
 import {
   sentryBrowserProfilingCodeSplittingGroup,
   sentryCodeSplittingGroup,
@@ -18,12 +19,22 @@ import {
   sentryHttpClientCodeSplittingGroup,
   sentryViewHierarchyCodeSplittingGroup,
 } from '../../vite-utils/sentry-chunking.ts';
-import { createBuildSentryEnvSnapshot } from '../../vite-utils/sentry-env-log.ts';
 
 const repoRootPath = new URL('../../', import.meta.url).pathname;
+const publicDirPath = new URL('./public', import.meta.url).pathname;
 const reactRouterSourceMapsGlobPatterns = [
   './build/client/**/*.map',
   './build/server/**/*.map',
+];
+const frontendResolveAlias = [
+  {
+    find: /^@motss-app\/frontend\/utils\/?(.*)/,
+    replacement: `${repoRootPath}packages/frontend/app/utils/$1`,
+  },
+  {
+    find: /^@motss-app\/frontend\/monitoring\/sentry$/,
+    replacement: `${repoRootPath}packages/frontend/app/monitoring/sentry.ts`,
+  },
 ];
 
 function logReactRouterSentryEnvSnapshot(mode: string): void {
@@ -81,6 +92,7 @@ export default function createViteConfig(config: ConfigEnv) {
   return {
     build: reactRouterBuildConfig,
     define: createImportMetaEnvDefine({
+      SENTRY_DSN: readEnv('SENTRY_DSN'),
       SENTRY_RELEASE: isDeploymentBuild
         ? readRequiredEnv('SENTRY_RELEASE', {
             source: 'packages/frontend/vite.react-router.config.ts',
@@ -108,7 +120,9 @@ export default function createViteConfig(config: ConfigEnv) {
           }),
           ...sentryPlugins,
         ],
+    publicDir: publicDirPath,
     resolve: {
+      alias: frontendResolveAlias,
       tsconfigPaths: true,
     },
     root: repoRootPath,

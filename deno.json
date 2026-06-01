@@ -49,7 +49,7 @@
     "strictPropertyInitialization": true,
     "types": [
       "./.react-router/types/+future.ts",
-      "./app/types/vite-env.d.ts",
+      "./packages/frontend/app/types/vite-env.d.ts",
       "vite/client"
     ],
     "useUnknownInCatchVariables": true,
@@ -59,9 +59,9 @@
     ".wrangler"
   ],
   "imports": {
-    "@sentry/browser": "npm:@sentry/browser@10.51.0",
+    "@sentry/browser": "npm:@sentry/browser@10.53.1",
     "@std/path": "jsr:@std/path@1.1.4",
-    "react-dom/server": "npm:react-dom@19.2.5/server.edge"
+    "react-dom/server": "npm:react-dom@19.2.6/server.edge"
   },
   "lock": true,
   "nodeModulesDir": "auto",
@@ -98,10 +98,10 @@
     "build:bff": "deno task --cwd=packages/bff typecheck",
     "build:frontend": "deno task --cwd=packages/frontend build",
     "build:gateway": "deno task --cwd=packages/gateway build",
-    "build:gateway:canary": "CLOUDFLARE_ENV=canary deno task --cwd=packages/gateway build",
+    "build:gateway:canary": "deno task --cwd=packages/gateway build:canary",
     "build:worker": "deno task build:gateway",
     "build:worker:canary": "deno task build:gateway:canary",
-    "check": "deno task typegen && deno task --cwd=packages/shared typecheck && deno task --cwd=packages/bff typecheck && deno task --cwd=packages/frontend typecheck && deno task --cwd=packages/gateway typecheck && deno check --unstable-tsgo",
+    "check": "deno task typegen && deno task --cwd=packages/bff typecheck && deno task --cwd=packages/frontend typecheck && deno task --cwd=packages/gateway typecheck && deno check --unstable-tsgo",
     "convert-fa-pro": "deno run -P=env scripts/convert-fa-pro.ts",
     "dev": "deno run -A scripts/dev-spotlight.ts",
     "dev:app": "deno task --cwd=packages/frontend dev",
@@ -112,9 +112,9 @@
     "lint:fix": "deno run -P=lint npm:@biomejs/biome check --write .",
     "preview": "deno task build && deno task --cwd=packages/gateway preview",
     "preview:worker": "deno task preview",
-    "typegen": "REACT_ROUTER_ROOT=$PWD deno run -A npm:@react-router/dev typegen --config packages/frontend/vite.react-router.config.ts",
     "spotlight": "pnpm dlx @spotlightjs/spotlight",
-    "start": "deno task preview"
+    "start": "deno task preview",
+    "typegen": "REACT_ROUTER_ROOT=$PWD deno run -A npm:@react-router/dev typegen --config packages/frontend/vite.react-router.config.ts"
   },
   "unstable": [
     "bare-node-builtins",
@@ -138,6 +138,8 @@
     "worker-options"
   ],
   "workspace": [
-    "./packages/*"
+    "./packages/bff",
+    "./packages/frontend",
+    "./packages/gateway"
   ]
 }

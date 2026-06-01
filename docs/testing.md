@@ -19,7 +19,7 @@ Test your React Router + Hono + Vite setup.
 - ✅ Returns JSON response
 
 ### 4. API Changes
-- Edit `app/server.ts`
+- Edit `packages/bff/src/api.ts`
 - Refresh browser
 - ✅ API updates (may need refresh)
 

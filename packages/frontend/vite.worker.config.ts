@@ -6,8 +6,8 @@ import { createImportMetaEnvDefine } from '../../vite-utils/import-meta-env.ts';
 import { loadConfigEnvironment } from '../../vite-utils/load-env.ts';
 import { readEnv } from '../../vite-utils/read-env.ts';
 import { createSentryVitePluginOptions } from '../../vite-utils/sentry-build.ts';
+import { createBuildSentryEnvSnapshot } from '../../vite-utils/sentry-build-env-log.ts';
 import { sentryCodeSplittingGroup } from '../../vite-utils/sentry-chunking.ts';
-import { createBuildSentryEnvSnapshot } from '../../vite-utils/sentry-env-log.ts';
 
 const repoRootPath = new URL('../../', import.meta.url).pathname;
 
@@ -63,6 +63,7 @@ export default defineConfig(({ mode }) => {
       ssr: true,
     },
     define: createImportMetaEnvDefine({
+      SENTRY_DSN: readEnv('SENTRY_DSN'),
       SENTRY_RELEASE: isDeploymentBuild
         ? readRequiredEnv('SENTRY_RELEASE', {
             source: 'packages/frontend/vite.worker.config.ts',
@@ -70,6 +71,7 @@ export default defineConfig(({ mode }) => {
         : readEnv('SENTRY_RELEASE'),
     }),
     plugins: sentryVitePluginOptions ? sentryVitePlugin(sentryVitePluginOptions) : [],
+    publicDir: false,
     resolve: {
       tsconfigPaths: true,
     },

@@ -71,14 +71,14 @@ The browser trace now also includes a short-lived `Client bootstrap` span around
 For the full stack-specific setup guide, see [`docs/sentry-setup.md`](docs/sentry-setup.md).
 For the Worker-specific React Router split, see [`docs/SENTRY_REACT_ROUTER_SETUP.md`](docs/SENTRY_REACT_ROUTER_SETUP.md).
 
-On Cloudflare Workers, the deployed server/runtime owner is `@sentry/cloudflare` in `app/worker.ts`.
+On Cloudflare Workers, the deployed server/runtime owner is `@sentry/cloudflare` in `packages/frontend/worker.ts`.
 `app/entry.server.tsx` now uses the Worker-safe `@sentry/react-router/cloudflare` helper layer for
 the React Router SSR branch instead of initializing a second server SDK.
 `app/root.tsx` and other SSR-included route modules also use `@sentry/react-router/cloudflare`
 so the Worker build stays on the Worker-safe entrypoint, while `app/entry.client.tsx` continues to
 use `@sentry/react-router` for browser tracing, replay, profiling, and logs.
 
-In local development, the browser SDK now targets Spotlight instead of real Sentry, and the Deno server uses a local Spotlight transport.
+In local development, the browser SDK sends envelopes to same-origin `/api/tunnel`, and the BFF forwards those envelopes to the local Spotlight sidecar on `8969`. `deno task dev` starts the Spotlight sidecar first and then launches the frontend and gateway dev tasks, so you do not need to launch the sidecar separately unless you want it on its own.
 
 Start the app, API, and Spotlight together with:
 
@@ -92,29 +92,17 @@ If you only want the Spotlight sidecar:
 deno task spotlight
 ```
 
-By default the app sends dev telemetry to `http://localhost:8969/stream`. You can override that with:
-
-```bash
-SENTRY_SPOTLIGHT=1 # use default Spotlight sidecar URL
-# or
-SENTRY_SPOTLIGHT=http://localhost:8969/stream
-VITE_SENTRY_SPOTLIGHT=http://localhost:8969/stream
-```
-
 Recommended local setup:
 
-Create `.env` for app runtime and dev mode; add build-only credentials if you are doing a local build:
+Create `.env.local` for app runtime and dev mode; add build-only credentials if you are doing a local build:
 
 ```bash
-VITE_SENTRY_DSN=https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400
 SENTRY_DSN=https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400
-SENTRY_SPOTLIGHT=1
-VITE_SENTRY_SPOTLIGHT=http://localhost:8969/stream
 ```
 
 If you are only running `deno task dev`, you can omit `SENTRY_AUTH_TOKEN` and `SENTRY_RELEASE`.
 
-The Deno server and build config now read `.env`, so `deno task dev` and `deno task build` both see the same temporary local Sentry settings.
+The browser and Worker build configs now share the same `SENTRY_DSN` env name, so `deno task dev` and `deno task build` both see the same DSN value when you set it locally.
 
 The theme bootstrap plugin is also part of the dev/build wiring:
 
@@ -128,19 +116,20 @@ is optional and build-time source maps remain the only Sentry-related setup you 
 Worker runtime setup:
 
 - Cloudflare Worker runtime DSN now comes from Wrangler `vars.SENTRY_DSN`
-- deployed Worker request ownership stays in `app/worker.ts` via `@sentry/cloudflare`
+- deployed Worker request ownership stays in `packages/frontend/worker.ts` via `@sentry/cloudflare`
+- browser and local Worker envelopes are tunneled through the private BFF at `/api/tunnel`, which forwards to Spotlight in local development and to Sentry ingest in deployed environments so ad blockers have less to complain about
 - `packages/frontend/wrangler.jsonc` keeps `"no_bundle": true`, `"preserve_file_names": true`, `"find_additional_modules": true`, `base_dir: "../../build"`, and an `ESModule` rule for `assets/**/*.js` so the deployed Worker stays aligned with the Vite-built `build/worker.js`
 - the React Router SSR branch in `app/entry.server.tsx` uses `@sentry/react-router/cloudflare`
   helpers such as `wrapSentryHandleRequest()` and `injectTraceMetaTags()`
 - local Deno dev uses `.env`
 - source map upload still needs local/CI env vars because Wrangler runtime vars are not available to the Vite/React Router build step
 
-If you are running a local build, add `SENTRY_AUTH_TOKEN` and `SENTRY_RELEASE` to `.env` or export them in your shell; dev-only runs can omit them.
+If you are running a local build, add `SENTRY_AUTH_TOKEN` and `SENTRY_RELEASE` to `.env.local` or export them in your shell; dev-only runs can omit them.
 
 Cloudflare Worker local parity workflow (follow-up):
 
 - use `deno task preview:worker` when you want to exercise the app and API inside local `workerd` instead of the Deno dev server; it uses a bundled Wrangler `preview` env so local module resolution works, while deploys still keep `no_bundle: true`
-- keep Spotlight running separately with `deno task spotlight`
+- use `deno task dev` when you want the app/gateway stack plus Spotlight together; use `deno task spotlight` only if you want the sidecar on its own
 - keep Worker runtime env in Wrangler config or local Wrangler env files rather than `.env`
 - browser-side Spotlight is already wired today
 - worker-side Spotlight routing is not wired yet; that is the next follow-up if you want local Worker runtime parity without sending dev worker telemetry to your normal Sentry project
@@ -148,59 +137,34 @@ Cloudflare Worker local parity workflow (follow-up):
 Example future-local workflow:
 
 ```bash
-deno task spotlight
+deno task dev
 deno task preview:worker
 ```
 
 Build-time source map upload uses:
 
 ```bash
-VITE_SENTRY_DSN=your-public-dsn
 SENTRY_DSN=your-public-dsn
 SENTRY_AUTH_TOKEN=your-auth-token
 SENTRY_RELEASE=your-release-name
 ```
 
-For the temporary setup, keep the auth token and release in `.env` when you are building locally; that file is ignored by git.
+For the temporary setup, keep the auth token and release in `.env.local` when you are building locally; that file is ignored by git.
 
 Browser profiling is enabled. Server-side profiling is not configured because this app runs on Deno and Cloudflare Workers rather than Node's profiling integration.
 
 ## Deployment
 
-### Docker Deployment
+This repo now deploys through Cloudflare Workers rather than a standalone Docker or Node server runtime.
 
-To build and run using Docker:
+Use these artifacts and configs as the deployment source of truth:
 
-```bash
-docker build -t my-app .
+- `packages/frontend/wrangler.jsonc` for the private frontend worker
+- `packages/bff/wrangler.jsonc` for the private BFF worker
+- `packages/gateway/wrangler.jsonc` for the public gateway worker
+- `build/worker.js` plus `build/assets/**` for the frontend worker artifact set
 
-# Run the container
-docker run -p 3000:3000 my-app
-```
-
-The containerized application can be deployed to any platform that supports Docker, including:
-
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
-
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `deno task build`
-
-```
-├── package.json
-├── deno.json
-├── deno.lock
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
-```
+For local production-like previewing, run `deno task build` followed by `deno task start`.
 
 ## Styling
 

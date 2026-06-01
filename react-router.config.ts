@@ -1,3 +1,18 @@
-import frontendReactRouterConfig from './packages/frontend/react-router.config.ts';
+import type { Config } from '@react-router/dev/config';
 
-export default frontendReactRouterConfig;
+export default {
+  appDirectory: 'packages/frontend/app',
+  future: {
+    unstable_optimizeDeps: true,
+    unstable_trailingSlashAwareDataRequests: true,
+    v8_middleware: true,
+    v8_passThroughRequests: true,
+    v8_splitRouteModules: true,
+    v8_viteEnvironmentApi: true,
+  },
+  routeDiscovery: {
+    mode: 'lazy',
+  },
+  ssr: true,
+  subResourceIntegrity: true,
+} satisfies Config;

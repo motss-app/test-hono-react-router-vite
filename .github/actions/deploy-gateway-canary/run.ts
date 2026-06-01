@@ -15,13 +15,8 @@ await retry(3)(
     'deno',
     'task',
     '--cwd=packages/gateway',
-    'build',
-  ],
-  {
-    env: {
-      CLOUDFLARE_ENV: 'canary',
-    },
-  }
+    'build:canary',
+  ]
 );
 
 const deployResult = await withLogGroup('🚀 Deploying public gateway worker', async () => {
@@ -31,6 +26,8 @@ const deployResult = await withLogGroup('🚀 Deploying public gateway worker', 
       'x',
       'wrangler',
       'deploy',
+      '--config',
+      'wrangler.jsonc',
       '--env',
       'canary',
     ],
