@@ -1,5 +1,7 @@
 import { dirname, join, resolve } from 'node:path';
-import { getSentryConnectSrc, getSentryEnvironment } from '@motss-app/frontend/monitoring/sentry';
+import type { Plugin } from 'vite';
+
+import { getSentryConnectSrc, getSentryEnvironment } from '../packages/frontend/app/monitoring/sentry.ts';
 import {
   cloudflareAnalyticsStyleHashes,
   collectInlineHashes,
@@ -7,9 +9,7 @@ import {
   csp,
   inlineScriptPattern,
   inlineStylePattern,
-} from '@motss-app/frontend/utils/csp';
-import type { Plugin } from 'vite';
-
+} from '../packages/frontend/app/utils/csp.ts';
 import { readRequiredEnv } from '../vite-utils/get-required-env.ts';
 import { discoverPrerenderRoutes } from '../vite-utils/route-discovery.ts';
 import { createBuildSentryEnvSnapshot } from '../vite-utils/sentry-build-env-log.ts';
@@ -37,7 +37,7 @@ interface HeadersCopyPluginContext {
 }
 
 const staticPageCacheControl =
-  'public, max-age=600, s-maxage=3600, stale-while-revalidate=180, must-revalidate';
+  'public, max-age=600, s-maxage=3600, stale-while-revalidate=180, must-revalidate, no-transform';
 
 function fileExists(path: string): boolean {
   try {
