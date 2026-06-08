@@ -20,6 +20,7 @@
   "env": {
     "canary": {
       "vars": {
+        "AMPLITUDE_API_KEY": "ad66a00d45b84f786d1a495a1e48a803",
         "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400",
         "VITE_SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
       }
@@ -27,6 +28,7 @@
     "dev": {
       "main": "./worker.ts",
       "vars": {
+        "AMPLITUDE_API_KEY": "ad66a00d45b84f786d1a495a1e48a803",
         "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400",
         "VITE_SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
       }
@@ -35,12 +37,14 @@
       "minify": false,
       "no_bundle": false,
       "vars": {
+        "AMPLITUDE_API_KEY": "ad66a00d45b84f786d1a495a1e48a803",
         "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400",
         "VITE_SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
       }
     },
     "production": {
       "vars": {
+        "AMPLITUDE_API_KEY": "ad66a00d45b84f786d1a495a1e48a803",
         "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400",
         "VITE_SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
       }

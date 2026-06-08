@@ -1,6 +1,7 @@
 interface ImportMetaEnv {
   PORT: string;
   SENTRY_RELEASE?: string;
+  VITE_AMPLITUDE_API_KEY?: string;
   VITE_SENTRY_DSN?: string;
 }
 

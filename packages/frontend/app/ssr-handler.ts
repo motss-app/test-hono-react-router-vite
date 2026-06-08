@@ -5,6 +5,7 @@ import type { ServerBuild } from 'react-router';
 import { createRequestHandler, RouterContextProvider } from 'react-router';
 
 import { logSentryEnvSnapshot } from '../../../vite-utils/sentry-env-log.ts';
+import { getAmplitudeConnectSrc } from './monitoring/amplitude.ts';
 import { getSentryConnectSrc, getSentryEnvironment } from './monitoring/sentry.ts';
 import { HonoContext } from './router-context.ts';
 import type { HonoEnv } from './types/hono.types.ts';
@@ -13,6 +14,8 @@ import {
   createSentryCspReportingConfig,
   csp,
 } from './utils/csp.ts';
+
+const headEndPattern = /<\/head>/i;
 
 let hasLoggedSsrEnvSnapshot = false;
 const liveSsrCacheControl = 'no-store';
@@ -97,6 +100,39 @@ function logSsrEnvSnapshotOnce(c: Context<HonoEnv>): void {
   );
 }
 
+function injectAmplitudeKeyScriptTag(body: ReadableStream<Uint8Array>, scriptTag: string): ReadableStream<Uint8Array> {
+  let buffer = '';
+
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
+
+  return body.pipeThrough(
+    new TransformStream({
+      transform(chunk, controller) {
+        buffer += decoder.decode(chunk, { stream: true });
+        const headEndIndex = buffer.search(headEndPattern);
+
+        if (headEndIndex !== -1) {
+          const beforeHeadEnd = buffer.slice(0, headEndIndex);
+          controller.enqueue(encoder.encode(beforeHeadEnd + scriptTag + '</head>'));
+          buffer = buffer.slice(headEndIndex + '</head>'.length);
+        }
+
+        if (headEndIndex === -1 && buffer.length > scriptTag.length + '</head>'.length) {
+          const safeEnd = buffer.length - (scriptTag.length + '</head>'.length);
+          controller.enqueue(encoder.encode(buffer.slice(0, safeEnd)));
+          buffer = buffer.slice(safeEnd);
+        }
+      },
+      flush(controller) {
+        if (buffer) {
+          controller.enqueue(encoder.encode(buffer));
+        }
+      },
+    })
+  );
+}
+
 function getSentryDsn(c: Context<HonoEnv>): string {
   const sentryDsn = c.env.SENTRY_DSN;
 
@@ -140,7 +176,10 @@ function applySsrResponseHeaders(
   }
 
   const cspPolicy = csp.buildPolicy({
-    connectSrc: getSentryConnectSrc(getSentryDsn(c)),
+    connectSrc: [
+      ...getSentryConnectSrc(getSentryDsn(c)),
+      ...getAmplitudeConnectSrc(),
+    ],
     nonce: cspNonce,
     styleHashes: cloudflareAnalyticsStyleHashes,
   });
@@ -159,7 +198,15 @@ function applySsrResponseHeaders(
   responseHeaders.set('Reporting-Endpoints', sentryCspReportingConfig.reportingEndpoints);
   responseHeaders.set('Document-Policy', csp.buildDocumentPolicy());
 
-  return new Response(response.body, {
+  const amplitudeApiKey = c.env.AMPLITUDE_API_KEY;
+  const body = amplitudeApiKey
+    ? injectAmplitudeKeyScriptTag(
+        response.body,
+        `<script${cspNonce ? ` nonce="${cspNonce}"` : ''}>window.__AMPLITUDE_API_KEY__=${JSON.stringify(amplitudeApiKey)}</script>`
+      )
+    : response.body;
+
+  return new Response(body, {
     headers: responseHeaders,
     status: response.status,
     statusText: response.statusText,

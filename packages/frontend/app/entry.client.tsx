@@ -1,3 +1,8 @@
+import {
+  identify as amplitudeIdentifyFn,
+  init as amplitudeInit,
+  Identify,
+} from '@amplitude/analytics-browser';
 import { elementTimingIntegration } from '@sentry/browser';
 import {
   addIntegration,
@@ -17,6 +22,11 @@ import { HydratedRouter } from 'react-router/dom';
 import './polyfills/request-idle-callback.ts';
 
 import { logSentryEnvSnapshot } from '../../../vite-utils/sentry-env-log.ts';
+import {
+  createAmplitudeOptions,
+  createAmplitudeUserPropertyMap,
+  getAmplitudeApiKey,
+} from './monitoring/amplitude.ts';
 import {
   applyAppSessionIdToSpan,
   appSessionIdTagName,
@@ -104,6 +114,51 @@ init({
 // Set the app session ID tag on the active Sentry scope after initialization
 if (appSessionId) {
   setTag(appSessionIdTagName, appSessionId);
+}
+
+// Amplitude is browser-only and must initialize exactly once per page load. The flag on the
+// global is preserved across HMR module reloads so dev refreshes don't double-init the SDK.
+const amplitudeGlobal = globalThis as typeof globalThis & {
+  __amplitudeInitialized__?: boolean;
+};
+
+if (!amplitudeGlobal.__amplitudeInitialized__) {
+  amplitudeGlobal.__amplitudeInitialized__ = true;
+
+  const amplitudeApiKey = getAmplitudeApiKey(
+    (globalThis as Record<string, string | undefined>).__AMPLITUDE_API_KEY__
+    ?? import.meta.env.VITE_AMPLITUDE_API_KEY
+  );
+
+  if (amplitudeApiKey) {
+    const amplitudeOptions = createAmplitudeOptions(import.meta.env.MODE);
+
+    // `init` boots Analytics with autocapture: page views, sessions, element interactions,
+    // network capture, web vitals, frustration interactions, attribution, etc.
+    // It returns a Promise but the SDK queues calls until init resolves, so we can fire identify
+    // immediately afterwards without awaiting.
+    amplitudeInit(amplitudeApiKey, amplitudeOptions);
+
+    const amplitudeIdentify = new Identify();
+    const amplitudeUserProperties = createAmplitudeUserPropertyMap({
+      mode: import.meta.env.MODE,
+      release: import.meta.env.SENTRY_RELEASE,
+    });
+
+    for (const [propertyName, propertyValue] of Object.entries(amplitudeUserProperties)) {
+      amplitudeIdentify.set(propertyName, propertyValue as boolean | number | string | string[]);
+    }
+
+    amplitudeIdentifyFn(amplitudeIdentify);
+
+    if (isDevSentryMode) {
+      console.info('[entry.client] Amplitude initialized', {
+        apiKey: `${amplitudeApiKey.slice(0, 6)}…`,
+        autocapture: amplitudeOptions.autocapture,
+        userProperties: amplitudeUserProperties,
+      });
+    }
+  }
 }
 
 if (isDevSentryMode) {
