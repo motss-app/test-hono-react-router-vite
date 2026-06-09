@@ -34,12 +34,12 @@ function parseBenchOutput(text: string): Row[] {
     const rps = Number(parts[2]!.replace(/,/g, ''));
     if (isNaN(rps)) continue;
     rows.push({
-      route,
-      rps,
+      avg: parseLatency(parts[6]!),
       p75: parseLatency(parts[3]!),
       p95: parseLatency(parts[4]!),
       p99: parseLatency(parts[5]!),
-      avg: parseLatency(parts[6]!),
+      route,
+      rps,
     });
   }
   return rows;
@@ -50,7 +50,13 @@ function parseBaselineMd(text: string): Row[] {
   let inSection = '';
   for (const line of text.split('\n')) {
     if (line.startsWith('## ')) {
-      inSection = line.includes('BFF Direct') ? 'BFF' : line.includes('FE Direct') ? 'FE' : line.includes('SSR Direct') ? 'SSR' : '';
+      inSection = line.includes('BFF Direct')
+        ? 'BFF'
+        : line.includes('FE Direct')
+          ? 'FE'
+          : line.includes('SSR Direct')
+            ? 'SSR'
+            : '';
     }
     if (!line.startsWith('|') || line.includes('---') || line.includes('Route')) continue;
     const parts = line.split('|').map(s => s.trim());
@@ -59,14 +65,21 @@ function parseBaselineMd(text: string): Row[] {
     if (!routeName || routeName === 'Route' || routeName.startsWith('#')) continue;
     const rpsVal = Number(parts[2]!.replace(/,/g, ''));
     if (isNaN(rpsVal)) continue;
-    const prefix = inSection === 'BFF' ? 'BFF Direct' : inSection === 'FE' ? 'FE Direct' : inSection === 'SSR' ? 'SSR Direct' : 'Unknown';
+    const prefix =
+      inSection === 'BFF'
+        ? 'BFF Direct'
+        : inSection === 'FE'
+          ? 'FE Direct'
+          : inSection === 'SSR'
+            ? 'SSR Direct'
+            : 'Unknown';
     rows.push({
-      route: `${prefix} (${routeName})`,
-      rps: rpsVal,
+      avg: parseLatency(parts[6]!),
       p75: parseLatency(parts[3]!),
       p95: parseLatency(parts[4]!),
       p99: parseLatency(parts[5]!),
-      avg: parseLatency(parts[6]!),
+      route: `${prefix} (${routeName})`,
+      rps: rpsVal,
     });
   }
   return rows;
@@ -85,18 +98,27 @@ function renderBaselineRows(rows: Row[]): string {
 }
 
 function renderComparison(current: Row[], baseline: Row[]): string {
-  const bmap = new Map(baseline.map(r => [r.route, r]));
+  const bmap = new Map(
+    baseline.map(r => [
+      r.route,
+      r,
+    ])
+  );
   const lines: string[] = [];
   lines.push('## Benchmark Comparison');
   lines.push('');
-  lines.push('| Route          | Baseline RPS | Current RPS | Δ RPS   | Baseline p99 | Current p99 | Δ p99   |');
-  lines.push('|----------------|-------------|-------------|---------|-------------|-------------|---------|');
+  lines.push(
+    '| Route          | Baseline RPS | Current RPS | Δ RPS   | Baseline p99 | Current p99 | Δ p99   |'
+  );
+  lines.push(
+    '|----------------|-------------|-------------|---------|-------------|-------------|---------|'
+  );
   let hasRegression = false;
   for (const c of current) {
     const b = bmap.get(c.route);
     if (!b) continue;
-    const rpsDelta = ((c.rps - b.rps) / b.rps * 100).toFixed(1);
-    const p99Delta = ((c.p99 - b.p99) / b.p99 * 100).toFixed(1);
+    const rpsDelta = (((c.rps - b.rps) / b.rps) * 100).toFixed(1);
+    const p99Delta = (((c.p99 - b.p99) / b.p99) * 100).toFixed(1);
     const rpsStr = Number(rpsDelta) >= 0 ? `+${rpsDelta}%` : `${rpsDelta}%`;
     const p99Str = Number(p99Delta) <= 0 ? `${p99Delta}%` : `+${p99Delta}%`;
     if (Number(rpsDelta) < -15 || Number(p99Delta) > 15) hasRegression = true;
@@ -106,7 +128,9 @@ function renderComparison(current: Row[], baseline: Row[]): string {
   }
   if (hasRegression) {
     lines.push('');
-    lines.push('> ⚠ **Performance regression detected.** Some routes show >15% drop in RPS or increase in p99.');
+    lines.push(
+      '> ⚠ **Performance regression detected.** Some routes show >15% drop in RPS or increase in p99.'
+    );
   }
   lines.push('');
   lines.push('### System');
@@ -119,7 +143,9 @@ function renderComparison(current: Row[], baseline: Row[]): string {
 
 const args = Deno.args;
 if (args.length === 0) {
-  console.error('Usage: update-baseline.ts <bench-output.txt> [--baseline baseline.md] [--output comment.md]');
+  console.error(
+    'Usage: update-baseline.ts <bench-output.txt> [--baseline baseline.md] [--output comment.md]'
+  );
   Deno.exit(1);
 }
 
@@ -129,7 +155,9 @@ function getSystemInfo(): string[] {
   lines.push(`- **Deno**: ${Deno.version.deno}`);
   lines.push(`- **CPUs**: ${navigator.hardwareConcurrency} logical cores`);
   if (Deno.env.get('CI') === 'true') {
-    lines.push(`- **Runner**: ${Deno.env.get('RUNNER_NAME') ?? Deno.env.get('RUNNER_OS') ?? 'GitHub Actions'}`);
+    lines.push(
+      `- **Runner**: ${Deno.env.get('RUNNER_NAME') ?? Deno.env.get('RUNNER_OS') ?? 'GitHub Actions'}`
+    );
     lines.push(`- **Runner label**: ${Deno.env.get('RUNNER_LABEL') ?? 'unknown'}`);
   } else {
     try {
@@ -166,7 +194,9 @@ baselineLines.push('## System');
 baselineLines.push('');
 baselineLines.push(...getSystemInfo());
 baselineLines.push('');
-baselineLines.push('Only direct servers (bypassing workerd) are benchmarked. Gateway routes are excluded because workerd dev mode is too noisy for regression detection.');
+baselineLines.push(
+  'Only direct servers (bypassing workerd) are benchmarked. Gateway routes are excluded because workerd dev mode is too noisy for regression detection.'
+);
 baselineLines.push('');
 baselineLines.push('## BFF Direct (`http://127.0.0.1:3001`)');
 baselineLines.push('');
