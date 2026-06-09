@@ -14,7 +14,7 @@ export default defineConfig(({ command }) => {
         ? readRequiredEnv('SENTRY_RELEASE', {
             source: 'packages/gateway/vite.config.ts',
           })
-        : undefined,
+        : (Deno.env.get('SENTRY_RELEASE') ?? 'local'),
     }),
     plugins: [
       cloudflare({

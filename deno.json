@@ -59,7 +59,7 @@
     ".wrangler"
   ],
   "imports": {
-    "@sentry/browser": "npm:@sentry/browser@10.56.0",
+    "@sentry/browser": "npm:@sentry/browser@10.57.0",
     "@std/path": "jsr:@std/path@1.1.5",
     "react-dom/server": "npm:react-dom@19.2.7/server.edge"
   },
@@ -94,6 +94,9 @@
   },
   "tasks": {
     "bench": "ulimit -n 9998999 && deno task build && ./http-bench --target 'deno:PORT=8787 deno task --cwd=packages/gateway preview' --duration 30 --connections 7999 --url http://localhost:8787/api/test",
+    "bench:all": "ulimit -n 9998999 && deno run -A scripts/bench-all.ts",
+    "kill-ports": "deno run -A scripts/kill-ports.ts",
+    "kill-ports:all": "deno run -A scripts/kill-ports.ts 5173 8787 3000 --verbose",
     "build": "deno task build:frontend && deno task build:gateway",
     "build:bff": "deno task --cwd=packages/bff typecheck",
     "build:frontend": "deno task --cwd=packages/frontend build",
