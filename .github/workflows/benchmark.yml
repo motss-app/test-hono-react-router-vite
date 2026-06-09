@@ -23,6 +23,14 @@ jobs:
 
       - uses: ./.github/actions/setup-deno
 
+      - name: Log system info
+        run: |
+          echo "**OS:** $(uname -srm)"
+          echo "**CPUs:** $(nproc) logical cores"
+          echo "**Memory:** $(free -h | awk '/^Mem:/ {print $2}') total"
+          echo "**Deno:** $(deno --version | head -1)"
+          echo "**Runner:** ${{ runner.name }} (${{ runner.os }})"
+
       - name: Install oha
         run: |
           curl -sL https://github.com/hatoo/oha/releases/latest/download/oha-linux-amd64 -o /tmp/oha
@@ -45,18 +53,29 @@ jobs:
           git fetch origin main --depth=1
           git show origin/main:docs/benchmark-baseline.md > /tmp/baseline.md 2>/dev/null || echo "## No baseline available" > /tmp/baseline.md
 
-      - name: Update baseline and compare (PR only)
+      - name: Compare and generate comment (PR only)
+        id: compare
         if: github.event_name == 'pull_request'
         run: |
           deno run -A scripts/update-baseline.ts /tmp/bench-output.txt --baseline /tmp/baseline.md --output /tmp/bench-comment.md
+          if grep -q "regression detected" /tmp/bench-comment.md; then
+            echo "regression=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Post comparison comment (PR only)
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && always()
         uses: peter-evans/create-or-update-comment@v4
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body-path: /tmp/bench-comment.md
           edit-mode: replace
+
+      - name: Fail on regression (PR only)
+        if: github.event_name == 'pull_request' && steps.compare.outputs.regression == 'true'
+        run: |
+          echo "❌ Performance regression detected (>15% RPS drop or p99 increase)."
+          echo "Check the PR comment for details."
+          exit 1
 
       - name: Update baseline on main
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'

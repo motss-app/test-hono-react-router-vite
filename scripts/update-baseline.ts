@@ -50,7 +50,7 @@ function parseBaselineMd(text: string): Row[] {
   let inSection = '';
   for (const line of text.split('\n')) {
     if (line.startsWith('## ')) {
-      inSection = line.includes('BFF Direct') ? 'BFF' : line.includes('SSR Direct') ? 'SSR' : '';
+      inSection = line.includes('BFF Direct') ? 'BFF' : line.includes('FE Direct') ? 'FE' : line.includes('SSR Direct') ? 'SSR' : '';
     }
     if (!line.startsWith('|') || line.includes('---') || line.includes('Route')) continue;
     const parts = line.split('|').map(s => s.trim());
@@ -59,7 +59,7 @@ function parseBaselineMd(text: string): Row[] {
     if (!routeName || routeName === 'Route' || routeName.startsWith('#')) continue;
     const rpsVal = Number(parts[2]!.replace(/,/g, ''));
     if (isNaN(rpsVal)) continue;
-    const prefix = inSection === 'BFF' ? 'BFF Direct' : inSection === 'SSR' ? 'SSR Direct' : 'Unknown';
+    const prefix = inSection === 'BFF' ? 'BFF Direct' : inSection === 'FE' ? 'FE Direct' : inSection === 'SSR' ? 'SSR Direct' : 'Unknown';
     rows.push({
       route: `${prefix} (${routeName})`,
       rps: rpsVal,
@@ -108,6 +108,10 @@ function renderComparison(current: Row[], baseline: Row[]): string {
     lines.push('');
     lines.push('> ⚠ **Performance regression detected.** Some routes show >15% drop in RPS or increase in p99.');
   }
+  lines.push('');
+  lines.push('### System');
+  lines.push('');
+  lines.push(...getSystemInfo());
   return lines.join('\n');
 }
 
@@ -117,6 +121,25 @@ const args = Deno.args;
 if (args.length === 0) {
   console.error('Usage: update-baseline.ts <bench-output.txt> [--baseline baseline.md] [--output comment.md]');
   Deno.exit(1);
+}
+
+function getSystemInfo(): string[] {
+  const lines: string[] = [];
+  lines.push(`- **OS**: ${Deno.build.os} ${Deno.build.arch}`);
+  lines.push(`- **Deno**: ${Deno.version.deno}`);
+  lines.push(`- **CPUs**: ${navigator.hardwareConcurrency} logical cores`);
+  if (Deno.env.get('CI') === 'true') {
+    lines.push(`- **Runner**: ${Deno.env.get('RUNNER_NAME') ?? Deno.env.get('RUNNER_OS') ?? 'GitHub Actions'}`);
+    lines.push(`- **Runner label**: ${Deno.env.get('RUNNER_LABEL') ?? 'unknown'}`);
+  } else {
+    try {
+      const release = Deno.osRelease();
+      lines.push(`- **Kernel**: ${release}`);
+    } catch {
+      // ignore
+    }
+  }
+  return lines;
 }
 
 const benchOutputPath = args[0]!;
@@ -129,6 +152,7 @@ const benchText = await Deno.readTextFile(benchOutputPath);
 const currentRows = parseBenchOutput(benchText);
 
 const bffRows = currentRows.filter(r => r.route.startsWith('BFF Direct'));
+const feRows = currentRows.filter(r => r.route.startsWith('FE Direct'));
 const ssrRows = currentRows.filter(r => r.route.startsWith('SSR Direct'));
 
 // Write new baseline MD
@@ -138,12 +162,22 @@ baselineLines.push('# Benchmark Baseline');
 baselineLines.push('');
 baselineLines.push(`Last updated: <!-- updated -->${today}<!-- /updated -->`);
 baselineLines.push('');
+baselineLines.push('## System');
+baselineLines.push('');
+baselineLines.push(...getSystemInfo());
+baselineLines.push('');
 baselineLines.push('Only direct servers (bypassing workerd) are benchmarked. Gateway routes are excluded because workerd dev mode is too noisy for regression detection.');
 baselineLines.push('');
 baselineLines.push('## BFF Direct (`http://127.0.0.1:3001`)');
 baselineLines.push('');
 baselineLines.push(renderBaselineRows(bffRows));
 baselineLines.push('');
+if (feRows.length > 0) {
+  baselineLines.push('## FE Direct (`http://127.0.0.1:5174`) — Prerendered HTML');
+  baselineLines.push('');
+  baselineLines.push(renderBaselineRows(feRows));
+  baselineLines.push('');
+}
 baselineLines.push('## SSR Direct (`http://127.0.0.1:5175`)');
 baselineLines.push('');
 baselineLines.push(renderBaselineRows(ssrRows));
