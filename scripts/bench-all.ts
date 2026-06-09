@@ -16,18 +16,6 @@ interface BenchmarkResult {
   bytesPerSec: number;
 }
 
-interface BenchmarkRun {
-  timestamp: string;
-  gitCommit: string;
-  config: {
-    baseUrl: string;
-    concurrency: number;
-    duration: string;
-    warmupDuration: string;
-  };
-  results: BenchmarkResult[];
-}
-
 interface OhaOutput {
   summary: {
     successRate: number;
@@ -59,6 +47,7 @@ interface RouteDef {
   name: string;
   path: string;
   method?: string;
+  baseUrl?: string;
 }
 
 function elapsed(start: number): string {
@@ -66,11 +55,12 @@ function elapsed(start: number): string {
   return `${s}s`;
 }
 
-function formatLatency(ms: number | null): string {
-  if (ms === null || ms === undefined) return 'N/A';
+function formatLatency(seconds: number | null): string {
+  if (seconds === null || seconds === undefined) return 'N/A';
+  const ms = seconds * 1000;
   if (ms < 1) return `${(ms * 1000).toFixed(2)}µs`;
   if (ms < 1000) return `${ms.toFixed(2)}ms`;
-  return `${(ms / 1000).toFixed(3)}s`;
+  return `${seconds.toFixed(3)}s`;
 }
 
 function formatRps(rps: number): string {
@@ -82,140 +72,21 @@ function formatPercent(pct: number): string {
 }
 
 function getConfig() {
-  const baseUrl = Deno.env.get('BENCH_BASE_URL') ?? 'http://localhost:8787';
-  const concurrency = Number(Deno.env.get('BENCH_CONCURRENCY') ?? 100);
-  const duration = Deno.env.get('BENCH_DURATION') ?? '15s';
+  const baseUrl = Deno.env.get('BENCH_BASE_URL') ?? 'http://127.0.0.1:8787';
+  const concurrency = Number(Deno.env.get('BENCH_CONCURRENCY') ?? 128);
+  const duration = Deno.env.get('BENCH_DURATION') ?? '20s';
   const warmupDuration = Deno.env.get('BENCH_WARMUP') ?? '3s';
-  const noSave = Deno.env.get('BENCH_NO_SAVE') === '1';
-  const noCompare = Deno.env.get('BENCH_NO_COMPARE') === '1';
-  const regressionThreshold = Number(Deno.env.get('BENCH_REGRESSION_PCT') ?? 10);
   return {
     baseUrl,
     concurrency,
     duration,
     warmupDuration,
-    noSave,
-    noCompare,
-    regressionThreshold,
   };
 }
 
-function outputDir(): string {
-  return Deno.env.get('BENCH_OUTPUT_DIR') ?? 'output';
-}
-
-function resultFilePath(dir: string): string {
-  const ts = new Date().toISOString().replace(/[:.]/g, '-');
-  return `${dir}/bench-${ts}.json`;
-}
-
-async function saveResults(run: BenchmarkRun, dir: string): Promise<string> {
-  try {
-    await Deno.mkdir(dir, { recursive: true });
-  } catch {
-    /* exists */
-  }
-  const path = resultFilePath(dir);
-  const data = new TextEncoder().encode(JSON.stringify(run, null, 2) + '\n');
-  await Deno.writeFile(path, data);
-  return path;
-}
-
-async function loadLatestResults(dir: string): Promise<BenchmarkRun | null> {
-  try {
-    const entries: Deno.DirEntry[] = [];
-    for await (const e of Deno.readDir(dir)) {
-      if (e.isFile && e.name.startsWith('bench-') && e.name.endsWith('.json')) {
-        entries.push(e);
-      }
-    }
-    if (entries.length === 0) return null;
-    entries.sort((a, b) => b.name.localeCompare(a.name));
-    const data = await Deno.readFile(`${dir}/${entries[0]!.name}`);
-    return JSON.parse(new TextDecoder().decode(data)) as BenchmarkRun;
-  } catch {
-    return null;
-  }
-}
-
-function getGitCommit(): string {
-  try {
-    const cmd = new Deno.Command('git', {
-      args: ['rev-parse', '--short', 'HEAD'],
-      stdout: 'piped',
-      stderr: 'null',
-    });
-    const { stdout } = cmd.outputSync();
-    return new TextDecoder().decode(stdout).trim();
-  } catch {
-    return 'unknown';
-  }
-}
-
-function computeRegression(previous: BenchmarkResult, current: BenchmarkResult, thresholdPct: number): string | null {
-  const rpsChange = ((current.rps - previous.rps) / previous.rps) * 100;
-  const p99Change = previous.p99 > 0 ? ((current.p99 - previous.p99) / previous.p99) * 100 : 0;
-  const issues: string[] = [];
-  if (rpsChange < -thresholdPct) {
-    issues.push(`RPS ${rpsChange.toFixed(1)}% (threshold: ${thresholdPct}%)`);
-  }
-  if (p99Change > thresholdPct) {
-    issues.push(`p99 +${p99Change.toFixed(1)}% (threshold: ${thresholdPct}%)`);
-  }
-  return issues.length > 0 ? issues.join(', ') : null;
-}
-
-function printComparison(current: BenchmarkRun, previous: BenchmarkRun, thresholdPct: number): BenchmarkResult[] {
-  const regressed: BenchmarkResult[] = [];
-  const prevMap = new Map<string, BenchmarkResult>();
-  for (const r of previous.results) {
-    prevMap.set(r.route, r);
-  }
-
-  console.log('\n Performance Regression Check');
-  console.log('─'.repeat(78));
-  console.log(`  Previous: ${previous.timestamp} (${previous.gitCommit})`);
-  console.log(`  Current:  ${current.timestamp} (${current.gitCommit})`);
-  console.log(`  Threshold: ${thresholdPct}% change in RPS or p99`);
-  console.log('─'.repeat(78));
-
-  let hasIssues = false;
-  for (const cur of current.results) {
-    const prev = prevMap.get(cur.route);
-    if (!prev) {
-      console.log(`  ${cur.route.padEnd(18)} NEW (no previous data)`);
-      continue;
-    }
-
-    const rpsDelta = ((cur.rps - prev.rps) / prev.rps * 100).toFixed(1);
-    const p99Delta = prev.p99 > 0
-      ? ((cur.p99 - prev.p99) / prev.p99 * 100).toFixed(1)
-      : 'N/A';
-
-    const issue = computeRegression(prev, cur, thresholdPct);
-    if (issue) {
-      hasIssues = true;
-      regressed.push(cur);
-      console.log(`  ${'⚠'.padEnd(2)} ${cur.route.padEnd(18)} RPS: ${rpsDelta}%  p99: ${p99Delta}%  — ${issue}`);
-    } else {
-      console.log(`  ${'✓'.padEnd(2)} ${cur.route.padEnd(18)} RPS: ${rpsDelta}%  p99: ${p99Delta}%`);
-    }
-  }
-
-  console.log('─'.repeat(78));
-
-  if (hasIssues) {
-    console.log(`  ⚠  ${regressed.length} route(s) exceeded the ${thresholdPct}% threshold`);
-    for (const r of regressed) {
-      console.log(`     - ${r.route} (RPS: ${r.rps.toFixed(0)}, p99: ${formatLatency(r.p99)})`);
-    }
-  } else {
-    console.log('  ✓ No regressions detected');
-  }
-  console.log('');
-
-  return regressed;
-}
+const BFF_DIRECT_URL = 'http://127.0.0.1:3001';
+const FE_DIRECT_URL = 'http://127.0.0.1:5174';
+const SSR_DIRECT_URL = 'http://127.0.0.1:5175';
 
 const ROUTES: RouteDef[] = [
   {
@@ -262,6 +133,74 @@ const ROUTES: RouteDef[] = [
     name: 'API Test',
     path: '/api/test',
   },
+  // Direct BFF routes (bypass CF Worker)
+  {
+    name: 'BFF Direct (healthz)',
+    path: '/api/healthz',
+    baseUrl: BFF_DIRECT_URL,
+  },
+  {
+    name: 'BFF Direct (rpc)',
+    path: '/api/rpc/hello',
+    baseUrl: BFF_DIRECT_URL,
+  },
+  {
+    name: 'BFF Direct (test)',
+    path: '/api/test',
+    baseUrl: BFF_DIRECT_URL,
+  },
+  // Direct FE routes (production build, bypass CF Worker)
+  {
+    name: 'FE Direct (home)',
+    path: '/',
+    baseUrl: FE_DIRECT_URL,
+  },
+  {
+    name: 'FE Direct (about)',
+    path: '/about',
+    baseUrl: FE_DIRECT_URL,
+  },
+  {
+    name: 'FE Direct (holy-grail)',
+    path: '/holy-grail',
+    baseUrl: FE_DIRECT_URL,
+  },
+  {
+    name: 'FE Direct (errors)',
+    path: '/errors',
+    baseUrl: FE_DIRECT_URL,
+  },
+  // Direct SSR routes (production SSR build, bypass CF Worker)
+  {
+    name: 'SSR Direct (home)',
+    path: '/',
+    baseUrl: SSR_DIRECT_URL,
+  },
+  {
+    name: 'SSR Direct (about)',
+    path: '/about',
+    baseUrl: SSR_DIRECT_URL,
+  },
+  {
+    name: 'SSR Direct (holy-grail)',
+    path: '/holy-grail',
+    baseUrl: SSR_DIRECT_URL,
+  },
+  {
+    name: 'SSR Direct (errors)',
+    path: '/errors',
+    baseUrl: SSR_DIRECT_URL,
+  },
+  {
+    name: 'SSR Direct (ssr)',
+    path: '/ssr',
+    baseUrl: SSR_DIRECT_URL,
+  },
+  {
+    name: 'SSR Direct (hono-rpc)',
+    path: '/hono-rpc',
+    baseUrl: SSR_DIRECT_URL,
+  },
 ];
 
 function getOhaPath(): string {
@@ -291,10 +230,10 @@ async function runOha(url: string, duration: string, concurrency: number): Promi
       duration,
       '-c',
       String(concurrency),
+      '--latency-correction',
       '--no-tui',
       '--output-format',
       'json',
-      '--disable-keepalive',
       url,
     ],
     stderr: 'piped',
@@ -464,16 +403,14 @@ function cleanup(signal?: Deno.Signal): void {
 
 async function main(): Promise<void> {
   const overallStart = performance.now();
-  const { baseUrl, concurrency, duration, warmupDuration, noSave, noCompare, regressionThreshold } = getConfig();
+  const { baseUrl, concurrency, duration, warmupDuration } = getConfig();
 
   const startServers = Deno.env.get('BENCH_NO_START') !== '1';
   const servicePort = new URL(baseUrl).port || '8787';
 
   if (startServers) {
-    console.log(`Clearing port ${servicePort}...`);
-    await clearPorts([
-      Number(servicePort),
-    ]);
+    console.log(`Clearing ports 3001, 5173, 5174, 5175, ${servicePort}...`);
+    await clearPorts([3001, 5173, 5174, 5175, Number(servicePort)]);
 
     console.log('Building for production...');
     const build = new Deno.Command('deno', {
@@ -493,37 +430,114 @@ async function main(): Promise<void> {
       throw new Error('Build failed');
     }
 
-    console.log(`Starting gateway preview server on port ${servicePort}...`);
+    console.log('Starting BFF standalone (direct, bypass CF)...');
+    const bffDirect = new Deno.Command('deno', {
+      args: [
+        'run',
+        '-A',
+        'scripts/standalone-bff.ts',
+      ],
+      env: {
+        PORT: '3001',
+        HOST: '127.0.0.1',
+        ...Deno.env.toObject(),
+      },
+      stderr: 'null',
+      stdout: 'null',
+    }).spawn();
+    managedProcesses.push({ child: bffDirect, name: 'bff-standalone' });
+
+    console.log('Starting FE standalone (direct, build/client)...');
+    const feDirect = new Deno.Command('deno', {
+      args: [
+        'run',
+        '-A',
+        'scripts/standalone-fe.ts',
+      ],
+      env: {
+        PORT: '5174',
+        HOST: '127.0.0.1',
+        FE_CLIENT_DIR: 'build/client',
+        ...Deno.env.toObject(),
+      },
+      stderr: 'null',
+      stdout: 'null',
+    }).spawn();
+    managedProcesses.push({ child: feDirect, name: 'fe-standalone' });
+
+    console.log('Starting SSR standalone (direct, bypass CF)...');
+    const ssrDirect = new Deno.Command('deno', {
+      args: [
+        'run',
+        '-A',
+        'scripts/standalone-ssr.ts',
+      ],
+      env: {
+        PORT: '5175',
+        HOST: '127.0.0.1',
+        FE_CLIENT_DIR: 'build/client',
+        ...Deno.env.toObject(),
+      },
+      stderr: 'null',
+      stdout: 'null',
+    }).spawn();
+    managedProcesses.push({ child: ssrDirect, name: 'ssr-standalone' });
+
+    console.log(`Starting frontend dev server on port 5173...`);
+    const frontend = new Deno.Command('deno', {
+      args: [
+        'task',
+        '--cwd=packages/frontend',
+        'dev',
+      ],
+      env: {
+        SENTRY_RELEASE: 'local',
+        ...Deno.env.toObject(),
+      },
+      stderr: 'null',
+      stdout: 'null',
+    }).spawn();
+    managedProcesses.push({ child: frontend, name: 'frontend' });
+
+    console.log(`Starting gateway dev server on port ${servicePort}...`);
     const gateway = new Deno.Command('deno', {
       args: [
         'task',
         '--cwd=packages/gateway',
-        'preview',
+        'dev',
       ],
       env: {
+        SENTRY_RELEASE: 'local',
         ...Deno.env.toObject(),
       },
-      stderr: 'inherit',
-      stdout: 'inherit',
+      stderr: 'null',
+      stdout: 'null',
     }).spawn();
-    managedProcesses.push({
-      child: gateway,
-      name: 'gateway',
-    });
-    console.log('Waiting for gateway to be ready...');
-    await waitForServer(`${baseUrl}/healthz`, 60_000);
-    console.log('Gateway is ready.\n');
+    managedProcesses.push({ child: gateway, name: 'gateway' });
+
+    console.log('Waiting for servers to be ready (up to 120s)...');
+    await Promise.all([
+      waitForServer(`${BFF_DIRECT_URL}/api/healthz`, 120_000),
+      waitForServer(`${FE_DIRECT_URL}/`, 120_000),
+      waitForServer(`${SSR_DIRECT_URL}/healthz`, 120_000),
+      waitForServer(`${baseUrl}/healthz`, 120_000),
+    ]);
+    console.log('All servers are ready.\n');
   }
+
+  const uniqueUrls = [...new Set(ROUTES.map(r => r.baseUrl ?? baseUrl))];
 
   console.log(`Benchmarking ${ROUTES.length} routes:`);
   console.log(`  Duration:   ${duration}`);
   console.log(`  Concurrency: ${concurrency}`);
   console.log(`  Warmup:     ${warmupDuration}`);
-  console.log(`  Base URL:   ${baseUrl}\n`);
+  console.log(`  URLs:       ${uniqueUrls.join(', ')}\n`);
 
   if (!warmupDuration.startsWith('0')) {
     console.log('Warming up...');
-    await runOha(`${baseUrl}/healthz`, warmupDuration, concurrency).catch(() => {});
+    for (const u of uniqueUrls) {
+      await runOha(`${u}/healthz`, warmupDuration, concurrency).catch(() => {});
+    }
     console.log('Warmup complete.\n');
   }
 
@@ -531,10 +545,11 @@ async function main(): Promise<void> {
 
   for (const route of ROUTES) {
     const routeStart = performance.now();
-    process.stdout.write(`  ${route.name.padEnd(18)} ... `);
+    process.stdout.write(`  ${route.name.padEnd(20)} ... `);
 
     try {
-      const result = await benchmarkRoute(route, baseUrl, duration, concurrency);
+      const routeBaseUrl = route.baseUrl ?? baseUrl;
+      const result = await benchmarkRoute(route, routeBaseUrl, duration, concurrency);
       results.push(result);
       const took = elapsed(routeStart);
       console.log(
@@ -550,30 +565,6 @@ async function main(): Promise<void> {
   console.log('');
   printTable(results, totalTime);
   printShortSummary(results);
-
-  const gitCommit = getGitCommit();
-  const currentRun: BenchmarkRun = {
-    timestamp: new Date().toISOString(),
-    gitCommit,
-    config: { baseUrl, concurrency, duration, warmupDuration },
-    results,
-  };
-
-  if (!noSave) {
-    const dir = outputDir();
-    const savedPath = await saveResults(currentRun, dir);
-    console.log(`\nResults saved to ${savedPath}`);
-  }
-
-  if (!noCompare) {
-    const dir = outputDir();
-    const previous = await loadLatestResults(dir);
-    if (previous && previous.timestamp !== currentRun.timestamp) {
-      printComparison(currentRun, previous, regressionThreshold);
-    } else {
-      console.log('\n No previous benchmark run found for comparison.');
-    }
-  }
 
   if (startServers) {
     cleanup('SIGTERM');
