@@ -135,71 +135,71 @@ const ROUTES: RouteDef[] = [
   },
   // Direct BFF routes (bypass CF Worker)
   {
+    baseUrl: BFF_DIRECT_URL,
     name: 'BFF Direct (healthz)',
     path: '/api/healthz',
-    baseUrl: BFF_DIRECT_URL,
   },
   {
+    baseUrl: BFF_DIRECT_URL,
     name: 'BFF Direct (rpc)',
     path: '/api/rpc/hello',
-    baseUrl: BFF_DIRECT_URL,
   },
   {
+    baseUrl: BFF_DIRECT_URL,
     name: 'BFF Direct (test)',
     path: '/api/test',
-    baseUrl: BFF_DIRECT_URL,
   },
   // Direct FE routes (production build, bypass CF Worker)
   {
+    baseUrl: FE_DIRECT_URL,
     name: 'FE Direct (home)',
     path: '/',
-    baseUrl: FE_DIRECT_URL,
   },
   {
+    baseUrl: FE_DIRECT_URL,
     name: 'FE Direct (about)',
     path: '/about',
-    baseUrl: FE_DIRECT_URL,
   },
   {
+    baseUrl: FE_DIRECT_URL,
     name: 'FE Direct (holy-grail)',
     path: '/holy-grail',
-    baseUrl: FE_DIRECT_URL,
   },
   {
+    baseUrl: FE_DIRECT_URL,
     name: 'FE Direct (errors)',
     path: '/errors',
-    baseUrl: FE_DIRECT_URL,
   },
   // Direct SSR routes (production SSR build, bypass CF Worker)
   {
+    baseUrl: SSR_DIRECT_URL,
     name: 'SSR Direct (home)',
     path: '/',
-    baseUrl: SSR_DIRECT_URL,
   },
   {
+    baseUrl: SSR_DIRECT_URL,
     name: 'SSR Direct (about)',
     path: '/about',
-    baseUrl: SSR_DIRECT_URL,
   },
   {
+    baseUrl: SSR_DIRECT_URL,
     name: 'SSR Direct (holy-grail)',
     path: '/holy-grail',
-    baseUrl: SSR_DIRECT_URL,
   },
   {
+    baseUrl: SSR_DIRECT_URL,
     name: 'SSR Direct (errors)',
     path: '/errors',
-    baseUrl: SSR_DIRECT_URL,
   },
   {
+    baseUrl: SSR_DIRECT_URL,
     name: 'SSR Direct (ssr)',
     path: '/ssr',
-    baseUrl: SSR_DIRECT_URL,
   },
   {
+    baseUrl: SSR_DIRECT_URL,
     name: 'SSR Direct (hono-rpc)',
     path: '/hono-rpc',
-    baseUrl: SSR_DIRECT_URL,
   },
 ];
 
@@ -410,7 +410,13 @@ async function main(): Promise<void> {
 
   if (startServers) {
     console.log(`Clearing ports 3001, 5173, 5174, 5175, ${servicePort}...`);
-    await clearPorts([3001, 5173, 5174, 5175, Number(servicePort)]);
+    await clearPorts([
+      3001,
+      5173,
+      5174,
+      5175,
+      Number(servicePort),
+    ]);
 
     console.log('Building for production...');
     const build = new Deno.Command('deno', {
@@ -438,14 +444,17 @@ async function main(): Promise<void> {
         'scripts/standalone-bff.ts',
       ],
       env: {
-        PORT: '3001',
         HOST: '127.0.0.1',
+        PORT: '3001',
         ...Deno.env.toObject(),
       },
       stderr: 'null',
       stdout: 'null',
     }).spawn();
-    managedProcesses.push({ child: bffDirect, name: 'bff-standalone' });
+    managedProcesses.push({
+      child: bffDirect,
+      name: 'bff-standalone',
+    });
 
     console.log('Starting FE standalone (direct, build/client)...');
     const feDirect = new Deno.Command('deno', {
@@ -455,15 +464,18 @@ async function main(): Promise<void> {
         'scripts/standalone-fe.ts',
       ],
       env: {
-        PORT: '5174',
-        HOST: '127.0.0.1',
         FE_CLIENT_DIR: 'build/client',
+        HOST: '127.0.0.1',
+        PORT: '5174',
         ...Deno.env.toObject(),
       },
       stderr: 'null',
       stdout: 'null',
     }).spawn();
-    managedProcesses.push({ child: feDirect, name: 'fe-standalone' });
+    managedProcesses.push({
+      child: feDirect,
+      name: 'fe-standalone',
+    });
 
     console.log('Starting SSR standalone (direct, bypass CF)...');
     const ssrDirect = new Deno.Command('deno', {
@@ -473,15 +485,18 @@ async function main(): Promise<void> {
         'scripts/standalone-ssr.ts',
       ],
       env: {
-        PORT: '5175',
-        HOST: '127.0.0.1',
         FE_CLIENT_DIR: 'build/client',
+        HOST: '127.0.0.1',
+        PORT: '5175',
         ...Deno.env.toObject(),
       },
       stderr: 'null',
       stdout: 'null',
     }).spawn();
-    managedProcesses.push({ child: ssrDirect, name: 'ssr-standalone' });
+    managedProcesses.push({
+      child: ssrDirect,
+      name: 'ssr-standalone',
+    });
 
     console.log(`Starting frontend dev server on port 5173...`);
     const frontend = new Deno.Command('deno', {
@@ -497,7 +512,10 @@ async function main(): Promise<void> {
       stderr: 'null',
       stdout: 'null',
     }).spawn();
-    managedProcesses.push({ child: frontend, name: 'frontend' });
+    managedProcesses.push({
+      child: frontend,
+      name: 'frontend',
+    });
 
     console.log(`Starting gateway dev server on port ${servicePort}...`);
     const gateway = new Deno.Command('deno', {
@@ -513,7 +531,10 @@ async function main(): Promise<void> {
       stderr: 'null',
       stdout: 'null',
     }).spawn();
-    managedProcesses.push({ child: gateway, name: 'gateway' });
+    managedProcesses.push({
+      child: gateway,
+      name: 'gateway',
+    });
 
     console.log('Waiting for servers to be ready (up to 120s)...');
     await Promise.all([
@@ -525,7 +546,9 @@ async function main(): Promise<void> {
     console.log('All servers are ready.\n');
   }
 
-  const uniqueUrls = [...new Set(ROUTES.map(r => r.baseUrl ?? baseUrl))];
+  const uniqueUrls = [
+    ...new Set(ROUTES.map(r => r.baseUrl ?? baseUrl)),
+  ];
 
   console.log(`Benchmarking ${ROUTES.length} routes:`);
   console.log(`  Duration:   ${duration}`);
@@ -543,7 +566,11 @@ async function main(): Promise<void> {
 
   const results: BenchmarkResult[] = [];
 
-  for (const route of ROUTES) {
+  const activeRoutes = Deno.env.get('DIRECT_ONLY')
+    ? ROUTES.filter(r => r.baseUrl !== undefined)
+    : ROUTES;
+
+  for (const route of activeRoutes) {
     const routeStart = performance.now();
     process.stdout.write(`  ${route.name.padEnd(20)} ... `);
 

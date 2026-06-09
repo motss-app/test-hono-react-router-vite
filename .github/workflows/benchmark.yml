@@ -1,0 +1,73 @@
+name: Benchmark
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+env:
+  SENTRY_DSN: ${{ vars.SENTRY_DSN }}
+  SENTRY_RELEASE: local
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  benchmark:
+    name: Benchmark & Compare
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - uses: ./.github/actions/setup-deno
+
+      - name: Install oha
+        run: |
+          curl -sL https://github.com/hatoo/oha/releases/latest/download/oha-linux-amd64 -o /tmp/oha
+          chmod +x /tmp/oha
+          sudo mv /tmp/oha /usr/local/bin/oha
+
+      - name: Build
+        run: deno task build
+
+      - name: Run benchmark (direct servers only)
+        env:
+          OHA_BINARY: /usr/local/bin/oha
+          DIRECT_ONLY: 'true'
+          BENCH_DURATION: 10s
+        run: deno run -A scripts/bench-all.ts 2>&1 | tee /tmp/bench-output.txt
+
+      - name: Fetch baseline from main (PR only)
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch origin main --depth=1
+          git show origin/main:docs/benchmark-baseline.md > /tmp/baseline.md 2>/dev/null || echo "## No baseline available" > /tmp/baseline.md
+
+      - name: Update baseline and compare (PR only)
+        if: github.event_name == 'pull_request'
+        run: |
+          deno run -A scripts/update-baseline.ts /tmp/bench-output.txt --baseline /tmp/baseline.md --output /tmp/bench-comment.md
+
+      - name: Post comparison comment (PR only)
+        if: github.event_name == 'pull_request'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body-path: /tmp/bench-comment.md
+          edit-mode: replace
+
+      - name: Update baseline on main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          deno run -A scripts/update-baseline.ts /tmp/bench-output.txt
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add docs/benchmark-baseline.md
+          if git diff --cached --quiet; then
+            echo "No baseline change to commit"
+          else
+            git commit -m "chore: update benchmark baseline"
+            git push
+          fi
