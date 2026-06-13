@@ -22,9 +22,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Deno
-        uses: denoland/setup-deno@v2
-        with:
-          deno-version: v2.7.14
+        uses: ./.github/actions/setup-deno
 
       - name: Make oha executable
         run: chmod +x bin/oha-linux-amd64
