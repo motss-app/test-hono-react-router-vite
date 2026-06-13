@@ -26,7 +26,7 @@ function parseSentryDsn(dsn: string): ParsedSentryDsn | undefined {
     const projectId = url.pathname.replace(/^\/+/, '').split('/')[0];
 
     if (!projectId) {
-      return;
+      return undefined;
     }
 
     return {
@@ -34,7 +34,7 @@ function parseSentryDsn(dsn: string): ParsedSentryDsn | undefined {
       projectId,
     };
   } catch {
-    return;
+    return undefined;
   }
 }
 

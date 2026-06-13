@@ -2,91 +2,162 @@ name: Benchmark
 
 on:
   pull_request:
+    branches: [main]
   push:
-    branches:
-      - main
+    branches: [main]
 
-env:
-  SENTRY_DSN: ${{ vars.SENTRY_DSN }}
-  SENTRY_RELEASE: local
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
   benchmark:
-    name: Benchmark & Compare
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - uses: ./.github/actions/setup-deno
-
-      - name: Log system info
-        run: |
-          echo "**OS:** $(uname -srm)"
-          echo "**CPUs:** $(nproc) logical cores"
-          echo "**Memory:** $(free -h | awk '/^Mem:/ {print $2}') total"
-          echo "**Deno:** $(deno --version | head -1)"
-          echo "**Runner:** ${{ runner.name }} (${{ runner.os }})"
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.7.14
 
       - name: Install oha
+        run: deno install -g oha
+
+      - name: Install dependencies
+        run: deno install
+
+      - name: Run benchmark comparison
+        id: bench
         run: |
-          curl -sL https://github.com/hatoo/oha/releases/latest/download/oha-linux-amd64 -o /tmp/oha
-          chmod +x /tmp/oha
-          sudo mv /tmp/oha /usr/local/bin/oha
+          COMMIT_SHA="${{ github.event.pull_request.head.sha || github.sha }}"
+          deno run -A scripts/bench-compare.ts \
+            --baseline=bench-baseline.md \
+            --commit="$COMMIT_SHA" \
+            --output-dir=.bench-results
+        continue-on-error: true
 
-      - name: Build
-        run: deno task build
-
-      - name: Run benchmark (direct servers only)
-        env:
-          OHA_BINARY: /usr/local/bin/oha
-          DIRECT_ONLY: 'true'
-          BENCH_DURATION: 10s
-        run: deno run -A scripts/bench-all.ts 2>&1 | tee /tmp/bench-output.txt
-
-      - name: Fetch baseline from main (PR only)
-        if: github.event_name == 'pull_request'
+      - name: Generate job summary
+        if: always()
         run: |
-          git fetch origin main --depth=1
-          git show origin/main:docs/benchmark-baseline.md > /tmp/baseline.md 2>/dev/null || echo "## No baseline available" > /tmp/baseline.md
-
-      - name: Compare and generate comment (PR only)
-        id: compare
-        if: github.event_name == 'pull_request'
-        run: |
-          deno run -A scripts/update-baseline.ts /tmp/bench-output.txt --baseline /tmp/baseline.md --output /tmp/bench-comment.md
-          if grep -q "regression detected" /tmp/bench-comment.md; then
-            echo "regression=true" >> "$GITHUB_OUTPUT"
+          if [ -f .bench-results/benchmark-report.md ]; then
+            cat .bench-results/benchmark-report.md >> $GITHUB_STEP_SUMMARY
+          else
+            echo "## Benchmark Results" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ERROR - No benchmark results found" >> $GITHUB_STEP_SUMMARY
           fi
 
-      - name: Post comparison comment (PR only)
+      - name: Post PR comment
         if: github.event_name == 'pull_request' && always()
-        uses: peter-evans/create-or-update-comment@v4
+        uses: actions/github-script@v7
         with:
-          issue-number: ${{ github.event.pull_request.number }}
-          body-path: /tmp/bench-comment.md
-          edit-mode: replace
+          script: |
+            const fs = require('fs');
+            const summaryPath = '.bench-results/benchmark-summary.json';
+            const reportPath = '.bench-results/benchmark-report.md';
 
-      - name: Fail on regression (PR only)
-        if: github.event_name == 'pull_request' && steps.compare.outputs.regression == 'true'
-        run: |
-          echo "❌ Performance regression detected (>15% RPS drop or p99 increase)."
-          echo "Check the PR comment for details."
-          exit 1
+            let body = '';
+
+            if (fs.existsSync(summaryPath)) {
+              const summary = JSON.parse(fs.readFileSync(summaryPath, 'utf8'));
+              const status = summary.status.toUpperCase();
+              const emoji = status === 'REGRESSION' ? '🔴' : status === 'IMPROVEMENT' ? '🟢' : '🟡';
+
+              body = `## ${emoji} Benchmark ${status}\n\n`;
+              body += `**Commit:** \`${summary.commitSha.slice(0, 8)}\`\n\n`;
+
+              if (summary.regressions.length > 0) {
+                body += `### Regressions (${summary.regressions.length})\n\n`;
+                body += `| Route | RPS Delta | p99 Delta |\n`;
+                body += `|-------|-----------|-----------|\n`;
+                for (const r of summary.regressions) {
+                  const rpsDelta = r.rpsDelta > 0 ? `+${r.rpsDelta.toFixed(1)}%` : `${r.rpsDelta.toFixed(1)}%`;
+                  const p99Delta = r.p99Delta > 0 ? `+${r.p99Delta.toFixed(1)}%` : `${r.p99Delta.toFixed(1)}%`;
+                  body += `| ${r.route} | ${rpsDelta} | ${p99Delta} |\n`;
+                }
+                body += `\n`;
+              }
+
+              if (summary.improvements.length > 0) {
+                body += `### Improvements (${summary.improvements.length})\n\n`;
+                body += `| Route | RPS Delta | p99 Delta |\n`;
+                body += `|-------|-----------|-----------|\n`;
+                for (const r of summary.improvements) {
+                  const rpsDelta = r.rpsDelta > 0 ? `+${r.rpsDelta.toFixed(1)}%` : `${r.rpsDelta.toFixed(1)}%`;
+                  const p99Delta = r.p99Delta > 0 ? `+${r.p99Delta.toFixed(1)}%` : `${r.p99Delta.toFixed(1)}%`;
+                  body += `| ${r.route} | ${rpsDelta} | ${p99Delta} |\n`;
+                }
+                body += `\n`;
+              }
+
+              body += `<details>\n<summary>Full Report</summary>\n\n`;
+              if (fs.existsSync(reportPath)) {
+                body += fs.readFileSync(reportPath, 'utf8');
+              }
+              body += `\n</details>\n`;
+            } else {
+              body = '## 🔴 Benchmark Error\n\nFailed to run benchmark comparison.';
+            }
+
+            // Find and update existing comment or create new one
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const marker = '## 🔴 Benchmark REGRESSION\n## 🟢 Benchmark IMPROVEMENT\n## 🟡 Benchmark TIE\n## 🔴 Benchmark ERROR';
+            const existingComment = comments.find(c =>
+              c.body.startsWith('## 🔴 Benchmark REGRESSION') ||
+              c.body.startsWith('## 🟢 Benchmark IMPROVEMENT') ||
+              c.body.startsWith('## 🟡 Benchmark TIE') ||
+              c.body.startsWith('## 🔴 Benchmark ERROR')
+            );
+
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                body,
+                comment_id: existingComment.id,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                body,
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+              });
+            }
 
       - name: Update baseline on main
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && steps.bench.outcome == 'success'
         run: |
-          deno run -A scripts/update-baseline.ts /tmp/bench-output.txt
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git add docs/benchmark-baseline.md
-          if git diff --cached --quiet; then
-            echo "No baseline change to commit"
-          else
-            git commit -m "chore: update benchmark baseline"
+          if [ -f .bench-results/benchmark-results.md ]; then
+            cp .bench-results/benchmark-results.md bench-baseline.md
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add bench-baseline.md
+            git diff --cached --quiet || git commit -m "chore: update benchmark baseline"
             git push
           fi
+
+      - name: Upload benchmark artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: .bench-results/
+          retention-days: 30
+
+      - name: Fail on regression
+        if: steps.bench.outcome == 'failure'
+        run: |
+          echo "Benchmark regression detected!"
+          exit 1

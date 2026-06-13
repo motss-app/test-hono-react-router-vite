@@ -28,21 +28,6 @@ export function RootDocumentHead({ cspNonce }: RootDocumentHeadProps): JSX.Eleme
       />
       <Links />
       <script src={themeBootstrapSrc} />
-
-      {import.meta.env.DEV ? (
-        <>
-          {/* Reference: https://stylexjs.com/docs/api/configuration/unplugin#vite */}
-          <link
-            href="/virtual:stylex.css"
-            rel="stylesheet"
-            suppressHydrationWarning
-          />
-          <script
-            src="/@id/virtual:stylex:runtime"
-            type="module"
-          />
-        </>
-      ) : null}
     </>
   );
 }

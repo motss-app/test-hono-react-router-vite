@@ -15,7 +15,7 @@ import { StrictMode, startTransition, useEffect } from 'react';
 import { hydrateRoot } from 'react-dom/client';
 import { HydratedRouter } from 'react-router/dom';
 
-import './polyfills/request-idle-callback.ts';
+import './polyfills/request-idle-callback.mjs';
 
 import { logSentryEnvSnapshot } from '../../../vite-utils/sentry-env-log.ts';
 import {

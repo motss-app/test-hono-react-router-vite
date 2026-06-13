@@ -1,41 +1,36 @@
-import { create } from '@stylexjs/stylex';
+import { globalStyle, style } from '@vanilla-extract/css';
 
-import { colorTokens, fontWeightTokens, themeConditions } from './styles/tokens.stylex.ts';
+import { colorTokens, fontWeightTokens } from './styles/tokens.css.ts';
 
-const vendorPrefixFontSmoothing = {
-  mozOsxFontSmoothing: '-moz-osx-font-smoothing',
-  webkitFontSmoothing: '-webkit-font-smoothing',
-} as const;
-
-export const globalStyles = create({
-  body: {
-    fontFamily: "'Open Sans Variable', 'Open Sans', sans-serif",
-    margin: 0,
-    minHeight: '100vh',
-    [vendorPrefixFontSmoothing.mozOsxFontSmoothing]: 'grayscale',
-    [vendorPrefixFontSmoothing.webkitFontSmoothing]: 'antialiased',
-    backgroundColor: {
-      [themeConditions.dataThemeDark]: colorTokens.backgroundDark,
-      default: colorTokens.backgroundLight,
-    },
-    color: {
-      [themeConditions.dataThemeDark]: colorTokens.slate200,
-      default: colorTokens.textColor,
-    },
-  },
-  html: {
-    boxSizing: 'border-box',
-    fontSize: '16px',
-    fontWeight: 400,
-    lineHeight: 1.5,
-    margin: 0,
-    padding: 0,
-    textRendering: 'optimizeLegibility',
-  },
+// Global Styles
+globalStyle('html', {
+  boxSizing: 'border-box',
+  fontSize: '16px',
+  fontWeight: 400,
+  lineHeight: 1.5,
+  margin: 0,
+  padding: 0,
+  textRendering: 'optimizeLegibility',
 });
 
-export const errorStyles = create({
-  container: {
+globalStyle('body', {
+  backgroundColor: colorTokens.backgroundLight,
+  color: colorTokens.textColor,
+  fontFamily: "'Open Sans Variable', 'Open Sans', sans-serif",
+  MozOsxFontSmoothing: 'grayscale',
+  margin: 0,
+  minHeight: '100vh',
+  WebkitFontSmoothing: 'antialiased',
+});
+
+globalStyle(':root[data-theme="dark"] body', {
+  backgroundColor: colorTokens.backgroundDark,
+  color: colorTokens.slate200,
+});
+
+// Named Styles
+export const errorStyles = {
+  container: style({
     backgroundColor: colorTokens.backgroundDark,
     borderRadius: '1rem',
     boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
@@ -43,26 +38,26 @@ export const errorStyles = create({
     padding: '2rem',
     textAlign: 'center',
     width: '100%',
-  },
-  details: {
+  }),
+  details: style({
     color: colorTokens.slate200,
     fontSize: '1.25rem',
     marginBottom: '2rem',
-  },
-  icon: {
+  }),
+  icon: style({
     fontSize: '3.75rem',
     marginBottom: '1rem',
-  },
-  iconBug: {
+  }),
+  iconBug: style({
     color: '#f87171',
-  },
-  iconClientError: {
+  }),
+  iconClientError: style({
     color: colorTokens.warning,
-  },
-  iconServerError: {
+  }),
+  iconServerError: style({
     color: colorTokens.error,
-  },
-  link: {
+  }),
+  link: style({
     alignItems: 'center',
     backgroundColor: colorTokens.info,
     borderRadius: '0.5rem',
@@ -72,15 +67,15 @@ export const errorStyles = create({
     gap: '0.5rem',
     padding: '0.75rem 1.5rem',
     textDecoration: 'none',
-  },
-  main: {
+  }),
+  main: style({
     alignItems: 'center',
     backgroundColor: colorTokens.backgroundDark,
     display: 'flex',
     justifyContent: 'center',
     padding: '1rem',
-  },
-  stackDetails: {
+  }),
+  stackDetails: style({
     backgroundColor: 'rgba(255,255,255,0.08)',
     borderColor: colorTokens.slate700,
     borderRadius: '0.125rem',
@@ -89,8 +84,8 @@ export const errorStyles = create({
     marginBottom: '2rem',
     padding: '1rem',
     textAlign: 'left',
-  },
-  stackPre: {
+  }),
+  stackPre: style({
     backgroundColor: colorTokens.slate800,
     borderRadius: '0.25rem',
     color: colorTokens.slate200,
@@ -98,8 +93,8 @@ export const errorStyles = create({
     fontSize: '0.875rem',
     overflow: 'auto',
     padding: '1rem',
-  },
-  stackSummary: {
+  }),
+  stackSummary: style({
     alignItems: 'center',
     color: colorTokens.slate200,
     cursor: 'pointer',
@@ -107,35 +102,37 @@ export const errorStyles = create({
     fontWeight: fontWeightTokens.fontWeightSemibold,
     gap: '0.5rem',
     marginBottom: '1rem',
-  },
-  title: {
+  }),
+  title: style({
     fontSize: '2.25rem',
     fontWeight: fontWeightTokens.fontWeightBold,
     marginBottom: '1rem',
-  },
-  titleClientError: {
+  }),
+  titleClientError: style({
     color: colorTokens.warning,
-  },
-  titleServerError: {
+  }),
+  titleServerError: style({
     color: colorTokens.error,
-  },
-});
+  }),
+};
 
-export const utilities = create({
-  linkReset: {
-    ':hover': {
-      textDecoration: 'underline',
+export const utilities = {
+  linkReset: style({
+    selectors: {
+      '&:hover': {
+        textDecoration: 'underline',
+      },
     },
     textDecoration: 'none',
-  },
-  maxWidth2xl: {
+  }),
+  maxWidth2xl: style({
     marginBlockEnd: '0px',
     marginBlockStart: '0px',
     marginLeft: 'auto',
     marginRight: 'auto',
     maxWidth: '42rem',
-  },
-  paragraphSpacing: {
+  }),
+  paragraphSpacing: style({
     marginBlock: '0.5rem',
-  },
-});
+  }),
+};

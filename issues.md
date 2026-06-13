@@ -232,7 +232,13 @@ logger: console
 }
 ```
 
-## Build issue in Github Actions
+## Build issue in Github Actions — Deno N-API regression
+
+**Upstream issue:** [denoland/deno#33924](https://github.com/denoland/deno/issues/33924) — "Intermittent Failed to recover 'TsconfigCache' type from napi value"
+
+This is a known Deno N-API regression. The error is intermittent (~3 out of 7 builds fail) and affects both local builds and CI. Related PRs: [#34496](https://github.com/denoland/deno/pull/34496), [#34023](https://github.com/denoland/deno/pull/34023).
+
+**Workaround:** Use Node.js for the build step (`npx` instead of `deno run -A npm:`) or downgrade Deno to 2.6.10 (before the regression).
 
 ```sh
 Run echo "🚀 Building Canary..."

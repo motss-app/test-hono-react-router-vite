@@ -36,7 +36,7 @@ export function applyAppSessionIdToSpan<T extends AppSessionSpanLike>(
 
 function getCookieValue(cookieHeader: string | undefined, cookieName: string): string | undefined {
   if (!cookieHeader) {
-    return;
+    return undefined;
   }
 
   for (const cookiePart of cookieHeader.split(';')) {
@@ -49,7 +49,7 @@ function getCookieValue(cookieHeader: string | undefined, cookieName: string): s
     return rawCookieValueParts.join('=');
   }
 
-  return;
+  return undefined;
 }
 
 function setBrowserAppSessionCookie(appSessionId: string): void {

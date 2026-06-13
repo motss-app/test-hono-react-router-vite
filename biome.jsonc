@@ -155,7 +155,9 @@
     "rules": {
       "a11y": "error",
       "complexity": {
-        "noUselessReturn": "off"
+        "noUselessReturn": "off",
+        "noUselessUndefined": "off",
+        "preset": "recommended"
       },
       "correctness": "error",
       "nursery": {
@@ -237,6 +239,14 @@
       ],
       "linter": {
         "rules": {
+          "complexity": {
+            "noExcessiveLinesPerFunction": {
+              "level": "error",
+              "options": {
+                "maxLines": 100
+              }
+            }
+          },
           "style": {
             "noDefaultExport": "off",
             "useNamingConvention": "off"

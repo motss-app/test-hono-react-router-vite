@@ -4,16 +4,14 @@ import openSansLatinWghtNormalWoff2 from '@fontsource-variable/open-sans/files/o
 import openSansMathWghtNormalWoff2 from '@fontsource-variable/open-sans/files/open-sans-math-wght-normal.woff2';
 import openSansSymbolsWghtNormalWoff2 from '@fontsource-variable/open-sans/files/open-sans-symbols-wght-normal.woff2';
 import { captureException } from '@sentry/react-router/cloudflare';
-import { props } from '@stylexjs/stylex';
 import type { JSX, PropsWithChildren } from 'react';
 import { isRouteErrorResponse, Link, Outlet, useRouteLoaderData } from 'react-router';
 
 import type { Route } from './+types/root.ts';
-import { errorStyles, globalStyles } from './app.styles.ts';
+import { errorStyles } from './app.css.ts';
 import { RootDocumentHead } from './components/root-document-head.tsx';
 import { RootDocumentScripts } from './components/root-document-scripts.tsx';
 import { IconArrowLeft, IconBug, IconExclamationTriangle } from './icons.ts';
-import { iconStyles } from './styles/icon.stylex.ts';
 import { csp } from './utils/csp.ts';
 
 export const links: Route.LinksFunction = () => [
@@ -58,12 +56,11 @@ export function Layout({ children }: PropsWithChildren): JSX.Element {
     <html
       lang="en"
       suppressHydrationWarning
-      {...props(globalStyles.html)}
     >
       <head>
         <RootDocumentHead cspNonce={cspNonce} />
       </head>
-      <body {...props(globalStyles.body)}>
+      <body>
         {children}
         <RootDocumentScripts cspNonce={cspNonce} />
       </body>
@@ -138,49 +135,47 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): JSX.Element 
   }
 
   return (
-    <main {...props(errorStyles.main)}>
-      <div {...props(errorStyles.container)}>
+    <main className={errorStyles.main}>
+      <div className={errorStyles.container}>
         <div
-          {...props(
-            errorStyles.icon,
+          className={`${errorStyles.icon} ${
             statusCode >= serverErrorThreshold
               ? errorStyles.iconServerError
               : errorStyles.iconClientError
-          )}
+          }`}
         >
-          <IconExclamationTriangle {...props(iconStyles.base)} />
+          <IconExclamationTriangle />
         </div>
 
         <h1
-          {...props(
-            errorStyles.title,
+          className={`${errorStyles.title} ${
             statusCode >= serverErrorThreshold
               ? errorStyles.titleServerError
               : errorStyles.titleClientError
-          )}
+          }`}
         >
           {message}
         </h1>
 
-        <p {...props(errorStyles.details)}>{details}</p>
+        <p className={errorStyles.details}>{details}</p>
 
         {stack && (
-          <details {...props(errorStyles.stackDetails)}>
-            <summary {...props(errorStyles.stackSummary)}>
-              <IconBug {...props(iconStyles.base, errorStyles.iconBug)} />
+          <details className={errorStyles.stackDetails}>
+            <summary className={errorStyles.stackSummary}>
+              <IconBug />
               <span>Stack Trace (Development Only)</span>
             </summary>
-            <pre {...props(errorStyles.stackPre)}>
+            <pre className={errorStyles.stackPre}>
               <code>{stack}</code>
             </pre>
           </details>
         )}
 
         <Link
+          className={errorStyles.link}
           to="/"
-          {...props(errorStyles.link)}
         >
-          <IconArrowLeft {...props(iconStyles.base)} />
+          <IconArrowLeft />
           <span>Go back home</span>
         </Link>
       </div>

@@ -299,8 +299,41 @@ function printSeparator(length: number): void {
   console.log('─'.repeat(length));
 }
 
+function formatBw(bytesPerSec: number): string {
+  if (bytesPerSec > 1_000_000) return `${(bytesPerSec / 1_000_000).toFixed(1)} MB`;
+  if (bytesPerSec > 1_000) return `${(bytesPerSec / 1_000).toFixed(0)} KB`;
+  return `${bytesPerSec.toFixed(0)} B`;
+}
+
+interface ColWidths {
+  avg: number;
+  bw: number;
+  p75: number;
+  p95: number;
+  p99: number;
+  reqs: number;
+  route: number;
+  rps: number;
+  success: number;
+}
+
+function formatRow(r: BenchmarkResult, w: ColWidths): string {
+  const name = r.route.length > w.route ? r.route.slice(0, w.route - 3) + '...' : r.route;
+  return [
+    name.padEnd(w.route),
+    formatRps(r.rps).padStart(w.rps),
+    formatLatency(r.p75).padStart(w.p75),
+    formatLatency(r.p95).padStart(w.p95),
+    formatLatency(r.p99).padStart(w.p99),
+    formatLatency(r.avgLatency).padStart(w.avg),
+    String(r.totalRequests).padStart(w.reqs),
+    formatPercent(r.successRate).padStart(w.success),
+    formatBw(r.bytesPerSec).padStart(w.bw),
+  ].join(' | ');
+}
+
 function printTable(results: BenchmarkResult[], totalTime: number): void {
-  const colWidths = {
+  const w: ColWidths = {
     avg: 12,
     bw: 10,
     p75: 12,
@@ -311,52 +344,24 @@ function printTable(results: BenchmarkResult[], totalTime: number): void {
     rps: 9,
     success: 8,
   };
-
   const header = [
-    'Route'.padEnd(colWidths.route),
-    'RPS'.padStart(colWidths.rps),
-    'p75'.padStart(colWidths.p75),
-    'p95'.padStart(colWidths.p95),
-    'p99'.padStart(colWidths.p99),
-    'Avg'.padStart(colWidths.avg),
-    'Requests'.padStart(colWidths.reqs),
-    'Success'.padStart(colWidths.success),
-    'BW/s'.padStart(colWidths.bw),
+    'Route'.padEnd(w.route),
+    'RPS'.padStart(w.rps),
+    'p75'.padStart(w.p75),
+    'p95'.padStart(w.p95),
+    'p99'.padStart(w.p99),
+    'Avg'.padStart(w.avg),
+    'Requests'.padStart(w.reqs),
+    'Success'.padStart(w.success),
+    'BW/s'.padStart(w.bw),
   ].join(' | ');
-
   const totalWidth = header.length;
   printSeparator(totalWidth);
   console.log(` BENCHMARK RESULTS  (total: ${totalTime.toFixed(1)}s)`);
   printSeparator(totalWidth);
   console.log(header);
   printSeparator(totalWidth);
-
-  for (const r of results) {
-    const name =
-      r.route.length > colWidths.route ? r.route.slice(0, colWidths.route - 3) + '...' : r.route;
-
-    const bw =
-      r.bytesPerSec > 1_000_000
-        ? `${(r.bytesPerSec / 1_000_000).toFixed(1)} MB`
-        : r.bytesPerSec > 1_000
-          ? `${(r.bytesPerSec / 1_000).toFixed(0)} KB`
-          : `${r.bytesPerSec.toFixed(0)} B`;
-
-    console.log(
-      [
-        name.padEnd(colWidths.route),
-        formatRps(r.rps).padStart(colWidths.rps),
-        formatLatency(r.p75).padStart(colWidths.p75),
-        formatLatency(r.p95).padStart(colWidths.p95),
-        formatLatency(r.p99).padStart(colWidths.p99),
-        formatLatency(r.avgLatency).padStart(colWidths.avg),
-        String(r.totalRequests).padStart(colWidths.reqs),
-        formatPercent(r.successRate).padStart(colWidths.success),
-        bw.padStart(colWidths.bw),
-      ].join(' | ')
-    );
-  }
-
+  for (const r of results) console.log(formatRow(r, w));
   printSeparator(totalWidth);
 }
 
@@ -401,171 +406,148 @@ function cleanup(signal?: Deno.Signal): void {
   }
 }
 
-async function main(): Promise<void> {
-  const overallStart = performance.now();
-  const { baseUrl, concurrency, duration, warmupDuration } = getConfig();
-
-  const startServers = Deno.env.get('BENCH_NO_START') !== '1';
-  const servicePort = new URL(baseUrl).port || '8787';
-
-  if (startServers) {
-    console.log(`Clearing ports 3001, 5173, 5174, 5175, ${servicePort}...`);
-    await clearPorts([
-      3001,
-      5173,
-      5174,
-      5175,
-      Number(servicePort),
-    ]);
-
-    console.log('Building for production...');
-    const build = new Deno.Command('deno', {
-      args: [
+async function runBuildCommand(task: string, cwd?: string): Promise<void> {
+  const args = cwd
+    ? [
         'task',
-        'build',
-      ],
-      env: {
-        ...Deno.env.toObject(),
-      },
-      stderr: 'inherit',
-      stdout: 'inherit',
-    }).spawn();
-
-    const { code: buildCode } = await build.output();
-    if (buildCode !== 0) {
-      throw new Error('Build failed');
-    }
-
-    console.log('Starting BFF standalone (direct, bypass CF)...');
-    const bffDirect = new Deno.Command('deno', {
-      args: [
-        'run',
-        '-A',
-        'scripts/standalone-bff.ts',
-      ],
-      env: {
-        HOST: '127.0.0.1',
-        PORT: '3001',
-        ...Deno.env.toObject(),
-      },
-      stderr: 'null',
-      stdout: 'null',
-    }).spawn();
-    managedProcesses.push({
-      child: bffDirect,
-      name: 'bff-standalone',
-    });
-
-    console.log('Starting FE standalone (direct, build/client)...');
-    const feDirect = new Deno.Command('deno', {
-      args: [
-        'run',
-        '-A',
-        'scripts/standalone-fe.ts',
-      ],
-      env: {
-        FE_CLIENT_DIR: 'build/client',
-        HOST: '127.0.0.1',
-        PORT: '5174',
-        ...Deno.env.toObject(),
-      },
-      stderr: 'null',
-      stdout: 'null',
-    }).spawn();
-    managedProcesses.push({
-      child: feDirect,
-      name: 'fe-standalone',
-    });
-
-    console.log('Starting SSR standalone (direct, bypass CF)...');
-    const ssrDirect = new Deno.Command('deno', {
-      args: [
-        'run',
-        '-A',
-        'scripts/standalone-ssr.ts',
-      ],
-      env: {
-        FE_CLIENT_DIR: 'build/client',
-        HOST: '127.0.0.1',
-        PORT: '5175',
-        ...Deno.env.toObject(),
-      },
-      stderr: 'null',
-      stdout: 'null',
-    }).spawn();
-    managedProcesses.push({
-      child: ssrDirect,
-      name: 'ssr-standalone',
-    });
-
-    console.log(`Starting frontend dev server on port 5173...`);
-    const frontend = new Deno.Command('deno', {
-      args: [
+        `--cwd=${cwd}`,
+        task,
+      ]
+    : [
         'task',
-        '--cwd=packages/frontend',
-        'dev',
-      ],
-      env: {
-        SENTRY_RELEASE: 'local',
-        ...Deno.env.toObject(),
-      },
-      stderr: 'null',
-      stdout: 'null',
-    }).spawn();
-    managedProcesses.push({
-      child: frontend,
-      name: 'frontend',
-    });
+        task,
+      ];
+  const command = new Deno.Command('deno', {
+    args,
+    env: {
+      ...Deno.env.toObject(),
+    },
+    stderr: 'inherit',
+    stdout: 'inherit',
+  }).spawn();
+  const { code } = await command.output();
+  if (code !== 0) throw new Error(`Build failed: ${task}`);
+}
 
-    console.log(`Starting gateway dev server on port ${servicePort}...`);
-    const gateway = new Deno.Command('deno', {
-      args: [
-        'task',
-        '--cwd=packages/gateway',
-        'dev',
-      ],
-      env: {
-        SENTRY_RELEASE: 'local',
-        ...Deno.env.toObject(),
-      },
-      stderr: 'null',
-      stdout: 'null',
-    }).spawn();
-    managedProcesses.push({
-      child: gateway,
-      name: 'gateway',
-    });
+function startStandaloneProcess(name: string, script: string, env: Record<string, string>): void {
+  const child = new Deno.Command('deno', {
+    args: [
+      'run',
+      '-A',
+      script,
+    ],
+    env: {
+      ...Deno.env.toObject(),
+      ...env,
+    },
+    stderr: 'null',
+    stdout: 'null',
+  }).spawn();
+  managedProcesses.push({
+    child,
+    name,
+  });
+}
 
-    console.log('Waiting for servers to be ready (up to 120s)...');
-    await Promise.all([
-      waitForServer(`${BFF_DIRECT_URL}/api/healthz`, 120_000),
-      waitForServer(`${FE_DIRECT_URL}/`, 120_000),
-      waitForServer(`${SSR_DIRECT_URL}/healthz`, 120_000),
-      waitForServer(`${baseUrl}/healthz`, 120_000),
-    ]);
-    console.log('All servers are ready.\n');
+function startWranglerWorker(name: string, cwd: string, port: string, inspectorPort: string): void {
+  const child = new Deno.Command('deno', {
+    args: [
+      'run',
+      '-A',
+      'npm:wrangler',
+      'dev',
+      '--env',
+      'production',
+      '--port',
+      port,
+      '--inspector-port',
+      inspectorPort,
+    ],
+    cwd,
+    env: {
+      SENTRY_RELEASE: 'local',
+      ...Deno.env.toObject(),
+    },
+    stderr: 'null',
+    stdout: 'null',
+  }).spawn();
+  managedProcesses.push({
+    child,
+    name,
+  });
+}
+
+async function buildAll(): Promise<void> {
+  console.log('Building for production...');
+  await runBuildCommand('build');
+  console.log('Building BFF (for gateway service binding)...');
+  await runBuildCommand('build', 'packages/bff');
+}
+
+function startStandaloneServers(): void {
+  console.log('Starting BFF standalone (direct, bypass CF)...');
+  startStandaloneProcess('bff-standalone', 'scripts/standalone-bff.ts', {
+    HOST: '127.0.0.1',
+    PORT: '3001',
+  });
+
+  console.log('Starting FE standalone (direct, build/client)...');
+  startStandaloneProcess('fe-standalone', 'scripts/standalone-fe.ts', {
+    FE_CLIENT_DIR: 'build/client',
+    HOST: '127.0.0.1',
+    PORT: '5174',
+  });
+
+  console.log('Starting SSR standalone (direct, bypass CF)...');
+  startStandaloneProcess('ssr-standalone', 'scripts/standalone-ssr.ts', {
+    FE_CLIENT_DIR: 'build/client',
+    HOST: '127.0.0.1',
+    PORT: '5175',
+  });
+}
+
+function startWranglerWorkers(servicePort: string): void {
+  console.log('Starting BFF worker via wrangler (for gateway service binding)...');
+  startWranglerWorker('bff-wrangler', 'packages/bff', '0', '9231');
+
+  console.log('Starting frontend worker via wrangler (port 5173)...');
+  startWranglerWorker('frontend', 'packages/frontend', '5173', '9232');
+
+  console.log(`Starting gateway worker via wrangler (port ${servicePort})...`);
+  startWranglerWorker('gateway', 'packages/gateway', servicePort, '9230');
+}
+
+async function waitForAllServers(baseUrl: string): Promise<void> {
+  console.log('Waiting for servers to be ready (up to 120s)...');
+  await Promise.all([
+    waitForServer(`${BFF_DIRECT_URL}/api/healthz`, 120_000),
+    waitForServer('http://127.0.0.1:5173/healthz', 120_000),
+    waitForServer(`${FE_DIRECT_URL}/`, 120_000),
+    waitForServer(`${SSR_DIRECT_URL}/healthz`, 120_000),
+    waitForServer(`${baseUrl}/healthz`, 120_000),
+  ]);
+  console.log('All servers are ready.\n');
+}
+
+async function runWarmup(
+  uniqueUrls: string[],
+  concurrency: number,
+  warmupDuration: string
+): Promise<void> {
+  if (warmupDuration.startsWith('0')) return;
+  console.log('Warming up...');
+  for (const u of uniqueUrls) {
+    await runOha(`${u}/healthz`, warmupDuration, concurrency).catch(() => {});
   }
+  console.log('Warmup complete.\n');
+}
 
-  const uniqueUrls = [
-    ...new Set(ROUTES.map(r => r.baseUrl ?? baseUrl)),
-  ];
-
-  console.log(`Benchmarking ${ROUTES.length} routes:`);
-  console.log(`  Duration:   ${duration}`);
-  console.log(`  Concurrency: ${concurrency}`);
-  console.log(`  Warmup:     ${warmupDuration}`);
-  console.log(`  URLs:       ${uniqueUrls.join(', ')}\n`);
-
-  if (!warmupDuration.startsWith('0')) {
-    console.log('Warming up...');
-    for (const u of uniqueUrls) {
-      await runOha(`${u}/healthz`, warmupDuration, concurrency).catch(() => {});
-    }
-    console.log('Warmup complete.\n');
-  }
-
+async function runBenchmarks(
+  baseUrl: string,
+  duration: string,
+  concurrency: number
+): Promise<BenchmarkResult[]> {
   const results: BenchmarkResult[] = [];
-
   const activeRoutes = Deno.env.get('DIRECT_ONLY')
     ? ROUTES.filter(r => r.baseUrl !== undefined)
     : ROUTES;
@@ -587,8 +569,44 @@ async function main(): Promise<void> {
     }
   }
 
-  const totalTime = (performance.now() - overallStart) / 1000;
+  return results;
+}
 
+async function main(): Promise<void> {
+  const overallStart = performance.now();
+  const { baseUrl, concurrency, duration, warmupDuration } = getConfig();
+  const startServers = Deno.env.get('BENCH_NO_START') !== '1';
+  const servicePort = new URL(baseUrl).port || '8787';
+
+  if (startServers) {
+    console.log(`Clearing ports 3001, 5173, 5174, 5175, ${servicePort}...`);
+    await clearPorts([
+      3001,
+      5173,
+      5174,
+      5175,
+      Number(servicePort),
+    ]);
+
+    await buildAll();
+    startStandaloneServers();
+    startWranglerWorkers(servicePort);
+    await waitForAllServers(baseUrl);
+  }
+
+  const uniqueUrls = [
+    ...new Set(ROUTES.map(r => r.baseUrl ?? baseUrl)),
+  ];
+  console.log(`Benchmarking ${ROUTES.length} routes:`);
+  console.log(`  Duration:    ${duration}`);
+  console.log(`  Concurrency: ${concurrency}`);
+  console.log(`  Warmup:      ${warmupDuration}`);
+  console.log(`  URLs:        ${uniqueUrls.join(', ')}\n`);
+
+  await runWarmup(uniqueUrls, concurrency, warmupDuration);
+  const results = await runBenchmarks(baseUrl, duration, concurrency);
+
+  const totalTime = (performance.now() - overallStart) / 1000;
   console.log('');
   printTable(results, totalTime);
   printShortSummary(results);

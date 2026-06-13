@@ -1,6 +1,6 @@
 import { reactRouter } from '@react-router/dev/vite';
 import { sentryVitePlugin } from '@sentry/vite-plugin';
-import stylex from '@stylexjs/unplugin';
+import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin';
 import type { ConfigEnv } from 'vite';
 
 import { headersCopyPlugin } from '../../vite-plugins/copy-headers.ts';
@@ -46,9 +46,9 @@ function logReactRouterSentryEnvSnapshot(mode: string): void {
 }
 
 const reactRouterBuildConfig = {
-  cssCodeSplit: false,
+  cssCodeSplit: true,
   cssMinify: 'lightningcss',
-  emptyOutDir: false,
+  emptyOutDir: true,
   rolldownOptions: {
     experimental: {
       chunkOptimization: true,
@@ -105,12 +105,7 @@ export default function createViteConfig(config: ConfigEnv) {
           themeBuildPlugin({
             rootDir: repoRootPath,
           }),
-          stylex.vite({
-            lightningcssOptions: {
-              minify: true,
-            },
-            useCSSLayers: true,
-          }),
+          vanillaExtractPlugin(),
           reactRouter(),
           headersCopyPlugin({
             dest: 'build/client/_headers',

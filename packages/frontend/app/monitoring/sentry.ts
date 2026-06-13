@@ -67,13 +67,13 @@ function getRequiredRuntimeRelease(mode: RuntimeMode, release?: string): string 
 
 function getDsnOrigin(dsn?: string): string | undefined {
   if (!dsn) {
-    return;
+    return undefined;
   }
 
   try {
     return new URL(dsn).origin;
   } catch {
-    return;
+    return undefined;
   }
 }
 
@@ -93,7 +93,7 @@ export function getSentryConnectSrc(dsn?: string): string[] {
  */
 function getRequestPathname(url?: string): string | undefined {
   if (!url) {
-    return;
+    return undefined;
   }
 
   if (url.startsWith('/')) {
@@ -103,7 +103,7 @@ function getRequestPathname(url?: string): string | undefined {
   try {
     return new URL(url).pathname;
   } catch {
-    return;
+    return undefined;
   }
 }
 

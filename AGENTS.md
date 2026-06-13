@@ -16,9 +16,24 @@
 2. Prefer targeted changes over broad rewrites unless the user explicitly asks for a larger refactor.
 3. **Always fix errors whenever possible.** When lint, typecheck, or other verification tools report issues, fix them before proceeding.
 4. Follow repository rules in this file even when a skill is loaded, unless the skill gives a more specific instruction for the same area.
-5. After code changes, run `deno task check` unless the task is documentation-only or the user says not to.
-6. After verification passes, probe every URL in `docs/dev-urls.md` to ensure all return 200. Run these against the gateway at `localhost:8787` (and `localhost:5173` for direct frontend URLs). If the dev servers are not running, skip this step.
-7. Report what changed, what was verified, the URL probe results, and any remaining risks or blockers.
+5. **Create a to-do list when the user provides multiple requests** to keep track of progress, especially when new requests arrive while ongoing tasks are not yet finished. Update status (in_progress, completed, pending) as work progresses.
+6. After code changes, run `deno task check` unless the task is documentation-only or the user says not to.
+6. **Always run Typecheck after code changes** to catch type errors:
+   - Run: `deno task check`
+   - Fix any type errors before proceeding
+7. **Always run Biome after code changes** to catch formatting and linting issues:
+   - Check: `deno run -P=lint npm:@biomejs/biome check .`
+   - Fix: `deno run -P=lint npm:@biomejs/biome check --write .`
+8. **Always run Format after code changes** to ensure consistent formatting:
+   - Run: `deno run -P=format npm:@biomejs/biome format --write .`
+9. After verification passes, run dev mode and validate all pages return 200 with correct HTML response:
+   - Check if dev servers are already running on `localhost:8787` (gateway) and `localhost:5173` (direct frontend)
+   - If either is not running, start them: `deno task dev` (runs all servers)
+   - Wait a few seconds for servers to be ready
+   - Probe every URL in `docs/dev-urls.md` against the appropriate host
+   - Verify each response has status 200 and contains valid HTML (check for `<html` or `<div` in body)
+   - **Never skip this step.** If the server fails to start, report the error and stop.
+10. Report what changed, what was verified, the URL probe results, and any remaining risks or blockers.
 
 ## Performance regression guard
 
@@ -102,6 +117,20 @@ Bench results are deterministic enough to detect regressions when run on the sam
 ## Updating this file
 
 **After every code change, run `BENCH_DURATION=20s deno task bench:all` and paste the new benchmark table above.** This ensures the agent always has fresh baseline numbers for regression comparison.
+
+## Error Silencing Rules
+
+- **Avoid silencing errors whenever possible.** Errors are valuable for debugging and catching unexpected bugs.
+- **Empty catch blocks are prohibited** unless the error is intentionally ignored and the behavior is documented with a comment explaining why.
+- **`as any` type assertions are prohibited** unless absolutely necessary for type compatibility (e.g., bridging build artifacts). Always add a comment explaining why the assertion is needed.
+- **`@ts-ignore` and `@ts-expect-error` are prohibited** unless the error is a known TypeScript limitation and the suppression is documented.
+- **Before adding any error suppression**, list the affected LoC and prompt the user for permission. Do not make autonomous decisions about error silencing.
+- **Biome rule promotion**: When a `biome-ignore` comment is added for the same rule more than 3 times across the codebase, update `biome.jsonc` to disable that rule globally (or add an override for the affected file patterns) instead of continuing to add inline suppressions. This keeps the codebase cleaner and makes the suppression visible in the linter config.
+- **Allowed error silencing patterns** (with documentation):
+  - `catch {}` for file-not-found operations where returning a default is correct behavior
+  - `catch {}` for localStorage access where the operation is optional
+  - `as any` for build artifacts with incompatible types where runtime behavior is correct
+  - `biome-ignore` for intentional patterns that are false positives (e.g., synchronous scripts for theme bootstrap)
 
 ## Repository Rules
 
