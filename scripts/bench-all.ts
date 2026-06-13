@@ -210,6 +210,7 @@ function getOhaPath(): string {
     'oha',
     '/opt/homebrew/bin/oha',
     '/usr/local/bin/oha',
+    'bin/oha-linux-amd64',
   ];
   for (const c of candidates) {
     try {

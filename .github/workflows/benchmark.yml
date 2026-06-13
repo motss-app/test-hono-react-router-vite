@@ -26,8 +26,8 @@ jobs:
         with:
           deno-version: v2.7.14
 
-      - name: Install oha
-        run: deno install -g oha
+      - name: Make oha executable
+        run: chmod +x bin/oha-linux-amd64
 
       - name: Install dependencies
         run: deno install
