@@ -7,6 +7,7 @@
 - Load `frontend-skill` when the task is primarily about visual direction, layout, landing pages, demos, or premium UI polish.
 - Load `skill-vite-plugin-creation` when the task is about creating or updating a Vite plugin that watches a TypeScript entry and emits a JavaScript artifact.
 - Load `commit-push-once` when the user explicitly invokes the commit-push-once trigger and wants the current staged changes committed and pushed exactly once. Treat that invocation as one-time permission only; do not reuse it until the user says so again.
+- Load `create-pr` when the user wants to create a PR for the current branch. Auto-assigns labels based on conventional commits, assigns to branch creator, generates description with issue links, blast radius, and verification summary.
 - Load `benchmark` skill when the task involves performance, load testing, or benchmarking.
 - Load `remix` skill when working with Remix 3 app structure, routes, controllers, middleware, validation, data access, auth, sessions, or UI.
 
@@ -140,6 +141,23 @@ Bench results are deterministic enough to detect regressions when run on the sam
 - **Styling**: Use StyleX (`@stylexjs/stylex`). Do not create or import global CSS files such as `app.css`.
 - **Function signatures**: Avoid default parameter values. Do not use `= {}` or any other default parameter value; normalize options inside the function body instead.
 - **Verification**: Run `deno task check` after code changes unless the task is docs-only or the user explicitly says not to.
+- **GPG signing**: Always sign commits with GPG if available. Use `git commit -S` for signed commits. If GPG is not configured, proceed without signing but note it in the commit message.
+- **Line length limits**: Max 72 characters per line for all of the following:
+  - Git commit subject line
+  - Git commit body (wrap at 72 chars)
+  - PR title
+  - PR description (wrap at 72 chars)
+- **Commit message format**: Use Conventional Commits format: `type(<scope>): <description>`
+  - **Scope**: Use package name or feature area (e.g., `frontend`, `bff`, `bench`)
+  - **Type**: `feat`, `fix`, `chore`, `refactor`, `docs`, `perf`, `test`, `ci`, `build`
+  - **Examples**:
+    ```
+    feat(#42): add dark mode toggle
+    fix(frontend): resolve hydration mismatch
+    chore(deps): update vite to v8
+    refactor(bench): extract helper functions
+    feat(auth): implement session refresh
+    ```
 - **Temporary files**: Never write to `/tmp/` or any directory outside the workspace root. Use `/var/folders/5p/x6m44h3n36v4w5pdttg8vtrw0000gn/T/opencode` if temp space is needed — it is pre-approved for external directory access.
 
 ## Related Instruction Files

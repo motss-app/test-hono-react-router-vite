@@ -27,16 +27,18 @@ Rules
 - If the push fails, report the failure and stop; do not retry unless the user explicitly asks.
 
 Success criteria
-- The commit message is concise, based on the staged changes, and follows Conventional Commits format (for example, `fix: ...` or `chore: ...`).
+- The commit message follows commit message format from AGENTS.md
 - The push target is the current branch or its configured upstream.
 - Report the commit hash and branch after a successful push.
 
 Checklist
 - [ ] inspect staged diff
-- [ ] commit staged changes
+- [ ] check if GPG signing is available: `git config --get user.signingkey`
+- [ ] commit staged changes (use `git commit -S` if GPG key available)
 - [ ] push the current branch
 - [ ] verify clean status
 - [ ] stop after the first successful push
 
 Notes
 - If the branch has no configured upstream, push to the repository remote the user is working against.
+- Always sign commits with GPG if available. Use `git commit -S` for signed commits. If GPG is not configured, proceed without signing but note it in the commit message.
