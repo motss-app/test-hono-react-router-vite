@@ -170,6 +170,12 @@ For local production-like previewing, run `deno task build` followed by `deno ta
 
 This project uses [StyleX](https://stylexjs.com/) for styling and theming. Global styling is expressed through StyleX tokens, utilities, and components rather than a global CSS framework.
 
+## Documentation
+
+- **[📖 Full Documentation](docs.md)** - Complete project guide
+- **[📚 Detailed Guides](docs/)** - In-depth documentation for specific topics
+- **[🎨 CSS Chunk Analysis](docs/css-chunk-analysis.md)** - Production CSS bundle sizes
+
 ---
 
 Built with ❤️ using React Router.
