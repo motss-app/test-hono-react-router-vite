@@ -1,7 +1,7 @@
 import { retry, runOrDie, withLogGroup, writeLine } from '../lib/deploy.ts';
 
 writeLine('🚀 Building frontend...');
-await retry(10)(
+await retry(20)(
   [
     'deno',
     'task',
