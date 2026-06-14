@@ -36,7 +36,7 @@ export default defineConfig(({ mode }) => {
   });
   return {
     build: {
-      emptyOutDir: true,
+      emptyOutDir: false,
       modulePreload: {
         polyfill: true,
       },
