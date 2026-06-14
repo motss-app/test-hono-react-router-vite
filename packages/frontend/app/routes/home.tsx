@@ -4,7 +4,7 @@ import { Link } from '../components/Link.tsx';
 import { Text } from '../components/text.tsx';
 import { createBackgroundSvgPreloadLinks } from '../utils/background-svg-preload.ts';
 import type { Route } from './+types/home.ts';
-import { s } from './home.css.ts';
+import * as c from './home.css.ts';
 
 const routes = [
   {
@@ -65,48 +65,48 @@ export function meta(_args: Route.MetaArgs): Route.MetaDescriptors {
 
 export default function Home(): JSX.Element {
   return (
-    <main className={s.page}>
-      <section className={s.hero}>
+    <main className={c.page}>
+      <section className={c.hero}>
         <div
           aria-hidden="true"
-          className={s.heroMedia}
+          className={c.heroMedia}
         />
         <div
           aria-hidden="true"
-          className={s.heroOverlay}
+          className={c.heroOverlay}
         />
 
-        <div className={s.heroInner}>
-          <div className={s.heroCopy}>
+        <div className={c.heroInner}>
+          <div className={c.heroCopy}>
             <Text
               as="h1"
-              className={s.title}
+              className={c.title}
             >
               React Router
-              <span className={s.titleAccent}>&amp; Hono</span>
+              <span className={c.titleAccent}>&amp; Hono</span>
             </Text>
 
             <Text
               as="p"
-              className={s.heroLead}
+              className={c.heroLead}
             >
               Render, route, and recover with a compact full-stack demo.
             </Text>
 
-            <p className={s.heroBody}>
+            <p className={c.heroBody}>
               Five routes keep SSR, RPC, layout, boundaries, and architecture legible without
               turning the homepage into a dashboard.
             </p>
 
-            <div className={s.heroActions}>
+            <div className={c.heroActions}>
               <Link
-                className={s.ctaPrimary}
+                className={c.ctaPrimary}
                 to="/about"
               >
                 Read the overview
               </Link>
               <Link
-                className={s.ctaSecondary}
+                className={c.ctaSecondary}
                 to="/hono-rpc"
               >
                 Open the RPC flow
@@ -116,45 +116,45 @@ export default function Home(): JSX.Element {
         </div>
       </section>
 
-      <section className={s.routesSection}>
-        <div className={s.routesInner}>
+      <section className={c.routesSection}>
+        <div className={c.routesInner}>
           <Text
             as="h2"
-            className={s.routesTitle}
+            className={c.routesTitle}
           >
             Start with one route. The rest stays in view.
           </Text>
 
-          <p className={s.routesIntro}>
+          <p className={c.routesIntro}>
             Each entry isolates one concern so you can inspect the stack in pieces instead of
             decoding everything at once.
           </p>
 
-          <div className={s.routesList}>
+          <div className={c.routesList}>
             {routes.map(route => (
               <div
-                className={s.routeRow}
+                className={c.routeRow}
                 key={route.to}
               >
                 <Link
-                  className={s.routeLink}
+                  className={c.routeLink}
                   to={route.to}
                 >
-                  <span className={s.routeNumber}>{route.number}</span>
+                  <span className={c.routeNumber}>{route.number}</span>
 
-                  <div className={s.routeTitleBlock}>
+                  <div className={c.routeTitleBlock}>
                     <Text
                       as="h3"
-                      className={s.routeTitle}
+                      className={c.routeTitle}
                     >
                       {route.title}
                     </Text>
-                    <span className={s.routePath}>{route.path}</span>
+                    <span className={c.routePath}>{route.path}</span>
                   </div>
 
-                  <p className={s.routeDescription}>{route.description}</p>
+                  <p className={c.routeDescription}>{route.description}</p>
 
-                  <span className={s.routeAction}>Open →</span>
+                  <span className={c.routeAction}>Open →</span>
                 </Link>
               </div>
             ))}

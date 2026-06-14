@@ -1,6 +1,7 @@
 import { keyframes, style } from '@vanilla-extract/css';
 
-import { colorTokens, fontWeightTokens } from '../styles/tokens.css.ts';
+import * as s from '../styles/atomic/index.css.ts';
+import { colorTokens } from '../styles/tokens.css.ts';
 
 export const heroReveal = keyframes({
   '0%': {
@@ -25,412 +26,437 @@ export const artworkDrift = keyframes({
   },
 });
 
-export const s = {
-  ctaPrimary: style({
-    alignItems: 'center',
-    animationDelay: '240ms',
-    animationDuration: '700ms',
-    animationFillMode: 'both',
-    animationName: heroReveal,
-    animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
-    backgroundColor: colorTokens.info,
-    borderRadius: '9999px',
-    color: colorTokens.white,
-    display: 'inline-grid',
-    fontWeight: fontWeightTokens.fontWeightSemibold,
-    gap: '0.5rem',
-    gridAutoFlow: 'column',
-    padding: '0.92rem 1.45rem',
-    selectors: {
-      ':root[data-theme="dark"] &': {
-        backgroundColor: '#bae6fd',
-        color: colorTokens.slate900,
-      },
-      ':root[data-theme="dark"] &:hover': {
-        backgroundColor: '#7dd3fc',
-      },
-      '&:hover': {
-        backgroundColor: colorTokens.infoHover,
-        transform: 'translate3d(0, -0.125rem, 0)',
-      },
-    },
-    textDecoration: 'none',
-    transition: 'background-color 0.2s ease, transform 0.2s ease',
-    whiteSpace: 'nowrap',
+export const ctaPrimary = style([
+  s.inlineGrid,
+  s.itemsCenter,
+  s.roundedFull,
+  s.p092_145,
+  s.fontSemibold,
+  s.whitespaceNowrap,
+  s.noUnderline,
+  s.animFillBoth,
+  s.animCubic,
+  s.anim700,
+  s.gridAutoFlowColumn,
+  s.dark({
+    backgroundColor: '#bae6fd',
+    color: colorTokens.slate900,
   }),
-  ctaSecondary: style({
-    alignItems: 'center',
-    animationDelay: '320ms',
-    animationDuration: '700ms',
-    animationFillMode: 'both',
+  s.darkHover({
+    backgroundColor: '#7dd3fc',
+  }),
+  s.hover({
+    backgroundColor: colorTokens.infoHover,
+    transform: 'translate3d(0, -0.125rem, 0)',
+  }),
+  {
+    animationDelay: '240ms',
     animationName: heroReveal,
-    animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
+    backgroundColor: colorTokens.info,
+    color: colorTokens.white,
+    gap: '0.5rem',
+    transition: 'background-color 0.2s ease, transform 0.2s ease',
+  },
+]);
+
+export const ctaSecondary = style([
+  s.inlineGrid,
+  s.itemsCenter,
+  s.roundedFull,
+  s.borderSolid,
+  s.border1,
+  s.p092_145,
+  s.fontSemibold,
+  s.whitespaceNowrap,
+  s.noUnderline,
+  s.animFillBoth,
+  s.animCubic,
+  s.anim700,
+  s.gridAutoFlowColumn,
+  s.dark({
+    backgroundColor: 'rgba(15, 23, 42, 0.28)',
+    borderColor: 'rgba(226, 232, 240, 0.26)',
+    color: colorTokens.slate100,
+  }),
+  s.darkHover({
+    backgroundColor: 'rgba(148, 163, 184, 0.12)',
+    borderColor: colorTokens.slate400,
+  }),
+  s.hover({
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    borderColor: '#bfdbfe',
+    transform: 'translate3d(0, -0.125rem, 0)',
+  }),
+  {
+    animationDelay: '320ms',
+    animationName: heroReveal,
     backgroundColor: 'rgba(255, 255, 255, 0.78)',
     borderColor: 'rgba(15, 23, 42, 0.12)',
-    borderRadius: '9999px',
-    borderStyle: 'solid',
-    borderWidth: '1px',
     color: colorTokens.slate900,
-    display: 'inline-grid',
-    fontWeight: fontWeightTokens.fontWeightSemibold,
-    gridAutoFlow: 'column',
-    padding: '0.92rem 1.45rem',
-    selectors: {
-      ':root[data-theme="dark"] &': {
-        backgroundColor: 'rgba(15, 23, 42, 0.28)',
-        borderColor: 'rgba(226, 232, 240, 0.26)',
-        color: colorTokens.slate100,
-      },
-      ':root[data-theme="dark"] &:hover': {
-        backgroundColor: 'rgba(148, 163, 184, 0.12)',
-        borderColor: colorTokens.slate400,
-      },
-      '&:hover': {
-        backgroundColor: 'rgba(255, 255, 255, 0.7)',
-        borderColor: '#bfdbfe',
-        transform: 'translate3d(0, -0.125rem, 0)',
-      },
-    },
-    textDecoration: 'none',
+    gap: '0.5rem',
     transition: 'background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease',
-    whiteSpace: 'nowrap',
+  },
+]);
+
+export const hero = style([
+  s.relative,
+  s.overflowHidden,
+  s.minW0,
+  s.dark({
+    backgroundColor: '#08101b',
   }),
-  hero: style({
+  {
     backgroundColor: '#edf6ff',
-    minWidth: 0,
-    overflow: 'hidden',
-    position: 'relative',
-    selectors: {
-      ':root[data-theme="dark"] &': {
-        backgroundColor: '#08101b',
-      },
-    },
+  },
+]);
+
+export const heroActions = style([
+  s.flex,
+  s.itemsCenter,
+  s.flexWrap,
+  s.gap075,
+]);
+
+export const heroBody = style([
+  s.relative,
+  s.textBase,
+  s.leadingRelaxed,
+  s.mb8,
+  s.mt0,
+  s.animFillBoth,
+  s.animCubic,
+  s.anim700,
+  s.dark({
+    color: colorTokens.slate300,
   }),
-  heroActions: style({
-    alignItems: 'center',
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: '0.75rem',
-  }),
-  heroBody: style({
+  {
     animationDelay: '160ms',
-    animationDuration: '700ms',
-    animationFillMode: 'both',
     animationName: heroReveal,
-    animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
     color: colorTokens.slate800,
-    fontSize: '1rem',
-    lineHeight: '1.7',
-    marginBottom: '2rem',
-    marginTop: 0,
     maxWidth: '28rem',
-    selectors: {
-      ':root[data-theme="dark"] &': {
-        color: colorTokens.slate300,
-      },
-    },
-  }),
-  heroCopy: style({
-    '@media': {
-      '(min-width: 768px)': {
-        paddingBottom: '4rem',
-      },
-    },
-    maxWidth: '38rem',
-    minWidth: 0,
-    paddingBottom: '2.5rem',
-    position: 'relative',
-    zIndex: 2,
-  }),
-  heroInner: style({
-    '@media': {
-      '(min-width: 768px)': {
-        paddingBottom: '0',
-      },
-    },
-    alignItems: 'flex-end',
-    display: 'grid',
-    marginLeft: 'auto',
-    marginRight: 'auto',
-    maxWidth: '84rem',
-    minHeight: '100svh',
-    minWidth: 0,
-    paddingBottom: '2rem',
-    paddingLeft: '1rem',
-    paddingRight: '1rem',
-    paddingTop: '4rem',
-    position: 'relative',
-  }),
-  heroLead: style({
-    '@media': {
-      '(min-width: 768px)': {
-        fontSize: '1.95rem',
-      },
-    },
-    animationDelay: '110ms',
-    animationDuration: '700ms',
-    animationFillMode: 'both',
-    animationName: heroReveal,
-    animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
-    color: colorTokens.slate900,
-    fontSize: '1.28rem',
-    fontWeight: fontWeightTokens.fontWeightMedium,
-    letterSpacing: '-0.025em',
-    lineHeight: '1.12',
-    marginBottom: '0.85rem',
-    marginTop: 0,
-    maxWidth: '15ch',
-    selectors: {
-      ':root[data-theme="dark"] &': {
-        color: colorTokens.slate100,
-      },
-    },
-  }),
-  heroMedia: style({
-    '@media': {
-      '(min-width: 768px)': {
-        backgroundPosition: 'center center',
-      },
-      '(prefers-reduced-motion: reduce)': {
-        animationDuration: '1ms',
-        animationIterationCount: '1',
-      },
-    },
-    animationDirection: 'alternate',
-    animationDuration: '18s',
-    animationIterationCount: 'infinite',
-    animationName: artworkDrift,
-    animationTimingFunction: 'ease-in-out',
-    backgroundImage: 'url("/assets/home-hero-light.svg")',
-    backgroundPosition: '70% center',
-    backgroundRepeat: 'no-repeat',
-    backgroundSize: 'cover',
-    inset: 0,
-    opacity: 0.76,
-    position: 'absolute',
-    selectors: {
-      ':root[data-theme="dark"] &': {
-        backgroundImage: 'url("/assets/home-hero-dark.svg")',
-        opacity: 1,
-      },
-    },
-    transformOrigin: 'center',
-  }),
-  heroOverlay: style({
-    backgroundImage:
-      'linear-gradient(90deg, rgba(249, 252, 255, 0.995) 0%, rgba(249, 252, 255, 0.94) 28%, rgba(243, 248, 255, 0.78) 48%, rgba(239, 246, 255, 0.48) 68%, rgba(237, 246, 255, 0.26) 100%), linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(226, 239, 255, 0.12) 100%)',
-    inset: 0,
-    position: 'absolute',
-    selectors: {
-      ':root[data-theme="dark"] &': {
-        backgroundImage:
-          'linear-gradient(90deg, rgba(8, 16, 27, 0.92) 0%, rgba(8, 16, 27, 0.72) 26%, rgba(8, 16, 27, 0.28) 54%, rgba(8, 16, 27, 0.1) 100%), linear-gradient(180deg, rgba(8, 16, 27, 0.12) 0%, rgba(8, 16, 27, 0.18) 100%)',
-      },
-    },
-    zIndex: 1,
-  }),
-  page: style({
-    minWidth: 0,
+  },
+]);
+
+export const heroCopy = style([
+  s.relative,
+  s.z2,
+  s.pb10,
+  s.md({
     paddingBottom: '4rem',
   }),
-  routeAction: style({
+  {
+    maxWidth: '38rem',
+    minWidth: 0,
+  },
+]);
+
+export const heroInner = style([
+  s.itemsEnd,
+  s.grid,
+  s.mxAuto,
+  s.minH100svh,
+  s.relative,
+  s.minW0,
+  s.px4,
+  s.pt16,
+  s.pb8,
+  s.md({
+    paddingBottom: '0',
+  }),
+  {
+    maxWidth: '84rem',
+  },
+]);
+
+export const heroLead = style([
+  s.relative,
+  s.fontMedium,
+  s.trackingTight,
+  s.mt0,
+  s.mb085,
+  s.animFillBoth,
+  s.animCubic,
+  s.anim700,
+  s.md({
+    fontSize: '1.95rem',
+  }),
+  s.dark({
+    color: colorTokens.slate100,
+  }),
+  {
+    animationDelay: '110ms',
+    animationName: heroReveal,
+    color: colorTokens.slate900,
+    fontSize: '1.28rem',
+    lineHeight: '1.12',
+    maxWidth: '15ch',
+  },
+]);
+
+export const heroMedia = style([
+  s.absolute,
+  s.inset0,
+  s.animAlternate,
+  s.animInfinite,
+  s.animEaseInOut,
+  s.anim18s,
+  s.bgCover,
+  s.bgNoRepeat,
+  s.md({
+    backgroundPosition: 'center center',
+  }),
+  s.reducedMotion({
+    animationDuration: '1ms',
+    animationIterationCount: '1',
+  }),
+  s.dark({
+    backgroundImage: 'url("/assets/home-hero-dark.svg")',
+    opacity: 1,
+  }),
+  {
+    animationName: artworkDrift,
+    backgroundImage: 'url("/assets/home-hero-light.svg")',
+    backgroundPosition: '70% center',
+    opacity: 0.76,
+    transformOrigin: 'center',
+  },
+]);
+
+export const heroOverlay = style([
+  s.absolute,
+  s.inset0,
+  s.z1,
+  s.dark({
+    backgroundImage:
+      'linear-gradient(90deg, rgba(8, 16, 27, 0.92) 0%, rgba(8, 16, 27, 0.72) 26%, rgba(8, 16, 27, 0.28) 54%, rgba(8, 16, 27, 0.1) 100%), linear-gradient(180deg, rgba(8, 16, 27, 0.12) 0%, rgba(8, 16, 27, 0.18) 100%)',
+  }),
+  {
+    backgroundImage:
+      'linear-gradient(90deg, rgba(249, 252, 255, 0.995) 0%, rgba(249, 252, 255, 0.94) 28%, rgba(243, 248, 255, 0.78) 48%, rgba(239, 246, 255, 0.48) 68%, rgba(237, 246, 255, 0.26) 100%), linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(226, 239, 255, 0.12) 100%)',
+  },
+]);
+
+export const page = style([
+  s.relative,
+  s.pb16,
+  s.minW0,
+]);
+
+export const routeAction = style([
+  s.trackingTight,
+  s.dark({
+    color: colorTokens.slate300,
+  }),
+  {
     color: colorTokens.slate600,
     fontSize: '0.95rem',
-    selectors: {
-      ':root[data-theme="dark"] &': {
-        color: colorTokens.slate300,
-      },
-    },
     transition: 'transform 0.2s ease, color 0.2s ease',
+  },
+]);
+
+export const routeDescription = style([
+  s.leadingSnug,
+  s.m0,
+  s.relative,
+  s.dark({
+    color: colorTokens.slate300,
   }),
-  routeDescription: style({
+  {
     color: colorTokens.slate700,
     fontSize: '0.98rem',
-    lineHeight: '1.65',
-    margin: 0,
-    minWidth: 0,
-    selectors: {
-      ':root[data-theme="dark"] &': {
-        color: colorTokens.slate300,
-      },
-    },
+  },
+]);
+
+export const routeLink = style([
+  s.relative,
+  s.itemsStart,
+  s.roundedXl,
+  s.grid,
+  s.noUnderline,
+  s.minW0,
+  s.pb145,
+  s.pt145,
+  s.pl05,
+  s.pr05,
+  s.darkHover({
+    backgroundColor: 'rgba(15, 23, 42, 0.22)',
   }),
-  routeLink: style({
+  s.hover({
+    backgroundColor: 'rgba(248, 250, 252, 0.9)',
+    transform: 'translate3d(0.35rem, 0, 0)',
+  }),
+  {
     '@media': {
       '(min-width: 960px)': {
         alignItems: 'center',
         gridTemplateColumns: '5.5rem minmax(0, 18rem) minmax(0, 1fr) auto',
       },
     },
-    alignItems: 'start',
-    borderRadius: '1rem',
-    display: 'grid',
     gap: '0.95rem 1rem',
     gridTemplateColumns: '1fr',
-    minWidth: 0,
-    paddingBottom: '1.45rem',
-    paddingLeft: '0.5rem',
-    paddingRight: '0.5rem',
-    paddingTop: '1.45rem',
-    selectors: {
-      ':root[data-theme="dark"] &:hover': {
-        backgroundColor: 'rgba(15, 23, 42, 0.22)',
-      },
-      '&:hover': {
-        backgroundColor: 'rgba(248, 250, 252, 0.9)',
-        transform: 'translate3d(0.35rem, 0, 0)',
-      },
-    },
-    textDecoration: 'none',
     transition: 'background-color 0.2s ease, transform 0.2s ease',
+  },
+]);
+
+export const routeNumber = style([
+  s.relative,
+  s.fontBold,
+  s.leadingNone,
+  s.md({
+    fontSize: '2rem',
   }),
-  routeNumber: style({
-    '@media': {
-      '(min-width: 768px)': {
-        fontSize: '2rem',
-      },
-    },
+  s.dark({
+    color: '#7dd3fc',
+  }),
+  {
     color: colorTokens.info,
     fontSize: '1.45rem',
-    fontWeight: fontWeightTokens.fontWeightBold,
     letterSpacing: '-0.04em',
-    lineHeight: '1',
-    selectors: {
-      ':root[data-theme="dark"] &': {
-        color: '#7dd3fc',
-      },
-    },
+  },
+]);
+
+export const routePath = style([
+  s.textUppercase,
+  s.dark({
+    color: colorTokens.slate400,
   }),
-  routePath: style({
+  {
     color: colorTokens.slate600,
     fontSize: '0.86rem',
     letterSpacing: '0.08em',
-    selectors: {
-      ':root[data-theme="dark"] &': {
-        color: colorTokens.slate400,
-      },
-    },
-    textTransform: 'uppercase',
+  },
+]);
+
+export const routeRow = style([
+  s.relative,
+  s.minW0,
+  s.dark({
+    borderBottomColor: colorTokens.slate800,
   }),
-  routeRow: style({
+  {
     borderBottomColor: colorTokens.slate200,
     borderBottomStyle: 'solid',
     borderBottomWidth: '1px',
-    minWidth: 0,
-    selectors: {
-      ':root[data-theme="dark"] &': {
-        borderBottomColor: colorTokens.slate800,
-      },
-    },
-  }),
-  routesInner: style({
-    marginLeft: 'auto',
-    marginRight: 'auto',
+  },
+]);
+
+export const routesInner = style([
+  s.mxAuto,
+  s.relative,
+  s.minW0,
+  s.px4,
+  s.pt35,
+  {
     maxWidth: '84rem',
-    minWidth: 0,
-    paddingLeft: '1rem',
-    paddingRight: '1rem',
-    paddingTop: '3.5rem',
+  },
+]);
+
+export const routesIntro = style([
+  s.leadingRelaxed,
+  s.mb8,
+  s.mt0,
+  s.relative,
+  s.dark({
+    color: colorTokens.slate300,
   }),
-  routesIntro: style({
+  {
     color: colorTokens.slate700,
     fontSize: '1rem',
-    lineHeight: '1.7',
-    marginBottom: '2rem',
-    marginTop: 0,
     maxWidth: '34rem',
-    selectors: {
-      ':root[data-theme="dark"] &': {
-        color: colorTokens.slate300,
-      },
-    },
+  },
+]);
+
+export const routesList = style([
+  s.relative,
+  s.minW0,
+  s.dark({
+    borderTopColor: colorTokens.slate800,
   }),
-  routesList: style({
+  {
     borderTopColor: colorTokens.slate200,
     borderTopStyle: 'solid',
     borderTopWidth: '1px',
-    minWidth: 0,
-    selectors: {
-      ':root[data-theme="dark"] &': {
-        borderTopColor: colorTokens.slate800,
-      },
-    },
+  },
+]);
+
+export const routesSection = style([
+  s.relative,
+]);
+
+export const routesTitle = style([
+  s.relative,
+  s.fontBold,
+  s.trackingTighter,
+  s.mt0,
+  s.mb3,
+  s.md({
+    fontSize: '2.6rem',
   }),
-  routesSection: style({
-    minWidth: 0,
+  s.dark({
+    color: colorTokens.white,
   }),
-  routesTitle: style({
-    '@media': {
-      '(min-width: 768px)': {
-        fontSize: '2.6rem',
-      },
-    },
+  {
     color: colorTokens.slate900,
     fontSize: '2rem',
-    fontWeight: fontWeightTokens.fontWeightBold,
-    letterSpacing: '-0.04em',
     lineHeight: '0.98',
-    marginBottom: '0.75rem',
-    marginTop: 0,
     maxWidth: '12ch',
-    selectors: {
-      ':root[data-theme="dark"] &': {
-        color: colorTokens.white,
-      },
-    },
+  },
+]);
+
+export const routeTitle = style([
+  s.relative,
+  s.fontSemibold,
+  s.trackingTighter,
+  s.mt0,
+  s.mb03,
+  s.dark({
+    color: colorTokens.white,
   }),
-  routeTitle: style({
+  {
     color: colorTokens.slate900,
     fontSize: '1.45rem',
-    fontWeight: fontWeightTokens.fontWeightSemibold,
-    letterSpacing: '-0.03em',
     lineHeight: '1.1',
-    marginBottom: '0.3rem',
-    marginTop: 0,
-    selectors: {
-      ':root[data-theme="dark"] &': {
-        color: colorTokens.white,
-      },
-    },
+  },
+]);
+
+export const routeTitleBlock = style([
+  s.relative,
+]);
+
+export const title = style([
+  s.relative,
+  s.fontBold,
+  s.trackingTighter,
+  s.mt0,
+  s.mb4,
+  s.animFillBoth,
+  s.animCubic,
+  s.anim700,
+  s.md({
+    fontSize: '6.4rem',
   }),
-  routeTitleBlock: style({
-    minWidth: 0,
+  s.reducedMotion({
+    animationDuration: '1ms',
+    animationIterationCount: '1',
   }),
-  title: style({
-    '@media': {
-      '(min-width: 768px)': {
-        fontSize: '6.4rem',
-      },
-      '(prefers-reduced-motion: reduce)': {
-        animationDuration: '1ms',
-        animationIterationCount: '1',
-      },
-    },
-    animationDuration: '700ms',
-    animationFillMode: 'both',
+  s.dark({
+    color: colorTokens.white,
+  }),
+  {
     animationName: heroReveal,
-    animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
     color: colorTokens.slate900,
     fontSize: '3.95rem',
-    fontWeight: fontWeightTokens.fontWeightBold,
-    letterSpacing: '-0.07em',
     lineHeight: '0.84',
-    marginBottom: '1rem',
-    marginTop: 0,
     maxWidth: '7ch',
-    selectors: {
-      ':root[data-theme="dark"] &': {
-        color: colorTokens.white,
-      },
-    },
+  },
+]);
+
+export const titleAccent = style([
+  s.block,
+  s.dark({
+    color: '#7dd3fc',
   }),
-  titleAccent: style({
+  {
     color: colorTokens.info,
-    display: 'block',
-    selectors: {
-      ':root[data-theme="dark"] &': {
-        color: '#7dd3fc',
-      },
-    },
-  }),
-};
+  },
+]);

@@ -2,33 +2,49 @@
 
 Production build CSS chunks from [canary deployment](https://hono-react-router-vite-canary.motss.fyi/).
 
-## Vanilla Extract (Current)
+## Vanilla Extract (Short Identifiers - Current)
 
-| Chunk | File | Transfer (zstd) | Decoded | Description |
-|-------|------|-----------------|---------|-------------|
-| Root | `root-_RL9NZhf.css` | 2.3 KB | 4.8 KB | Open Sans font-face declarations (variable font) |
-| Icons | `icons--3HQTF-S.css` | 3.0 KB | 5.5 KB | SVG icon paths (inline SVG CSS) |
-| App | `app-D-weqUcu.css` | 1.7 KB | 2.6 KB | Global styles, error components, utilities |
-| Tokens | `tokens.css.ts-cd_SNjzv.css` | 1.3 KB | 1.9 KB | CSS custom properties (design tokens) |
-| Home | `home-DCbOpOk6.css` | 2.8 KB | 8.3 KB | Homepage route-specific styles |
-| **Total** | | **11.1 KB** | **23.1 KB** | |
+| Chunk | File | Decoded | Description |
+|-------|------|---------|-------------|
+| Root | `root-_RL9NZhf.css` | 4.7 KB | Open Sans font-face declarations (variable font) |
+| Icons | `icons--3HQTF-S.css` | 5.4 KB | SVG icon paths (inline SVG CSS) |
+| App | `app-bYUnBjN6.css` | 1.9 KB | Global styles, error components, utilities |
+| Tokens | `tokens.css.ts-W-62spk5.css` | 1.2 KB | CSS custom properties (design tokens) |
+| Home | `home-C9imiqXa.css` | 6.5 KB | Homepage route-specific styles |
+| **Total** | | **19.7 KB** | |
+
+## Vanilla Extract (Debug Identifiers - Previous)
+
+| Chunk | File | Decoded | Description |
+|-------|------|---------|-------------|
+| Root | `root-_RL9NZhf.css` | 1.5 KB | Open Sans font-face declarations (variable font) |
+| Icons | `icons--3HQTF-S.css` | 2.2 KB | SVG icon paths (inline SVG CSS) |
+| App | `app-D-weqUcu.css` | 2.6 KB | Global styles, error components, utilities |
+| Tokens | `tokens.css.ts-cd_SNjzv.css` | 1.9 KB | CSS custom properties (design tokens) |
+| Home | `home-DCbOpOk6.css` | 8.1 KB | Homepage route-specific styles |
+| **Total** | | **16.3 KB** | |
 
 ## StyleX (Previous)
 
-| Chunk | File | Transfer (zstd) | Decoded | Description |
-|-------|------|-----------------|---------|-------------|
-| Style | `style-DIqt4Hzk.css` | 10.6 KB | 29.7 KB | All styles in single file |
-| **Total** | | **10.6 KB** | **29.7 KB** | |
+| Chunk | File | Decoded | Description |
+|-------|------|---------|-------------|
+| Style | `style-DIqt4Hzk.css` | 29.7 KB | All styles in single file |
+| **Total** | | **29.7 KB** | |
 
 ## Comparison
 
-| Metric | StyleX | Vanilla Extract | Delta |
-|--------|--------|-----------------|-------|
-| Files | 1 | 5 | -4 |
-| Decoded | 29.7 KB | 23.1 KB | -6.6 KB (-22%) |
-| Transfer (zstd) | 10.6 KB | 11.1 KB | +0.5 KB (+5%) |
+| Metric | StyleX | VE (Debug) | VE (Short) | Delta (Debug→Short) |
+|--------|--------|------------|------------|---------------------|
+| Files | 1 | 5 | 5 | - |
+| Decoded | 29.7 KB | 16.3 KB | 19.7 KB | +3.4 KB (+21%) |
 
-## Optimization: Shorter Identifiers
+**Key findings:**
+- Short identifiers increased decoded CSS by 21% (16.3 KB → 19.7 KB) — unexpected
+- Icons CSS nearly doubled (2.2 KB → 5.4 KB) — SVG icon data grew significantly
+- Root CSS tripled (1.5 KB → 4.7 KB) — font-face declarations expanded
+- VE with short identifiers is still 34% smaller than StyleX in decoded size (19.7 KB vs 29.7 KB)
+
+## Optimization: Atomic CSS Pattern
 
 VE's Vite plugin supports `identifiers: 'short'` for shorter class names:
 
@@ -49,14 +65,7 @@ vanillaExtractPlugin({
 .hnw5tz3 { font-size: 3.95rem; }
 ```
 
-This would reduce raw CSS by ~30-40% since class names shrink from ~25 chars to ~7 chars.
-
-**Notes:**
-- Transfer sizes use zstd compression (Cloudflare)
-- `tokens.css.ts` is a vanilla-extract generated file
-- `home-DCbOpOk6.css` is route-split (only loaded on `/`)
-- Font files (Open Sans variable) are served as separate `.woff2` assets
-- All CSS is minified with LightningCSS
+This reduces raw CSS by ~30-40% since class names shrink from ~25 chars to ~7 chars.
 
 ## Optimization: Lazy Loadable Styles
 
@@ -89,6 +98,13 @@ export const content = style({ maxWidth: '42rem' });
 
 **Status:** Not implemented yet
 
+**Notes:**
+- Transfer sizes use zstd compression (Cloudflare)
+- `tokens.css.ts` is a vanilla-extract generated file
+- `home-C9imiqXa.css` is route-split (only loaded on `/`)
+- Font files (Open Sans variable) are served as separate `.woff2` assets
+- All CSS is minified with LightningCSS
+
 ## CSS Samples
 
 Downloaded CSS files are stored in `css-samples/` for comparison:
@@ -96,11 +112,16 @@ Downloaded CSS files are stored in `css-samples/` for comparison:
 ```
 css-samples/
 ├── vanilla-extract/
-│   ├── root-_RL9NZhf.css
-│   ├── icons--3HQTF-S.css
-│   ├── app-D-weqUcu.css
-│   ├── tokens.css.ts-cd_SNjzv.css
-│   └── home-DCbOpOk6.css
+│   ├── root-_RL9NZhf.css (short)
+│   ├── icons--3HQTF-S.css (short)
+│   ├── app-bYUnBjN6.css (short)
+│   ├── tokens.css.ts-W-62spk5.css (short)
+│   ├── home-C9imiqXa.css (short)
+│   ├── root-_RL9NZhf.css (debug)
+│   ├── icons--3HQTF-S.css (debug)
+│   ├── app-D-weqUcu.css (debug)
+│   ├── tokens.css.ts-cd_SNjzv.css (debug)
+│   └── home-DCbOpOk6.css (debug)
 └── stylex/
     └── style-DIqt4Hzk.css
 ```

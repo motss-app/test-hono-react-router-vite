@@ -105,7 +105,9 @@ export default function createViteConfig(config: ConfigEnv) {
           themeBuildPlugin({
             rootDir: repoRootPath,
           }),
-          vanillaExtractPlugin({ identifiers: 'short' }),
+          vanillaExtractPlugin({
+            identifiers: 'short',
+          }),
           reactRouter(),
           headersCopyPlugin({
             dest: 'build/client/_headers',

@@ -1,33 +1,38 @@
 import { style } from '@vanilla-extract/css';
 
+import * as a from '../styles/atomic/index.css.ts';
 import { colorTokens } from '../styles/tokens.css.ts';
 
 export const s = {
-  container: style({
-    fontFamily: 'system-ui',
-    padding: '2rem',
-    textAlign: 'center',
-  }),
-  h1: style({
-    fontSize: '4rem',
-    margin: 0,
-  }),
-  link: style({
-    color: colorTokens.info,
-    selectors: {
-      ':root[data-theme="dark"] &': {
-        color: '#93c5fd',
-      },
-      ':root[data-theme="dark"] &:hover': {
-        color: '#bfdbfe',
-      },
-      '&:hover': {
-        color: '#004499',
-      },
+  container: style([
+    a.textCenter,
+    a.p8,
+    {
+      fontFamily: 'system-ui',
     },
-    textDecoration: 'none',
-  }),
-  marginTop: style({
-    marginTop: '2rem',
-  }),
+  ]),
+  h1: style([
+    a.m0,
+    {
+      fontSize: '4rem',
+    },
+  ]),
+  link: style([
+    a.noUnderline,
+    {
+      color: colorTokens.info,
+    },
+    a.dark({
+      color: '#93c5fd',
+    }),
+    a.darkHover({
+      color: '#bfdbfe',
+    }),
+    a.hover({
+      color: '#004499',
+    }),
+  ]),
+  marginTop: style([
+    a.mt8,
+  ]),
 };
