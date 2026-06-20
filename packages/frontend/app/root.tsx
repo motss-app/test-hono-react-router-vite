@@ -11,6 +11,7 @@ import type { Route } from './+types/root.ts';
 import { errorStyles } from './app.css.ts';
 import { RootDocumentHead } from './components/root-document-head.tsx';
 import { RootDocumentScripts } from './components/root-document-scripts.tsx';
+import { ScrollToTopButtonShell } from './components/scroll-to-top-button-shell.tsx';
 import { IconArrowLeft, IconBug, IconExclamationTriangle } from './icons.ts';
 import { csp } from './utils/csp.ts';
 
@@ -69,7 +70,12 @@ export function Layout({ children }: PropsWithChildren): JSX.Element {
 }
 
 export default function RootApp(): JSX.Element {
-  return <Outlet />;
+  return (
+    <>
+      <Outlet />
+      <ScrollToTopButtonShell />
+    </>
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): JSX.Element {
