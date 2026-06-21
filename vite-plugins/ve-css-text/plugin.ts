@@ -1,58 +1,102 @@
-import type { Plugin } from 'vite';
+import type { Plugin, Rolldown } from 'vite';
 
 const VIRTUAL_EXT = '.vanilla.css';
 
-interface VeCssTextPluginOptions {
-  /**
-   * Glob pattern for `.css.ts` files whose CSS should be injected
-   * via `adoptedStyleSheets` instead of extracted into a `<link>` tag.
-   */
-  include: string;
-}
+/**
+ * Walks the static-import graph backwards from `id`. If every path to an
+ * application entry goes through at least one dynamic `import()` boundary,
+ * the module is considered dynamic-only.
+ *
+ * Returns `false` if the module graph doesn't support the `importers` /
+ * `dynamicImporters` properties (e.g. the Cloudflare Workers module runner).
+ */
+function isOnlyReachableViaDynamicImports(
+  getModuleInfo: (id: string) => Rolldown.ModuleInfo | null,
+  id: string,
+  cache: Map<string, boolean>,
+  visited: Set<string> = new Set(),
+): boolean {
+  const cached = cache.get(id);
+  if (cached !== undefined) return cached;
+  if (visited.has(id)) return false;
+  visited.add(id);
 
-/** Convert a simple glob to a RegExp (supports `**`, `*`, and literal text). */
-function globToRegExp(glob: string): RegExp {
-  const escaped = glob
-    .replace(/\./g, '\\.')
-    .replace(/\*\*/g, '{{GLOBSTAR}}')
-    .replace(/\*/g, '[^/]*')
-    .replace(/\{\{GLOBSTAR\}\}/g, '.*');
-  return new RegExp(`${escaped}$`);
+  try {
+    const info = getModuleInfo(id);
+    if (!info) {
+      cache.set(id, false);
+      return false;
+    }
+
+    // Accessing .importers or .dynamicImporters throws in the
+    // Cloudflare Workers module runner — treat as unsupported.
+    const importers: string[] = info.importers;
+    const dynamicImporters: string[] = info.dynamicImporters;
+
+    if (importers.length === 0) {
+      const result = dynamicImporters.length > 0;
+      cache.set(id, result);
+      return result;
+    }
+
+    const allStaticImportersAreDynamic = importers.every((importer) =>
+      isOnlyReachableViaDynamicImports(
+        getModuleInfo,
+        importer,
+        cache,
+        new Set(visited),
+      ),
+    );
+
+    cache.set(id, allStaticImportersAreDynamic);
+    return allStaticImportersAreDynamic;
+  } catch {
+    // Module runner doesn't support graph traversal — fall back to no-op
+    cache.set(id, false);
+    return false;
+  }
 }
 
 /**
- * Prevents Vite from extracting CSS from matched `.css.ts` files into
- * separate requests. Instead, the CSS is injected via
+ * Prevents Vite from extracting CSS from `.css.ts` files that are only
+ * reachable via dynamic imports. Instead, the CSS is injected via
  * `adoptedStyleSheets` as a side effect (CSP-safe).
  *
- * This allows components that import from matched `.css.ts` files to be
- * truly lazy-loaded — both JS and CSS are deferred until the component
- * is actually rendered.
- *
- * All other `.css.ts` files are unaffected and go through normal VE
- * extraction.
+ * Detection is automatic: the plugin walks Vite's module graph to find
+ * `.css.ts` modules whose every static-import path to the entry crosses
+ * at least one `import()` boundary. All other `.css.ts` files go through
+ * normal Vanilla Extract extraction.
  */
-export function veCssTextPlugin(options: VeCssTextPluginOptions): Plugin {
-  const filter = globToRegExp(options.include);
+export function veCssTextPlugin(): Plugin {
+  const cache = new Map<string, boolean>();
+
+  function isDynamicOnly(
+    getModuleInfo: (id: string) => Rolldown.ModuleInfo | null,
+    rawId: string,
+  ): boolean {
+    const q = rawId.indexOf('?');
+    const cleanId = q === -1 ? rawId : rawId.slice(0, q);
+    const sourceId = cleanId.endsWith(VIRTUAL_EXT)
+      ? cleanId.slice(0, -VIRTUAL_EXT.length)
+      : cleanId;
+    if (!sourceId.endsWith('.css.ts')) return false;
+    return isOnlyReachableViaDynamicImports(getModuleInfo, sourceId, cache);
+  }
 
   return {
     enforce: 'post',
     load(id) {
-      const questionMark = id.indexOf('?');
-      const cleanId = questionMark === -1 ? id : id.slice(0, questionMark);
-      if (
-        cleanId.endsWith(VIRTUAL_EXT) &&
-        filter.test(cleanId.slice(0, -VIRTUAL_EXT.length))
-      ) {
+      const q = id.indexOf('?');
+      const cleanId = q === -1 ? id : id.slice(0, q);
+      if (cleanId.endsWith(VIRTUAL_EXT) && isDynamicOnly(this.getModuleInfo.bind(this), id)) {
         return '';
       }
       return undefined;
     },
     name: 've-css-text',
     async transform(code, id) {
-      if (!id.endsWith('.css.ts') || !filter.test(id)) {
-        return undefined;
-      }
+      if (!id.endsWith('.css.ts')) return undefined;
+      if (!isDynamicOnly(this.getModuleInfo.bind(this), id)) return undefined;
 
       const virtualCssId = `${id}${VIRTUAL_EXT}`;
 
@@ -62,9 +106,7 @@ export function veCssTextPlugin(options: VeCssTextPluginOptions): Plugin {
           resolveDependencies: false,
         });
 
-        if (!loaded?.code) {
-          return undefined;
-        }
+        if (!loaded?.code) return undefined;
 
         const cssText = loaded.code;
 

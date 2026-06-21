@@ -82,9 +82,7 @@ export default defineConfig(async config => {
               rootDir: repoRootPath,
             }),
             vanillaExtractPlugin(),
-            veCssTextPlugin({
-              include: '**/scroll-to-top-button.css.ts',
-            }),
+            veCssTextPlugin(),
             vanillaExtractSsrFixPlugin(),
             /**
              * React Router plugin is required to:
