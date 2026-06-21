@@ -166,12 +166,55 @@ Works the same way on both runtimes.
 
 ---
 
+## Sentry Initialization
+
+### `instrument.mjs` (separate init file)
+
+| | Node.js | Cloudflare Workers |
+|-|---------|-------------------|
+| **Pattern** | Separate `instrument.mjs` loaded via `node --require instrument.mjs` | Init directly in `entry.client.tsx` + `entry.server.tsx` |
+| **Why separate?** | Must init before app code to catch startup errors | Cloudflare Workers has no `--require` flag; init happens in entry points |
+| **Sentry test** | Has `instrument.mjs` | N/A |
+
+**Node.js pattern (Sentry's e2e test):**
+```js
+// instrument.mjs — loaded before app code
+import * as Sentry from '@sentry/react-router';
+Sentry.init({ dsn, environment, tracesSampleRate, tunnel });
+```
+
+```ts
+// entry.server.tsx — imports instrumented Sentry
+import * as Sentry from '@sentry/react-router';
+const handleRequest = Sentry.createSentryHandleRequest({ ... });
+```
+
+**Cloudflare Workers pattern (our code):**
+```ts
+// entry.client.tsx — Sentry.init() called directly
+import { init, reactRouterTracingIntegration } from '@sentry/react-router/cloudflare';
+init({ ... });
+
+// entry.server.tsx — wrap handler with Sentry
+import { wrapSentryHandleRequest } from '@sentry/react-router/cloudflare';
+export default wrapSentryHandleRequest(async function handleRequest(...) { ... });
+```
+
+**Why we cannot use `instrument.mjs`:**
+Cloudflare Workers and Deno do not support `--require` flags. Sentry
+must be initialized directly in the entry points (`entry.client.tsx`
+for browser, `entry.server.tsx` for server). This is the standard
+pattern for edge runtimes.
+
+---
+
 ## Summary: What Cloudflare Workers Users Cannot Adopt
 
 | Sentry API | Why Unavailable on CF Workers | Our Alternative |
 |-----------|------------------------------|-----------------|
 | `createSentryHandleRequest` | Uses `renderToPipeableStream` + `createReadableStreamFromReadable` (Node.js streams) | `wrapSentryHandleRequest` + `renderToReadableStream` |
 | `createSentryHandleError` | Not re-exported from cloudflare subpath | Custom `handleError` with richer logic |
+| `instrument.mjs` | Requires `node --require` flag; not supported on edge runtimes | Init directly in `entry.client.tsx` + `entry.server.tsx` |
 
 ## Summary: What Cloudflare Workers Users CAN Adopt
 
