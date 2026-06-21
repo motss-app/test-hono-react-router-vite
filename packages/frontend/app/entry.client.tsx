@@ -74,9 +74,7 @@ console.info(
 // Keep the Framework Mode client instrumentation wiring for future React Router support.
 // Sentry currently notes HydratedRouter doesn't invoke these hooks yet, but the official
 // Framework Mode docs still show this setup, so we intentionally keep it here.
-const tracing = reactRouterTracingIntegration({
-  useInstrumentationAPI: true,
-});
+const tracing = reactRouterTracingIntegration();
 
 init({
   ...createBrowserSentryOptions(import.meta.env.MODE, browserDsn, import.meta.env.SENTRY_RELEASE),
