@@ -5,6 +5,7 @@ import type { ConfigEnv } from 'vite';
 
 import { headersCopyPlugin } from '../../vite-plugins/copy-headers.ts';
 import { themeBuildPlugin } from '../../vite-plugins/theme-bootstrap/plugin.ts';
+import { veCssTextPlugin } from '../../vite-plugins/ve-css-text/plugin.ts';
 import { readRequiredEnv } from '../../vite-utils/get-required-env.ts';
 import { createImportMetaEnvDefine } from '../../vite-utils/import-meta-env.ts';
 import { loadConfigEnvironment } from '../../vite-utils/load-env.ts';
@@ -108,6 +109,7 @@ export default function createViteConfig(config: ConfigEnv) {
           vanillaExtractPlugin({
             identifiers: 'short',
           }),
+          veCssTextPlugin(),
           reactRouter(),
           headersCopyPlugin({
             dest: 'build/client/_headers',

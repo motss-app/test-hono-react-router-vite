@@ -1,97 +1,72 @@
 # ve-css-text
 
-A Vite plugin that enables true lazy-loading of Vanilla Extract CSS by inlining it via `adoptedStyleSheets` instead of extracting it into `<link>` tags.
+Inlines CSS from lazy-loaded Vanilla Extract components via `adoptedStyleSheets` instead of `<link>` tags.
 
-## The problem
+## Problem
 
-When you lazy-load a component with `React.lazy()`, Vite splits both the JS and CSS into separate chunks. But Vanilla Extract's default behavior extracts CSS into a `<link>` tag at build time. This means the CSS is loaded **eagerly** via the HTML `<head>`, even though the component that uses it hasn't been rendered yet.
-
-Result: the JS is deferred, but the CSS arrives immediately — defeating the purpose of code splitting.
+`React.lazy()` splits JS and CSS into chunks, but VE extracts CSS eagerly into `<head>`. The JS is deferred; the CSS arrives immediately.
 
 ## How it works
 
-The plugin intercepts `.css.ts` files that are **only reachable via dynamic imports** and changes how their CSS is delivered:
-
-1. **Detection** — walks Vite's module graph backwards from each `.css.ts` file. If every static-import path to the application entry crosses at least one `import()` boundary, the module is considered dynamic-only.
-
-2. **CSS interception** — for matched modules, the plugin returns `''` for the virtual `.vanilla.css` module, preventing Vanilla Extract from creating a `<link>` tag.
-
-3. **CSS inlining** — in the `transform` hook, the plugin loads the CSS text and appends a side effect that creates a `CSSStyleSheet` and adds it to `document.adoptedStyleSheets`. This is CSP-safe (no `style` elements or `style` attributes).
-
-All other `.css.ts` files are unaffected and go through normal Vanilla Extract extraction.
+1. **Detect** — walks the module graph backwards. If every static path to entry crosses an `import()`, it's dynamic-only.
+2. **Intercept** — returns `''` for the virtual `.vanilla.css` module, blocking VE's `<link>` extraction.
+3. **Inline** — appends a `CSSStyleSheet` to `document.adoptedStyleSheets` (CSP-safe).
 
 ## Module graph detection
 
 ```
 entry.client.tsx
-  └── root.tsx ──────────────────────────────────────────────────────┐
-       └── scroll-to-top-button-shell.tsx                            │
-            └── lazy-scroll-to-top-button.tsx                        │
-                 │                                                   │
-                 │  import() ← dynamic import boundary               │
-                 │                                                   │
-                 └── scroll-to-top-button.tsx                        │
-                      └── scroll-to-top-button.css.ts                │
-                                                                       │
-  Static path to entry? NO  ──────────────────────────────────────────┘
-  → Plugin inlines CSS via adoptedStyleSheets
+  └── root.tsx ─────────────────────────────────────────┐
+       └── shell.tsx                                    │
+            └── lazy-button.tsx                         │
+                 │                                      │
+                 │  import() ← dynamic boundary         │
+                 │                                      │
+                 └── button.tsx                         │
+                      └── button.css.ts                 │
+                                                        │
+  Static path to entry? NO  ────────────────────────────┘
+  → inline CSS via adoptedStyleSheets
 ```
 
 ## Before vs After
 
 ```
- WITHOUT plugin (default VE)              WITH plugin
- ─────────────────────────────            ─────────────────────────────
+ WITHOUT plugin                        WITH plugin
+ ─────────────────                     ─────────────────
 
- <head>                                   <head>
-   <link href="button.css"> ← eager        (nothing — CSS deferred)
- </head>                                 </head>
+ <head>                                <head>
+   <link href="button.css"> ← eager     (nothing — deferred)
+ </head>                              </head>
 
- <body>                                   <body>
-   ...                                     ...
-   <script>                                <script>
-     React.lazy(() => import('button'))      React.lazy(() => import('button'))
-   </script>                              </script>
- </body>                                 </body>
-
-                                           User scrolls → triggers lazy load:
-
-                                           import('button')
-                                             → JS chunk loads
-                                             → adoptedStyleSheets injects CSS
-                                             → component renders with styles
+                                        User scrolls → lazy trigger:
+                                          import('button')
+                                            → JS loads
+                                            → CSS injected via adoptedStyleSheets
 ```
 
-## Request waterfall comparison
+## Request waterfall
 
 ```
- WITHOUT plugin                           WITH plugin
- ─────────────────                        ─────────────────
+ WITHOUT plugin                        WITH plugin
+ ─────────────────                     ─────────────────
 
- Initial page load:                       Initial page load:
-   GET index.html      ──→ 200              GET index.html      ──→ 200
-   GET button.css      ──→ 200  ← wasted     (no CSS request)
+ Initial:                              Initial:
+   GET index.html  ──→ 200               GET index.html  ──→ 200
+   GET button.css  ──→ 200 ← wasted      (no CSS request)
 
- Later (lazy trigger):                   Later (lazy trigger):
-   GET button.chunk.js ──→ 200              GET button.chunk.js ──→ 200
-   (CSS already loaded)                      (CSS inlined in JS)
+ Lazy trigger:                         Lazy trigger:
+   GET button.js   ──→ 200               GET button.js   ──→ 200
 
- Total requests: 3                        Total requests: 2
- Wasted bytes: CSS loaded upfront         Wasted bytes: none
+ Requests: 3                           Requests: 2
 ```
 
 ## Usage
 
 ```ts
-import { veCssTextPlugin } from '../../vite-plugins/ve-css-text/plugin.ts';
-
-// in vite.config.ts plugins array:
-veCssTextPlugin(),
+veCssTextPlugin(), // no config — auto-detects dynamic-only modules
 ```
-
-No configuration needed — the plugin auto-detects dynamic-only modules.
 
 ## Limitations
 
-- The module graph walk relies on `ModuleInfo.importers` and `ModuleInfo.dynamicImporters`, which are **not supported** in the Cloudflare Workers module runner. In that environment, the plugin silently falls back to no-op (all `.css.ts` files use normal VE extraction). This is fine because SSR bundles are built separately.
-- The plugin only runs in dev mode (it's included in the dev plugins array, not in production build configs).
+- **Cloudflare Workers module runner** — the SSR runtime is a lightweight proxy that doesn't maintain a full import graph. Accessing `ModuleInfo.importers` throws `The "importers" property of ModuleInfo is not supported`. The plugin catches this and falls back to no-op. This is fine because CSS delivery to the browser is handled by the **client build** (which has the full module graph), not the SSR build.
