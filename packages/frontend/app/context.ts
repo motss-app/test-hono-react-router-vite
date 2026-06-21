@@ -13,6 +13,7 @@ export function getHonoContext(): HonoEnv['Variables']['honoData'] | undefined {
     const context = getContext<HonoEnv>();
     return context.var.honoData;
   } catch {
+    // Context not available (e.g., during build or prerendering)
     return;
   }
 }
