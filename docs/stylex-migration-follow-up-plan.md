@@ -33,7 +33,7 @@ The branch is broadly healthy (`deno task check`, `deno task lint`, and `deno ta
 
 - [ ] Clean up StyleX token/theme primitives
   - Review `app/styles/tokens.stylex.ts` for unused or misleading exports such as `darkTheme` if it is not actually wired into rendering.
-  - Either remove dead theme helpers or wire them in intentionally; avoid keeping both token conditions and unused theme objects unless they serve a real purpose.
+  - Either remove dead theme helpers or wire them in intentionally avoid keeping both token conditions and unused theme objects unless they serve a real purpose.
   - Add any missing semantic tokens needed by the route cleanup so colors stop being repeated inline.
 
 - [ ] Restore icon sizing behavior

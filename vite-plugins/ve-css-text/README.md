@@ -4,7 +4,7 @@ Inlines CSS from lazy-loaded Vanilla Extract components via `adoptedStyleSheets`
 
 ## Problem
 
-`React.lazy()` splits JS and CSS into chunks, but VE extracts CSS eagerly into `<head>`. The JS is deferred; the CSS arrives immediately.
+`React.lazy()` splits JS and CSS into chunks, but VE extracts CSS eagerly into `<head>`. The JS is deferred the CSS arrives immediately.
 
 ## How it works
 
@@ -69,4 +69,5 @@ veCssTextPlugin(), // no config — auto-detects dynamic-only modules
 
 ## Limitations
 
+- **Dev mode**: In dev mode, Vite's HMR system injects `<style>` tags for live reloading. This is expected — HMR needs `<style>` tags for live updates. It's not from the production CSS delivery path. To verify production behavior: run a production build and check the lazy-loaded chunk's JS — it should contain the `adoptedStyleSheets` side effect instead of a `<link>` tag.
 - **Cloudflare Workers module runner** — the SSR runtime is a lightweight proxy that doesn't maintain a full import graph. Accessing `ModuleInfo.importers` throws `The "importers" property of ModuleInfo is not supported`. The plugin catches this and falls back to no-op. This is fine because CSS delivery to the browser is handled by the **client build** (which has the full module graph), not the SSR build.

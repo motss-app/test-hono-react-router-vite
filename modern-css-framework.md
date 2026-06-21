@@ -33,7 +33,7 @@ We need a theming system that can:
 - Scale across many tenants and high traffic with predictable performance.
 - Keep developer ergonomics high for a medium-sized team (10 engineers).
 
-In this environment, styling is not only a UI concern; it is a platform concern with direct impact on reliability, security, and operational scalability.
+In this environment, styling is not only a UI concern it is a platform concern with direct impact on reliability, security, and operational scalability.
 
 ---
 
@@ -156,7 +156,7 @@ function applyTenantTheme(theme: TenantTheme): void {
 }
 ```
 
-**Token sharing across packages**: Tokens ship as a CSS file; consuming apps `@import` it.
+**Token sharing across packages**: Tokens ship as a CSS file consuming apps `@import` it.
 
 ```css
 /* checkout-app/global.css */
@@ -550,8 +550,8 @@ This is a good improvement, but teams still own most of the runtime token lifecy
 - First-party typed runtime theme updates via `@vanilla-extract/dynamic` (`assignInlineVars` / `setElementVars`).
 
 ### Cons
-- Core vanilla-extract is not atomic by default; atomic-style utilities are possible with `@vanilla-extract/sprinkles` plus extra custom infrastructure and policies.
-- Runtime tenant updates require `@vanilla-extract/dynamic` (`assignInlineVars` / `setElementVars`) as an additional package; not included in the core `@vanilla-extract/css` package.
+- Core vanilla-extract is not atomic by default atomic-style utilities are possible with `@vanilla-extract/sprinkles` plus extra custom infrastructure and policies.
+- Runtime tenant updates require `@vanilla-extract/dynamic` (`assignInlineVars` / `setElementVars`) as an additional package not included in the core `@vanilla-extract/css` package.
 - No built-in mechanism for typed component-level override constraints (equivalent to StyleX's `StyleXStylesWithout`).
 - Developer workflow can feel verbose for rapid UI iteration.
 
@@ -599,9 +599,9 @@ Excellent typing across both build-time (`assignVars`) and runtime (`setElementV
 
 ### Cons
 - Dynamic styling constraints can be limiting.
-- Ergonomics can be weaker for Tailwind-heavy teams; moving from utility-first classes to Linaria `css`/`styled` template APIs introduces relearning and migration friction.
+- Ergonomics can be weaker for Tailwind-heavy teams moving from utility-first classes to Linaria `css`/`styled` template APIs introduces relearning and migration friction.
 - Ecosystem momentum and tooling depth are weaker than top alternatives.
-- Atomic mode requires additional configuration (`atomizer`) and `cx()` for safe composition; it is not zero-config out of the box.
+- Atomic mode requires additional configuration (`atomizer`) and `cx()` for safe composition it is not zero-config out of the box.
 
 ### Example
 
@@ -793,7 +793,7 @@ These questions come from the highest-risk implementation areas that are still o
 
 2. **What is the runtime fallback policy if the remote theme service is unavailable?**
    - Why this matters: this directly affects first render reliability and brand consistency.
-   - Scenario: tenant theme API times out during SSR; do we use cached tokens, a safe default theme, or block render with an error state?
+   - Scenario: tenant theme API times out during SSR do we use cached tokens, a safe default theme, or block render with an error state?
 
 3. **What migration sequence should we use by route/domain?**
    - Why this matters: rollout order determines delivery risk and team velocity.
@@ -801,4 +801,4 @@ These questions come from the highest-risk implementation areas that are still o
 
 4. **Are there compliance or accessibility constraints we still need to codify as hard rules?**
    - Why this matters: in regulated domains, token/theming changes can create audit and accessibility risk.
-   - Scenario: a tenant-provided brand color fails WCAG contrast; should build-time/runtime validation reject it automatically?
+   - Scenario: a tenant-provided brand color fails WCAG contrast should build-time/runtime validation reject it automatically?

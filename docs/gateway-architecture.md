@@ -24,7 +24,7 @@ In this repo, that support is already in use — but only partially:
 
 - the **gateway** is the entry Worker in `packages/gateway/vite.config.ts`
 - the **BFF** is attached as an auxiliary Worker during local development
-- the **frontend** is **not** currently attached as an auxiliary Worker; it still runs as its own
+- the **frontend** is **not** currently attached as an auxiliary Worker it still runs as its own
 	package-local React Router + Cloudflare Vite process on `5173`
 
 So the current dev architecture is a hybrid:
@@ -39,9 +39,9 @@ That is why the browser-facing flow still uses two public local ports in develop
 
 | Surface | Worker name / role | Local HTTP port | Inspector port | Notes |
 | --- | --- | ---: | ---: | --- |
-| Gateway | `edge-gateway` | `8787` | `9230` | Browser-facing entrypoint; the only worker that keeps public custom domain, workers.dev, and preview URL exposure |
-| Frontend app | `frontend-app` | `5173` | `9232` | Private frontend worker deployed from `packages/frontend/wrangler.jsonc`; locally served by `packages/frontend/vite.config.ts` for the page shell, SSR, and HMR |
-| BFF API | `bff-api` | none | `9231` | Private Cloudflare worker deployed independently; reached through the gateway `BFF` binding |
+| Gateway | `edge-gateway` | `8787` | `9230` | Browser-facing entrypoint the only worker that keeps public custom domain, workers.dev, and preview URL exposure |
+| Frontend app | `frontend-app` | `5173` | `9232` | Private frontend worker deployed from `packages/frontend/wrangler.jsonc` locally served by `packages/frontend/vite.config.ts` for the page shell, SSR, and HMR |
+| BFF API | `bff-api` | none | `9231` | Private Cloudflare worker deployed independently reached through the gateway `BFF` binding |
 | Spotlight | dev telemetry sidecar | `8969` | n/a | Optional local telemetry helper started by `deno task dev` |
 
 ## Local development
@@ -65,7 +65,7 @@ The canary GitHub Actions setup is split into separate workflow files for fronte
 Request flow:
 
 1. The browser talks to the gateway on `http://localhost:8787`.
-2. In local development, the gateway proxies page requests to the frontend dev origin on `http://localhost:5173`; outside local dev it uses the `FRONTEND` service binding.
+2. In local development, the gateway proxies page requests to the frontend dev origin on `http://localhost:5173` outside local dev it uses the `FRONTEND` service binding.
 3. The frontend worker from `packages/frontend/vite.config.ts` runs through `packages/frontend/worker.ts` and the Cloudflare Vite plugin, so the page shell, SSR, and static assets all use the Worker runtime during local development.
 4. The gateway forwards `/api/*` to the `BFF` service binding.
 5. The BFF worker mounts the API under `/api`, so `/api/rpc/hello` and `/api/test` match the browser-facing contract.

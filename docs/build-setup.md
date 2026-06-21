@@ -52,7 +52,7 @@ What to keep on:
 
 The app uses lazy route discovery so the browser can discover additional routes through the runtime `/__manifest` endpoint during navigation.
 
-Rule of thumb: do not disable future flags preemptively; only turn one off if it directly causes a build or runtime problem.
+Rule of thumb: do not disable future flags preemptively only turn one off if it directly causes a build or runtime problem.
 
 ## Configuration
 

@@ -2,7 +2,7 @@
 
 _Date: 2026-05-19_
 
-## TL;DR
+## TLDR
 
 **Vanilla Extract cannot match StyleX's automatic atomic CSS output without adding `@vanilla-extract/sprinkles` or building a custom atomic layer.**
 
@@ -51,7 +51,7 @@ So route-level CSS lazy loading is **not currently enabled in this repo**, regar
 | Typed shared token contract | ✅ | ✅ | `defineVars` vs `createThemeContract` |
 | Runtime CSS variable updates | ✅ | ✅ | VE supports `assignInlineVars` and `setElementVars` via `@vanilla-extract/dynamic` |
 | Component/route CSS extraction | ✅ | ✅ | Both can participate in Vite CSS extraction |
-| Route CSS lazy loading | ✅* | ✅* | Depends on bundler config; current repo disables it with `cssCodeSplit: false` |
+| Route CSS lazy loading | ✅* | ✅* | Depends on bundler config current repo disables it with `cssCodeSplit: false` |
 | Typed component override constraints | ✅ | ❌ | No built-in VE equivalent to `StyleXStylesWithout` |
 
 \* Only when CSS splitting is enabled.

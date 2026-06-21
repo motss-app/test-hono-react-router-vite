@@ -94,7 +94,7 @@ deno task spotlight
 
 Recommended local setup:
 
-Create `.env.local` for app runtime and dev mode; add build-only credentials if you are doing a local build:
+Create `.env.local` for app runtime and dev mode add build-only credentials if you are doing a local build:
 
 ```bash
 SENTRY_DSN=https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400
@@ -110,7 +110,7 @@ The theme bootstrap plugin is also part of the dev/build wiring:
 - `vite.react-router.config.ts` keeps `themeBuildPlugin()` enabled so the production build emits the hashed bootstrap asset
 
 For SSG-only pages, there is no server/runtime Sentry SDK to initialize. If the prerendered page
-hydrates, keep the browser SDK in the client entrypoint; if it stays fully static, runtime Sentry
+hydrates, keep the browser SDK in the client entrypoint if it stays fully static, runtime Sentry
 is optional and build-time source maps remain the only Sentry-related setup you need.
 
 Worker runtime setup:
@@ -124,15 +124,15 @@ Worker runtime setup:
 - local Deno dev uses `.env`
 - source map upload still needs local/CI env vars because Wrangler runtime vars are not available to the Vite/React Router build step
 
-If you are running a local build, add `SENTRY_AUTH_TOKEN` and `SENTRY_RELEASE` to `.env.local` or export them in your shell; dev-only runs can omit them.
+If you are running a local build, add `SENTRY_AUTH_TOKEN` and `SENTRY_RELEASE` to `.env.local` or export them in your shell dev-only runs can omit them.
 
 Cloudflare Worker local parity workflow (follow-up):
 
-- use `deno task preview:worker` when you want to exercise the app and API inside local `workerd` instead of the Deno dev server; it uses a bundled Wrangler `preview` env so local module resolution works, while deploys still keep `no_bundle: true`
-- use `deno task dev` when you want the app/gateway stack plus Spotlight together; use `deno task spotlight` only if you want the sidecar on its own
+- use `deno task preview:worker` when you want to exercise the app and API inside local `workerd` instead of the Deno dev server it uses a bundled Wrangler `preview` env so local module resolution works, while deploys still keep `no_bundle: true`
+- use `deno task dev` when you want the app/gateway stack plus Spotlight together use `deno task spotlight` only if you want the sidecar on its own
 - keep Worker runtime env in Wrangler config or local Wrangler env files rather than `.env`
 - browser-side Spotlight is already wired today
-- worker-side Spotlight routing is not wired yet; that is the next follow-up if you want local Worker runtime parity without sending dev worker telemetry to your normal Sentry project
+- worker-side Spotlight routing is not wired yet that is the next follow-up if you want local Worker runtime parity without sending dev worker telemetry to your normal Sentry project
 
 Example future-local workflow:
 
@@ -149,7 +149,7 @@ SENTRY_AUTH_TOKEN=your-auth-token
 SENTRY_RELEASE=your-release-name
 ```
 
-For the temporary setup, keep the auth token and release in `.env.local` when you are building locally; that file is ignored by git.
+For the temporary setup, keep the auth token and release in `.env.local` when you are building locally that file is ignored by git.
 
 Browser profiling is enabled. Server-side profiling is not configured because this app runs on Deno and Cloudflare Workers rather than Node's profiling integration.
 

@@ -119,7 +119,7 @@ That means the rendered script tag points at the in-memory endpoint instead of a
 
 ### Why use a full reload in dev?
 
-The bootstrap script is not part of the normal client HMR graph. It is served as a separate asset and runs before hydration. Rebuilding it in memory is not enough by itself; the browser also needs to reload the page so the updated bootstrap script is fetched and rerun.
+The bootstrap script is not part of the normal client HMR graph. It is served as a separate asset and runs before hydration. Rebuilding it in memory is not enough by itself the browser also needs to reload the page so the updated bootstrap script is fetched and rerun.
 
 ## Production build mode
 

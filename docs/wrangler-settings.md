@@ -2,7 +2,7 @@
 
 This document describes all settings used in the monorepo's Cloudflare Workers (`wrangler.jsonc`).
 
-## TL;DR - Quick Reference
+## TLDR - Quick Reference
 
 | Setting | frontend-app | bff-api | edge-gateway |
 |---------|--------------|---------|--------------|

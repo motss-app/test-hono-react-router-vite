@@ -106,7 +106,7 @@ Once the new flow is proven stable:
 ---
 
 ## ↩️ Rollback Boundaries
-The following files should remain untouched during the migration; if they are modified, the migration has overreached:
+The following files should remain untouched during the migration if they are modified, the migration has overreached:
 - `app/routes/**/*.tsx` (UI Logic)
 - `app/critical/**/*` (Core CSS/Bootstrap)
 - `wrangler.jsonc` (Infrastructure config)

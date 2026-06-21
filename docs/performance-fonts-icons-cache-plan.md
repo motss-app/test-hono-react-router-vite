@@ -110,7 +110,7 @@ npm install @fontsource-variable/open-sans
 5. Update global font stack in `app/app.styles.ts`:
    - from: `'Inter', sans-serif`
    - to: `'Open Sans Variable', 'Open Sans', sans-serif`
-6. Keep `font-display: swap` (Fontsource already ships with this default; verify generated CSS if needed).
+6. Keep `font-display: swap` (Fontsource already ships with this default verify generated CSS if needed).
 7. Validate CLS and render-blocking reduction in Lighthouse.
 
 ### How to use `@fontsource-variable/open-sans` in this app
