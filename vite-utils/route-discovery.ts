@@ -71,7 +71,11 @@ export function discoverPrerenderRoutes(options?: { rootDir?: string }): string[
   const { rootDir } = options ?? {};
   const routes = discoverStaticRoutes({
     exclude: prerenderExcludedRoutes,
-    ...(rootDir === undefined ? {} : { rootDir }),
+    ...(rootDir === undefined
+      ? {}
+      : {
+          rootDir,
+        }),
   });
 
   // Explicitly add the index route since discoverStaticRoutes relies on file names

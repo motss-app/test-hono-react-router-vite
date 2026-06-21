@@ -1,7 +1,11 @@
 #!/usr/bin/env -S deno run -A
 import { clearPorts } from './dev-ports.ts';
 
-const DEFAULT_PORTS = [5173, 8787, 3000];
+const DEFAULT_PORTS = [
+  5173,
+  8787,
+  3000,
+];
 
 function parseArgs(args: string[]): {
   ports: number[];
