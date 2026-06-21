@@ -33,9 +33,7 @@ function parseSentryDsn(dsn: string): ParsedSentryDsn | undefined {
       origin: url.origin,
       projectId,
     };
-  } catch {
-    return;
-  }
+  } catch {}
 }
 
 async function readFirstEnvelopeLine(request: Request): Promise<string | undefined> {

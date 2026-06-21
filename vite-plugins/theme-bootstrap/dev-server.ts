@@ -17,7 +17,7 @@ export async function configureThemeBuildServer(
   server: ViteDevServer,
   state: ThemeBuildServerState,
   rootDir: string,
-  themeBootstrapEntryPoint: string,
+  themeBootstrapEntryPoint: string
 ): Promise<void> {
   try {
     state.devCode = (await buildThemeBootstrap(rootDir, themeBootstrapEntryPoint)).code;

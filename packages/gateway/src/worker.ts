@@ -83,7 +83,7 @@ function proxyRequest(request: Request, origin: string): Request {
 function shouldUseLocalProxy(request: Request): boolean {
   const { hostname } = new URL(request.url);
 
-  return (hostname === 'localhost' || hostname === '127.0.0.1');
+  return hostname === 'localhost' || hostname === '127.0.0.1';
 }
 
 app.get('/healthz', c => c.text('gateway ok'));

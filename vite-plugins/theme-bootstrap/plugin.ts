@@ -34,7 +34,10 @@ const resolveId = ((id: string): string | null => {
 
 export function themeBuildPlugin(options: ThemeBuildPluginOptions): Plugin[] {
   const rootDir = options.rootDir;
-  const themeBootstrapEntry = path.resolve(rootDir, 'packages/frontend/app/critical/theme-bootstrap/bootstrap.ts');
+  const themeBootstrapEntry = path.resolve(
+    rootDir,
+    'packages/frontend/app/critical/theme-bootstrap/bootstrap.ts'
+  );
   let buildArtifact: BuildArtifact | undefined;
   const serverState: ThemeBuildServerState = {
     debounceTimer: undefined,

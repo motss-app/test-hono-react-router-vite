@@ -8,4 +8,10 @@ const app = new Hono().route('/api', apiApp);
 const port = Number(Deno.env.get('PORT') ?? 3001);
 const hostname = Deno.env.get('HOST') ?? '127.0.0.1';
 
-Deno.serve({ hostname, port }, app.fetch);
+Deno.serve(
+  {
+    hostname,
+    port,
+  },
+  app.fetch
+);

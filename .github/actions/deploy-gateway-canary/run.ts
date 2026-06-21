@@ -10,14 +10,12 @@ import {
 const canaryUrl = 'https://hono-react-router-vite-canary.motss.fyi';
 
 writeLine('🚀 Building Gateway...');
-await retry(3)(
-  [
-    'deno',
-    'task',
-    '--cwd=packages/gateway',
-    'build:canary',
-  ]
-);
+await retry(3)([
+  'deno',
+  'task',
+  '--cwd=packages/gateway',
+  'build:canary',
+]);
 
 const deployResult = await withLogGroup('🚀 Deploying public gateway worker', async () => {
   const result = await runCapture(

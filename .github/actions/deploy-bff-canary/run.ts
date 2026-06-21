@@ -18,14 +18,12 @@ await withLogGroup('🚀 Typechecking BFF', async () => {
 });
 
 await withLogGroup('🚀 Building BFF', async () => {
-  await runOrDie(
-    [
-      'deno',
-      'task',
-      '--cwd=packages/bff',
-      'build:canary',
-    ]
-  );
+  await runOrDie([
+    'deno',
+    'task',
+    '--cwd=packages/bff',
+    'build:canary',
+  ]);
 });
 
 await withLogGroup('🚀 Deploying private BFF worker', async () => {

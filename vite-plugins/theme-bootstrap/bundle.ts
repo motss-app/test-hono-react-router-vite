@@ -16,7 +16,10 @@ type ViteOutputChunk = Extract<
   }
 >;
 
-async function buildThemeBootstrapCode(rootDir: string, entry: string): Promise<{
+async function buildThemeBootstrapCode(
+  rootDir: string,
+  entry: string
+): Promise<{
   code: string;
   src: string;
 }> {

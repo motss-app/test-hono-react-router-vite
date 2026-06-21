@@ -1,7 +1,10 @@
 import { dirname, join, resolve } from 'node:path';
 import type { Plugin } from 'vite';
 
-import { getSentryConnectSrc, getSentryEnvironment } from '../packages/frontend/app/monitoring/sentry.ts';
+import {
+  getSentryConnectSrc,
+  getSentryEnvironment,
+} from '../packages/frontend/app/monitoring/sentry.ts';
 import {
   cloudflareAnalyticsStyleHashes,
   collectInlineHashes,

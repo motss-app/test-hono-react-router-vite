@@ -10,8 +10,6 @@ function getThemeVariantMedia(href: string): string | undefined {
   if (href.endsWith('-light.svg')) {
     return lightThemeMediaQuery;
   }
-
-  return;
 }
 
 /**
