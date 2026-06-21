@@ -6,6 +6,7 @@ import {
   init,
   logger,
   reactRouterTracingIntegration,
+  sentryOnError,
   setTag,
   startInactiveSpan,
   startSpan,
@@ -150,6 +151,7 @@ startTransition(() => {
         instrumentations={[
           tracing.clientInstrumentation,
         ]}
+        onError={sentryOnError}
       />
     </StrictMode>
   );
