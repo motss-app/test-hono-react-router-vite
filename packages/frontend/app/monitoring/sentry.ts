@@ -72,7 +72,9 @@ function getDsnOrigin(dsn?: string): string | undefined {
 
   try {
     return new URL(dsn).origin;
-  } catch {}
+  } catch {
+    return;
+  }
 }
 
 export function getSentryConnectSrc(dsn?: string): string[] {
@@ -100,7 +102,9 @@ function getRequestPathname(url?: string): string | undefined {
 
   try {
     return new URL(url).pathname;
-  } catch {}
+  } catch {
+    return;
+  }
 }
 
 function isIgnoredDevTransactionPath(pathname: string): boolean {

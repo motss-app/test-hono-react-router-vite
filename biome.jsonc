@@ -2,7 +2,7 @@
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "assist": {
     "actions": {
-      "recommended": true,
+      "preset": "recommended",
       "source": {
         "organizeImports": {
           "level": "on",
@@ -76,7 +76,7 @@
             "identifierOrder": "natural"
           }
         },
-        "recommended": true,
+        "preset": "recommended",
         "useSortedAttributes": "on",
         "useSortedKeys": "on",
         "useSortedProperties": "on"
@@ -154,22 +154,24 @@
     "enabled": true,
     "rules": {
       "a11y": "error",
-      "complexity": "error",
+      "complexity": {
+        "noUselessReturn": "off"
+      },
       "correctness": "error",
       "nursery": {
         "useExplicitType": "off"
       },
       "performance": {
         "noAwaitInLoops": "off",
-        "recommended": true
+        "preset": "recommended"
       },
-      "recommended": true,
+      "preset": "recommended",
       "security": {
         "noSecrets": "error",
-        "recommended": true
+        "preset": "recommended"
       },
       "style": {
-        "recommended": true,
+        "preset": "recommended",
         "useExportsLast": "off"
       },
       "suspicious": "error"

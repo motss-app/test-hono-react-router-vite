@@ -79,13 +79,16 @@ export function Skeleton({
         timeoutId = setTimeout(() => {
           setShouldRenderSkeleton(true);
           lastShowTime.current = performance.now();
-        }, delay);
+        }, delay) as unknown as number;
       }
     } else if (shouldRenderSkeleton) {
       const elapsed = performance.now() - lastShowTime.current;
       const remaining = MIN_DISPLAY_DURATION_MS - elapsed;
 
-      timeoutId = setTimeout(() => setShouldRenderSkeleton(false), Math.max(0, remaining));
+      timeoutId = setTimeout(
+        () => setShouldRenderSkeleton(false),
+        Math.max(0, remaining)
+      ) as unknown as number;
     }
 
     return () => clearTimeout(timeoutId);

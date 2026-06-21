@@ -48,6 +48,8 @@ function getCookieValue(cookieHeader: string | undefined, cookieName: string): s
 
     return rawCookieValueParts.join('=');
   }
+
+  return;
 }
 
 function setBrowserAppSessionCookie(appSessionId: string): void {
