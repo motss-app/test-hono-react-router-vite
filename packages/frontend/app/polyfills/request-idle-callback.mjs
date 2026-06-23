@@ -12,7 +12,7 @@ if (!idleWindow.requestIdleCallback) {
         didTimeout: providedTimeout !== undefined && elapsed >= providedTimeout,
         timeRemaining: () => Math.max(0, 50 - (performance.now() - startedAt)),
       });
-    }, 1) as unknown as number;
+    }, 1);
   };
 }
 
