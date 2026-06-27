@@ -152,11 +152,7 @@ jobs:
 
       - name: Upsert PR comment
         if: github.event_name == 'pull_request'
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
-env:
+        env:
           GH_TOKEN: ${{ github.token }}
         run: |
           PR_NUMBER=${{ github.event.pull_request.number }}
