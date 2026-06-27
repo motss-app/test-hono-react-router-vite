@@ -6,6 +6,10 @@ on:
   push:
     branches: [main]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   BASE_URL: https://hono-react-router-vite.motss.fyi
   K6_VERSION: 2.0.0
@@ -148,7 +152,11 @@ jobs:
 
       - name: Upsert PR comment
         if: github.event_name == 'pull_request'
-        env:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
           GH_TOKEN: ${{ github.token }}
         run: |
           PR_NUMBER=${{ github.event.pull_request.number }}
