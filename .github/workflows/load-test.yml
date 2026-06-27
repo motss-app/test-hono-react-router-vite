@@ -1,0 +1,118 @@
+name: Load Test
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [main]
+
+env:
+  BASE_URL: https://hono-react-router-vite.motss.fyi
+  K6_VERSION: 2.0.0
+
+jobs:
+  load-test:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+    steps:
+      # actions/checkout v7.0.0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      # actions/cache v6.1.0
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        id: k6-cache
+        with:
+          path: /usr/local/bin/k6
+          key: k6-${{ env.K6_VERSION }}-${{ runner.os }}
+
+      - name: Install k6
+        if: steps.k6-cache.outputs.cache-hit != 'true'
+        run: |
+          K6_VER=${K6_VERSION#v}
+          curl -fsSL "https://github.com/grafana/k6/releases/download/v${K6_VER}/k6-v${K6_VER}-linux-amd64.tar.gz" \
+            | tar xz --strip-components=1 -C /usr/local/bin "k6-v${K6_VER}-linux-amd64/k6"
+
+      - name: Run load tests and build summary
+        id: tests
+        run: |
+          CCUS="10 50 150 300"
+
+          # ── Run tests sequentially (single job avoids combined load on production) ──
+          for CCU in $CCUS; do
+            echo "=== Load test at ${CCU} CCU ==="
+            k6 run \
+              -e BASE_URL="$BASE_URL" \
+              -e CCU="${CCU}" \
+              k6-load-test.mjs
+            mv k6-results.json "k6-results-${CCU}.json"
+          done
+
+          # ── Build markdown tables ──
+          {
+            echo '## Load Test Results'
+            echo ''
+            echo '<!-- load-test-comment -->'
+            echo ''
+            echo '### Overview'
+            echo ''
+            echo '| CCU | RPS | Errors | SSG Success | SSR Success |'
+            echo '|-----|-----|--------|-------------|-------------|'
+            for CCU in $CCUS; do
+              RPS=$(jq -r '(.rps | floor)' "k6-results-${CCU}.json")
+              ERR=$(jq -r '(.errors * 100 | floor)' "k6-results-${CCU}.json")
+              SSG_OK=$(jq -r '(.ssg.success_rate * 100 | floor)' "k6-results-${CCU}.json")
+              SSR_OK=$(jq -r '(.ssr.success_rate * 100 | floor)' "k6-results-${CCU}.json")
+              echo "| ${CCU} | ${RPS} | ${ERR}% | ${SSG_OK}% | ${SSR_OK}% |"
+            done
+
+            echo ''
+            echo '### SSG TTFB (ms)'
+            echo ''
+            echo '| CCU | avg | med | p90 | p95 | max |'
+            echo '|-----|-----|-----|-----|-----|-----|'
+            for CCU in $CCUS; do
+              AVG=$(jq -r '.ssg.ttfb.avg' "k6-results-${CCU}.json")
+              MED=$(jq -r '.ssg.ttfb.med' "k6-results-${CCU}.json")
+              P90=$(jq -r '.ssg.ttfb.p90' "k6-results-${CCU}.json")
+              P95=$(jq -r '.ssg.ttfb.p95' "k6-results-${CCU}.json")
+              MAX=$(jq -r '.ssg.ttfb.max' "k6-results-${CCU}.json")
+              echo "| ${CCU} | ${AVG} | ${MED} | ${P90} | ${P95} | ${MAX} |"
+            done
+
+            echo ''
+            echo '### SSR TTFB (ms)'
+            echo ''
+            echo '| CCU | avg | med | p90 | p95 | max |'
+            echo '|-----|-----|-----|-----|-----|-----|'
+            for CCU in $CCUS; do
+              AVG=$(jq -r '.ssr.ttfb.avg' "k6-results-${CCU}.json")
+              MED=$(jq -r '.ssr.ttfb.med' "k6-results-${CCU}.json")
+              P90=$(jq -r '.ssr.ttfb.p90' "k6-results-${CCU}.json")
+              P95=$(jq -r '.ssr.ttfb.p95' "k6-results-${CCU}.json")
+              MAX=$(jq -r '.ssr.ttfb.max' "k6-results-${CCU}.json")
+              echo "| ${CCU} | ${AVG} | ${MED} | ${P90} | ${P95} | ${MAX} |"
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upsert PR comment
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          REPO=${{ github.repository }}
+
+          # Find existing bot comment
+          COMMENT_ID=$(gh api "/repos/${REPO}/issues/${PR_NUMBER}/comments" \
+            --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | contains("<!-- load-test-comment -->"))) | .id')
+
+          if [ -n "$COMMENT_ID" ]; then
+            echo "Updating comment #${COMMENT_ID}"
+            gh api "/repos/${REPO}/issues/comments/${COMMENT_ID}" \
+              -F "body=@$GITHUB_STEP_SUMMARY" -X PATCH
+          else
+            echo "Creating new comment"
+            gh pr comment "${PR_NUMBER}" --body-file "$GITHUB_STEP_SUMMARY"
+          fi
