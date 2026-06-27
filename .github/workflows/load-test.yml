@@ -94,7 +94,6 @@ jobs:
   report:
     name: Compare & Report
     needs: load-test
-    if: always()
     runs-on: ubuntu-latest
     permissions:
       contents: write
