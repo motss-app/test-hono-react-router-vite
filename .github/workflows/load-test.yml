@@ -11,20 +11,19 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  BASE_URL: https://hono-react-router-vite.motss.fyi
   K6_VERSION: 2.0.0
   REGRESSION_THRESHOLD: 10 # TTFB p95 % increase allowed before failing
+  SENTRY_RELEASE: local
 
 jobs:
   load-test:
-    name: Load Test ${{ matrix.ccu }} CCU
+    name: Load Test (local prod build)
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        ccu: [10, 50, 150, 300]
     steps:
       # actions/checkout v7.0.0
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - uses: ./.github/actions/setup-deno
 
       # actions/cache v6.1.0
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -40,19 +39,57 @@ jobs:
           curl -fsSL "https://github.com/grafana/k6/releases/download/v${K6_VER}/k6-v${K6_VER}-linux-amd64.tar.gz" \
             | tar xz --strip-components=1 -C /usr/local/bin "k6-v${K6_VER}-linux-amd64/k6"
 
-      - name: Run k6 at ${{ matrix.ccu }} CCU
+      - name: Build
+        run: deno task build
+
+      - name: Start gateway
         run: |
-          k6 run \
-            -e BASE_URL="$BASE_URL" \
-            -e CCU="${{ matrix.ccu }}" \
-            k6-load-test.mjs
-          mv k6-results.json "k6-results-${{ matrix.ccu }}.json"
+          deno task --cwd=packages/gateway preview &
+          echo "pid=$!" >> "$GITHUB_ENV"
+        env:
+          SENTRY_DSN: ${{ vars.SENTRY_DSN }}
+
+      - name: Wait for gateway
+        run: |
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:8787/healthz > /dev/null 2>&1; then
+              echo "Gateway ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Gateway not ready after 120s"
+          exit 1
+
+      - name: Run k6 at 10 CCU
+        run: |
+          k6 run -e BASE_URL=http://localhost:8787 -e CCU=10 k6-load-test.mjs
+          mv k6-results.json k6-results-10.json
+
+      - name: Run k6 at 50 CCU
+        run: |
+          k6 run -e BASE_URL=http://localhost:8787 -e CCU=50 k6-load-test.mjs
+          mv k6-results.json k6-results-50.json
+
+      - name: Run k6 at 150 CCU
+        run: |
+          k6 run -e BASE_URL=http://localhost:8787 -e CCU=150 k6-load-test.mjs
+          mv k6-results.json k6-results-150.json
+
+      - name: Run k6 at 300 CCU
+        run: |
+          k6 run -e BASE_URL=http://localhost:8787 -e CCU=300 k6-load-test.mjs
+          mv k6-results.json k6-results-300.json
+
+      - name: Kill gateway
+        if: always()
+        run: kill ${{ env.pid }} 2>/dev/null || true
 
       # actions/upload-artifact v7.0.1
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: k6-results-${{ matrix.ccu }}
-          path: k6-results-${{ matrix.ccu }}.json
+          name: k6-results-all
+          path: k6-results-*.json
 
   report:
     name: Compare & Report
