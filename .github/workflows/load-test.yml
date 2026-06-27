@@ -203,7 +203,7 @@ jobs:
           exit 1
 
       - name: Update baselines
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           mkdir -p k6-baseline
           for CCU in 10 50 150 300; do
