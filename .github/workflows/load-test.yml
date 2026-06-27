@@ -9,13 +9,14 @@ on:
 env:
   BASE_URL: https://hono-react-router-vite.motss.fyi
   K6_VERSION: 2.0.0
+  REGRESSION_THRESHOLD: 10 # TTFB p95 % increase allowed before failing
 
 jobs:
   load-test:
     runs-on: ubuntu-latest
     permissions:
+      contents: write
       pull-requests: write
-      contents: read
     steps:
       # actions/checkout v7.0.0
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -34,12 +35,14 @@ jobs:
           curl -fsSL "https://github.com/grafana/k6/releases/download/v${K6_VER}/k6-v${K6_VER}-linux-amd64.tar.gz" \
             | tar xz --strip-components=1 -C /usr/local/bin "k6-v${K6_VER}-linux-amd64/k6"
 
-      - name: Run load tests and build summary
-        id: tests
+      - name: Run load tests
+        id: results
         run: |
           CCUS="10 50 150 300"
+          REGRESSED=0
+          REGRESSION_MSGS=""
 
-          # ── Run tests sequentially (single job avoids combined load on production) ──
+          # ── Run tests sequentially ──
           for CCU in $CCUS; do
             echo "=== Load test at ${CCU} CCU ==="
             k6 run \
@@ -49,12 +52,59 @@ jobs:
             mv k6-results.json "k6-results-${CCU}.json"
           done
 
+          # ── Compare against baselines ──
+          for CCU in $CCUS; do
+            BASELINE="k6-baseline/${CCU}.json"
+            NEW="k6-results-${CCU}.json"
+
+            if [ ! -f "$BASELINE" ]; then
+              REGRESSION_MSGS="${REGRESSION_MSGS}- ${CCU} CCU: no baseline, skipping\n"
+              continue
+            fi
+
+            for TYPE in ssg ssr; do
+              BASE=$(jq -r ".${TYPE}.ttfb.p95" "$BASELINE")
+              NEW_VAL=$(jq -r ".${TYPE}.ttfb.p95" "$NEW")
+
+              if [ "$BASE" = "null" ] || [ "$BASE" = "0" ]; then
+                continue
+              fi
+
+              DELTA=$(echo "scale=2; (${NEW_VAL} - ${BASE}) / ${BASE} * 100" | bc)
+              FLAG=$(echo "$DELTA > ${{ env.REGRESSION_THRESHOLD }}" | bc -l)
+
+              if [ "$FLAG" = "1" ]; then
+                REGRESSED=1
+                REGRESSION_MSGS="${REGRESSION_MSGS}- ❌ **${CCU} CCU ${TYPE^^} p95**: ${BASE}ms → ${NEW_VAL}ms (**+${DELTA}%**)\n"
+              elif [ "$(echo "$DELTA > 5" | bc -l)" = "1" ]; then
+                REGRESSION_MSGS="${REGRESSION_MSGS}- ⚠️ ${CCU} CCU ${TYPE^^} p95: ${BASE}ms → ${NEW_VAL}ms (+${DELTA}%)\n"
+              fi
+            done
+          done
+
+          echo "regression_detected=${REGRESSED}" >> "$GITHUB_OUTPUT"
+
           # ── Build markdown tables ──
           {
             echo '## Load Test Results'
             echo ''
             echo '<!-- load-test-comment -->'
             echo ''
+
+            if [ -n "$REGRESSION_MSGS" ]; then
+              echo '### Regression Check'
+              echo ''
+              if [ "$REGRESSED" = "1" ]; then
+                echo '**❌ Regression detected**'
+                echo ''
+              else
+                echo '**✅ No regression**'
+                echo ''
+              fi
+              printf "%b" "$REGRESSION_MSGS"
+              echo ''
+            fi
+
             echo '### Overview'
             echo ''
             echo '| CCU | RPS | Errors | SSG Success | SSR Success |'
@@ -104,7 +154,6 @@ jobs:
           PR_NUMBER=${{ github.event.pull_request.number }}
           REPO=${{ github.repository }}
 
-          # Find existing bot comment
           COMMENT_ID=$(gh api "/repos/${REPO}/issues/${PR_NUMBER}/comments" \
             --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | contains("<!-- load-test-comment -->"))) | .id')
 
@@ -115,4 +164,28 @@ jobs:
           else
             echo "Creating new comment"
             gh pr comment "${PR_NUMBER}" --body-file "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Fail on regression
+        if: steps.results.outputs.regression_detected == 'true'
+        run: |
+          echo "❌ Performance regression detected"
+          exit 1
+
+      - name: Update baselines
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          mkdir -p k6-baseline
+          for CCU in 10 50 150 300; do
+            cp "k6-results-${CCU}.json" "k6-baseline/${CCU}.json"
+          done
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add k6-baseline/
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: update k6 baseline [skip ci]"
+            git push
+          else
+            echo "No baseline changes"
           fi
