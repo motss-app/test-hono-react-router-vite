@@ -113,7 +113,9 @@ jobs:
             done
           done
 
-          echo "regression_detected=${REGRESSED}" >> "$GITHUB_OUTPUT"
+          if [ "$REGRESSED" = "1" ]; then
+            echo "regression_detected=true" >> "$GITHUB_OUTPUT"
+          fi
 
           # ── Build markdown ──
           {
