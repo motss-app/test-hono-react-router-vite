@@ -7,6 +7,7 @@ on:
       - main
 
 env:
+  OHA_VERSION: v1.14.0
   SENTRY_DSN: ${{ vars.SENTRY_DSN }}
   SENTRY_RELEASE: local
 
@@ -19,7 +20,7 @@ jobs:
     name: Benchmark & Compare
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - uses: ./.github/actions/setup-deno
 
@@ -31,9 +32,17 @@ jobs:
           echo "**Deno:** $(deno --version | head -1)"
           echo "**Runner:** ${{ runner.name }} (${{ runner.os }})"
 
+      # actions/cache v6.1.0
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        id: oha-cache
+        with:
+          path: /usr/local/bin/oha
+          key: oha-${{ env.OHA_VERSION }}-${{ runner.os }}
+
       - name: Install oha
+        if: steps.oha-cache.outputs.cache-hit != 'true'
         run: |
-          curl -sL https://github.com/hatoo/oha/releases/latest/download/oha-linux-amd64 -o /tmp/oha
+          curl -sL "https://github.com/hatoo/oha/releases/download/${OHA_VERSION}/oha-linux-amd64" -o /tmp/oha
           chmod +x /tmp/oha
           sudo mv /tmp/oha /usr/local/bin/oha
 
