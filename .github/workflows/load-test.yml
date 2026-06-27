@@ -39,13 +39,15 @@ jobs:
           curl -fsSL "https://github.com/grafana/k6/releases/download/v${K6_VER}/k6-v${K6_VER}-linux-amd64.tar.gz" \
             | tar xz --strip-components=1 -C /usr/local/bin "k6-v${K6_VER}-linux-amd64/k6"
 
-      - name: Build
-        run: deno task build
-
-      - name: Start gateway
+      - name: Start frontend dev server
         run: |
-          deno task --cwd=packages/gateway preview &
-          echo "pid=$!" >> "$GITHUB_ENV"
+          deno task --cwd=packages/frontend dev &
+          echo "fe_pid=$!" >> "$GITHUB_ENV"
+
+      - name: Start gateway dev server
+        run: |
+          deno task --cwd=packages/gateway dev &
+          echo "gw_pid=$!" >> "$GITHUB_ENV"
         env:
           SENTRY_DSN: ${{ vars.SENTRY_DSN }}
 
@@ -81,9 +83,11 @@ jobs:
           k6 run -e BASE_URL=http://localhost:8787 -e CCU=300 k6-load-test.mjs
           mv k6-results.json k6-results-300.json
 
-      - name: Kill gateway
+      - name: Kill servers
         if: always()
-        run: kill ${{ env.pid }} 2>/dev/null || true
+        run: |
+          kill ${{ env.gw_pid }} 2>/dev/null || true
+          kill ${{ env.fe_pid }} 2>/dev/null || true
 
       # actions/upload-artifact v7.0.1
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
