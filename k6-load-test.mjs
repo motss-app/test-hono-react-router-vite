@@ -1,12 +1,14 @@
 import { check, sleep } from 'k6';
 import http from 'k6/http';
-import { Rate, Trend } from 'k6/metrics';
+import { Counter, Rate, Trend } from 'k6/metrics';
 
 // ── Config (overridable via env) ──
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:8787';
 const TARGET_CCU = parseInt(__ENV.CCU) || 100;
 
 // ── Custom metrics per page type ──
+const ssgReqs = new Counter('ssg_reqs');
+const ssrReqs = new Counter('ssr_reqs');
 const ssgTtfb = new Trend('ssg_ttfb', true);
 const ssrTtfb = new Trend('ssr_ttfb', true);
 const ssgSuccess = new Rate('ssg_success_rate');
@@ -49,6 +51,7 @@ const STEADY_S = Math.ceil((4 * NON_STEADY_REQS) / TARGET_CCU);
 
 // ── Options ──
 export const options = {
+  summaryTrendStats: ['avg', 'min', 'med', 'max', 'p(75)', 'p(90)', 'p(95)'],
   stages: [
     {
       duration: '30s',
@@ -110,9 +113,11 @@ export default function () {
   });
 
   if (isSsg) {
+    ssgReqs.add(1);
     ssgSuccess.add(res.status === 200);
     if (res.status === 200) ssgTtfb.add(res.timings.waiting);
   } else {
+    ssrReqs.add(1);
     ssrSuccess.add(res.status === 200);
     if (res.status === 200) ssrTtfb.add(res.timings.waiting);
   }
@@ -123,6 +128,9 @@ export default function () {
 
 export function handleSummary(data) {
   const m = data.metrics;
+  const durationS = (data.state?.testRunDurationMs ?? 1) / 1000;
+  const ssgCount = m.ssg_reqs?.values?.count ?? 0;
+  const ssrCount = m.ssr_reqs?.values?.count ?? 0;
   const summary = {
     avg_vus: m.vus?.values?.avg ?? 0,
     duration: data.state?.testRunDurationMs,
@@ -130,10 +138,14 @@ export function handleSummary(data) {
     max_vus: m.vus?.values?.max ?? 0,
     rps: m.http_reqs?.values?.rate ?? 0,
     ssg: {
+      requests: ssgCount,
+      rps: durationS > 0 ? round(ssgCount / durationS) : 0,
       success_rate: m.ssg_success_rate?.values?.rate ?? 0,
       ttfb: extractPercentiles(m.ssg_ttfb),
     },
     ssr: {
+      requests: ssrCount,
+      rps: durationS > 0 ? round(ssrCount / durationS) : 0,
       success_rate: m.ssr_success_rate?.values?.rate ?? 0,
       ttfb: extractPercentiles(m.ssr_ttfb),
     },
@@ -141,7 +153,7 @@ export function handleSummary(data) {
   };
 
   return {
-    'k6-results.json': JSON.stringify(summary, null, 2),
+      'k6-results.json': JSON.stringify(summary, null, 2) + '\n',
     stdout: '\n' + JSON.stringify(summary, null, 2) + '\n',
   };
 }
@@ -151,8 +163,8 @@ function extractPercentiles(metric) {
   return {
     avg: round(metric.values.avg),
     max: round(metric.values.max),
-    med: round(metric.values.med),
     min: round(metric.values.min),
+    p75: round(metric.values['p(75)']),
     p90: round(metric.values['p(90)']),
     p95: round(metric.values['p(95)']),
   };

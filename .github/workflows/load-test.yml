@@ -17,10 +17,11 @@ env:
 
 jobs:
   load-test:
+    name: Load Test ${{ matrix.ccu }} CCU
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
+    strategy:
+      matrix:
+        ccu: [10, 50, 150, 300]
     steps:
       # actions/checkout v7.0.0
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -39,28 +40,54 @@ jobs:
           curl -fsSL "https://github.com/grafana/k6/releases/download/v${K6_VER}/k6-v${K6_VER}-linux-amd64.tar.gz" \
             | tar xz --strip-components=1 -C /usr/local/bin "k6-v${K6_VER}-linux-amd64/k6"
 
-      - name: Run load tests
+      - name: Run k6 at ${{ matrix.ccu }} CCU
+        run: |
+          k6 run \
+            -e BASE_URL="$BASE_URL" \
+            -e CCU="${{ matrix.ccu }}" \
+            k6-load-test.mjs
+          mv k6-results.json "k6-results-${{ matrix.ccu }}.json"
+
+      # actions/upload-artifact v4
+      - uses: actions/upload-artifact@92b8a0a8dfaf4b0c3f6817ab0ab3db1654bc1e4f # v4
+        with:
+          name: k6-results-${{ matrix.ccu }}
+          path: k6-results-${{ matrix.ccu }}.json
+
+  report:
+    name: Compare & Report
+    needs: load-test
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      # actions/download-artifact v4
+      - uses: actions/download-artifact@c1d98187d50c6f1adcdf5b126201662eac4890ac # v4
+        with:
+          pattern: k6-results-*
+          merge-multiple: true
+
+      - name: List results
+        run: ls -la k6-results-*.json
+
+      - name: Compare against baselines
         id: results
         run: |
-          CCUS="10 50 150 300"
           REGRESSED=0
           REGRESSION_MSGS=""
 
-          # ── Run tests sequentially ──
-          for CCU in $CCUS; do
-            echo "=== Load test at ${CCU} CCU ==="
-            k6 run \
-              -e BASE_URL="$BASE_URL" \
-              -e CCU="${CCU}" \
-              k6-load-test.mjs
-            mv k6-results.json "k6-results-${CCU}.json"
-          done
-
-          # ── Compare against baselines ──
-          for CCU in $CCUS; do
-            BASELINE="k6-baseline/${CCU}.json"
+          for CCU in 10 50 150 300; do
             NEW="k6-results-${CCU}.json"
+            if [ ! -f "$NEW" ]; then
+              REGRESSION_MSGS="${REGRESSION_MSGS}- ⚠️ ${CCU} CCU: no result, skipping\n"
+              continue
+            fi
 
+            BASELINE="k6-baseline/${CCU}.json"
             if [ ! -f "$BASELINE" ]; then
               REGRESSION_MSGS="${REGRESSION_MSGS}- ${CCU} CCU: no baseline, skipping\n"
               continue
@@ -88,66 +115,65 @@ jobs:
 
           echo "regression_detected=${REGRESSED}" >> "$GITHUB_OUTPUT"
 
-          # ── Build markdown tables ──
+          # ── Build markdown ──
           {
             echo '## Load Test Results'
             echo ''
             echo '<!-- load-test-comment -->'
             echo ''
 
-            if [ -n "$REGRESSION_MSGS" ]; then
-              echo '### Regression Check'
+            print_type_table() {
+              local TYPE=$1 LABEL=$2
+              echo "### ${LABEL}"
               echo ''
-              if [ "$REGRESSED" = "1" ]; then
-                echo '**❌ Regression detected**'
-                echo ''
-              else
-                echo '**✅ No regression**'
-                echo ''
-              fi
-              printf "%b" "$REGRESSION_MSGS"
-              echo ''
-            fi
+              echo '| CCU | RPS | p75 | p90 | p95 | success |'
+              echo '|-----|-----|-----|-----|-----|---------|'
+              for CCU in 10 50 150 300; do
+                N="k6-results-${CCU}.json"
+                B="k6-baseline/${CCU}.json"
+                if [ ! -f "$N" ]; then
+                  echo "| ${CCU} | N/A | N/A | N/A | N/A | N/A |"
+                  continue
+                fi
 
-            echo '### Overview'
-            echo ''
-            echo '| CCU | RPS | Errors | SSG Success | SSR Success |'
-            echo '|-----|-----|--------|-------------|-------------|'
-            for CCU in $CCUS; do
-              RPS=$(jq -r '(.rps | floor)' "k6-results-${CCU}.json")
-              ERR=$(jq -r '(.errors * 100 | floor)' "k6-results-${CCU}.json")
-              SSG_OK=$(jq -r '(.ssg.success_rate * 100 | floor)' "k6-results-${CCU}.json")
-              SSR_OK=$(jq -r '(.ssr.success_rate * 100 | floor)' "k6-results-${CCU}.json")
-              echo "| ${CCU} | ${RPS} | ${ERR}% | ${SSG_OK}% | ${SSR_OK}% |"
-            done
+                # Current values
+                RPS=$(jq -r "(.${TYPE}.rps | floor)" "$N")
+                P75=$(jq -r ".${TYPE}.ttfb.p75" "$N")
+                P90=$(jq -r ".${TYPE}.ttfb.p90" "$N")
+                P95=$(jq -r ".${TYPE}.ttfb.p95" "$N")
+                OK=$(jq -r "(.${TYPE}.success_rate * 100 | floor)" "$N")
 
-            echo ''
-            echo '### SSG TTFB (ms)'
-            echo ''
-            echo '| CCU | avg | med | p90 | p95 | max |'
-            echo '|-----|-----|-----|-----|-----|-----|'
-            for CCU in $CCUS; do
-              AVG=$(jq -r '.ssg.ttfb.avg' "k6-results-${CCU}.json")
-              MED=$(jq -r '.ssg.ttfb.med' "k6-results-${CCU}.json")
-              P90=$(jq -r '.ssg.ttfb.p90' "k6-results-${CCU}.json")
-              P95=$(jq -r '.ssg.ttfb.p95' "k6-results-${CCU}.json")
-              MAX=$(jq -r '.ssg.ttfb.max' "k6-results-${CCU}.json")
-              echo "| ${CCU} | ${AVG} | ${MED} | ${P90} | ${P95} | ${MAX} |"
-            done
+                # Baseline values
+                BRPS=$(jq -r "(.${TYPE}.rps // 0 | floor)" "$B" 2>/dev/null || echo "N/A")
+                BP75=$(jq -r "try (.${TYPE}.ttfb.p75 // \"N/A\") catch \"N/A\"" "$B" 2>/dev/null || echo "N/A")
+                BP90=$(jq -r "try (.${TYPE}.ttfb.p90 // \"N/A\") catch \"N/A\"" "$B" 2>/dev/null || echo "N/A")
+                BP95=$(jq -r "try (.${TYPE}.ttfb.p95 // \"N/A\") catch \"N/A\"" "$B" 2>/dev/null || echo "N/A")
+                BOK=$(jq -r "try ((.${TYPE}.success_rate // 0) * 100 | floor // \"N/A\") catch \"N/A\"" "$B" 2>/dev/null || echo "N/A")
 
+                # Build cells with before→after (delta) inline
+                cell() {
+                  local CUR=$1 BASE=$2 SUFFIX=$3
+                  if [ "$BASE" = "N/A" ] || [ "$BASE" = "null" ] || [ "$BASE" = "0" ]; then
+                    echo "${CUR}${SUFFIX}"
+                  else
+                    D=$(echo "scale=1; (${CUR} - ${BASE}) / ${BASE} * 100" | bc 2>/dev/null || echo "?")
+                    echo "${BASE}${SUFFIX}→${CUR}${SUFFIX} (${D}%)"
+                  fi
+                }
+
+                RPS_C=$(cell "$RPS" "$BRPS" "")
+                P75_C=$(cell "$P75" "$BP75" "ms")
+                P90_C=$(cell "$P90" "$BP90" "ms")
+                P95_C=$(cell "$P95" "$BP95" "ms")
+                OK_C=$(cell "$OK" "$BOK" "%")
+
+                echo "| ${CCU} | ${RPS_C} | ${P75_C} | ${P90_C} | ${P95_C} | ${OK_C} |"
+              done
+            }
+
+            print_type_table ssg SSG
             echo ''
-            echo '### SSR TTFB (ms)'
-            echo ''
-            echo '| CCU | avg | med | p90 | p95 | max |'
-            echo '|-----|-----|-----|-----|-----|-----|'
-            for CCU in $CCUS; do
-              AVG=$(jq -r '.ssr.ttfb.avg' "k6-results-${CCU}.json")
-              MED=$(jq -r '.ssr.ttfb.med' "k6-results-${CCU}.json")
-              P90=$(jq -r '.ssr.ttfb.p90' "k6-results-${CCU}.json")
-              P95=$(jq -r '.ssr.ttfb.p95' "k6-results-${CCU}.json")
-              MAX=$(jq -r '.ssr.ttfb.max' "k6-results-${CCU}.json")
-              echo "| ${CCU} | ${AVG} | ${MED} | ${P90} | ${P95} | ${MAX} |"
-            done
+            print_type_table ssr SSR
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upsert PR comment
