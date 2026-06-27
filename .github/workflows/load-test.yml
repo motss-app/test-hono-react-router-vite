@@ -49,7 +49,7 @@ jobs:
           mv k6-results.json "k6-results-${{ matrix.ccu }}.json"
 
       # actions/upload-artifact v4
-      - uses: actions/upload-artifact@92b8a0a8dfaf4b0c3f6817ab0ab3db1654bc1e4f # v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: k6-results-${{ matrix.ccu }}
           path: k6-results-${{ matrix.ccu }}.json
@@ -66,7 +66,7 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       # actions/download-artifact v4
-      - uses: actions/download-artifact@c1d98187d50c6f1adcdf5b126201662eac4890ac # v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           pattern: k6-results-*
           merge-multiple: true
