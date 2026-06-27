@@ -20,6 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
     steps:
       # actions/checkout v7.0.0
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -91,7 +92,8 @@ jobs:
           {
             echo '## Load Test Results'
             echo ''
-
+            echo '<!-- load-test-comment -->'
+            echo ''
 
             if [ -n "$REGRESSION_MSGS" ]; then
               echo '### Regression Check'
@@ -147,6 +149,26 @@ jobs:
               echo "| ${CCU} | ${AVG} | ${MED} | ${P90} | ${P95} | ${MAX} |"
             done
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upsert PR comment
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          REPO=${{ github.repository }}
+
+          COMMENT_ID=$(gh api "/repos/${REPO}/issues/${PR_NUMBER}/comments" \
+            --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | contains("<!-- load-test-comment -->"))) | .id')
+
+          if [ -n "$COMMENT_ID" ]; then
+            echo "Updating comment #${COMMENT_ID}"
+            gh api "/repos/${REPO}/issues/comments/${COMMENT_ID}" \
+              -F "body=@$GITHUB_STEP_SUMMARY" -X PATCH
+          else
+            echo "Creating new comment"
+            gh pr comment "${PR_NUMBER}" --body-file "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Fail on regression
         if: steps.results.outputs.regression_detected == 'true'
