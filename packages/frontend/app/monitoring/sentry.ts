@@ -2,8 +2,6 @@ import type { CloudflareOptions } from '@sentry/cloudflare';
 
 import { isLoadTestMode } from '../constants.ts';
 
-export { isLoadTestMode };
-
 const sentryGatewayDevTunnelUrl = 'http://127.0.0.1:8787/api/tunnel';
 const tracesSampleRate = 1.0;
 const profileSessionSampleRate = 1.0;

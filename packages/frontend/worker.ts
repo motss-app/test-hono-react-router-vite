@@ -10,11 +10,11 @@ import {
   createAppSessionId,
   getAppSessionIdFromCookieString,
 } from './app/monitoring/app-session.ts';
+import { isLoadTestMode } from './app/constants.ts';
 import {
   createCloudflareSentryOptions,
   createRequestMetricAttributes,
   isDevelopmentSentryMode,
-  isLoadTestMode,
   sentryMetricNames,
 } from './app/monitoring/sentry.ts';
 import { createSsrHandler } from './app/ssr-handler.ts';
