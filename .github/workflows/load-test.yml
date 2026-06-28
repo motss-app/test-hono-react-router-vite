@@ -252,12 +252,12 @@ jobs:
       - name: Fail on regression
         if: steps.results.outputs.regression_detected == 'true'
         run: |
-          echo "❌ Performance regression detected (>${REGRESSION_THRESHOLD}% TTFB p95 increase)"
+          echo "❌ Performance regression detected (>${{ env.REGRESSION_THRESHOLD }}% TTFB p95 increase)"
           echo ""
           echo "Violations:"
           cat /tmp/regression-msgs.txt 2>/dev/null || echo "  (details not available)"
           echo ""
-          echo "Budget: TTFB p(95) — threshold=±${REGRESSION_THRESHOLD}% vs baseline"
+          echo "Budget: TTFB p(95) — threshold=±${{ env.REGRESSION_THRESHOLD }}% vs baseline"
           exit 1
 
       - name: Update baselines
