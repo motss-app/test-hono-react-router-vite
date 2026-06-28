@@ -48,7 +48,7 @@ jobs:
         run: |
           k6 run \
             -e BASE_URL=http://127.0.0.1:9999 \
-            -e MAX_CCU=500 \
+            -e MAX_CCU=600 \
             -e STEP=50 \
             -e STEADY_S=15 \
             k6-saturation.mjs
