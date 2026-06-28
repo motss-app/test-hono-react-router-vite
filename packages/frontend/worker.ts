@@ -11,12 +11,10 @@ import {
   getAppSessionIdFromCookieString,
 } from './app/monitoring/app-session.ts';
 import {
-  checkLoadTestMode,
-  clearCurrentRequest,
   createCloudflareSentryOptions,
   createRequestMetricAttributes,
   isDevelopmentSentryMode,
-  setCurrentRequest,
+  isLoadTestMode,
   sentryMetricNames,
 } from './app/monitoring/sentry.ts';
 import { createSsrHandler } from './app/ssr-handler.ts';
@@ -24,7 +22,7 @@ import type { HonoEnv } from './app/types/hono.types.ts';
 import { PromiseFrom } from './app/utils/promise-from.ts';
 
 const app = new Hono<HonoEnv>()
-  .use('*', timing({ enabled: c => !checkLoadTestMode(c.req.raw) }))
+  .use('*', timing({ enabled: () => !isLoadTestMode }))
   .get('/assets/*', async c => {
     const response = await c.env.ASSETS.fetch(c.req.raw);
 
@@ -173,10 +171,6 @@ export default withSentry<HonoEnv['Bindings']>(
     ): Promise<Response> {
       const requestUrl = new URL(request.url);
       const requestStartedAt = performance.now();
-      const isLoadTest = checkLoadTestMode(request);
-
-      // Set current request for Sentry load test header detection
-      setCurrentRequest(request);
 
       try {
         const { appSessionId, shouldSetAppSessionCookie } = getWorkerAppSessionState(request);
@@ -190,19 +184,17 @@ export default withSentry<HonoEnv['Bindings']>(
         });
 
         // Skip metrics recording during load tests to reduce overhead
-        if (!isLoadTest) {
+        if (!isLoadTestMode) {
           recordWorkerResponse(request, requestUrl, requestStartedAt, response);
         }
 
         return response;
       } catch (error) {
-        if (!isLoadTest) {
+        if (!isLoadTestMode) {
           recordWorkerRequestError(request, requestUrl, requestStartedAt);
         }
 
         throw error;
-      } finally {
-        clearCurrentRequest();
       }
     },
   }

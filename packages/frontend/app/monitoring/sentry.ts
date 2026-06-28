@@ -1,22 +1,15 @@
 import type { CloudflareOptions } from '@sentry/cloudflare';
 
+import { isLoadTestMode } from '../constants.ts';
+
+export { isLoadTestMode };
+
 const sentryGatewayDevTunnelUrl = 'http://127.0.0.1:8787/api/tunnel';
-const LOAD_TEST_HEADER = 'X-Load-Test';
-// Disable tracing during load tests to reduce overhead
-let tracesSampleRate = 1.0;
+const tracesSampleRate = 1.0;
 const profileSessionSampleRate = 1.0;
 const replaysSessionSampleRate = 0.1;
 const replaysOnErrorSampleRate = 1.0;
-
-export function checkLoadTestMode(request?: Request): boolean {
-  return request?.headers.get(LOAD_TEST_HEADER) === 'true';
-}
-
-export function getTracesSampleRate(request?: Request): number {
-  return checkLoadTestMode(request) ? 0 : tracesSampleRate;
-}
 // Browser tracing should follow same-origin relative URLs, any localhost/127.0.0.1 dev origin
-// regardless of port, and deployed motss.fyi hosts. That covers the current local multi-worker
 // topology as well as the public domains used outside local development.
 const localhostTracePropagationTarget = /^https?:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?(?:\/|$)/;
 const motssFyiTracePropagationTarget = /^https?:\/\/(?:[a-z0-9-]+\.)*motss\.fyi(?:\/|$)/i;
@@ -50,17 +43,6 @@ interface RequestMetricAttributesOptions {
 type SentryTransactionEvent = Parameters<
   NonNullable<CloudflareOptions['beforeSendTransaction']>
 >[0];
-
-// Store request reference for load test header detection
-let currentRequest: Request | null = null;
-
-export function setCurrentRequest(request: Request): void {
-  currentRequest = request;
-}
-
-export function clearCurrentRequest(): void {
-  currentRequest = null;
-}
 
 export function getSentryEnvironment(mode: RuntimeMode): string {
   return mode === 'canary' || mode === 'production' ? mode : 'development';
@@ -174,7 +156,7 @@ function normalizeTransactionName(event: SentryTransactionEvent): SentryTransact
 function createBeforeSendTransaction(mode: RuntimeMode) {
   return function beforeSendTransaction(event: SentryTransactionEvent) {
     // Drop all transactions during load tests to reduce overhead
-    if (currentRequest && checkLoadTestMode(currentRequest)) {
+    if (isLoadTestMode) {
       return null;
     }
 

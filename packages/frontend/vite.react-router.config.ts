@@ -98,6 +98,7 @@ export default function createViteConfig(config: ConfigEnv) {
             source: 'packages/frontend/vite.react-router.config.ts',
           })
         : readEnv('SENTRY_RELEASE'),
+      VITE_LOAD_TEST: readEnv('VITE_LOAD_TEST'),
     }),
     plugins: isDev
       ? []
