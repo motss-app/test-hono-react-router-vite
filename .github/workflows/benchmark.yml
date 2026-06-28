@@ -102,6 +102,7 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           deno run -A scripts/update-baseline.ts /tmp/bench-output.txt
+          BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add docs/benchmark-baseline.md
@@ -109,5 +110,5 @@ jobs:
             echo "No baseline change to commit"
           else
             git commit -m "chore: update benchmark baseline"
-            git push
+            git push origin "HEAD:${BRANCH}"
           fi
