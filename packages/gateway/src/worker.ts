@@ -3,7 +3,7 @@ import { Hono } from 'hono';
 import { timing, wrapTime } from 'hono/timing';
 import { problemDetailsHandler } from 'hono-problem-details';
 
-import { createCloudflareSentryOptions } from '../../frontend/app/monitoring/sentry.ts';
+import { checkLoadTestMode, createCloudflareSentryOptions } from '../../frontend/app/monitoring/sentry.ts';
 import type { GatewayBindings } from './bindings.ts';
 
 const LOCAL_FRONTEND_ORIGIN = 'http://localhost:5173';
@@ -51,7 +51,7 @@ function isWebSocketUpgrade(request: Request): boolean {
 
 app.use(
   timing({
-    enabled: c => !isWebSocketUpgrade(c.req.raw),
+    enabled: c => !isWebSocketUpgrade(c.req.raw) && !checkLoadTestMode(c.req.raw),
     totalDescription: 'Gateway total',
   })
 );

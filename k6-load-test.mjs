@@ -98,7 +98,9 @@ export default function () {
     headers: {
       Accept: 'text/html',
       'Accept-Encoding': 'gzip',
+      'Connection': 'keep-alive',
       'User-Agent': 'k6-loadtest/1.0',
+      'X-Load-Test': 'true',
     },
     tags: {
       page_path: path,
