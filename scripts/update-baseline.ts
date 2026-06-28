@@ -105,6 +105,7 @@ function renderComparison(current: Row[], baseline: Row[]): string {
     ])
   );
   const lines: string[] = [];
+  lines.push('<!-- benchmark-comment -->');
   lines.push('## Benchmark Comparison');
   lines.push('');
   lines.push(
