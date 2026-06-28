@@ -1,0 +1,67 @@
+name: Saturation Test
+
+on:
+  workflow_dispatch:
+  pull_request:
+
+env:
+  K6_VERSION: 2.0.0
+
+jobs:
+  saturation:
+    name: Find max CCU
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - uses: ./.github/actions/setup-deno
+
+      # actions/cache v6.1.0
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        id: k6-cache
+        with:
+          path: /usr/local/bin/k6
+          key: k6-${{ env.K6_VERSION }}-${{ runner.os }}
+
+      - name: Install k6
+        if: steps.k6-cache.outputs.cache-hit != 'true'
+        run: |
+          K6_VER=${K6_VERSION#v}
+          curl -fsSL "https://github.com/grafana/k6/releases/download/v${K6_VER}/k6-v${K6_VER}-linux-amd64.tar.gz" \
+            | tar xz --strip-components=1 -C /usr/local/bin "k6-v${K6_VER}-linux-amd64/k6"
+
+      - name: Start server
+        run: |
+          deno run -A scripts/saturation-test-server.ts &
+          echo "SERVER_PID=$!" >> "$GITHUB_ENV"
+          for i in $(seq 1 10); do
+            if curl -sf http://127.0.0.1:9999/ > /dev/null 2>&1; then
+              echo "Server ready"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Server failed to start"
+          exit 1
+
+      - name: Run saturation test
+        run: |
+          k6 run \
+            -e BASE_URL=http://127.0.0.1:9999 \
+            -e MAX_CCU=500 \
+            -e STEP=50 \
+            -e STEADY_S=15 \
+            k6-saturation.mjs
+
+      - name: Kill server
+        if: always()
+        run: kill ${{ env.SERVER_PID }} 2>/dev/null || true
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Saturation Test Results" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Look for the CCU level where p95 starts spiking and RPS plateaus." >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "That's the max safe CCU for load tests on this runner." >> "$GITHUB_STEP_SUMMARY"
