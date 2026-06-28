@@ -31,6 +31,7 @@
     "npm:typescript@6.0.3": "6.0.3",
     "npm:vite@*": "8.0.16",
     "npm:vite@8.0.16": "8.0.16",
+    "npm:wrangler@*": "4.105.0_@cloudflare+workers-types@4.20260621.1",
     "npm:wrangler@4.105.0": "4.105.0_@cloudflare+workers-types@4.20260621.1"
   },
   "jsr": {

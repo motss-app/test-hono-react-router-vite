@@ -17,7 +17,11 @@ env:
 
 jobs:
   load-test:
-    name: Load Test (local prod build)
+    name: Load Test (${{ matrix.ccu }} CCU)
+    strategy:
+      fail-fast: false
+      matrix:
+        ccu: [10, 50, 150, 300, 600]
     runs-on: ubuntu-latest
     steps:
       # actions/checkout v7.0.0
@@ -72,30 +76,10 @@ jobs:
           echo "Servers not ready after 60s"
           exit 1
 
-      - name: Run k6 at 10 CCU
+      - name: Run k6
         run: |
-          k6 run -e BASE_URL=http://localhost:5175 -e CCU=10 k6-load-test.mjs
-          mv k6-results.json k6-results-10.json
-
-      - name: Run k6 at 50 CCU
-        run: |
-          k6 run -e BASE_URL=http://localhost:5175 -e CCU=50 k6-load-test.mjs
-          mv k6-results.json k6-results-50.json
-
-      - name: Run k6 at 150 CCU
-        run: |
-          k6 run -e BASE_URL=http://localhost:5175 -e CCU=150 k6-load-test.mjs
-          mv k6-results.json k6-results-150.json
-
-      - name: Run k6 at 300 CCU
-        run: |
-          k6 run -e BASE_URL=http://localhost:5175 -e CCU=300 k6-load-test.mjs
-          mv k6-results.json k6-results-300.json
-
-      - name: Run k6 at 600 CCU
-        run: |
-          k6 run -e BASE_URL=http://localhost:5175 -e CCU=600 k6-load-test.mjs
-          mv k6-results.json k6-results-600.json
+          k6 run -e BASE_URL=http://localhost:5175 -e CCU=${{ matrix.ccu }} k6-load-test.mjs
+          mv k6-results.json k6-results-${{ matrix.ccu }}.json
 
       - name: Kill servers
         if: always()
@@ -105,9 +89,10 @@ jobs:
 
       # actions/upload-artifact v7.0.1
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
         with:
-          name: k6-results-all
-          path: k6-results-*.json
+          name: k6-results-${{ matrix.ccu }}
+          path: k6-results-${{ matrix.ccu }}.json
 
   report:
     name: Compare & Report
@@ -133,6 +118,7 @@ jobs:
         run: |
           REGRESSED=0
           REGRESSION_MSGS=""
+          VIOLATIONS=""
 
           for CCU in 10 50 150 300 600; do
             NEW="k6-results-${CCU}.json"
@@ -160,16 +146,20 @@ jobs:
 
               if [ "$FLAG" = "1" ]; then
                 REGRESSED=1
-                REGRESSION_MSGS="${REGRESSION_MSGS}- ❌ **${CCU} CCU ${TYPE^^} p95**: ${BASE}ms → ${NEW_VAL}ms (**+${DELTA}%**)\n"
+                MSG="- ❌ **${CCU} CCU ${TYPE^^} p95**: ${BASE}ms → ${NEW_VAL}ms (**+${DELTA}%**)\n"
+                REGRESSION_MSGS="${REGRESSION_MSGS}${MSG}"
+                VIOLATIONS="${VIOLATIONS}${MSG}"
               elif [ "$(echo "$DELTA > 5" | bc -l)" = "1" ]; then
-                REGRESSION_MSGS="${REGRESSION_MSGS}- ⚠️ ${CCU} CCU ${TYPE^^} p95: ${BASE}ms → ${NEW_VAL}ms (+${DELTA}%)\n"
+                MSG="- ⚠️ ${CCU} CCU ${TYPE^^} p95: ${BASE}ms → ${NEW_VAL}ms (+${DELTA}%)\n"
+                REGRESSION_MSGS="${REGRESSION_MSGS}${MSG}"
+                VIOLATIONS="${VIOLATIONS}${MSG}"
               fi
             done
           done
 
           if [ "$REGRESSED" = "1" ]; then
             echo "regression_detected=true" >> "$GITHUB_OUTPUT"
-            printf '%b' "$REGRESSION_MSGS" > /tmp/regression-msgs.txt
+            printf '%b' "$VIOLATIONS" > /tmp/regression-msgs.txt
           fi
 
           # ── Build markdown ──
@@ -185,8 +175,8 @@ jobs:
               echo ''
               echo '| CCU | RPS | p75 | p90 | p95 | success |'
                echo '|-----|-----|-----|-----|-----|---------|'
-               for CCU in 10 50 150 300 600; do
-                 N="k6-results-${CCU}.json"
+              for CCU in 10 50 150 300 600; do
+                N="k6-results-${CCU}.json"
                 B="k6-baseline/${CCU}.json"
                 if [ ! -f "$N" ]; then
                   echo "| ${CCU} | N/A | N/A | N/A | N/A | N/A |"
