@@ -106,6 +106,7 @@ jobs:
 
       # actions/download-artifact v8.0.1
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        id: download
         with:
           pattern: k6-results-*
           merge-multiple: true
@@ -261,7 +262,7 @@ jobs:
           exit 1
 
       - name: Update baselines
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: always() && steps.download.outcome == 'success'
         run: |
           mkdir -p k6-baseline
           for CCU in 10 50 150 300 600; do
