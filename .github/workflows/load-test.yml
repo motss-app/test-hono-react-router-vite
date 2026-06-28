@@ -92,6 +92,11 @@ jobs:
           k6 run -e BASE_URL=http://localhost:5175 -e CCU=300 k6-load-test.mjs
           mv k6-results.json k6-results-300.json
 
+      - name: Run k6 at 600 CCU
+        run: |
+          k6 run -e BASE_URL=http://localhost:5175 -e CCU=600 k6-load-test.mjs
+          mv k6-results.json k6-results-600.json
+
       - name: Kill servers
         if: always()
         run: |
@@ -129,7 +134,7 @@ jobs:
           REGRESSED=0
           REGRESSION_MSGS=""
 
-          for CCU in 10 50 150 300; do
+          for CCU in 10 50 150 300 600; do
             NEW="k6-results-${CCU}.json"
             if [ ! -f "$NEW" ]; then
               REGRESSION_MSGS="${REGRESSION_MSGS}- ⚠️ ${CCU} CCU: no result, skipping\n"
@@ -164,6 +169,7 @@ jobs:
 
           if [ "$REGRESSED" = "1" ]; then
             echo "regression_detected=true" >> "$GITHUB_OUTPUT"
+            printf '%s' "$REGRESSION_MSGS" > /tmp/regression-msgs.txt
           fi
 
           # ── Build markdown ──
@@ -178,9 +184,9 @@ jobs:
               echo "### ${LABEL}"
               echo ''
               echo '| CCU | RPS | p75 | p90 | p95 | success |'
-              echo '|-----|-----|-----|-----|-----|---------|'
-              for CCU in 10 50 150 300; do
-                N="k6-results-${CCU}.json"
+               echo '|-----|-----|-----|-----|-----|---------|'
+               for CCU in 10 50 150 300 600; do
+                 N="k6-results-${CCU}.json"
                 B="k6-baseline/${CCU}.json"
                 if [ ! -f "$N" ]; then
                   echo "| ${CCU} | N/A | N/A | N/A | N/A | N/A |"
@@ -256,14 +262,19 @@ jobs:
       - name: Fail on regression
         if: steps.results.outputs.regression_detected == 'true'
         run: |
-          echo "❌ Performance regression detected"
+          echo "❌ Performance regression detected (>${REGRESSION_THRESHOLD}% TTFB p95 increase)"
+          echo ""
+          echo "Violations:"
+          cat /tmp/regression-msgs.txt 2>/dev/null || echo "  (details not available)"
+          echo ""
+          echo "Budget: TTFB p(95) — threshold=±${REGRESSION_THRESHOLD}% vs baseline"
           exit 1
 
       - name: Update baselines
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           mkdir -p k6-baseline
-          for CCU in 10 50 150 300; do
+          for CCU in 10 50 150 300 600; do
             cp "k6-results-${CCU}.json" "k6-baseline/${CCU}.json"
           done
 
