@@ -169,7 +169,7 @@ jobs:
 
           if [ "$REGRESSED" = "1" ]; then
             echo "regression_detected=true" >> "$GITHUB_OUTPUT"
-            printf '%s' "$REGRESSION_MSGS" > /tmp/regression-msgs.txt
+            printf '%b' "$REGRESSION_MSGS" > /tmp/regression-msgs.txt
           fi
 
           # ── Build markdown ──
