@@ -1,34 +1,34 @@
 {
   "avg_vus": 0,
-  "duration": 0,
+  "duration": 231343.61765,
   "errors": 0,
-  "max_vus": 0,
-  "rps": 0,
+  "max_vus": 300,
+  "rps": 235.00972515374687,
   "ssg": {
-    "requests": 0,
-    "rps": 0,
-    "success_rate": 0,
+    "requests": 27035,
+    "rps": 116.86,
+    "success_rate": 1,
     "ttfb": {
-      "avg": 0,
-      "max": 0,
-      "min": 0,
-      "p75": 0,
-      "p90": 0,
-      "p95": 0
+      "avg": 22.77,
+      "max": 443.67,
+      "min": 1.38,
+      "p75": 24.22,
+      "p90": 62.01,
+      "p95": 84.32
     }
   },
   "ssr": {
-    "requests": 0,
-    "rps": 0,
-    "success_rate": 0,
+    "requests": 27333,
+    "rps": 118.15,
+    "success_rate": 1,
     "ttfb": {
-      "avg": 0,
-      "max": 0,
-      "min": 0,
-      "p75": 0,
-      "p90": 0,
-      "p95": 0
+      "avg": 22.31,
+      "max": 445.71,
+      "min": 1.36,
+      "p75": 23.81,
+      "p90": 61.67,
+      "p95": 83.27
     }
   },
-  "total_reqs": 0
+  "total_reqs": 54368
 }
