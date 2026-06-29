@@ -110,5 +110,7 @@ jobs:
             echo "No baseline change to commit"
           else
             git commit -m "chore: update benchmark baseline"
+            git fetch origin "${BRANCH}"
+            git rebase "origin/${BRANCH}"
             git push origin "HEAD:${BRANCH}"
           fi

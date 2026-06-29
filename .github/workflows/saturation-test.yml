@@ -51,7 +51,7 @@ jobs:
             -e MAX_CCU=600 \
             -e STEP=50 \
             -e STEADY_S=15 \
-            k6-saturation.mjs
+            k6-saturation.mjs 2>&1 | tee /tmp/saturation-output.txt
 
       - name: Kill server
         if: always()
@@ -60,8 +60,6 @@ jobs:
       - name: Summary
         if: always()
         run: |
-          echo "## Saturation Test Results" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "Look for the CCU level where p95 starts spiking and RPS plateaus." >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "That's the max safe CCU for load tests on this runner." >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          cat /tmp/saturation-output.txt >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"

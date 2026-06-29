@@ -277,6 +277,8 @@ jobs:
           git add k6-baseline/
           if ! git diff --cached --quiet; then
             git commit -m "chore: update k6 baseline [skip ci]"
+            git fetch origin "${BRANCH}"
+            git rebase "origin/${BRANCH}"
             git push origin "HEAD:${BRANCH}"
           else
             echo "No baseline changes"

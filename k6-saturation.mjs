@@ -1,9 +1,9 @@
 import http from 'k6/http';
-import { check } from 'k6';
+import { check, sleep } from 'k6';
 import { Counter, Trend } from 'k6/metrics';
 
 var BASE_URL = __ENV.BASE_URL || 'http://127.0.0.1:9999';
-var MAX_CCU = parseInt(__ENV.MAX_CCU || '500');
+var MAX_CCU = parseInt(__ENV.MAX_CCU || '600');
 var STEP = parseInt(__ENV.STEP || '50');
 var STEADY_S = parseInt(__ENV.STEADY_S || '15');
 
@@ -42,6 +42,8 @@ export function handleSummary(data) {
   var p95 = m.latency && m.latency.values ? m.latency.values['p(95)'] || 0 : 0;
   var p99 = m.latency && m.latency.values ? m.latency.values['p(99)'] || 0 : 0;
   var failRate = m.http_req_failed && m.http_req_failed.values ? m.http_req_failed.values.rate || 0 : 0;
+  var avgVus = m.vus && m.vus.values ? m.vus.values.avg || 0 : 0;
+  var maxVus = m.vus && m.vus.values ? m.vus.values.max || 0 : 0;
 
   var summary = {
     max_ccu: MAX_CCU,
@@ -52,9 +54,43 @@ export function handleSummary(data) {
     p95: Math.round(p95 * 100) / 100,
     p99: Math.round(p99 * 100) / 100,
     fail_rate: Math.round(failRate * 10000) / 100,
+    avg_vus: Math.round(avgVus),
+    max_vus: Math.round(maxVus),
   };
 
+  var lines = [];
+  lines.push('');
+  lines.push('=== SATURATION TEST RESULTS ===');
+  lines.push('');
+  lines.push('Metric           Value');
+  lines.push('─────────────────────────────');
+  lines.push('Max CCU target   ' + MAX_CCU);
+  lines.push('Steady duration  ' + STEADY_S + 's per level');
+  lines.push('Total requests   ' + totalReqs);
+  lines.push('Overall RPS      ' + summary.rps);
+  lines.push('Avg VUs          ' + summary.avg_vus);
+  lines.push('Max VUs          ' + summary.max_vus);
+  lines.push('');
+  lines.push('Latency (waiting time):');
+  lines.push('  p75             ' + summary.p75 + 'ms');
+  lines.push('  p95             ' + summary.p95 + 'ms');
+  lines.push('  p99             ' + summary.p99 + 'ms');
+  lines.push('');
+  lines.push('Failure rate      ' + summary.fail_rate + '%');
+  lines.push('');
+
+  if (summary.p95 > 100) {
+    lines.push('⚠ p95 > 100ms — server is saturated at this CCU level.');
+  } else if (summary.p95 > 50) {
+    lines.push('⚠ p95 > 50ms — server is approaching saturation.');
+  } else {
+    lines.push('✓ p95 < 50ms — server handled ' + MAX_CCU + ' CCU without saturation.');
+  }
+  lines.push('');
+  lines.push('Recommendation: Use CCU levels where p95 stays under 50ms for load tests.');
+  lines.push('');
+
   return {
-    stdout: '\n' + JSON.stringify(summary, null, 2) + '\n',
+    stdout: lines.join('\n'),
   };
 }
