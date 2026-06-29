@@ -152,6 +152,9 @@ jobs:
                 MSG="- ❌ **${CCU} CCU ${TYPE^^} p95**: ${BASE}ms → ${NEW_VAL}ms (**+${DELTA}%**)\n"
                 REGRESSION_MSGS="${REGRESSION_MSGS}${MSG}"
                 VIOLATIONS="${VIOLATIONS}${MSG}"
+              elif [ "$PCT_FLAG" = "1" ] || [ "$(echo "$DELTA > 5" | bc -l)" = "1" ]; then
+                MSG="- ⚠️ ${CCU} CCU ${TYPE^^} p95: ${BASE}ms → ${NEW_VAL}ms (+${DELTA}%)\n"
+                REGRESSION_MSGS="${REGRESSION_MSGS}${MSG}"
               fi
             done
           done
