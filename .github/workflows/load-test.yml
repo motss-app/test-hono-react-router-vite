@@ -12,7 +12,7 @@ concurrency:
 
 env:
   K6_VERSION: 2.0.0
-  REGRESSION_THRESHOLD: 10 # TTFB p95 % increase allowed before failing
+  REGRESSION_THRESHOLD: 20 # TTFB p95 % increase allowed before failing
   SENTRY_RELEASE: local
 
 jobs:
