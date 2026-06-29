@@ -143,15 +143,13 @@ jobs:
               fi
 
               DELTA=$(echo "scale=2; (${NEW_VAL} - ${BASE}) / ${BASE} * 100" | bc)
-              FLAG=$(echo "$DELTA > ${{ env.REGRESSION_THRESHOLD }}" | bc -l)
+              ABS_DELTA=$(echo "scale=2; ${NEW_VAL} - ${BASE}" | bc)
+              PCT_FLAG=$(echo "$DELTA > ${{ env.REGRESSION_THRESHOLD }}" | bc -l)
+              ABS_FLAG=$(echo "$ABS_DELTA > 5" | bc -l)
 
-              if [ "$FLAG" = "1" ]; then
+              if [ "$PCT_FLAG" = "1" ] && [ "$ABS_FLAG" = "1" ]; then
                 REGRESSED=1
                 MSG="- ❌ **${CCU} CCU ${TYPE^^} p95**: ${BASE}ms → ${NEW_VAL}ms (**+${DELTA}%**)\n"
-                REGRESSION_MSGS="${REGRESSION_MSGS}${MSG}"
-                VIOLATIONS="${VIOLATIONS}${MSG}"
-              elif [ "$(echo "$DELTA > 5" | bc -l)" = "1" ]; then
-                MSG="- ⚠️ ${CCU} CCU ${TYPE^^} p95: ${BASE}ms → ${NEW_VAL}ms (+${DELTA}%)\n"
                 REGRESSION_MSGS="${REGRESSION_MSGS}${MSG}"
                 VIOLATIONS="${VIOLATIONS}${MSG}"
               fi
