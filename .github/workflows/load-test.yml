@@ -262,7 +262,7 @@ jobs:
           exit 1
 
       - name: Update baselines
-        if: always() && steps.download.outcome == 'success'
+        if: steps.download.outcome == 'success' && steps.results.outputs.regression_detected != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
