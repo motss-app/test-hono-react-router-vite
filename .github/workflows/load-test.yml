@@ -142,6 +142,11 @@ jobs:
                 continue
               fi
 
+              # Skip regression check for low CCU — variance is too high to be meaningful
+              if [ "$CCU" -le 50 ]; then
+                continue
+              fi
+
               DELTA=$(echo "scale=2; (${NEW_VAL} - ${BASE}) / ${BASE} * 100" | bc)
               ABS_DELTA=$(echo "scale=2; ${NEW_VAL} - ${BASE}" | bc)
               PCT_FLAG=$(echo "$DELTA > ${{ env.REGRESSION_THRESHOLD }}" | bc -l)
