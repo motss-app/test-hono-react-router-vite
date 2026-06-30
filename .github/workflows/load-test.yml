@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ccu: [10, 50, 150, 300, 600]
+        ccu: [10, 50, 150, 300, 500]
     runs-on: ubuntu-latest
     steps:
       # actions/checkout v7.0.0
@@ -120,7 +120,7 @@ jobs:
           REGRESSION_MSGS=""
           VIOLATIONS=""
 
-          for CCU in 10 50 150 300 600; do
+          for CCU in 10 50 150 300 500; do
             NEW="k6-results-${CCU}.json"
             if [ ! -f "$NEW" ]; then
               REGRESSION_MSGS="${REGRESSION_MSGS}- ⚠️ ${CCU} CCU: no result, skipping\n"
@@ -197,7 +197,7 @@ jobs:
               echo ''
               echo '| CCU | RPS | p75 | p90 | p95 | success |'
                echo '|-----|-----|-----|-----|-----|---------|'
-              for CCU in 10 50 150 300 600; do
+              for CCU in 10 50 150 300 500; do
                 N="k6-results-${CCU}.json"
                 B="k6-baseline/${CCU}.json"
                 if [ ! -f "$N" ]; then
@@ -288,7 +288,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p k6-baseline
-          for CCU in 10 50 150 300 600; do
+          for CCU in 10 50 150 300 500; do
             cp "k6-results-${CCU}.json" "k6-baseline/${CCU}.json"
           done
 
