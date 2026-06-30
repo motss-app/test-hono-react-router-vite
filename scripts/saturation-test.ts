@@ -81,8 +81,8 @@ export function handleSummary(data) {
       'run',
       scriptPath,
     ],
-    stdout: 'piped',
     stderr: 'piped',
+    stdout: 'piped',
   });
 
   const output = await cmd.output();
@@ -111,11 +111,11 @@ export function handleSummary(data) {
       const failRate = data.metrics?.http_req_failed?.values?.rate ?? 0;
       results.push({
         ccu,
-        rps: Math.round(rps),
+        failRate: Math.round(failRate * 10000) / 100,
         p50: Math.round((dur['p(50)'] ?? 0) * 100) / 100,
         p95: Math.round((dur['p(95)'] ?? 0) * 100) / 100,
         p99: Math.round((dur['p(99)'] ?? 0) * 100) / 100,
-        failRate: Math.round(failRate * 10000) / 100,
+        rps: Math.round(rps),
       });
     } catch (e) {
       console.error(`[ccu=${ccu}] Failed to parse k6 output:`, e);
@@ -166,19 +166,21 @@ function extractMetricsJson(text: string): string | null {
   return null;
 }
 
-// Print results table
+// Print results table.
+// Column widths must accommodate the widest possible cell in each column
+// (RPS cell = "<num> (±N%)" is the widest, up to 11 chars).
 console.log('');
 console.log('=== SATURATION TEST RESULTS ===');
 console.log('');
-console.log('CCU    RPS     p50       p95       p99       failures');
-console.log('────── ─────── ───────── ───────── ───────── ────────');
+console.log('CCU    RPS         p50       p95       p99       failures');
+console.log('────── ─────────── ───────── ───────── ───────── ────────');
 
 let prevRps = 0;
 for (const r of results) {
   const rpsDelta = prevRps > 0 ? (((r.rps - prevRps) / prevRps) * 100).toFixed(0) : '';
   const rpsStr = rpsDelta ? `${r.rps} (${rpsDelta}%)` : `${r.rps}`;
   console.log(
-    `${String(r.ccu).padEnd(6)} ${rpsStr.padEnd(8)} ${fmtMs(r.p50).padEnd(10)} ${fmtMs(r.p95).padEnd(10)} ${fmtMs(r.p99).padEnd(10)} ${r.failRate}%`
+    `${String(r.ccu).padEnd(6)} ${rpsStr.padEnd(11)} ${fmtMs(r.p50).padEnd(9)} ${fmtMs(r.p95).padEnd(9)} ${fmtMs(r.p99).padEnd(9)} ${r.failRate}%`
   );
   prevRps = r.rps;
 }
