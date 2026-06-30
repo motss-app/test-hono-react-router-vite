@@ -13,9 +13,7 @@ const BASE_URL = Deno.env.get('BASE_URL') ?? 'http://127.0.0.1:9999';
 // Accept either a single comma-separated arg (`500,5000`) or multiple
 // positional args (`500 5000`); env var `CCU_LEVELS` also works.
 const CCU_LEVELS = (
-  Deno.args.length > 0
-    ? Deno.args.join(',')
-    : (Deno.env.get('CCU_LEVELS') ?? '500,1000,3000,5000')
+  Deno.args.length > 0 ? Deno.args.join(',') : (Deno.env.get('CCU_LEVELS') ?? '500,1000,3000,5000')
 )
   .split(',')
   .map(Number)
@@ -45,6 +43,7 @@ import http from 'k6/http';
 import { check } from 'k6';
 
 export const options = {
+  summaryTrendStats: ['avg', 'min', 'med', 'max', 'p(50)', 'p(90)', 'p(95)', 'p(99)'],
   stages: [
     { duration: '3s', target: ${ccu} },
     { duration: '${STEADY_S}s', target: ${ccu} },
@@ -78,7 +77,10 @@ export function handleSummary(data) {
   }
 
   const cmd = new Deno.Command(K6, {
-    args: ['run', scriptPath],
+    args: [
+      'run',
+      scriptPath,
+    ],
     stdout: 'piped',
     stderr: 'piped',
   });
@@ -173,7 +175,7 @@ console.log('────── ─────── ────────�
 
 let prevRps = 0;
 for (const r of results) {
-  const rpsDelta = prevRps > 0 ? ((r.rps - prevRps) / prevRps * 100).toFixed(0) : '';
+  const rpsDelta = prevRps > 0 ? (((r.rps - prevRps) / prevRps) * 100).toFixed(0) : '';
   const rpsStr = rpsDelta ? `${r.rps} (${rpsDelta}%)` : `${r.rps}`;
   console.log(
     `${String(r.ccu).padEnd(6)} ${rpsStr.padEnd(8)} ${fmtMs(r.p50).padEnd(10)} ${fmtMs(r.p95).padEnd(10)} ${fmtMs(r.p99).padEnd(10)} ${r.failRate}%`

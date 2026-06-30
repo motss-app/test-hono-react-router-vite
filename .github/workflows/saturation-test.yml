@@ -53,9 +53,19 @@ jobs:
       - name: Write step summary
         if: always()
         run: |
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-          cat /tmp/saturation-output.txt >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo '```'
+            cat /tmp/saturation-output.txt
+            echo '```'
+            echo ''
+            echo '### System'
+            echo ''
+            echo "- **OS**: $(uname -srm)"
+            echo "- **CPUs**: $(nproc) logical cores"
+            echo "- **Memory**: $(free -h | awk '/^Mem:/ {print $2}') total"
+            echo "- **Deno**: $(deno --version | head -1)"
+            echo "- **Runner**: ${{ runner.name }} (${{ runner.os }})"
+          } >> "$GITHUB_STEP_SUMMARY"
 
           # Build comment body
           {
@@ -65,6 +75,14 @@ jobs:
             echo '```'
             cat /tmp/saturation-output.txt
             echo '```'
+            echo ''
+            echo '### System'
+            echo ''
+            echo "- **OS**: $(uname -srm)"
+            echo "- **CPUs**: $(nproc) logical cores"
+            echo "- **Memory**: $(free -h | awk '/^Mem:/ {print $2}') total"
+            echo "- **Deno**: $(deno --version | head -1)"
+            echo "- **Runner**: ${{ runner.name }} (${{ runner.os }})"
           } > /tmp/saturation-comment.md
 
       - name: Upsert PR comment

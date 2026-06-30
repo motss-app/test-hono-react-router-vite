@@ -12,6 +12,7 @@ concurrency:
 
 env:
   K6_VERSION: 2.0.0
+  SENTRY_DSN: ${{ vars.SENTRY_DSN }}
   SENTRY_RELEASE: local
 
 jobs:
