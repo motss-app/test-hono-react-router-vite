@@ -72,24 +72,11 @@ jobs:
           fi
 
       - name: Upsert comparison comment (PR only)
+        uses: ./.github/actions/upsert-pr-comment
         if: github.event_name == 'pull_request' && always()
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          PR_NUMBER=${{ github.event.pull_request.number }}
-          REPO=${{ github.repository }}
-
-          COMMENT_ID=$(gh api "/repos/${REPO}/issues/${PR_NUMBER}/comments" \
-            --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | contains("<!-- benchmark-comment -->"))) | .id')
-
-          if [ -n "$COMMENT_ID" ]; then
-            echo "Updating comment #${COMMENT_ID}"
-            gh api "/repos/${REPO}/issues/comments/${COMMENT_ID}" \
-              -F "body=@/tmp/bench-comment.md" -X PATCH
-          else
-            echo "Creating new comment"
-            gh pr comment "${PR_NUMBER}" --body-file /tmp/bench-comment.md
-          fi
+        with:
+          marker: '<!-- benchmark-comment -->'
+          body-file: /tmp/bench-comment.md
 
       - name: Fail on regression (PR only)
         if: github.event_name == 'pull_request' && steps.compare.outputs.regression == 'true'

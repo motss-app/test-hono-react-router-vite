@@ -246,26 +246,11 @@ jobs:
           cp "$GITHUB_STEP_SUMMARY" /tmp/load-test-comment.md
 
       - name: Upsert PR comment
+        uses: ./.github/actions/upsert-pr-comment
         if: github.event_name == 'pull_request'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          PR_NUMBER=${{ github.event.pull_request.number }}
-          REPO=${{ github.repository }}
-
-          COMMENT_BODY_FILE=/tmp/load-test-comment.md
-
-          COMMENT_ID=$(gh api "/repos/${REPO}/issues/${PR_NUMBER}/comments" \
-            --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | contains("<!-- load-test-comment -->"))) | .id')
-
-          if [ -n "$COMMENT_ID" ]; then
-            echo "Updating comment #${COMMENT_ID}"
-            gh api "/repos/${REPO}/issues/comments/${COMMENT_ID}" \
-              -F "body=@${COMMENT_BODY_FILE}" -X PATCH
-          else
-            echo "Creating new comment"
-            gh pr comment "${PR_NUMBER}" --body-file "${COMMENT_BODY_FILE}"
-          fi
+        with:
+          marker: '<!-- load-test-comment -->'
+          body-file: /tmp/load-test-comment.md
 
       - name: Fail on regression
         if: steps.results.outputs.regression_detected == 'true'

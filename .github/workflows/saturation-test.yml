@@ -57,14 +57,6 @@ jobs:
           cat /tmp/saturation-output.txt >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upsert PR comment
-        if: always() && github.event_name == 'pull_request'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          PR_NUMBER=${{ github.event.pull_request.number }}
-          REPO=${{ github.repository }}
-
           # Build comment body
           {
             echo '<!-- saturation-comment -->'
@@ -75,15 +67,9 @@ jobs:
             echo '```'
           } > /tmp/saturation-comment.md
 
-          # Find existing comment
-          COMMENT_ID=$(gh api "/repos/${REPO}/issues/${PR_NUMBER}/comments" \
-            --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | contains("<!-- saturation-comment -->"))) | .id')
-
-          if [ -n "$COMMENT_ID" ]; then
-            echo "Updating comment #${COMMENT_ID}"
-            gh api "/repos/${REPO}/issues/comments/${COMMENT_ID}" \
-              -F "body=@/tmp/saturation-comment.md" -X PATCH
-          else
-            echo "Creating new comment"
-            gh pr comment "${PR_NUMBER}" --body-file /tmp/saturation-comment.md
-          fi
+      - name: Upsert PR comment
+        uses: ./.github/actions/upsert-pr-comment
+        if: always() && github.event_name == 'pull_request'
+        with:
+          marker: '<!-- saturation-comment -->'
+          body-file: /tmp/saturation-comment.md

@@ -113,7 +113,7 @@ if (results.length >= 2) {
     }
   }
 
-  const lastResult = results[results.length - 1];
+  const lastResult = results[results.length - 1]!;
   const rpsDropped = lastResult.rps < maxRps * 0.9;
 
   console.log('');
