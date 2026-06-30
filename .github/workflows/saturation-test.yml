@@ -44,15 +44,46 @@ jobs:
         run: |
           K6_BINARY=/usr/local/bin/k6 \
           BASE_URL=http://127.0.0.1:9999 \
-          deno run -A scripts/saturation-test.ts 500 50 2>&1 | tee /tmp/saturation-output.txt
+          deno run -A scripts/saturation-test.ts 5000 500 2>&1 | tee /tmp/saturation-output.txt
 
       - name: Kill server
         if: always()
         run: kill ${{ env.SERVER_PID }} 2>/dev/null || true
 
-      - name: Summary
+      - name: Write step summary
         if: always()
         run: |
           echo '```' >> "$GITHUB_STEP_SUMMARY"
           cat /tmp/saturation-output.txt >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upsert PR comment
+        if: always() && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          REPO=${{ github.repository }}
+
+          # Build comment body
+          {
+            echo '<!-- saturation-comment -->'
+            echo '## Saturation Test Results'
+            echo ''
+            echo '```'
+            cat /tmp/saturation-output.txt
+            echo '```'
+          } > /tmp/saturation-comment.md
+
+          # Find existing comment
+          COMMENT_ID=$(gh api "/repos/${REPO}/issues/${PR_NUMBER}/comments" \
+            --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | contains("<!-- saturation-comment -->"))) | .id')
+
+          if [ -n "$COMMENT_ID" ]; then
+            echo "Updating comment #${COMMENT_ID}"
+            gh api "/repos/${REPO}/issues/comments/${COMMENT_ID}" \
+              -F "body=@/tmp/saturation-comment.md" -X PATCH
+          else
+            echo "Creating new comment"
+            gh pr comment "${PR_NUMBER}" --body-file /tmp/saturation-comment.md
+          fi

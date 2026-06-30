@@ -1,16 +1,19 @@
 #!/usr/bin/env -S deno run -A
 
 /**
- * Saturation test: runs k6 at incrementing CCU levels and reports
+ * Saturation test: runs k6 at specified CCU levels and reports
  * RPS + latency at each level so you can see exactly where the server
  * saturates.
  *
- * Usage: deno run -A scripts/saturation-test.ts [max_ccu] [step]
+ * Usage: deno run -A scripts/saturation-test.ts [ccu1,ccu2,...]
+ * Example: deno run -A scripts/saturation-test.ts 500,1000,3000,5000
  */
 
 const BASE_URL = Deno.env.get('BASE_URL') ?? 'http://127.0.0.1:9999';
-const MAX_CCU = parseInt(Deno.args[0] ?? Deno.env.get('MAX_CCU') ?? '500');
-const STEP = parseInt(Deno.args[1] ?? Deno.env.get('STEP') ?? '50');
+const CCU_LEVELS = (Deno.args[0] ?? Deno.env.get('CCU_LEVELS') ?? '500,1000,3000,5000')
+  .split(',')
+  .map(Number)
+  .filter(n => !isNaN(n) && n > 0);
 const STEADY_S = parseInt(Deno.env.get('STEADY_S') ?? '10');
 const K6 = Deno.env.get('K6_BINARY') ?? 'k6';
 
@@ -25,7 +28,7 @@ interface Result {
 
 const results: Result[] = [];
 
-for (let ccu = STEP; ccu <= MAX_CCU; ccu += STEP) {
+for (const ccu of CCU_LEVELS) {
   const script = `
 import http from 'k6/http';
 import { check } from 'k6';
@@ -86,15 +89,15 @@ export default function () {
 console.log('');
 console.log('=== SATURATION TEST RESULTS ===');
 console.log('');
-console.log('CCU   RPS     p50       p95       p99       failures');
-console.log('───── ─────── ───────── ───────── ───────── ────────');
+console.log('CCU    RPS     p50       p95       p99       failures');
+console.log('────── ─────── ───────── ───────── ───────── ────────');
 
 let prevRps = 0;
 for (const r of results) {
   const rpsDelta = prevRps > 0 ? ((r.rps - prevRps) / prevRps * 100).toFixed(0) : '';
   const rpsStr = rpsDelta ? `${r.rps} (${rpsDelta}%)` : `${r.rps}`;
   console.log(
-    `${String(r.ccu).padEnd(5)} ${rpsStr.padEnd(8)} ${fmtMs(r.p50).padEnd(10)} ${fmtMs(r.p95).padEnd(10)} ${fmtMs(r.p99).padEnd(10)} ${r.failRate}%`
+    `${String(r.ccu).padEnd(6)} ${rpsStr.padEnd(8)} ${fmtMs(r.p50).padEnd(10)} ${fmtMs(r.p95).padEnd(10)} ${fmtMs(r.p99).padEnd(10)} ${r.failRate}%`
   );
   prevRps = r.rps;
 }
@@ -116,13 +119,10 @@ if (results.length >= 2) {
   console.log('');
   if (rpsDropped) {
     console.log(`⚠ RPS peaked at ${maxRps} (${saturationCcu} CCU) then dropped.`);
-    console.log(`  Max safe CCU: ${saturationCcu}`);
   } else if (lastResult.p95 > 200) {
     console.log(`⚠ p95 > 200ms at ${lastResult.ccu} CCU (${lastResult.p95}ms).`);
-    console.log(`  Max safe CCU: ${results.find(r => r.p95 > 200)?.ccu ?? 'unknown'}`);
   } else {
-    console.log(`✓ Server handled ${MAX_CCU} CCU without saturation.`);
-    console.log(`  Max safe CCU: ${MAX_CCU}+`);
+    console.log(`✓ Server handled ${CCU_LEVELS[CCU_LEVELS.length - 1]} CCU without saturation.`);
   }
 }
 
