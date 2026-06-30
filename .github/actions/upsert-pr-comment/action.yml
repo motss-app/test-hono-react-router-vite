@@ -23,7 +23,7 @@ runs:
         MARKER="${{ inputs.marker }}"
         BODY_FILE="${{ inputs.body-file }}"
 
-        COMMENT_ID=$(gh api "/repos/${REPO}/issues/${PR_NUMBER}/comments" \
+        COMMENT_ID=$(gh api "/repos/${REPO}/issues/${PR_NUMBER}/comments" --paginate \
           --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | contains(\"${MARKER}\"))) | .id")
 
         if [ -n "$COMMENT_ID" ]; then
