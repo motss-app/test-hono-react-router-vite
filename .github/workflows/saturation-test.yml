@@ -44,7 +44,7 @@ jobs:
         run: |
           K6_BINARY=/usr/local/bin/k6 \
           BASE_URL=http://127.0.0.1:9999 \
-          deno run -A scripts/saturation-test.ts 5000 500 2>&1 | tee /tmp/saturation-output.txt
+          deno run -A scripts/saturation-test.ts 10,50,150,300,500,1000,3000,5000 2>&1 | tee /tmp/saturation-output.txt
 
       - name: Kill server
         if: always()

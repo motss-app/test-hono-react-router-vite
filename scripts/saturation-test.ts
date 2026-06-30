@@ -10,11 +10,17 @@
  */
 
 const BASE_URL = Deno.env.get('BASE_URL') ?? 'http://127.0.0.1:9999';
-const CCU_LEVELS = (Deno.args[0] ?? Deno.env.get('CCU_LEVELS') ?? '500,1000,3000,5000')
+// Accept either a single comma-separated arg (`500,5000`) or multiple
+// positional args (`500 5000`); env var `CCU_LEVELS` also works.
+const CCU_LEVELS = (
+  Deno.args.length > 0
+    ? Deno.args.join(',')
+    : (Deno.env.get('CCU_LEVELS') ?? '500,1000,3000,5000')
+)
   .split(',')
   .map(Number)
-  .filter(n => !isNaN(n) && n > 0);
-const STEADY_S = parseInt(Deno.env.get('STEADY_S') ?? '10');
+  .filter(n => !Number.isNaN(n) && n > 0);
+const STEADY_S = parseInt(Deno.env.get('STEADY_S') ?? '10', 10);
 const K6 = Deno.env.get('K6_BINARY') ?? 'k6';
 
 interface Result {
