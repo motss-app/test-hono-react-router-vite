@@ -55,7 +55,8 @@
     "verbatimModuleSyntax": true
   },
   "exclude": [
-    ".wrangler"
+    ".wrangler",
+    "k6-load-test.mjs"
   ],
   "imports": {
     "@sentry/browser": "npm:@sentry/browser@10.62.0",

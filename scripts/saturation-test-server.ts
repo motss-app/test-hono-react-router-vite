@@ -11,8 +11,19 @@
 const port = Number(Deno.env.get('PORT') ?? 9999);
 
 Deno.serve(
-  { port, hostname: '127.0.0.1' },
-  () => new Response(JSON.stringify({ ok: true }), {
-    headers: { 'content-type': 'application/json' },
-  })
+  {
+    port,
+    hostname: '127.0.0.1',
+  },
+  () =>
+    new Response(
+      JSON.stringify({
+        ok: true,
+      }),
+      {
+        headers: {
+          'content-type': 'application/json',
+        },
+      }
+    )
 );

@@ -22,7 +22,12 @@ import type { HonoEnv } from './app/types/hono.types.ts';
 import { PromiseFrom } from './app/utils/promise-from.ts';
 
 const app = new Hono<HonoEnv>()
-  .use('*', timing({ enabled: () => !isLoadTestMode }))
+  .use(
+    '*',
+    timing({
+      enabled: () => !isLoadTestMode,
+    })
+  )
   .get('/assets/*', async c => {
     const response = await c.env.ASSETS.fetch(c.req.raw);
 
