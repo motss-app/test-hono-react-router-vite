@@ -29,11 +29,16 @@ interface Result {
 const results: Result[] = [];
 
 for (const ccu of CCU_LEVELS) {
+  // k6 writes the summary to a per-CCU file via handleSummary; the parent
+  // script reads that file to avoid brittle stdout/stderr parsing.
+  const scriptPath = `/tmp/sat-${ccu}.js`;
+  const summaryPath = `/tmp/sat-${ccu}.summary.json`;
+
   const script = `
 import http from 'k6/http';
 import { check } from 'k6';
 
-export var options = {
+export const options = {
   stages: [
     { duration: '3s', target: ${ccu} },
     { duration: '${STEADY_S}s', target: ${ccu} },
@@ -42,44 +47,57 @@ export var options = {
 };
 
 export default function () {
-  var res = http.get('${BASE_URL}/');
-  check(res, { 'status 200': function (r) { return r.status === 200; } });
+  const res = http.get('${BASE_URL}/');
+  check(res, { 'status 200': (r) => r.status === 200 });
+}
+
+// Suppress the default text summary and write a JSON copy to disk so
+// the parent script can extract metrics reliably.
+export function handleSummary(data) {
+  return {
+    stdout: '',
+    '${summaryPath}': JSON.stringify(data),
+  };
 }
 `;
 
-  const tmpFile = `/tmp/sat-${ccu}.js`;
-  await Deno.writeTextFile(tmpFile, script);
+  await Deno.writeTextFile(scriptPath, script);
 
   // Verify file exists before running k6
   try {
-    await Deno.stat(tmpFile);
+    await Deno.stat(scriptPath);
   } catch {
-    console.error(`[ccu=${ccu}] Temp file not found: ${tmpFile}`);
+    console.error(`[ccu=${ccu}] Script file not found: ${scriptPath}`);
     continue;
   }
 
   const cmd = new Deno.Command(K6, {
-    args: ['run', tmpFile],
+    args: ['run', scriptPath],
     stdout: 'piped',
     stderr: 'piped',
   });
 
   const output = await cmd.output();
   console.error(`[ccu=${ccu}] k6 exit code: ${output.code}`);
-  const stdout = new TextDecoder().decode(output.stdout);
-  const stderr = new TextDecoder().decode(output.stderr);
-  const combined = stdout + stderr;
 
-  // Parse k6 summary JSON from stderr (k6 writes summary to stderr)
-  const jsonMatch = combined.match(/\{[\s\S]*"metrics"[\s\S]*\}/);
-  if (!jsonMatch) {
-    console.error(`[ccu=${ccu}] No JSON metrics found in k6 output`);
-    console.error(`[ccu=${ccu}] stdout (last 500 chars):`, stdout.slice(-500));
-    console.error(`[ccu=${ccu}] stderr (last 500 chars):`, stderr.slice(-500));
+  // Prefer the JSON written by handleSummary; fall back to parsing stdout.
+  let jsonText: string | null = null;
+  try {
+    jsonText = await Deno.readTextFile(summaryPath);
+  } catch {
+    const stdout = new TextDecoder().decode(output.stdout);
+    const stderr = new TextDecoder().decode(output.stderr);
+    jsonText = extractMetricsJson(stdout + stderr);
+    if (!jsonText) {
+      console.error(`[ccu=${ccu}] No JSON metrics found in k6 output`);
+      console.error(`[ccu=${ccu}] stdout (last 500 chars):`, stdout.slice(-500));
+      console.error(`[ccu=${ccu}] stderr (last 500 chars):`, stderr.slice(-500));
+    }
   }
-  if (jsonMatch) {
+
+  if (jsonText) {
     try {
-      const data = JSON.parse(jsonMatch[0]);
+      const data = JSON.parse(jsonText);
       const dur = data.metrics?.http_req_duration?.values ?? {};
       const rps = data.metrics?.http_reqs?.values?.rate ?? 0;
       const failRate = data.metrics?.http_req_failed?.values?.rate ?? 0;
@@ -93,11 +111,51 @@ export default function () {
       });
     } catch (e) {
       console.error(`[ccu=${ccu}] Failed to parse k6 output:`, e);
-      console.error(`[ccu=${ccu}] Combined output (last 500 chars):`, combined.slice(-500));
+      console.error(`[ccu=${ccu}] jsonText (last 500 chars):`, jsonText.slice(-500));
     }
   }
 
-  await Deno.remove(tmpFile);
+  await Deno.remove(scriptPath);
+  await Deno.remove(summaryPath);
+}
+
+/**
+ * Find a balanced JSON object in `text` that contains the key `"metrics"`.
+ * Returns the JSON string or null when not found.
+ */
+function extractMetricsJson(text: string): string | null {
+  const key = '"metrics"';
+  const start = text.indexOf(key);
+  if (start === -1) return null;
+
+  // Walk backwards from the key to find the opening `{` of the enclosing
+  // object, accounting for nested braces.
+  let depth = 0;
+  let openIdx = -1;
+  for (let i = start; i >= 0; i--) {
+    const ch = text[i];
+    if (ch === '}') depth++;
+    else if (ch === '{') {
+      if (depth === 0) {
+        openIdx = i;
+        break;
+      }
+      depth--;
+    }
+  }
+  if (openIdx === -1) return null;
+
+  // Walk forwards to find the matching closing `}`.
+  depth = 0;
+  for (let i = openIdx; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === '{') depth++;
+    else if (ch === '}') {
+      depth--;
+      if (depth === 0) return text.slice(openIdx, i + 1);
+    }
+  }
+  return null;
 }
 
 // Print results table
