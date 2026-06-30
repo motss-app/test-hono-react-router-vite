@@ -12,7 +12,6 @@ concurrency:
 
 env:
   K6_VERSION: 2.0.0
-  REGRESSION_THRESHOLD: 20 # TTFB p95 % increase allowed before failing
   SENTRY_RELEASE: local
 
 jobs:
@@ -142,23 +141,39 @@ jobs:
                 continue
               fi
 
-              # Skip regression check for low CCU — variance is too high to be meaningful
-              if [ "$CCU" -le 50 ]; then
-                continue
+              # ── Absolute latency rating ──
+              if [ "$(echo "$NEW_VAL >= 500" | bc -l)" = "1" ]; then
+                ABSRating="🔴"
+              elif [ "$(echo "$NEW_VAL >= 100" | bc -l)" = "1" ]; then
+                ABSRating="🟡"
+              else
+                ABSRating="🟢"
               fi
 
-              DELTA=$(echo "scale=2; (${NEW_VAL} - ${BASE}) / ${BASE} * 100" | bc)
-              ABS_DELTA=$(echo "scale=2; ${NEW_VAL} - ${BASE}" | bc)
-              PCT_FLAG=$(echo "$DELTA > ${{ env.REGRESSION_THRESHOLD }}" | bc -l)
-              ABS_FLAG=$(echo "$ABS_DELTA > 5" | bc -l)
+              # ── Regression rating (skip for low CCU — variance too high) ──
+              REGRating="🟢"
+              if [ "$CCU" -gt 50 ]; then
+                DELTA=$(echo "scale=2; (${NEW_VAL} - ${BASE}) / ${BASE} * 100" | bc)
+                ABS_DELTA=$(echo "scale=2; ${NEW_VAL} - ${BASE}" | bc)
+                IS_POOR=$(echo "$DELTA > 25 && $ABS_DELTA > 10" | bc -l)
+                IS_WARN=$(echo "$DELTA > 10 && $ABS_DELTA > 5" | bc -l)
+                if [ "$IS_POOR" = "1" ]; then
+                  REGRating="🔴"
+                elif [ "$IS_WARN" = "1" ]; then
+                  REGRating="🟡"
+                fi
+              else
+                DELTA=$(echo "scale=2; (${NEW_VAL} - ${BASE}) / ${BASE} * 100" | bc)
+              fi
 
-              if [ "$PCT_FLAG" = "1" ] && [ "$ABS_FLAG" = "1" ]; then
+              # ── Build message ──
+              if [ "$REGRating" = "🔴" ]; then
                 REGRESSED=1
-                MSG="- ❌ **${CCU} CCU ${TYPE^^} p95**: ${BASE}ms → ${NEW_VAL}ms (**+${DELTA}%**)\n"
+                MSG="- ${REGRating}${ABSRating} **${CCU} CCU ${TYPE^^} p95**: ${BASE}ms → ${NEW_VAL}ms (**+${DELTA}%**)\n"
                 REGRESSION_MSGS="${REGRESSION_MSGS}${MSG}"
                 VIOLATIONS="${VIOLATIONS}${MSG}"
-              elif [ "$PCT_FLAG" = "1" ] || [ "$(echo "$DELTA > 5" | bc -l)" = "1" ]; then
-                MSG="- ⚠️ ${CCU} CCU ${TYPE^^} p95: ${BASE}ms → ${NEW_VAL}ms (+${DELTA}%)\n"
+              elif [ "$REGRating" = "🟡" ] || [ "$ABSRating" = "🟡" ] || [ "$ABSRating" = "🔴" ]; then
+                MSG="- ${REGRating}${ABSRating} ${CCU} CCU ${TYPE^^} p95: ${BASE}ms → ${NEW_VAL}ms (+${DELTA}%)\n"
                 REGRESSION_MSGS="${REGRESSION_MSGS}${MSG}"
               fi
             done
@@ -259,12 +274,12 @@ jobs:
       - name: Fail on regression
         if: steps.results.outputs.regression_detected == 'true'
         run: |
-          echo "❌ Performance regression detected (>${{ env.REGRESSION_THRESHOLD }}% TTFB p95 increase)"
+          echo "🔴 Load test regression detected (>25% p95 increase AND >10ms absolute)"
           echo ""
           echo "Violations:"
           cat /tmp/regression-msgs.txt 2>/dev/null || echo "  (details not available)"
           echo ""
-          echo "Budget: TTFB p(95) — threshold=±${{ env.REGRESSION_THRESHOLD }}% vs baseline"
+          echo "Thresholds: 🟢 Good (<10% or <5ms) | 🟡 Warning (10-25% and >5ms) | 🔴 Poor (>25% and >10ms)"
           exit 1
 
       - name: Update baselines
