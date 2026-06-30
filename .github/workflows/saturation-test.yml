@@ -4,9 +4,6 @@ on:
   workflow_dispatch:
   pull_request:
 
-env:
-  K6_VERSION: 2.0.0
-
 jobs:
   saturation:
     name: Find max CCU
@@ -21,14 +18,13 @@ jobs:
         id: k6-cache
         with:
           path: /usr/local/bin/k6
-          key: k6-${{ env.K6_VERSION }}-${{ runner.os }}
+          key: k6-2.0.0-${{ runner.os }}
 
       - name: Install k6
         if: steps.k6-cache.outputs.cache-hit != 'true'
         run: |
-          K6_VER=${K6_VERSION#v}
-          curl -fsSL "https://github.com/grafana/k6/releases/download/v${K6_VER}/k6-v${K6_VER}-linux-amd64.tar.gz" \
-            | tar xz --strip-components=1 -C /usr/local/bin "k6-v${K6_VER}-linux-amd64/k6"
+          curl -fsSL "https://github.com/grafana/k6/releases/download/v2.0.0/k6-v2.0.0-linux-amd64.tar.gz" \
+            | tar xz --strip-components=1 -C /usr/local/bin "k6-v2.0.0-linux-amd64/k6"
 
       - name: Start server
         run: |
@@ -46,12 +42,9 @@ jobs:
 
       - name: Run saturation test
         run: |
-          k6 run \
-            -e BASE_URL=http://127.0.0.1:9999 \
-            -e MAX_CCU=600 \
-            -e STEP=50 \
-            -e STEADY_S=15 \
-            k6-saturation.mjs 2>&1 | tee /tmp/saturation-output.txt
+          K6_BINARY=/usr/local/bin/k6 \
+          BASE_URL=http://127.0.0.1:9999 \
+          deno run -A scripts/saturation-test.ts 500 50 2>&1 | tee /tmp/saturation-output.txt
 
       - name: Kill server
         if: always()
