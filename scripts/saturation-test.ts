@@ -50,6 +50,14 @@ export default function () {
   const tmpFile = `/tmp/sat-${ccu}.js`;
   await Deno.writeTextFile(tmpFile, script);
 
+  // Verify file exists before running k6
+  try {
+    await Deno.stat(tmpFile);
+  } catch {
+    console.error(`[ccu=${ccu}] Temp file not found: ${tmpFile}`);
+    continue;
+  }
+
   const cmd = new Deno.Command(K6, {
     args: ['run', tmpFile],
     stdout: 'piped',
@@ -57,12 +65,18 @@ export default function () {
   });
 
   const output = await cmd.output();
+  console.error(`[ccu=${ccu}] k6 exit code: ${output.code}`);
   const stdout = new TextDecoder().decode(output.stdout);
   const stderr = new TextDecoder().decode(output.stderr);
   const combined = stdout + stderr;
 
   // Parse k6 summary JSON from stderr (k6 writes summary to stderr)
   const jsonMatch = combined.match(/\{[\s\S]*"metrics"[\s\S]*\}/);
+  if (!jsonMatch) {
+    console.error(`[ccu=${ccu}] No JSON metrics found in k6 output`);
+    console.error(`[ccu=${ccu}] stdout (last 500 chars):`, stdout.slice(-500));
+    console.error(`[ccu=${ccu}] stderr (last 500 chars):`, stderr.slice(-500));
+  }
   if (jsonMatch) {
     try {
       const data = JSON.parse(jsonMatch[0]);
@@ -77,8 +91,9 @@ export default function () {
         p99: Math.round((dur['p(99)'] ?? 0) * 100) / 100,
         failRate: Math.round(failRate * 10000) / 100,
       });
-    } catch {
-      // k6 output parsing failed
+    } catch (e) {
+      console.error(`[ccu=${ccu}] Failed to parse k6 output:`, e);
+      console.error(`[ccu=${ccu}] Combined output (last 500 chars):`, combined.slice(-500));
     }
   }
 
