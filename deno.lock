@@ -9,9 +9,9 @@
     "npm:@cloudflare/vite-plugin@1.42.3": "1.42.3_vite@8.0.16_wrangler@4.105.0__@cloudflare+workers-types@4.20260621.1_@cloudflare+workers-types@4.20260621.1",
     "npm:@cloudflare/workers-types@4.20260621.1": "4.20260621.1",
     "npm:@fontsource-variable/open-sans@5.2.7": "5.2.7",
-    "npm:@iconify-react/fa7-brands@1.0.2": "1.0.2_react@19.2.7",
+    "npm:@iconify-react/fa7-brands@1.0.3": "1.0.3_react@19.2.7",
     "npm:@iconify-react/fa7-regular@1.0.2": "1.0.2_react@19.2.7",
-    "npm:@iconify-react/fa7-solid@1.0.2": "1.0.2_react@19.2.7",
+    "npm:@iconify-react/fa7-solid@1.0.3": "1.0.3_react@19.2.7",
     "npm:@react-router/dev@*": "8.0.1_react-router@8.0.1__react@19.2.7__react-dom@19.2.7___react@19.2.7_typescript@6.0.3_vite@8.0.16_wrangler@4.105.0__@cloudflare+workers-types@4.20260621.1_@cloudflare+workers-types@4.20260621.1",
     "npm:@react-router/dev@8.0.1": "8.0.1_react-router@8.0.1__react@19.2.7__react-dom@19.2.7___react@19.2.7_typescript@6.0.3_vite@8.0.16_wrangler@4.105.0__@cloudflare+workers-types@4.20260621.1_@cloudflare+workers-types@4.20260621.1",
     "npm:@sentry/browser@10.62.0": "10.62.0",
@@ -674,8 +674,8 @@
     "@fontsource-variable/open-sans@5.2.7": {
       "integrity": "sha512-wzCLm2STuekK9Fz58DiuBnk4GgJpvvVtAU85a4b06ACNG/UsVjQcCvkUd6R/ETlHfsaykCUZamLRvSXg4KtWuA=="
     },
-    "@iconify-react/fa7-brands@1.0.2_react@19.2.7": {
-      "integrity": "sha512-JRjG9TDrjw3iYYgTBcYpewkw4hqqi7HwJbetsVqiEV/N6qZyKsQ1RDPSGYaIiK8tfiHFgMXy4dm4jxChNqOZyw==",
+    "@iconify-react/fa7-brands@1.0.3_react@19.2.7": {
+      "integrity": "sha512-fQ5PoQpA1ZsU9leTAgyCDnBFW3AKbbnUqZOFo19dr85SsFk469K16ikirEKC/dfsslv37nJfB1PnoXf4xwS3XQ==",
       "dependencies": [
         "@iconify/css-react"
       ]
@@ -686,8 +686,8 @@
         "@iconify/css-react"
       ]
     },
-    "@iconify-react/fa7-solid@1.0.2_react@19.2.7": {
-      "integrity": "sha512-ukX6MXYDgnugW5x33xuv8Btt3quKzZuAGDWOwrewWCCJsu+Canzb0ta7CnQSwl2JlRPCPp8+Ojvg6Kt9kB4qbA==",
+    "@iconify-react/fa7-solid@1.0.3_react@19.2.7": {
+      "integrity": "sha512-7ZLuKd5W76ekDJkiIDsn9x3mM+kqtPH7oGyV5uhD+N1Pod02RJ3X0kJTcr4Z5BMod1KDiYkW/0f7skhadQQAlg==",
       "dependencies": [
         "@iconify/css-react"
       ]
@@ -2454,9 +2454,9 @@
         "npm:@cloudflare/vite-plugin@1.42.3",
         "npm:@cloudflare/workers-types@4.20260621.1",
         "npm:@fontsource-variable/open-sans@5.2.7",
-        "npm:@iconify-react/fa7-brands@1.0.2",
+        "npm:@iconify-react/fa7-brands@1.0.3",
         "npm:@iconify-react/fa7-regular@1.0.2",
-        "npm:@iconify-react/fa7-solid@1.0.2",
+        "npm:@iconify-react/fa7-solid@1.0.3",
         "npm:@react-router/dev@8.0.1",
         "npm:@sentry/browser@10.62.0",
         "npm:@sentry/cloudflare@10.62.0",
