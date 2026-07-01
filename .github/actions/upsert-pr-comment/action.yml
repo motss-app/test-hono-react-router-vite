@@ -1,0 +1,36 @@
+name: Upsert PR Comment
+description: Create or update a PR comment with a marker tag
+
+inputs:
+  marker:
+    description: HTML comment used to find existing comment (e.g. <!-- load-test-comment -->)
+    required: true
+  body-file:
+    description: Path to file containing the comment body
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Upsert comment
+      if: github.event_name == 'pull_request'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        PR_NUMBER=${{ github.event.pull_request.number }}
+        REPO=${{ github.repository }}
+        MARKER="${{ inputs.marker }}"
+        BODY_FILE="${{ inputs.body-file }}"
+
+        COMMENT_ID=$(gh api "/repos/${REPO}/issues/${PR_NUMBER}/comments" --paginate \
+          --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | contains(\"${MARKER}\"))) | .id")
+
+        if [ -n "$COMMENT_ID" ]; then
+          echo "Updating comment #${COMMENT_ID}"
+          gh api "/repos/${REPO}/issues/comments/${COMMENT_ID}" \
+            -F "body=@${BODY_FILE}" -X PATCH
+        else
+          echo "Creating new comment"
+          gh pr comment "${PR_NUMBER}" --body-file "${BODY_FILE}"
+        fi

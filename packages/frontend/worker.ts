@@ -10,6 +10,7 @@ import {
   createAppSessionId,
   getAppSessionIdFromCookieString,
 } from './app/monitoring/app-session.ts';
+import { isLoadTestMode } from './app/constants.ts';
 import {
   createCloudflareSentryOptions,
   createRequestMetricAttributes,
@@ -21,7 +22,12 @@ import type { HonoEnv } from './app/types/hono.types.ts';
 import { PromiseFrom } from './app/utils/promise-from.ts';
 
 const app = new Hono<HonoEnv>()
-  .use('*', timing())
+  .use(
+    '*',
+    timing({
+      enabled: () => !isLoadTestMode,
+    })
+  )
   .get('/assets/*', async c => {
     const response = await c.env.ASSETS.fetch(c.req.raw);
 
@@ -182,11 +188,16 @@ export default withSentry<HonoEnv['Bindings']>(
           shouldSetAppSessionCookie,
         });
 
-        recordWorkerResponse(request, requestUrl, requestStartedAt, response);
+        // Skip metrics recording during load tests to reduce overhead
+        if (!isLoadTestMode) {
+          recordWorkerResponse(request, requestUrl, requestStartedAt, response);
+        }
 
         return response;
       } catch (error) {
-        recordWorkerRequestError(request, requestUrl, requestStartedAt);
+        if (!isLoadTestMode) {
+          recordWorkerRequestError(request, requestUrl, requestStartedAt);
+        }
 
         throw error;
       }
