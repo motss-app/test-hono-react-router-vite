@@ -1,11 +1,11 @@
 import { style } from '@vanilla-extract/css';
 
-import * as s from '../styles/atomic/index.css.ts';
+import { fixed, z10 } from '../styles/atomic/index.css.ts';
 import { colorTokens } from '../styles/tokens.css.ts';
 
 export const button = style([
-  s.fixed,
-  s.z10,
+  fixed,
+  z10,
   {
     alignItems: 'center',
     backgroundColor: colorTokens.primary,
