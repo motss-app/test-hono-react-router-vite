@@ -69,6 +69,7 @@ export default defineConfig(({ mode }) => {
             source: 'packages/frontend/vite.worker.config.ts',
           })
         : readEnv('SENTRY_RELEASE'),
+      VITE_LOAD_TEST: readEnv('VITE_LOAD_TEST'),
     }),
     plugins: sentryVitePluginOptions ? sentryVitePlugin(sentryVitePluginOptions) : [],
     publicDir: false,

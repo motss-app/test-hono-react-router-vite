@@ -97,6 +97,12 @@ function renderBaselineRows(rows: Row[]): string {
   return lines.join('\n');
 }
 
+function warnIcon(pct: number, invert: boolean): string {
+  // invert=true means lower is better (RPS), invert=false means higher is worse (latency)
+  const regression = invert ? -pct : pct;
+  return regression >= 10 && regression <= 25 ? ' ⚠️' : '';
+}
+
 function renderComparison(current: Row[], baseline: Row[]): string {
   const bmap = new Map(
     baseline.map(r => [
@@ -104,7 +110,9 @@ function renderComparison(current: Row[], baseline: Row[]): string {
       r,
     ])
   );
+  const hasBaseline = bmap.size > 0;
   const lines: string[] = [];
+  lines.push('<!-- benchmark-comment -->');
   lines.push('## Benchmark Comparison');
   lines.push('');
   lines.push(
@@ -116,20 +124,35 @@ function renderComparison(current: Row[], baseline: Row[]): string {
   let hasRegression = false;
   for (const c of current) {
     const b = bmap.get(c.route);
-    if (!b) continue;
-    const rpsDelta = (((c.rps - b.rps) / b.rps) * 100).toFixed(1);
-    const p99Delta = (((c.p99 - b.p99) / b.p99) * 100).toFixed(1);
-    const rpsStr = Number(rpsDelta) >= 0 ? `+${rpsDelta}%` : `${rpsDelta}%`;
-    const p99Str = Number(p99Delta) <= 0 ? `${p99Delta}%` : `+${p99Delta}%`;
-    if (Number(rpsDelta) < -15 || Number(p99Delta) > 15) hasRegression = true;
-    lines.push(
-      `| ${c.route.padEnd(14)} | ${String(b.rps).padStart(11)} | ${String(c.rps).padStart(11)} | ${rpsStr.padStart(7)} | ${fmtMs(b.p99).padStart(11)} | ${fmtMs(c.p99).padStart(11)} | ${p99Str.padStart(7)} |`
-    );
+    if (b) {
+      const rpsDelta = (((c.rps - b.rps) / b.rps) * 100).toFixed(1);
+      const p99Delta = (((c.p99 - b.p99) / b.p99) * 100).toFixed(1);
+      const rpsNum = Number(rpsDelta);
+      const p99Num = Number(p99Delta);
+      const rpsStr = rpsNum >= 0 ? `+${rpsDelta}%` : `${rpsDelta}%`;
+      const p99Str = p99Num <= 0 ? `${p99Delta}%` : `+${p99Delta}%`;
+      if (rpsNum < -15 || p99Num > 15) hasRegression = true;
+      const rpsIcon = warnIcon(rpsNum, true);
+      const p99Icon = warnIcon(p99Num, false);
+      lines.push(
+        `| ${c.route.padEnd(14)} | ${String(b.rps).padStart(11)} | ${String(c.rps).padStart(11)} | ${rpsStr.padStart(7)}${rpsIcon} | ${fmtMs(b.p99).padStart(11)} | ${fmtMs(c.p99).padStart(11)} | ${p99Str.padStart(7)}${p99Icon} |`
+      );
+    } else {
+      lines.push(
+        `| ${c.route.padEnd(14)} | ${'—'.padStart(11)} | ${String(c.rps).padStart(11)} | ${'—'.padStart(7)} | ${'—'.padStart(11)} | ${fmtMs(c.p99).padStart(11)} | ${'—'.padStart(7)} |`
+      );
+    }
   }
   if (hasRegression) {
     lines.push('');
     lines.push(
       '> ⚠ **Performance regression detected.** Some routes show >15% drop in RPS or increase in p99.'
+    );
+  }
+  if (!hasBaseline) {
+    lines.push('');
+    lines.push(
+      '> ℹ No baseline data available on `main` yet. This is the first benchmark comparison — current values will become the baseline after merge.'
     );
   }
   lines.push('');

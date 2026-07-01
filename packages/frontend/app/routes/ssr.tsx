@@ -11,7 +11,6 @@ import { createBackgroundSvgPreloadLinks } from '../utils/background-svg-preload
 import type { Route } from './+types/ssr.ts';
 import { s } from './ssr.css.ts';
 
-const SIMULATION_DELAY_MS = 5;
 const noStoreCacheControl = 'no-store';
 
 export const links: Route.LinksFunction = () =>
@@ -21,10 +20,8 @@ export const links: Route.LinksFunction = () =>
   ]);
 
 /** This loader makes this page SSR - it runs on EVERY request */
-export async function loader({ context, request }: Route.LoaderArgs) {
+export function loader({ context, request }: Route.LoaderArgs) {
   const startTime = performance.now();
-
-  await new Promise(resolve => setTimeout(resolve, SIMULATION_DELAY_MS));
 
   const timestamp = new Date().toISOString();
   const userAgent = request.headers.get('user-agent') || 'Unknown';
@@ -40,6 +37,7 @@ export async function loader({ context, request }: Route.LoaderArgs) {
       honoVars: honoVars?.honoData,
       message: 'This page is rendered on the server on EVERY request!',
       renderTime: duration,
+      requestId,
       timestamp,
       userAgent,
     },
