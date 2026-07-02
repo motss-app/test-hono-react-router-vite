@@ -1,11 +1,15 @@
 import { style } from '@vanilla-extract/css';
 
-import { fixed, flex, itemsCenter, justifyCenter, z10 } from '../styles/atomic/index.css.ts';
+import { roundedFull } from '../styles/atomic/appearance/border/border-radius.css.ts';
+import { itemsCenter, justifyCenter } from '../styles/atomic/flex/flex-container/alignment.css.ts';
+import { flex } from '../styles/atomic/layout/display-visibility/display.css.ts';
 import { opacity0, opacity100 } from '../styles/atomic/layout/display-visibility/opacity.css.ts';
 import {
   pointerEventsAuto,
   pointerEventsNone,
 } from '../styles/atomic/layout/display-visibility/pointer-events.css.ts';
+import { fixed } from '../styles/atomic/layout/positioning/position.css.ts';
+import { z10 } from '../styles/atomic/layout/positioning/z-index.css.ts';
 import { transformCenter, transformDown100 } from '../styles/atomic/other/transform.css.ts';
 import { colorTokens } from '../styles/color-tokens.contract.css.ts';
 
@@ -18,10 +22,10 @@ export const button = style([
   itemsCenter,
   flex,
   justifyCenter,
+  roundedFull,
   {
     backgroundColor: colorTokens.primary,
     border: 'none',
-    borderRadius: '9999px',
     bottom: '1.5rem',
     boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
     color: colorTokens.white,
