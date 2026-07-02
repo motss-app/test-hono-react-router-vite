@@ -1,12 +1,7 @@
 import { clsx } from 'clsx/lite';
 import type { JSX } from 'react';
 
-import { opacity0, opacity100 } from '../styles/atomic/layout/display-visibility/opacity.css.ts';
-import {
-  pointerEventsAuto,
-  pointerEventsNone,
-} from '../styles/atomic/layout/display-visibility/pointer-events.css.ts';
-import { transformCenter, transformDown100 } from '../styles/atomic/other/transform.css.ts';
+import { sprinkles } from '../styles/atomic/sprinkles.css.ts';
 import { button } from './scroll-to-top-button.css.ts';
 
 interface ScrollToTopButtonProps {
@@ -20,9 +15,11 @@ export function ScrollToTopButton({ isVisible, onClick }: ScrollToTopButtonProps
       aria-label="Scroll to top"
       className={clsx(
         button,
-        isVisible
-          ? clsx(opacity100, pointerEventsAuto, transformCenter)
-          : clsx(opacity0, pointerEventsNone, transformDown100)
+        sprinkles(
+          isVisible
+            ? { opacity: '1', pointerEvents: 'auto', transform: 'translate3d(0, 0, 0)' }
+            : { opacity: '0', pointerEvents: 'none', transform: 'translate3d(0, 1rem, 0)' }
+        )
       )}
       onClick={onClick}
       type="button"
