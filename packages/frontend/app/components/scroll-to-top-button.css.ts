@@ -1,5 +1,11 @@
 import { style } from '@vanilla-extract/css';
 
+import { opacity0, opacity100 } from '../styles/atomic/layout/display-visibility/opacity.css.ts';
+import {
+  pointerEventsAuto,
+  pointerEventsNone,
+} from '../styles/atomic/layout/display-visibility/pointer-events.css.ts';
+import { transformCenter, transformDown100 } from '../styles/atomic/other/transform.css.ts';
 import { colorTokens } from '../styles/color-tokens.contract.css.ts';
 
 export const button = style([
@@ -37,3 +43,9 @@ export const button = style([
     transition: 'opacity 0.2s ease, transform 0.2s ease',
   },
 ]);
+
+// Pre-composed at module-load time so neither branch ships the VE runtime
+// to the client. Each branch is a static class name string that already
+// includes the base `button` styles + the appropriate visibility transform.
+export const visible = style([button, opacity100, pointerEventsAuto, transformCenter]);
+export const hidden = style([button, opacity0, pointerEventsNone, transformDown100]);

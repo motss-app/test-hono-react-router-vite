@@ -61,7 +61,6 @@
   "imports": {
     "@sentry/browser": "npm:@sentry/browser@10.62.0",
     "@std/path": "jsr:@std/path@1.1.6",
-    "@vanilla-extract/sprinkles": "npm:@vanilla-extract/sprinkles@1.7.0",
     "clsx/lite": "npm:clsx@2.1.1/lite",
     "react-dom/server": "npm:react-dom@19.2.7/server.edge"
   },
