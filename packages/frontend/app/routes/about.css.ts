@@ -1,6 +1,90 @@
 import { keyframes, style } from '@vanilla-extract/css';
 
-import * as a from '../styles/atomic/index.css.ts';
+import {
+  anim18s,
+  anim700,
+  animAlternate,
+  animCubic,
+  animEaseInOut,
+  animFillBoth,
+  animInfinite,
+} from '../styles/atomic/animation/animation/animation.css.ts';
+import { borderSlate200 } from '../styles/atomic/appearance/border/border-color.css.ts';
+import {
+  borderBlock1,
+  borderBlockSolid,
+} from '../styles/atomic/appearance/border/border-logical.css.ts';
+import { roundedFull, roundedXl } from '../styles/atomic/appearance/border/border-radius.css.ts';
+import { border1, borderSolid } from '../styles/atomic/appearance/border/border-style.css.ts';
+import {
+  itemsCenter,
+  itemsEnd,
+  itemsStart,
+} from '../styles/atomic/flex/flex-container/alignment.css.ts';
+import { gap075 } from '../styles/atomic/flex/flex-container/gap.css.ts';
+import { flexWrap } from '../styles/atomic/flex/flex-item/flex.css.ts';
+import { gridAutoFlowColumn } from '../styles/atomic/grid/grid-container/grid-auto-flow.css.ts';
+import { bgCover, bgNoRepeat } from '../styles/atomic/layout/background.css.ts';
+import {
+  m0,
+  mb03,
+  mb085,
+  mb2,
+  mb3,
+  mb4,
+  mb8,
+  mt0,
+  mt2,
+  mxAuto,
+} from '../styles/atomic/layout/box-model/margin.css.ts';
+import {
+  p0,
+  pb10,
+  pb145,
+  pb16,
+  pb8,
+  pl05,
+  pr05,
+  pt145,
+  pt16,
+  pt35,
+  px4,
+} from '../styles/atomic/layout/box-model/padding.css.ts';
+import { p092_145 } from '../styles/atomic/layout/box-model/padding.custom.css.ts';
+import { minH100svh, minW0 } from '../styles/atomic/layout/box-model/sizing.css.ts';
+import {
+  block,
+  flex,
+  grid,
+  inlineGrid,
+} from '../styles/atomic/layout/display-visibility/display.css.ts';
+import { overflowHidden } from '../styles/atomic/layout/display-visibility/overflow.css.ts';
+import { absolute, inset0, relative } from '../styles/atomic/layout/positioning/position.css.ts';
+import { z1, z2 } from '../styles/atomic/layout/positioning/z-index.css.ts';
+import { md, reducedMotion } from '../styles/atomic/other/media.css.ts';
+import { dark, darkHover, hover } from '../styles/atomic/other/selectors.css.ts';
+import {
+  text086,
+  text098,
+  text128,
+  text145,
+  text20,
+  textBase,
+} from '../styles/atomic/text/font/font-size.css.ts';
+import { fontBold, fontMedium, fontSemibold } from '../styles/atomic/text/font/font-weight.css.ts';
+import {
+  leading098,
+  leading11,
+  leading112,
+  leading165,
+  leading17,
+  leadingNone,
+} from '../styles/atomic/text/text-props/line-height.css.ts';
+import {
+  noUnderline,
+  textUppercase,
+  whitespaceNowrap,
+} from '../styles/atomic/text/text-props/text-transform.css.ts';
 import { colorTokens } from '../styles/color-tokens.contract.css.ts';
 
 export const heroReveal = keyframes({
@@ -28,25 +112,25 @@ export const artworkDrift = keyframes({
 
 export const s = {
   ctaPrimary: style([
-    a.itemsCenter,
-    a.animFillBoth,
-    a.animCubic,
-    a.anim700,
-    a.inlineGrid,
-    a.roundedFull,
-    a.gridAutoFlowColumn,
-    a.p092_145,
-    a.fontSemibold,
-    a.whitespaceNowrap,
-    a.noUnderline,
-    a.dark({
+    itemsCenter,
+    animFillBoth,
+    animCubic,
+    anim700,
+    inlineGrid,
+    roundedFull,
+    gridAutoFlowColumn,
+    p092_145,
+    fontSemibold,
+    whitespaceNowrap,
+    noUnderline,
+    dark({
       backgroundColor: '#bae6fd',
       color: colorTokens.slate900,
     }),
-    a.darkHover({
+    darkHover({
       backgroundColor: '#7dd3fc',
     }),
-    a.hover({
+    hover({
       backgroundColor: colorTokens.infoHover,
       transform: 'translate3d(0, -0.125rem, 0)',
     }),
@@ -60,29 +144,29 @@ export const s = {
     },
   ]),
   ctaSecondary: style([
-    a.itemsCenter,
-    a.animFillBoth,
-    a.animCubic,
-    a.anim700,
-    a.inlineGrid,
-    a.roundedFull,
-    a.borderSolid,
-    a.border1,
-    a.gridAutoFlowColumn,
-    a.p092_145,
-    a.fontSemibold,
-    a.whitespaceNowrap,
-    a.noUnderline,
-    a.dark({
+    itemsCenter,
+    animFillBoth,
+    animCubic,
+    anim700,
+    inlineGrid,
+    roundedFull,
+    borderSolid,
+    border1,
+    gridAutoFlowColumn,
+    p092_145,
+    fontSemibold,
+    whitespaceNowrap,
+    noUnderline,
+    dark({
       backgroundColor: 'rgba(15, 23, 42, 0.28)',
       borderColor: 'rgba(226, 232, 240, 0.26)',
       color: colorTokens.slate100,
     }),
-    a.darkHover({
+    darkHover({
       backgroundColor: 'rgba(148, 163, 184, 0.12)',
       borderColor: colorTokens.slate400,
     }),
-    a.hover({
+    hover({
       backgroundColor: 'rgba(255, 255, 255, 0.7)',
       borderColor: '#bfdbfe',
       transform: 'translate3d(0, -0.125rem, 0)',
@@ -98,11 +182,11 @@ export const s = {
     },
   ]),
   featureBody: style([
-    a.m0,
-    a.minW0,
-    a.text098,
-    a.leading165,
-    a.dark({
+    m0,
+    minW0,
+    text098,
+    leading165,
+    dark({
       color: colorTokens.slate300,
     }),
     {
@@ -110,11 +194,11 @@ export const s = {
     },
   ]),
   featureIcon: style([
-    a.inlineGrid,
-    a.mb2,
+    inlineGrid,
+    mb2,
   ]),
   featureIconAmber: style([
-    a.dark({
+    dark({
       color: '#fcd34d',
     }),
     {
@@ -122,7 +206,7 @@ export const s = {
     },
   ]),
   featureIconBlue: style([
-    a.dark({
+    dark({
       color: '#7dd3fc',
     }),
     {
@@ -130,7 +214,7 @@ export const s = {
     },
   ]),
   featureIconGreen: style([
-    a.dark({
+    dark({
       color: '#86efac',
     }),
     {
@@ -144,13 +228,13 @@ export const s = {
     },
   ]),
   featureNumber: style([
-    a.fontBold,
-    a.text145,
-    a.leadingNone,
-    a.md({
+    fontBold,
+    text145,
+    leadingNone,
+    md({
       fontSize: '2rem',
     }),
-    a.dark({
+    dark({
       color: '#7dd3fc',
     }),
     {
@@ -159,23 +243,23 @@ export const s = {
     },
   ]),
   featureRow: style([
-    a.minW0,
+    minW0,
     {
       borderBottomColor: colorTokens.slate200,
       borderBottomStyle: 'solid',
       borderBottomWidth: '1px',
     },
-    a.dark({
+    dark({
       borderBottomColor: colorTokens.slate800,
     }),
   ]),
   featureTitle: style([
-    a.mt0,
-    a.mb03,
-    a.text145,
-    a.fontSemibold,
-    a.leading11,
-    a.dark({
+    mt0,
+    mb03,
+    text145,
+    fontSemibold,
+    leading11,
+    dark({
       color: colorTokens.white,
     }),
     {
@@ -184,10 +268,10 @@ export const s = {
     },
   ]),
   hero: style([
-    a.relative,
-    a.overflowHidden,
-    a.minW0,
-    a.dark({
+    relative,
+    overflowHidden,
+    minW0,
+    dark({
       backgroundColor: '#08101b',
     }),
     {
@@ -195,20 +279,20 @@ export const s = {
     },
   ]),
   heroActions: style([
-    a.itemsCenter,
-    a.flex,
-    a.flexWrap,
-    a.gap075,
+    itemsCenter,
+    flex,
+    flexWrap,
+    gap075,
   ]),
   heroBody: style([
-    a.mt0,
-    a.mb8,
-    a.textBase,
-    a.leading17,
-    a.animFillBoth,
-    a.animCubic,
-    a.anim700,
-    a.dark({
+    mt0,
+    mb8,
+    textBase,
+    leading17,
+    animFillBoth,
+    animCubic,
+    anim700,
+    dark({
       color: colorTokens.slate300,
     }),
     {
@@ -219,11 +303,11 @@ export const s = {
     },
   ]),
   heroCopy: style([
-    a.relative,
-    a.z2,
-    a.pb10,
-    a.minW0,
-    a.md({
+    relative,
+    z2,
+    pb10,
+    minW0,
+    md({
       paddingBottom: '4rem',
     }),
     {
@@ -231,16 +315,16 @@ export const s = {
     },
   ]),
   heroInner: style([
-    a.itemsEnd,
-    a.grid,
-    a.mxAuto,
-    a.minH100svh,
-    a.minW0,
-    a.relative,
-    a.px4,
-    a.pt16,
-    a.pb8,
-    a.md({
+    itemsEnd,
+    grid,
+    mxAuto,
+    minH100svh,
+    minW0,
+    relative,
+    px4,
+    pt16,
+    pb8,
+    md({
       paddingBottom: '0',
     }),
     {
@@ -248,19 +332,19 @@ export const s = {
     },
   ]),
   heroLead: style([
-    a.mt0,
-    a.mb085,
-    a.relative,
-    a.fontMedium,
-    a.text128,
-    a.leading112,
-    a.animFillBoth,
-    a.animCubic,
-    a.anim700,
-    a.md({
+    mt0,
+    mb085,
+    relative,
+    fontMedium,
+    text128,
+    leading112,
+    animFillBoth,
+    animCubic,
+    anim700,
+    md({
       fontSize: '1.95rem',
     }),
-    a.dark({
+    dark({
       color: colorTokens.slate100,
     }),
     {
@@ -272,22 +356,22 @@ export const s = {
     },
   ]),
   heroMedia: style([
-    a.absolute,
-    a.inset0,
-    a.animAlternate,
-    a.animInfinite,
-    a.animEaseInOut,
-    a.anim18s,
-    a.bgCover,
-    a.bgNoRepeat,
-    a.md({
+    absolute,
+    inset0,
+    animAlternate,
+    animInfinite,
+    animEaseInOut,
+    anim18s,
+    bgCover,
+    bgNoRepeat,
+    md({
       backgroundPosition: 'center center',
     }),
-    a.reducedMotion({
+    reducedMotion({
       animationDuration: '1ms',
       animationIterationCount: '1',
     }),
-    a.dark({
+    dark({
       backgroundImage: 'url("/assets/about-hero-dark.svg")',
       opacity: 1,
     }),
@@ -300,10 +384,10 @@ export const s = {
     },
   ]),
   heroOverlay: style([
-    a.absolute,
-    a.inset0,
-    a.z1,
-    a.dark({
+    absolute,
+    inset0,
+    z1,
+    dark({
       backgroundImage:
         'linear-gradient(90deg, rgba(8, 16, 27, 0.92) 0%, rgba(8, 16, 27, 0.72) 26%, rgba(8, 16, 27, 0.28) 54%, rgba(8, 16, 27, 0.1) 100%), linear-gradient(180deg, rgba(8, 16, 27, 0.12) 0%, rgba(8, 16, 27, 0.18) 100%)',
     }),
@@ -313,9 +397,9 @@ export const s = {
     },
   ]),
   itemBullet: style([
-    a.roundedFull,
-    a.mt2,
-    a.dark({
+    roundedFull,
+    mt2,
+    dark({
       backgroundColor: '#7dd3fc',
     }),
     {
@@ -325,10 +409,10 @@ export const s = {
     },
   ]),
   itemText: style([
-    a.minW0,
+    minW0,
   ]),
   nextAction: style([
-    a.dark({
+    dark({
       color: colorTokens.slate300,
     }),
     {
@@ -338,23 +422,23 @@ export const s = {
     },
   ]),
   nextLink: style([
-    a.itemsStart,
-    a.roundedXl,
-    a.grid,
-    a.noUnderline,
-    a.minW0,
-    a.pb145,
-    a.pt145,
-    a.pl05,
-    a.pr05,
-    a.md({
+    itemsStart,
+    roundedXl,
+    grid,
+    noUnderline,
+    minW0,
+    pb145,
+    pt145,
+    pl05,
+    pr05,
+    md({
       alignItems: 'center',
       gridTemplateColumns: '5.5rem minmax(0, 18rem) minmax(0, 1fr) auto',
     }),
-    a.darkHover({
+    darkHover({
       backgroundColor: 'rgba(15, 23, 42, 0.22)',
     }),
-    a.hover({
+    hover({
       backgroundColor: 'rgba(248, 250, 252, 0.9)',
       transform: 'translate3d(0.35rem, 0, 0)',
     }),
@@ -365,18 +449,18 @@ export const s = {
     },
   ]),
   nextList: style([
-    a.minW0,
-    a.borderBlockSolid,
-    a.borderBlock1,
-    a.borderSlate200,
-    a.dark({
+    minW0,
+    borderBlockSolid,
+    borderBlock1,
+    borderSlate200,
+    dark({
       borderColor: colorTokens.slate800,
     }),
   ]),
   nextPath: style([
-    a.text086,
-    a.textUppercase,
-    a.dark({
+    text086,
+    textUppercase,
+    dark({
       color: colorTokens.slate400,
     }),
     {
@@ -385,23 +469,23 @@ export const s = {
     },
   ]),
   nextRow: style([
-    a.minW0,
+    minW0,
     {
       borderBottomColor: colorTokens.slate200,
       borderBottomStyle: 'solid',
       borderBottomWidth: '1px',
     },
-    a.dark({
+    dark({
       borderBottomColor: colorTokens.slate800,
     }),
   ]),
   nextTitle: style([
-    a.mt0,
-    a.mb03,
-    a.text145,
-    a.fontSemibold,
-    a.leading11,
-    a.dark({
+    mt0,
+    mb03,
+    text145,
+    fontSemibold,
+    leading11,
+    dark({
       color: colorTokens.white,
     }),
     {
@@ -410,27 +494,27 @@ export const s = {
     },
   ]),
   nextTitleBlock: style([
-    a.minW0,
+    minW0,
   ]),
   page: style([
-    a.minW0,
-    a.pb16,
+    minW0,
+    pb16,
   ]),
   routesInner: style([
-    a.mxAuto,
-    a.minW0,
-    a.px4,
-    a.pt35,
+    mxAuto,
+    minW0,
+    px4,
+    pt35,
     {
       maxWidth: '84rem',
     },
   ]),
   routesIntro: style([
-    a.mt0,
-    a.mb8,
-    a.textBase,
-    a.leading17,
-    a.dark({
+    mt0,
+    mb8,
+    textBase,
+    leading17,
+    dark({
       color: colorTokens.slate300,
     }),
     {
@@ -439,15 +523,15 @@ export const s = {
     },
   ]),
   routesTitle: style([
-    a.mt0,
-    a.mb3,
-    a.fontBold,
-    a.text20,
-    a.leading098,
-    a.md({
+    mt0,
+    mb3,
+    fontBold,
+    text20,
+    leading098,
+    md({
       fontSize: '2.6rem',
     }),
-    a.dark({
+    dark({
       color: colorTokens.white,
     }),
     {
@@ -457,11 +541,11 @@ export const s = {
     },
   ]),
   rowBody: style([
-    a.m0,
-    a.minW0,
-    a.text098,
-    a.leading165,
-    a.dark({
+    m0,
+    minW0,
+    text098,
+    leading165,
+    dark({
       color: colorTokens.slate300,
     }),
     {
@@ -469,11 +553,11 @@ export const s = {
     },
   ]),
   rowIcon: style([
-    a.inlineGrid,
-    a.mb2,
+    inlineGrid,
+    mb2,
   ]),
   rowIconBlue: style([
-    a.dark({
+    dark({
       color: '#7dd3fc',
     }),
     {
@@ -481,7 +565,7 @@ export const s = {
     },
   ]),
   rowIconGreen: style([
-    a.dark({
+    dark({
       color: '#86efac',
     }),
     {
@@ -495,13 +579,13 @@ export const s = {
     },
   ]),
   rowNumber: style([
-    a.fontBold,
-    a.text145,
-    a.leadingNone,
-    a.md({
+    fontBold,
+    text145,
+    leadingNone,
+    md({
       fontSize: '2rem',
     }),
-    a.dark({
+    dark({
       color: '#7dd3fc',
     }),
     {
@@ -510,23 +594,23 @@ export const s = {
     },
   ]),
   rowRow: style([
-    a.minW0,
+    minW0,
     {
       borderBottomColor: colorTokens.slate200,
       borderBottomStyle: 'solid',
       borderBottomWidth: '1px',
     },
-    a.dark({
+    dark({
       borderBottomColor: colorTokens.slate800,
     }),
   ]),
   rowTitle: style([
-    a.mt0,
-    a.mb03,
-    a.text145,
-    a.fontSemibold,
-    a.leading11,
-    a.dark({
+    mt0,
+    mb03,
+    text145,
+    fontSemibold,
+    leading11,
+    dark({
       color: colorTokens.white,
     }),
     {
@@ -535,50 +619,50 @@ export const s = {
     },
   ]),
   rowTitleBlock: style([
-    a.minW0,
+    minW0,
   ]),
   stackItems: style([
-    a.grid,
-    a.m0,
-    a.p0,
-    a.minW0,
+    grid,
+    m0,
+    p0,
+    minW0,
     {
       gap: '0.75rem',
       listStyle: 'none',
     },
   ]),
   stackList: style([
-    a.minW0,
-    a.borderBlockSolid,
-    a.borderBlock1,
-    a.borderSlate200,
-    a.dark({
+    minW0,
+    borderBlockSolid,
+    borderBlock1,
+    borderSlate200,
+    dark({
       borderColor: colorTokens.slate800,
     }),
   ]),
   stackListItem: style([
-    a.itemsStart,
-    a.grid,
-    a.minW0,
+    itemsStart,
+    grid,
+    minW0,
     {
       gap: '0.75rem',
       gridTemplateColumns: 'auto minmax(0, 1fr)',
     },
   ]),
   title: style([
-    a.mt0,
-    a.mb4,
-    a.animFillBoth,
-    a.animCubic,
-    a.anim700,
-    a.reducedMotion({
+    mt0,
+    mb4,
+    animFillBoth,
+    animCubic,
+    anim700,
+    reducedMotion({
       animationDuration: '1ms',
       animationIterationCount: '1',
     }),
-    a.md({
+    md({
       fontSize: '6.4rem',
     }),
-    a.dark({
+    dark({
       color: colorTokens.white,
     }),
     {
@@ -591,8 +675,8 @@ export const s = {
     },
   ]),
   titleAccent: style([
-    a.block,
-    a.dark({
+    block,
+    dark({
       color: '#7dd3fc',
     }),
     {

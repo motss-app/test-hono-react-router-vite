@@ -1,38 +1,41 @@
 import { style } from '@vanilla-extract/css';
 
-import * as a from '../styles/atomic/index.css.ts';
+import { m0, mt8 } from '../styles/atomic/layout/box-model/margin.css.ts';
+import { p8 } from '../styles/atomic/layout/box-model/padding.css.ts';
+import { dark, darkHover, hover } from '../styles/atomic/other/selectors.css.ts';
+import { noUnderline, textCenter } from '../styles/atomic/text/text-props/text-transform.css.ts';
 import { colorTokens } from '../styles/color-tokens.contract.css.ts';
 
 export const s = {
   container: style([
-    a.textCenter,
-    a.p8,
+    textCenter,
+    p8,
     {
       fontFamily: 'system-ui',
     },
   ]),
   h1: style([
-    a.m0,
+    m0,
     {
       fontSize: '4rem',
     },
   ]),
   link: style([
-    a.noUnderline,
+    noUnderline,
     {
       color: colorTokens.info,
     },
-    a.dark({
+    dark({
       color: '#93c5fd',
     }),
-    a.darkHover({
+    darkHover({
       color: '#bfdbfe',
     }),
-    a.hover({
+    hover({
       color: '#004499',
     }),
   ]),
   marginTop: style([
-    a.mt8,
+    mt8,
   ]),
 };
