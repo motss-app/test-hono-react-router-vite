@@ -1,7 +1,8 @@
 import { keyframes, style } from '@vanilla-extract/css';
 
 import * as a from '../styles/atomic/index.css.ts';
-import { colorTokens, fontWeightTokens } from '../styles/tokens.css.ts';
+import { colorTokens } from '../styles/color-tokens.contract.css.ts';
+import { fontWeightTokens } from '../styles/font-weight-tokens.contract.css.ts';
 
 const heroReveal = keyframes({
   '0%': {

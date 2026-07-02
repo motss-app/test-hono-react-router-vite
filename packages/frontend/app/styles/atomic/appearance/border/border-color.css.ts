@@ -1,6 +1,6 @@
 import { style } from '@vanilla-extract/css';
 
-import { colorTokens } from '../../../tokens.css.ts';
+import { colorTokens } from '../../../color-tokens.contract.css.ts';
 
 export const borderSlate100 = style({
   borderColor: colorTokens.slate100,

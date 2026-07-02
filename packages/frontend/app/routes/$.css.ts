@@ -1,7 +1,7 @@
 import { style } from '@vanilla-extract/css';
 
 import * as a from '../styles/atomic/index.css.ts';
-import { colorTokens } from '../styles/tokens.css.ts';
+import { colorTokens } from '../styles/color-tokens.contract.css.ts';
 
 export const s = {
   container: style([

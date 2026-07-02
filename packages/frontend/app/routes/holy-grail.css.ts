@@ -1,8 +1,8 @@
 import { keyframes, style } from '@vanilla-extract/css';
 
 import * as a from '../styles/atomic/index.css.ts';
+import { colorTokens } from '../styles/color-tokens.contract.css.ts';
 import { iconStyles } from '../styles/icon.css.ts';
-import { colorTokens } from '../styles/tokens.css.ts';
 
 const fadeUp = keyframes({
   '0%': {

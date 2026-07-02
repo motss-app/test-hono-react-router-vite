@@ -1,6 +1,8 @@
 import { globalStyle, style } from '@vanilla-extract/css';
 
-import { colorTokens, fontWeightTokens } from './styles/tokens.css.ts';
+import { colorTokens } from './styles/color-tokens.contract.css.ts';
+import { fontWeightTokens } from './styles/font-weight-tokens.contract.css.ts';
+import './styles/global-themes.css.ts';
 
 // Global Styles
 globalStyle('html', {

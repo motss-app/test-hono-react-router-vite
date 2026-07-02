@@ -1,49 +1,7 @@
-import { createGlobalTheme, createThemeContract } from '@vanilla-extract/css';
+import { createGlobalTheme } from '@vanilla-extract/css';
 
-export const colorTokens = createThemeContract({
-  amber200: null,
-  backgroundDark: null,
-  backgroundLight: null,
-  bgColor: null,
-  black: null,
-  borderColor: null,
-  borderColorHover: null,
-  error: null,
-  errorHover: null,
-  info: null,
-  infoHover: null,
-  primary: null,
-  primaryHover: null,
-  purple: null,
-  purpleHover: null,
-  slate100: null,
-  slate200: null,
-  slate300: null,
-  slate400: null,
-  slate500: null,
-  slate600: null,
-  slate700: null,
-  slate800: null,
-  slate900: null,
-  success: null,
-  successHover: null,
-  textColor: null,
-  warning: null,
-  warningHover: null,
-  white: null,
-});
-
-export const fontWeightTokens = createThemeContract({
-  fontWeightBold: null,
-  fontWeightMedium: null,
-  fontWeightSemibold: null,
-});
-
-const commonFontWeights = {
-  fontWeightBold: '700',
-  fontWeightMedium: '500',
-  fontWeightSemibold: '600',
-};
+import { colorTokens } from './color-tokens.contract.css.ts';
+import { fontWeightTokens } from './font-weight-tokens.contract.css.ts';
 
 const commonColors = {
   amber200: '#fde68a',
@@ -60,6 +18,12 @@ const commonColors = {
   slate800: '#1e293b',
   slate900: '#0f172a',
   white: 'white',
+};
+
+const commonFontWeights = {
+  fontWeightBold: '700',
+  fontWeightMedium: '500',
+  fontWeightSemibold: '600',
 };
 
 // Light Theme (Default) — always available at :root

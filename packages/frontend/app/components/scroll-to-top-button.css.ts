@@ -1,11 +1,15 @@
 import { style } from '@vanilla-extract/css';
 
-import * as s from '../styles/atomic/index.css.ts';
-import { colorTokens } from '../styles/tokens.css.ts';
+import { colorTokens } from '../styles/color-tokens.contract.css.ts';
 
 export const button = style([
-  s.fixed,
-  s.z10,
+  // Inlined `s.fixed` and `s.z10` to avoid importing the shared atomic barrel,
+  // and `colorTokens` now imports directly from the contract file to avoid
+  // pulling `global-themes.css.ts` into the lazy chunk's `__vite__mapDeps`.
+  {
+    position: 'fixed',
+    zIndex: '10',
+  },
   {
     alignItems: 'center',
     backgroundColor: colorTokens.primary,
