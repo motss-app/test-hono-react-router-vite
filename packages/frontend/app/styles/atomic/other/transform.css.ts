@@ -24,6 +24,9 @@ export const transformDown25 = style({
 export const transformDown50 = style({
   transform: 'translate3d(0, 0.5rem, 0)',
 });
+export const transformDown100 = style({
+  transform: 'translate3d(0, 1rem, 0)',
+});
 export const transformRight35 = style({
   transform: 'translate3d(0.35rem, 0, 0)',
 });

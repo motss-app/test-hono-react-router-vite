@@ -18,6 +18,7 @@ export * from './layout/box-model/sizing.css.ts';
 export * from './layout/display-visibility/display.css.ts';
 export * from './layout/display-visibility/opacity.css.ts';
 export * from './layout/display-visibility/overflow.css.ts';
+export * from './layout/display-visibility/pointer-events.css.ts';
 export * from './layout/positioning/position.css.ts';
 export * from './layout/positioning/z-index.css.ts';
 export * from './other/media.css.ts';
