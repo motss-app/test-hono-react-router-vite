@@ -1,4 +1,3 @@
-import { create, keyframes, props } from '@stylexjs/stylex';
 import { type ComponentProps, type JSX, useEffect, useRef, useState } from 'react';
 
 const DELAY_BEFORE_SHOWING_SKELETON_MS = 100;
@@ -27,31 +26,7 @@ function isSlowNetwork() {
   );
 }
 
-const pulse = keyframes({
-  '0%': {
-    opacity: 1,
-  },
-  '50%': {
-    opacity: 0.5,
-  },
-  '100%': {
-    opacity: 1,
-  },
-});
-
-const s = create({
-  base: {
-    animationDuration: '2s',
-    animationIterationCount: 'infinite',
-    animationName: pulse,
-    animationTimingFunction: 'cubic-bezier(0.4, 0, 0.6, 1)',
-    backgroundColor: 'rgba(212, 212, 212, 0.25)', // bg-neutral-300/25
-    borderRadius: '0.5rem', // rounded-lg
-    display: 'inline-block',
-    lineHeight: '1.5rem', // leading-24 (assuming 24px)
-    verticalAlign: 'middle',
-  },
-});
+import { skeletonStyles } from './skeleton.css.ts';
 
 interface SkeletonProps extends ComponentProps<'span'> {
   isLoading?: boolean;
@@ -101,21 +76,11 @@ export function Skeleton({
     return <>{children}</>;
   }
 
-  const skeletonProps = props(s.base);
-  const mergedClassName = `${skeletonProps.className || ''} ${className || ''}`.trim() || undefined;
-  const mergedStyle =
-    skeletonProps.style || style
-      ? {
-          ...skeletonProps.style,
-          ...style,
-        }
-      : undefined;
-
   return (
     <span
       {...rest}
-      className={mergedClassName}
-      style={mergedStyle}
+      className={`${skeletonStyles.base} ${className || ''}`.trim() || undefined}
+      style={style}
     >
       &nbsp;
     </span>

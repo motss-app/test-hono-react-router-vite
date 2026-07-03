@@ -18,6 +18,7 @@ This project combines React Router v7, Hono, and Vite for a modern full-stack we
 - **[Rendering Modes](rendering-modes.md)** - SSG vs SSR vs CSR explained
 - **[Prerendering Guide](prerendering-guide.md)** - When and how to prerender routes
 - **[CSP for SSG and SSR](csp-ssg-ssr-guide.md)** - CSP concepts, nonce vs hash usage, React Router integration, and third-party resource patterns
+- **[CSP and Document-Policy](csp-document-policy.md)** - Deep dive on the source-expression model, dev/prod asymmetry, `Document-Policy: js-profiling` for Sentry browser profiling, and the `c80400a` / `61aaa75` fixes
 - **[What is Prerendered](what-is-prerendered.md)** - Current prerendering status
 - **[Server Timing](server-timing.md)** - Monitor SSR performance with Server-Timing headers
 

@@ -15,7 +15,7 @@ import { StrictMode, startTransition, useEffect } from 'react';
 import { hydrateRoot } from 'react-dom/client';
 import { HydratedRouter } from 'react-router/dom';
 
-import './polyfills/request-idle-callback.ts';
+import './polyfills/request-idle-callback.mjs';
 
 import { logSentryEnvSnapshot } from '../../../vite-utils/sentry-env-log.ts';
 import {
@@ -202,7 +202,16 @@ globalThis.requestIdleCallback(async function lazyLoadBrowserIntegration() {
               ),
           },
           {
-            enabled: true,
+            // Don't load the browser-profiling integration in development.
+            // The browser's `Profiler` API requires the document to opt in via
+            // `Document-Policy: js-profiling`, but the SSR handler intentionally
+            // short-circuits CSP/Document-Policy headers in dev (see
+            // `isHtmlResponse` in `app/ssr-handler.ts`) so HMR and dev-only
+            // scripts aren't blocked. Without the opt-in, the browser logs
+            // `[Violation] Document policy violation: js-profiling is not
+            // allowed in this document` and Sentry silently disables
+            // profiling for the session. Skip the integration in dev instead.
+            enabled: !isDevSentryMode,
             loader: () =>
               import('./monitoring/lazy-browser-integrations/browser-profiling.ts').then(
                 mod => mod.browserProfilingIntegration

@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
-    "allowImportingTsExtensions": true,
+    "allowArbitraryExtensions": true,
     "baseUrl": ".",
+    "erasableSyntaxOnly": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "jsx": "react-jsx",
@@ -28,16 +29,9 @@
       ]
     },
     "resolveJsonModule": true,
-    "rootDirs": [
-      ".",
-      "./.react-router/types"
-    ],
     "skipLibCheck": true,
     "strict": true,
     "target": "ESNext",
-    "types": [
-      "vite/client"
-    ],
     "verbatimModuleSyntax": true
   },
   "include": [

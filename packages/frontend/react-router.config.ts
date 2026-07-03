@@ -23,6 +23,7 @@ export default {
   routeDiscovery: {
     mode: 'lazy',
   },
+  splitRouteModules: true,
   ssr: true,
   subResourceIntegrity: true,
 } satisfies Config;

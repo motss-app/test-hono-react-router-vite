@@ -32,7 +32,7 @@ function parseBenchOutput(text: string): Row[] {
     const route = parts[1];
     if (!route || route === 'Route' || route.startsWith('─')) continue;
     const rps = Number(parts[2]!.replace(/,/g, ''));
-    if (isNaN(rps)) continue;
+    if (Number.isNaN(rps)) continue;
     rows.push({
       avg: parseLatency(parts[6]!),
       p75: parseLatency(parts[3]!),
@@ -64,7 +64,7 @@ function parseBaselineMd(text: string): Row[] {
     const routeName = parts[1]!;
     if (!routeName || routeName === 'Route' || routeName.startsWith('#')) continue;
     const rpsVal = Number(parts[2]!.replace(/,/g, ''));
-    if (isNaN(rpsVal)) continue;
+    if (Number.isNaN(rpsVal)) continue;
     const prefix =
       inSection === 'BFF'
         ? 'BFF Direct'

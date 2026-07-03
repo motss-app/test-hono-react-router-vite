@@ -1,35 +1,8 @@
-import { create, props } from '@stylexjs/stylex';
 import type { JSX } from 'react/jsx-runtime';
 import { data, Link } from 'react-router';
 
-import { colorTokens, themeConditions } from '../styles/tokens.stylex.ts';
 import type { Route } from './+types/$.ts';
-
-const s = create({
-  container: {
-    fontFamily: 'system-ui',
-    padding: '2rem',
-    textAlign: 'center',
-  },
-  h1: {
-    fontSize: '4rem',
-    margin: 0,
-  },
-  link: {
-    color: {
-      ':hover': {
-        [themeConditions.dataThemeDark]: '#bfdbfe',
-        default: '#004499',
-      },
-      [themeConditions.dataThemeDark]: '#93c5fd',
-      default: colorTokens.info,
-    },
-    textDecoration: 'none',
-  },
-  marginTop: {
-    marginTop: '2rem',
-  },
-});
+import { s } from './$.css.ts';
 
 // Catch-all route for 404s (including Chrome DevTools special paths)
 export function loader({ request }: Route.LoaderArgs) {
@@ -64,16 +37,16 @@ export default function NotFound({ loaderData }: Route.ComponentProps): JSX.Elem
   }
 
   return (
-    <div {...props(s.container)}>
-      <h1 {...props(s.h1)}>404</h1>
+    <div className={s.container}>
+      <h1 className={s.h1}>404</h1>
       <h2>Page Not Found</h2>
       <p>
         The page <code>{loaderData.url}</code> does not exist.
       </p>
-      <div {...props(s.marginTop)}>
+      <div className={s.marginTop}>
         <Link
+          className={s.link}
           to="/"
-          {...props(s.link)}
         >
           ← Go back home
         </Link>

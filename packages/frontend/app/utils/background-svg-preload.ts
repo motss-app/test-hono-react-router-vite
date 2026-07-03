@@ -11,7 +11,7 @@ function getThemeVariantMedia(href: string): string | undefined {
     return lightThemeMediaQuery;
   }
 
-  return;
+  return undefined;
 }
 
 /**

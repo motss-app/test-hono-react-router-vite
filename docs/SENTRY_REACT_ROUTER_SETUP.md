@@ -35,7 +35,7 @@ Source-map upload for this stack is split by build surface, not by a catch-all `
 - React Router build: `./build/client/**/*.map` and `./build/server/**/*.map`
 - Frontend Worker build: `./build/assets/**/*.map` and `./build/worker.js.map`
 
-That means the frontend Worker build does not need `uploadLegacySourcemaps`; the modern Debug-ID path discovers the built JS artifacts directly and only uses the glob list to clean up the generated maps after upload.
+That means the frontend Worker build does not need `uploadLegacySourcemaps` the modern Debug-ID path discovers the built JS artifacts directly and only uses the glob list to clean up the generated maps after upload.
 
 For Debug-ID mode, treat this as an artifact pair requirement:
 
@@ -227,7 +227,7 @@ to enforce a stricter "Cloudflare SDK only on the server" rule:
   but it was noisy and did not buy us enough to keep
 - restore the old `handleError` behavior if we start missing SSR errors again: skip aborted
   requests, capture non-`Error` throwables, and flush in serverless contexts
-- keep an eye on React Router's Cloudflare Worker instrumentation support; revisit only if they add
+- keep an eye on React Router's Cloudflare Worker instrumentation support revisit only if they add
   a Worker-safe server instrumentation path that does not duplicate the Worker request owner or add
   span noise
 

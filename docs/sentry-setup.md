@@ -21,7 +21,7 @@ The current setup covers five different runtime/build surfaces:
 | React Router SSR branch | `@sentry/react-router/cloudflare` | `app/entry.server.tsx` | Worker-safe request wrapper, handled SSR error capture, and trace meta tags |
 | Frontend Worker runtime | `@sentry/cloudflare` | `packages/frontend/worker.ts` | Single initialized server SDK for deployed frontend Worker requests |
 | BFF tunnel proxy | `@motss-app/bff` | `packages/bff/src/sentry-tunnel.ts` via `packages/bff/src/api.ts` | Same-origin `/api/tunnel` browser/local-Worker envelope proxy to Spotlight in dev and Sentry ingest outside dev |
-| SSG-only pages | `—` at runtime | `react-router.config.ts` prerender and/or client entry | No server/runtime SDK; use the browser SDK only if the prerendered page hydrates |
+| SSG-only pages | `—` at runtime | `react-router.config.ts` prerender and/or client entry | No server/runtime SDK use the browser SDK only if the prerendered page hydrates |
 
 Build-time artifact upload is handled separately by Sentry Vite plugins in the Vite build configs.
 
@@ -31,7 +31,7 @@ Important Debug ID requirement:
 
 - Debug-ID symbolication needs both the built source artifacts (`.js` chunks/files with injected Debug IDs)
   and the matching source maps (`.map`).
-- Uploading only `.map` files is not enough; Sentry also needs the corresponding built `.js` artifacts to
+- Uploading only `.map` files is not enough Sentry also needs the corresponding built `.js` artifacts to
   resolve frames by Debug ID.
 
 Current source-map glob layout:
@@ -51,7 +51,7 @@ while still working in the browser bundle, because the cloudflare subpath re-exp
 helpers those modules need.
 
 For SSG-only pages, there is no request-time server owner at all. If the prerendered page hydrates,
-keep the browser SDK in the client entrypoint; if the page is truly static and never hydrates, you
+keep the browser SDK in the client entrypoint if the page is truly static and never hydrates, you
 do not need a runtime Sentry SDK.
 
 ## File map
@@ -140,13 +140,13 @@ Important detail:
 
 - in development, the browser keeps the configured DSN but sends envelopes to `/api/tunnel`
 - the BFF forwards those dev envelopes from `/api/tunnel` to `http://localhost:8969/stream`
-- the local Spotlight sidecar is started by `scripts/dev-spotlight.ts`; no placeholder DSN is needed in the browser bundle
+- the local Spotlight sidecar is started by `scripts/dev-spotlight.ts` no placeholder DSN is needed in the browser bundle
 - the React Router tracing integration stays eager because `HydratedRouter` needs its client instrumentation during hydration
 - the view hierarchy integration is deferred to the idle browser integrations path, so very early errors may not include a DOM snapshot
 - we intentionally keep the Framework Mode client instrumentation wiring in `app/entry.client.tsx` for future React Router support, even though Sentry currently says those client hooks are not invoked yet
 - `elementTimingIntegration()` is initialized eagerly in `app/entry.client.tsx` so Chromium browsers can report the earliest render/load metrics
 - the optional browser integrations (`viewHierarchyIntegration()`, `browserProfilingIntegration()`, `httpClientIntegration()`, `extraErrorDataIntegration()`, and `contextLinesIntegration()`) are loaded with `import()` and added later via `addIntegration(...)` to keep the initial browser bundle smaller
-- browser-side Sentry tracing is still owned by `@sentry/react-router`; the cloudflare subpath only applies to shared route modules and Worker-side helper code
+- browser-side Sentry tracing is still owned by `@sentry/react-router` the cloudflare subpath only applies to shared route modules and Worker-side helper code
 
 ### BFF tunnel proxy
 
@@ -164,7 +164,7 @@ Current behavior:
 
 Important detail:
 
-- CSP reporting still goes direct to Sentry; the tunnel only proxies browser SDK envelopes
+- CSP reporting still goes direct to Sentry the tunnel only proxies browser SDK envelopes
 - the BFF uses the public `SENTRY_DSN` value as the tunnel validation source, so the Wrangler binding must stay in sync with the browser DSN
 
 ### Browser integration gzip snapshot
@@ -173,14 +173,14 @@ The following gzip sizes were measured from the current browser integration expe
 
 | Integration | gzip size | Loading note |
 | --- | ---: | --- |
-| `browserTracingIntegration()` | 27.3 kB | Eager tracing path; keep it active before hydration rather than deferring it with the idle loader. |
-| `browserProfilingIntegration()` | 9.61 kB | Lazy-loaded today; keep deferred unless you need profiling earlier in startup. |
-| `replayIntegration()` | 53.1 kB | Commented out today; only enable when you want replay and can afford the extra bundle cost. |
-| `viewHierarchyIntegration()` | 727 B | Lazy-loaded today; lightweight DOM snapshot enrichment. |
-| `httpClientIntegration()` | 6.59 kB | Lazy-loaded today; browser-only request/response enrichment. |
-| `extraErrorDataIntegration()` | 2.7 kB | Lazy-loaded today; enriches custom error objects. |
-| `elementTimingIntegration()` | 7.6 kB | Browser-only and Chromium-only; loaded eagerly in `app/entry.client.tsx` so the earliest render/load metrics are available. |
-| `contextLinesIntegration()` | 653 B | Lazy-loaded today; useful mainly when the page contains inline JavaScript. |
+| `browserTracingIntegration()` | 27.3 kB | Eager tracing path keep it active before hydration rather than deferring it with the idle loader. |
+| `browserProfilingIntegration()` | 9.61 kB | Lazy-loaded today keep deferred unless you need profiling earlier in startup. |
+| `replayIntegration()` | 53.1 kB | Commented out today only enable when you want replay and can afford the extra bundle cost. |
+| `viewHierarchyIntegration()` | 727 B | Lazy-loaded today lightweight DOM snapshot enrichment. |
+| `httpClientIntegration()` | 6.59 kB | Lazy-loaded today browser-only request/response enrichment. |
+| `extraErrorDataIntegration()` | 2.7 kB | Lazy-loaded today enriches custom error objects. |
+| `elementTimingIntegration()` | 7.6 kB | Browser-only and Chromium-only loaded eagerly in `app/entry.client.tsx` so the earliest render/load metrics are available. |
+| `contextLinesIntegration()` | 653 B | Lazy-loaded today useful mainly when the page contains inline JavaScript. |
 
 ### React Router server rendering
 
@@ -218,7 +218,7 @@ Future-watch:
 
 - we tried a route-level `unstable_instrumentations` experiment in `app/entry.server.tsx`, but it
   added noise and did not improve the current Cloudflare Worker setup enough to keep
-- keep an eye on React Router's Cloudflare Worker instrumentation story; if a Worker-safe server
+- keep an eye on React Router's Cloudflare Worker instrumentation story if a Worker-safe server
   instrumentation export lands later and actually reduces noise, we can revisit it then
 - for now, the current lean Worker-safe helper path is enough and avoids extra span noise
 
@@ -322,13 +322,13 @@ Current behavior:
 - request metrics and logs are recorded for Worker requests
 - enables `enableRpcTracePropagation` so RPC calls made through Cloudflare service bindings inherit the active trace context
 - the React Router SSR branch uses `wrapSentryHandleRequest(...)` inside that same request path rather than initializing a second server SDK
-- Vite minifies the Worker bundle in `vite.worker.config.ts`, and `wrangler.jsonc` keeps `"no_bundle": true`, `"preserve_file_names": true`, `"find_additional_modules": true`, `base_dir: "./build"`, and an `ESModule` rule for `assets/**/*.js` so Wrangler deploys the already-built Worker as-is. That keeps the runtime file name and line numbers aligned with the Vite output that was uploaded to Sentry; if Wrangler re-bundles, renames, or omits the generated Worker chunks, the deployed `worker.js` no longer matches the uploaded `worker.js.map`, and Sentry will keep showing unmapped stack frames even though the artifact exists.
+- Vite minifies the Worker bundle in `vite.worker.config.ts`, and `wrangler.jsonc` keeps `"no_bundle": true`, `"preserve_file_names": true`, `"find_additional_modules": true`, `base_dir: "./build"`, and an `ESModule` rule for `assets/**/*.js` so Wrangler deploys the already-built Worker as-is. That keeps the runtime file name and line numbers aligned with the Vite output that was uploaded to Sentry if Wrangler re-bundles, renames, or omits the generated Worker chunks, the deployed `worker.js` no longer matches the uploaded `worker.js.map`, and Sentry will keep showing unmapped stack frames even though the artifact exists.
 
 Important detail:
 
 - Worker runtime config comes from Wrangler bindings/vars
 - it does **not** rely on `.env` for deployed Worker runtime values
-- `@sentry/react-router/cloudflare` should only be used as a helper layer inside the Worker path;
+- `@sentry/react-router/cloudflare` should only be used as a helper layer inside the Worker path
   `@sentry/cloudflare` remains the single initialized server/runtime SDK
 
 ### Build-time source maps
@@ -360,10 +360,10 @@ Artifact and source-map upload only happens when the required Sentry build crede
 Current deployment-build behavior:
 
 - `packages/frontend/vite.react-router.config.ts` keeps legacy upload with explicit glob patterns
-- `packages/frontend/vite.worker.config.ts` uses modern Debug-ID upload; its explicit map glob list is retained only for post-upload cleanup
+- `packages/frontend/vite.worker.config.ts` uses modern Debug-ID upload its explicit map glob list is retained only for post-upload cleanup
 - the build configs pass explicit Sentry `dist` values at the call site, so release attribution stays stable even when the build mode changes
 - for Debug-ID mode (Worker build), keep the emitted built `.js` artifacts and `.map` files together for
-  the same build output; if the `.js` artifact with matching Debug ID is missing, Sentry will report
+  the same build output if the `.js` artifact with matching Debug ID is missing, Sentry will report
   `No Source File With Matching Debug ID`
 
 ### Why the canary build log looks noisy
@@ -374,7 +374,7 @@ The `deno run build:worker:canary` output mixes several different kinds of messa
 - **build-tool warnings**: deprecation notices from React Router/Vite and plugin timing warnings from the bundler
 
 The repo currently avoids React Router preview-server prerendering, which is what previously produced the `vite.react-router.config.ts.timestamp-*.mjs` watcher race in GitHub Actions.
-The root cause was `unstable_previewServerPrerendering: true` in `react-router.config.ts`, which makes React Router prerender through a Vite preview server; that server creates a temporary config module and the watcher can race with its cleanup.
+The root cause was `unstable_previewServerPrerendering: true` in `react-router.config.ts`, which makes React Router prerender through a Vite preview server that server creates a temporary config module and the watcher can race with its cleanup.
 
 The important distinction is:
 
@@ -387,7 +387,7 @@ If the `timestamp-*.mjs` `NotFound` ever reappears, first check whether preview-
 
 This repo keeps `unstable_subResourceIntegrity: true`, so emitted browser assets must stay byte-for-byte stable after hashing.
 
-SRI only applies to **external** assets that React Router/Vite can manage in the generated HTML. Inline `<style>` and `<script>` blocks in `root.tsx` are not covered by SRI; see [CSP for SSG and SSR](csp-ssg-ssr-guide.md) for the nonce/hash split.
+SRI only applies to **external** assets that React Router/Vite can manage in the generated HTML. Inline `<style>` and `<script>` blocks in `root.tsx` are not covered by SRI see [CSP for SSG and SSR](csp-ssg-ssr-guide.md) for the nonce/hash split.
 
 The modern Sentry React Router build-end flow can inject debug IDs and rewrite generated JavaScript during upload. That is fine for some projects, but here it can invalidate the integrity hashes that the browser uses to load chunks.
 
@@ -432,13 +432,13 @@ The following gzip sizes were measured from the current browser integration expe
 
 | Integration | gzip size | Loading note |
 | --- | ---: | --- |
-| `browserProfilingIntegration()` | 9.61 kB | Lazy-loaded today; keep deferred unless you need profiling earlier in startup. |
-| `replayIntegration()` | 53.1 kB | Commented out today; only enable when you want replay and can afford the extra bundle cost. |
-| `viewHierarchyIntegration()` | 727 B | Lazy-loaded today; lightweight DOM snapshot enrichment. |
-| `httpClientIntegration()` | 6.59 kB | Lazy-loaded today; browser-only request/response enrichment. |
-| `extraErrorDataIntegration()` | 2.7 kB | Lazy-loaded today; enriches custom error objects. |
-| `elementTimingIntegration()` | 7.6 kB | Browser-only and Chromium-only; loaded eagerly in `app/entry.client.tsx` so the earliest render/load metrics are available. |
-| `contextLinesIntegration()` | 653 B | Lazy-loaded today; useful mainly when the page contains inline JavaScript. |
+| `browserProfilingIntegration()` | 9.61 kB | Lazy-loaded today keep deferred unless you need profiling earlier in startup. |
+| `replayIntegration()` | 53.1 kB | Commented out today only enable when you want replay and can afford the extra bundle cost. |
+| `viewHierarchyIntegration()` | 727 B | Lazy-loaded today lightweight DOM snapshot enrichment. |
+| `httpClientIntegration()` | 6.59 kB | Lazy-loaded today browser-only request/response enrichment. |
+| `extraErrorDataIntegration()` | 2.7 kB | Lazy-loaded today enriches custom error objects. |
+| `elementTimingIntegration()` | 7.6 kB | Browser-only and Chromium-only loaded eagerly in `app/entry.client.tsx` so the earliest render/load metrics are available. |
+| `contextLinesIntegration()` | 653 B | Lazy-loaded today useful mainly when the page contains inline JavaScript. |
 
 - The deploy workflow sets `DEPLOYMENT_BUILD=true`, and the release define helper throws if `SENTRY_RELEASE` is missing or empty.
 - If you ever want a fixed per-environment value in Wrangler, `vars` is the right place, not `secrets`, but that is not how this repo currently models release values.

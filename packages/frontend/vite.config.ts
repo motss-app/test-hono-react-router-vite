@@ -1,10 +1,11 @@
 import { cloudflare } from '@cloudflare/vite-plugin';
 import { reactRouter } from '@react-router/dev/vite';
 import { sentryReactRouter } from '@sentry/react-router';
-import stylex from '@stylexjs/unplugin';
-import { defineConfig } from 'vite';
+import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin';
+import { defineConfig, type UserConfig } from 'vite';
 
 import { themeBuildPlugin } from '../../vite-plugins/theme-bootstrap/plugin.ts';
+import { veCssTextPlugin } from '../../vite-plugins/ve-css-text/plugin.ts';
 import { loadConfigEnvironment } from '../../vite-utils/load-env.ts';
 import { createSentryBuildOptions } from '../../vite-utils/sentry-build.ts';
 import { createBuildSentryEnvSnapshot } from '../../vite-utils/sentry-build-env-log.ts';
@@ -13,7 +14,6 @@ const repoRootPath = new URL('../../', import.meta.url).pathname;
 const publicDirPath = new URL('./public', import.meta.url).pathname;
 const optimizeDepsInclude = [
   '@sentry/react-router',
-  '@stylexjs/stylex',
   'hono/client',
   'react',
   'react-dom',
@@ -23,6 +23,33 @@ const optimizeDepsInclude = [
   'react/jsx-dev-runtime',
   'react/jsx-runtime',
 ];
+
+/**
+ * VE's `config` hook sets `ssr.external` to exclude its packages from the SSR
+ * bundle, but the Cloudflare Vite plugin rejects any `resolve.external` on the
+ * SSR environment because Workers must bundle everything. This strips VE's
+ * entries from `ssr.external` after VE sets them, so CF validation passes.
+ *
+ * @see https://github.com/vanilla-extract-css/vanilla-extract/issues/1603
+ */
+function vanillaExtractSsrFixPlugin() {
+  const externalsToRemove = new Set([
+    '@vanilla-extract/css',
+    '@vanilla-extract/css/fileScope',
+    '@vanilla-extract/css/adapter',
+  ]);
+
+  return {
+    config(config: UserConfig) {
+      if (config.ssr && Array.isArray(config.ssr.external)) {
+        config.ssr.external = config.ssr.external.filter(
+          (external: string) => !externalsToRemove.has(external)
+        );
+      }
+    },
+    name: 'vanilla-extract-ssr-fix',
+  };
+}
 
 export default defineConfig(async config => {
   const { mode } = config;
@@ -54,15 +81,9 @@ export default defineConfig(async config => {
             themeBuildPlugin({
               rootDir: repoRootPath,
             }),
-            /**
-             * Stylex plugin is used to compile styles and provide HMR for styles.
-             * It is configured to use CSS layers to ensure that styles are applied in
-             * the correct order, and to include treeshake compensation to
-             * prevent styles from being removed during treeshaking.
-             */
-            stylex.vite({
-              useCSSLayers: true,
-            }),
+            vanillaExtractPlugin(),
+            veCssTextPlugin(),
+            vanillaExtractSsrFixPlugin(),
             /**
              * React Router plugin is required to:
              * 1. Build the app (routes, loaders, actions)

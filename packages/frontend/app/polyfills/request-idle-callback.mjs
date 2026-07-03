@@ -1,11 +1,5 @@
-const idleWindow = globalThis as Window & typeof globalThis;
+const idleWindow = globalThis;
 
-/**
- * requestIdleCallback polyfill that falls back to setTimeout.
- *
- * Based on Chrome for Developers guidance:
- * https://developer.chrome.com/blog/using-requestidlecallback
- */
 if (!idleWindow.requestIdleCallback) {
   idleWindow.requestIdleCallback = (callback, options) => {
     const startedAt = performance.now();
@@ -18,7 +12,7 @@ if (!idleWindow.requestIdleCallback) {
         didTimeout: providedTimeout !== undefined && elapsed >= providedTimeout,
         timeRemaining: () => Math.max(0, 50 - (performance.now() - startedAt)),
       });
-    }, 1) as unknown as number;
+    }, 1);
   };
 }
 

@@ -71,7 +71,7 @@ The plugin hooks into `writeBundle` to copy the environment-specific headers fil
 
 ## Caching Expectations
 
-Prerendered HTML/SSG routes now use the production cache policy in both production and canary builds; only the non-prerendered static asset rows remain mode-specific.
+Prerendered HTML/SSG routes now use the production cache policy in both production and canary builds only the non-prerendered static asset rows remain mode-specific.
 
 | Mode | Route group | Browser `max-age` | CDN `s-maxage` | `stale-while-revalidate` | Additional directives |
 | ---- | ----------- | ---------------- | -------------- | -------------------------- | --------------------- |

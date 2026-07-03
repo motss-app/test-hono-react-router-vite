@@ -47,7 +47,7 @@
 **Changes:**
 - BFF: `/api/healthz` added to `apiApp` (accessible through gateway at `/api/healthz`)
 - Frontend: `/healthz` added (accessible through gateway at `/fe/healthz`)
-- Gateway: `/fe/:path` routes to frontend; `/api/*` continues to proxy to BFF
+- Gateway: `/fe/:path` routes to frontend `/api/*` continues to proxy to BFF
 
 ---
 
@@ -105,7 +105,7 @@ headers.set('Content-Type', envelopeContentType);
 
 **Changes:**
 - BFF worker — added `app.onError(problemDetailsHandler())`
-- BFF `sentry-tunnel.ts` — replaced `createTunnelResponse` plain-text errors with `throw problemDetails({ status, title })`; `validateEnvelopeRequest` now throws instead of returning `Response | ParsedDsn`
+- BFF `sentry-tunnel.ts` — replaced `createTunnelResponse` plain-text errors with `throw problemDetails({ status, title })` `validateEnvelopeRequest` now throws instead of returning `Response | ParsedDsn`
 - Gateway worker — added `app.onError(problemDetailsHandler())`
 
 **Before (plain text):**
