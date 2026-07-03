@@ -1,6 +1,5 @@
 import { keyframes, style } from '@vanilla-extract/css';
 
-import * as a from '../styles/atomic/index.css.ts';
 import { colorTokens } from '../styles/color-tokens.contract.css.ts';
 
 const heroReveal = keyframes({
@@ -27,398 +26,406 @@ const artworkDrift = keyframes({
 });
 
 export const s = {
-  ctaPrimary: style([
-    a.itemsCenter,
-    a.animFillBoth,
-    a.animCubic,
-    a.anim700,
-    a.inlineGrid,
-    a.roundedFull,
-    a.gridAutoFlowColumn,
-    a.p092_145,
-    a.fontSemibold,
-    a.whitespaceNowrap,
-    a.noUnderline,
-    a.dark({
-      backgroundColor: '#bae6fd',
-      color: colorTokens.slate900,
-    }),
-    a.darkHover({
-      backgroundColor: '#7dd3fc',
-    }),
-    a.hover({
-      backgroundColor: colorTokens.infoHover,
-      transform: 'translate3d(0, -0.125rem, 0)',
-    }),
-    {
-      animationDelay: '240ms',
-      animationName: heroReveal,
-      backgroundColor: colorTokens.info,
-      color: colorTokens.white,
-      gap: '0.5rem',
-      transition: 'background-color 0.2s ease, transform 0.2s ease',
+  ctaPrimary: style({
+    alignItems: 'center',
+    animationDelay: '240ms',
+    animationDuration: '700ms',
+    animationFillMode: 'both',
+    animationName: heroReveal,
+    animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
+    backgroundColor: colorTokens.info,
+    borderRadius: '9999px',
+    color: colorTokens.white,
+    display: 'inline-grid',
+    fontWeight: 600,
+    gap: '0.5rem',
+    gridAutoFlow: 'column',
+    padding: '0.92rem 1.45rem',
+    selectors: {
+      ':root[data-theme="dark"] &': {
+        backgroundColor: '#bae6fd',
+        color: colorTokens.slate900,
+      },
+      ':root[data-theme="dark"] &:hover': {
+        backgroundColor: '#7dd3fc',
+      },
+      '&:hover': {
+        backgroundColor: colorTokens.infoHover,
+        transform: 'translate3d(0, -0.125rem, 0)',
+      },
     },
-  ]),
-  ctaSecondary: style([
-    a.itemsCenter,
-    a.animFillBoth,
-    a.animCubic,
-    a.anim700,
-    a.inlineGrid,
-    a.roundedFull,
-    a.borderSolid,
-    a.border1,
-    a.gridAutoFlowColumn,
-    a.p092_145,
-    a.fontSemibold,
-    a.whitespaceNowrap,
-    a.noUnderline,
-    a.dark({
-      backgroundColor: 'rgba(15, 23, 42, 0.28)',
-      borderColor: 'rgba(226, 232, 240, 0.26)',
-      color: colorTokens.slate100,
-    }),
-    a.darkHover({
-      backgroundColor: 'rgba(148, 163, 184, 0.12)',
-      borderColor: colorTokens.slate400,
-    }),
-    a.hover({
-      backgroundColor: 'rgba(255, 255, 255, 0.7)',
-      borderColor: '#bfdbfe',
-      transform: 'translate3d(0, -0.125rem, 0)',
-    }),
-    {
-      animationDelay: '320ms',
-      animationName: heroReveal,
-      backgroundColor: 'rgba(255, 255, 255, 0.78)',
-      borderColor: 'rgba(15, 23, 42, 0.12)',
-      color: colorTokens.slate900,
-      gap: '0.5rem',
-      transition: 'background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease',
+    textDecoration: 'none',
+    transition: 'background-color 0.2s ease, transform 0.2s ease',
+    whiteSpace: 'nowrap',
+  }),
+  ctaSecondary: style({
+    alignItems: 'center',
+    animationDelay: '320ms',
+    animationDuration: '700ms',
+    animationFillMode: 'both',
+    animationName: heroReveal,
+    animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.78)',
+    borderColor: 'rgba(15, 23, 42, 0.12)',
+    borderRadius: '9999px',
+    borderStyle: 'solid',
+    borderWidth: '1px',
+    color: colorTokens.slate900,
+    display: 'inline-grid',
+    fontWeight: 600,
+    gap: '0.5rem',
+    gridAutoFlow: 'column',
+    padding: '0.92rem 1.45rem',
+    selectors: {
+      ':root[data-theme="dark"] &': {
+        backgroundColor: 'rgba(15, 23, 42, 0.28)',
+        borderColor: 'rgba(226, 232, 240, 0.26)',
+        color: colorTokens.slate100,
+      },
+      ':root[data-theme="dark"] &:hover': {
+        backgroundColor: 'rgba(148, 163, 184, 0.12)',
+        borderColor: colorTokens.slate400,
+      },
+      '&:hover': {
+        backgroundColor: 'rgba(255, 255, 255, 0.7)',
+        borderColor: '#bfdbfe',
+        transform: 'translate3d(0, -0.125rem, 0)',
+      },
     },
-  ]),
-  dataLabel: style([
-    a.text086,
-    a.textUppercase,
-    a.dark({
-      color: colorTokens.slate400,
-    }),
-    {
-      color: colorTokens.slate600,
-      letterSpacing: '0.08em',
+    textDecoration: 'none',
+    transition: 'background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease',
+    whiteSpace: 'nowrap',
+  }),
+  dataLabel: style({
+    color: colorTokens.slate600,
+    fontSize: '0.86rem',
+    letterSpacing: '0.08em',
+    selectors: {
+      ':root[data-theme="dark"] &': {
+        color: colorTokens.slate400,
+      },
     },
-  ]),
-  dataList: style([
-    a.grid,
-    a.minW0,
-    a.md({
-      gridTemplateColumns: '1fr 1fr',
-    }),
-    {
-      gap: '1rem',
+    textTransform: 'uppercase',
+  }),
+  dataList: style({
+    '@media': {
+      '(min-width: 768px)': {
+        gridTemplateColumns: '1fr 1fr',
+      },
     },
-  ]),
-  dataValue: style([
-    a.m0,
-    a.minW0,
-    a.text11,
-    a.leading155,
-    a.dark({
-      color: colorTokens.slate100,
-    }),
-    {
-      color: colorTokens.slate900,
-      overflowWrap: 'anywhere',
+    display: 'grid',
+    gap: '1rem',
+    minInlineSize: 0,
+  }),
+  dataValue: style({
+    color: colorTokens.slate900,
+    fontSize: '1.1rem',
+    lineHeight: 1.55,
+    margin: 0,
+    minInlineSize: 0,
+    overflowWrap: 'anywhere',
+    selectors: {
+      ':root[data-theme="dark"] &': {
+        color: colorTokens.slate100,
+      },
     },
-  ]),
-  hero: style([
-    a.relative,
-    a.overflowHidden,
-    a.minW0,
-    a.dark({
-      backgroundColor: '#08101b',
-    }),
-    {
-      backgroundColor: '#edf6ff',
+  }),
+  hero: style({
+    backgroundColor: '#edf6ff',
+    minInlineSize: 0,
+    overflow: 'hidden',
+    position: 'relative',
+    selectors: {
+      ':root[data-theme="dark"] &': {
+        backgroundColor: '#08101b',
+      },
     },
-  ]),
-  heroActions: style([
-    a.inlineGrid,
-    a.gridAutoFlowColumn,
-    a.justifyStart,
-    {
-      gap: '0.75rem',
+  }),
+  heroActions: style({
+    display: 'inline-grid',
+    gap: '0.75rem',
+    gridAutoFlow: 'column',
+    justifyContent: 'flex-start',
+  }),
+  heroBody: style({
+    animationDelay: '160ms',
+    animationDuration: '700ms',
+    animationFillMode: 'both',
+    animationName: heroReveal,
+    animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
+    color: colorTokens.slate900,
+    fontSize: '1rem',
+    lineHeight: 1.7,
+    marginBlockEnd: '2rem',
+    marginBlockStart: 0,
+    maxWidth: '31rem',
+    selectors: {
+      ':root[data-theme="dark"] &': {
+        color: colorTokens.slate300,
+      },
     },
-  ]),
-  heroBody: style([
-    a.mt0,
-    a.mb8,
-    a.textBase,
-    a.leading17,
-    a.animFillBoth,
-    a.animCubic,
-    a.anim700,
-    a.dark({
-      color: colorTokens.slate300,
-    }),
-    {
-      animationDelay: '160ms',
-      animationName: heroReveal,
-      color: colorTokens.slate900,
-      maxWidth: '31rem',
+  }),
+  heroCopy: style({
+    '@media': {
+      '(min-width: 768px)': {
+        paddingBottom: '4rem',
+      },
     },
-  ]),
-  heroCopy: style([
-    a.relative,
-    a.z2,
-    a.pb10,
-    a.minW0,
-    a.md({
-      paddingBottom: '4rem',
-    }),
-    {
-      maxWidth: '38rem',
+    maxWidth: '38rem',
+    minInlineSize: 0,
+    paddingBlockEnd: '2.5rem',
+    position: 'relative',
+    zIndex: 2,
+  }),
+  heroInner: style({
+    '@media': {
+      '(min-width: 768px)': {
+        paddingBottom: 0,
+      },
     },
-  ]),
-  heroInner: style([
-    a.itemsEnd,
-    a.grid,
-    a.mxAuto,
-    a.minH100svh,
-    a.minW0,
-    a.relative,
-    a.px4,
-    a.pt16,
-    a.pb8,
-    a.md({
-      paddingBottom: '0',
-    }),
-    {
-      maxWidth: '84rem',
+    alignItems: 'flex-end',
+    display: 'grid',
+    marginInline: 'auto',
+    maxWidth: '84rem',
+    minBlockSize: '100svh',
+    minInlineSize: 0,
+    paddingBlockEnd: '2rem',
+    paddingBlockStart: '4rem',
+    paddingInline: '1rem',
+    position: 'relative',
+  }),
+  heroLead: style({
+    '@media': {
+      '(min-width: 768px)': {
+        fontSize: '1.95rem',
+      },
     },
-  ]),
-  heroLead: style([
-    a.mt0,
-    a.mb085,
-    a.relative,
-    a.fontMedium,
-    a.text128,
-    a.leading112,
-    a.animFillBoth,
-    a.animCubic,
-    a.anim700,
-    a.md({
-      fontSize: '1.95rem',
-    }),
-    a.dark({
-      color: colorTokens.slate100,
-    }),
-    {
-      animationDelay: '110ms',
-      animationName: heroReveal,
-      color: colorTokens.slate900,
-      letterSpacing: '-0.025em',
-      maxWidth: '15ch',
+    animationDelay: '110ms',
+    animationDuration: '700ms',
+    animationFillMode: 'both',
+    animationName: heroReveal,
+    animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
+    color: colorTokens.slate900,
+    fontSize: '1.28rem',
+    fontWeight: 500,
+    letterSpacing: '-0.025em',
+    lineHeight: 1.12,
+    marginBlockEnd: '0.85rem',
+    marginBlockStart: 0,
+    maxWidth: '15ch',
+    position: 'relative',
+    selectors: {
+      ':root[data-theme="dark"] &': {
+        color: colorTokens.slate100,
+      },
     },
-  ]),
-  heroMedia: style([
-    a.absolute,
-    a.inset0,
-    a.animAlternate,
-    a.animInfinite,
-    a.animEaseInOut,
-    a.anim18s,
-    a.bgCover,
-    a.bgNoRepeat,
-    a.md({
-      backgroundPosition: 'center center',
-    }),
-    a.reducedMotion({
-      animationDuration: '1ms',
-      animationIterationCount: '1',
-    }),
-    a.dark({
-      backgroundImage: 'url("/assets/ssr-hero-dark.svg")',
-      opacity: 1,
-    }),
-    {
-      animationName: artworkDrift,
-      backgroundImage: 'url("/assets/ssr-hero-light.svg")',
-      backgroundPosition: '72% center',
-      opacity: 0.8,
-      transformOrigin: 'center',
+  }),
+  heroMedia: style({
+    '@media': {
+      '(min-width: 768px)': {
+        backgroundPosition: 'center center',
+      },
+      '(prefers-reduced-motion: reduce)': {
+        animationDuration: '1ms',
+        animationIterationCount: 1,
+      },
     },
-  ]),
-  heroOverlay: style([
-    a.absolute,
-    a.inset0,
-    a.z1,
-    a.dark({
-      backgroundImage:
-        'linear-gradient(90deg, rgba(8, 16, 27, 0.92) 0%, rgba(8, 16, 27, 0.72) 26%, rgba(8, 16, 27, 0.28) 54%, rgba(8, 16, 27, 0.1) 100%), linear-gradient(180deg, rgba(8, 16, 27, 0.12) 0%, rgba(8, 16, 27, 0.18) 100%)',
-    }),
-    {
-      backgroundImage:
-        'linear-gradient(90deg, rgba(249, 252, 255, 0.995) 0%, rgba(249, 252, 255, 0.94) 28%, rgba(243, 248, 255, 0.78) 48%, rgba(239, 246, 255, 0.48) 68%, rgba(237, 246, 255, 0.26) 100%), linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(226, 239, 255, 0.12) 100%)',
+    animationDirection: 'alternate',
+    animationDuration: '18s',
+    animationIterationCount: 'infinite',
+    animationName: artworkDrift,
+    animationTimingFunction: 'ease-in-out',
+    backgroundImage: 'url("/assets/ssr-hero-light.svg")',
+    backgroundPosition: '72% center',
+    backgroundRepeat: 'no-repeat',
+    backgroundSize: 'cover',
+    inset: 0,
+    opacity: 0.8,
+    position: 'absolute',
+    selectors: {
+      ':root[data-theme="dark"] &': {
+        backgroundImage: 'url("/assets/ssr-hero-dark.svg")',
+        opacity: 1,
+      },
     },
-  ]),
-  page: style([
-    a.minW0,
-    a.pb16,
-  ]),
-  routesInner: style([
-    a.mxAuto,
-    a.minW0,
-    a.px4,
-    a.pt35,
-    {
-      maxWidth: '84rem',
+    transformOrigin: 'center',
+  }),
+  heroOverlay: style({
+    backgroundImage:
+      'linear-gradient(90deg, rgba(249, 252, 255, 0.995) 0%, rgba(249, 252, 255, 0.94) 28%, rgba(243, 248, 255, 0.78) 48%, rgba(239, 246, 255, 0.48) 68%, rgba(237, 246, 255, 0.26) 100%), linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(226, 239, 255, 0.12) 100%)',
+    inset: 0,
+    position: 'absolute',
+    selectors: {
+      ':root[data-theme="dark"] &': {
+        backgroundImage:
+          'linear-gradient(90deg, rgba(8, 16, 27, 0.92) 0%, rgba(8, 16, 27, 0.72) 26%, rgba(8, 16, 27, 0.28) 54%, rgba(8, 16, 27, 0.1) 100%), linear-gradient(180deg, rgba(8, 16, 27, 0.12) 0%, rgba(8, 16, 27, 0.18) 100%)',
+      },
     },
-  ]),
-  routesIntro: style([
-    a.mt0,
-    a.mb8,
-    a.textBase,
-    a.leading17,
-    a.dark({
-      color: colorTokens.slate300,
-    }),
-    {
-      color: colorTokens.slate700,
-      maxWidth: '34rem',
+    zIndex: 1,
+  }),
+  page: style({
+    minInlineSize: 0,
+    paddingBlockEnd: '4rem',
+  }),
+  routesInner: style({
+    marginInline: 'auto',
+    maxWidth: '84rem',
+    minInlineSize: 0,
+    paddingBlockStart: '3.5rem',
+    paddingInline: '1rem',
+  }),
+  routesIntro: style({
+    color: colorTokens.slate700,
+    fontSize: '1rem',
+    lineHeight: 1.7,
+    marginBlockEnd: '2rem',
+    marginBlockStart: 0,
+    maxWidth: '34rem',
+    selectors: {
+      ':root[data-theme="dark"] &': {
+        color: colorTokens.slate300,
+      },
     },
-  ]),
-  routesList: style([
-    a.minW0,
-    a.borderBlockSolid,
-    a.borderBlock1,
-    a.borderSlate200,
-    a.dark({
-      borderColor: colorTokens.slate800,
-    }),
-  ]),
-  routesTitle: style([
-    a.mt0,
-    a.mb3,
-    a.fontBold,
-    a.text20,
-    a.leading098,
-    a.md({
-      fontSize: '2.6rem',
-    }),
-    a.dark({
-      color: colorTokens.white,
-    }),
-    {
-      color: colorTokens.slate900,
-      letterSpacing: '-0.04em',
-      maxWidth: '12ch',
+  }),
+  routesList: style({
+    borderBlockStyle: 'solid',
+    borderBlockWidth: '1px',
+    borderColor: colorTokens.slate200,
+    minInlineSize: 0,
+    selectors: {
+      ':root[data-theme="dark"] &': {
+        borderColor: colorTokens.slate800,
+      },
     },
-  ]),
-  rowBody: style([
-    a.m0,
-    a.minW0,
-    a.text098,
-    a.leading165,
-    a.dark({
-      color: colorTokens.slate300,
-    }),
-    {
-      color: colorTokens.slate700,
+  }),
+  routesTitle: style({
+    '@media': {
+      '(min-width: 768px)': {
+        fontSize: '2.6rem',
+      },
     },
-  ]),
-  rowContent: style([
-    a.minW0,
-  ]),
-  rowNumber: style([
-    a.relative,
-    a.fontBold,
-    a.leadingNone,
-    a.text145,
-    a.md({
-      fontSize: '2rem',
-    }),
-    a.dark({
-      color: '#7dd3fc',
-    }),
-    {
-      color: colorTokens.info,
-      letterSpacing: '-0.04em',
+    color: colorTokens.slate900,
+    fontSize: '2rem',
+    fontWeight: 700,
+    letterSpacing: '-0.04em',
+    lineHeight: 0.98,
+    marginBlockEnd: '0.75rem',
+    marginBlockStart: 0,
+    maxWidth: '12ch',
+    selectors: {
+      ':root[data-theme="dark"] &': {
+        color: colorTokens.white,
+      },
     },
-  ]),
-  rowPanel: style([
-    a.itemsStart,
-    a.grid,
-    a.minW0,
-    a.pb145,
-    a.pt145,
-    a.pl05,
-    a.pr05,
-    a.md({
-      gridTemplateColumns: '5.5rem minmax(0, 18rem) minmax(0, 1fr)',
-    }),
-    {
-      gap: '1rem 1rem',
-      gridTemplateColumns: '1fr',
+  }),
+  rowBody: style({
+    color: colorTokens.slate700,
+    fontSize: '0.98rem',
+    lineHeight: 1.65,
+    margin: 0,
+    minInlineSize: 0,
+    selectors: {
+      ':root[data-theme="dark"] &': {
+        color: colorTokens.slate300,
+      },
     },
-  ]),
-  rowRow: style([
-    a.minW0,
-    {
-      borderBottomColor: colorTokens.slate200,
-      borderBottomStyle: 'solid',
-      borderBottomWidth: '1px',
+  }),
+  rowContent: style({
+    minInlineSize: 0,
+  }),
+  rowNumber: style({
+    '@media': {
+      '(min-width: 768px)': {
+        fontSize: '2rem',
+      },
     },
-    a.dark({
-      borderBottomColor: colorTokens.slate800,
-    }),
-  ]),
-  rowTitle: style([
-    a.mt0,
-    a.mb03,
-    a.text145,
-    a.fontSemibold,
-    a.leading11,
-    a.dark({
-      color: colorTokens.white,
-    }),
-    {
-      color: colorTokens.slate900,
-      letterSpacing: '-0.03em',
+    color: colorTokens.info,
+    fontSize: '1.45rem',
+    fontWeight: 700,
+    letterSpacing: '-0.04em',
+    lineHeight: 1,
+    position: 'relative',
+    selectors: {
+      ':root[data-theme="dark"] &': {
+        color: '#7dd3fc',
+      },
     },
-  ]),
-  title: style([
-    a.mt0,
-    a.mb4,
-    a.animFillBoth,
-    a.animCubic,
-    a.anim700,
-    a.reducedMotion({
-      animationDuration: '1ms',
-      animationIterationCount: '1',
-    }),
-    a.md({
-      fontSize: '6.4rem',
-    }),
-    a.dark({
-      color: colorTokens.white,
-    }),
-    {
-      animationName: heroReveal,
-      color: colorTokens.slate900,
-      fontSize: '3.95rem',
-      letterSpacing: '-0.07em',
-      lineHeight: '0.84',
-      maxWidth: '7ch',
+  }),
+  rowPanel: style({
+    '@media': {
+      '(min-width: 768px)': {
+        gridTemplateColumns: '5.5rem minmax(0, 18rem) minmax(0, 1fr)',
+      },
     },
-  ]),
-  titleAccent: style([
-    a.block,
-    a.dark({
-      color: '#7dd3fc',
-    }),
-    {
-      color: colorTokens.info,
+    alignItems: 'flex-start',
+    display: 'grid',
+    gap: '1rem 1rem',
+    gridTemplateColumns: '1fr',
+    minInlineSize: 0,
+    paddingBlockEnd: '1.45rem',
+    paddingBlockStart: '1.45rem',
+    paddingInlineEnd: '0.5rem',
+    paddingInlineStart: '0.5rem',
+  }),
+  rowRow: style({
+    borderBottomColor: colorTokens.slate200,
+    borderBottomStyle: 'solid',
+    borderBottomWidth: '1px',
+    minInlineSize: 0,
+    selectors: {
+      ':root[data-theme="dark"] &': {
+        borderBottomColor: colorTokens.slate800,
+      },
     },
-  ]),
+  }),
+  rowTitle: style({
+    color: colorTokens.slate900,
+    fontSize: '1.45rem',
+    fontWeight: 600,
+    letterSpacing: '-0.03em',
+    lineHeight: 1.1,
+    marginBlockEnd: '0.3rem',
+    marginBlockStart: 0,
+    selectors: {
+      ':root[data-theme="dark"] &': {
+        color: colorTokens.white,
+      },
+    },
+  }),
+  title: style({
+    '@media': {
+      '(min-width: 768px)': {
+        fontSize: '6.4rem',
+      },
+      '(prefers-reduced-motion: reduce)': {
+        animationDuration: '1ms',
+        animationIterationCount: 1,
+      },
+    },
+    animationDuration: '700ms',
+    animationFillMode: 'both',
+    animationName: heroReveal,
+    animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
+    color: colorTokens.slate900,
+    fontSize: '3.95rem',
+    letterSpacing: '-0.07em',
+    lineHeight: 0.84,
+    marginBlockEnd: '1rem',
+    marginBlockStart: 0,
+    maxWidth: '7ch',
+    selectors: {
+      ':root[data-theme="dark"] &': {
+        color: colorTokens.white,
+      },
+    },
+  }),
+  titleAccent: style({
+    color: colorTokens.info,
+    display: 'block',
+    selectors: {
+      ':root[data-theme="dark"] &': {
+        color: '#7dd3fc',
+      },
+    },
+  }),
 };

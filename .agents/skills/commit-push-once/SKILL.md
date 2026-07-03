@@ -33,6 +33,10 @@ Success criteria
 
 Checklist
 - [ ] inspect staged diff
+- [ ] run `deno task format` to auto-fix formatting
+- [ ] run `deno task lint` and fix any issues
+- [ ] run `deno task check` and fix any type errors
+- [ ] re-stage any files changed by format/lint/typecheck
 - [ ] check if GPG signing is available: `git config --get user.signingkey`
 - [ ] commit staged changes (use `git commit -S` if GPG key available)
 - [ ] push the current branch
@@ -40,5 +44,6 @@ Checklist
 - [ ] stop after the first successful push
 
 Notes
+- Always run format, lint, and typecheck before committing. If any check fails, fix the issues before proceeding with the commit.
 - If the branch has no configured upstream, push to the repository remote the user is working against.
 - Always sign commits with GPG if available. Use `git commit -S` for signed commits. If GPG is not configured, proceed without signing but note it in the commit message.
