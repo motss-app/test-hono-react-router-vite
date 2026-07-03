@@ -1,6 +1,6 @@
 import type { JSX } from 'react';
 
-import { hidden, visible } from './scroll-to-top-button.css.ts';
+import { button, hidden, visible } from './scroll-to-top-button.css.ts';
 
 interface ScrollToTopButtonProps {
   isVisible: boolean;
@@ -11,7 +11,7 @@ export function ScrollToTopButton({ isVisible, onClick }: ScrollToTopButtonProps
   return (
     <button
       aria-label="Scroll to top"
-      className={isVisible ? visible : hidden}
+      className={`${button} ${isVisible ? visible : hidden}`}
       onClick={onClick}
       type="button"
     >
