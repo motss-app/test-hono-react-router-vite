@@ -14,7 +14,7 @@ function isOnlyReachableViaDynamicImports(
   getModuleInfo: (id: string) => Rolldown.ModuleInfo | null,
   id: string,
   cache: Map<string, boolean>,
-  visited: Set<string> = new Set()
+  visited: Set<string> = new Set(),
 ): boolean {
   const cached = cache.get(id);
   if (cached !== undefined) return cached;
@@ -39,8 +39,13 @@ function isOnlyReachableViaDynamicImports(
       return result;
     }
 
-    const allStaticImportersAreDynamic = importers.every(importer =>
-      isOnlyReachableViaDynamicImports(getModuleInfo, importer, cache, new Set(visited))
+    const allStaticImportersAreDynamic = importers.every((importer) =>
+      isOnlyReachableViaDynamicImports(
+        getModuleInfo,
+        importer,
+        cache,
+        new Set(visited),
+      ),
     );
 
     cache.set(id, allStaticImportersAreDynamic);
@@ -67,7 +72,7 @@ export function veCssTextPlugin(): Plugin {
 
   function isDynamicOnly(
     getModuleInfo: (id: string) => Rolldown.ModuleInfo | null,
-    rawId: string
+    rawId: string,
   ): boolean {
     const q = rawId.indexOf('?');
     const cleanId = q === -1 ? rawId : rawId.slice(0, q);

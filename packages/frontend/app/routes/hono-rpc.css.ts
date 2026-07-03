@@ -1,87 +1,6 @@
 import { keyframes, style } from '@vanilla-extract/css';
 
-import {
-  anim18s,
-  anim700,
-  animAlternate,
-  animCubic,
-  animEaseInOut,
-  animFillBoth,
-  animInfinite,
-} from '../styles/atomic/animation/animation/animation.css.ts';
-import { roundedFull, roundedXl } from '../styles/atomic/appearance/border/border-radius.css.ts';
-import { border1, borderSolid } from '../styles/atomic/appearance/border/border-style.css.ts';
-import {
-  itemsCenter,
-  itemsEnd,
-  itemsStart,
-  justifyStart,
-} from '../styles/atomic/flex/flex-container/alignment.css.ts';
-import { gap05, gap075, gap4 } from '../styles/atomic/flex/flex-container/gap.css.ts';
-import { gridAutoFlowColumn } from '../styles/atomic/grid/grid-container/grid-auto-flow.css.ts';
-import { bgCover, bgNoRepeat } from '../styles/atomic/layout/background.css.ts';
-import {
-  m0,
-  mb03,
-  mb085,
-  mb3,
-  mb4,
-  mb8,
-  mt0,
-  mxAuto,
-} from '../styles/atomic/layout/box-model/margin.css.ts';
-import {
-  p4,
-  p8,
-  pb10,
-  pb145,
-  pb16,
-  pb8,
-  pl05,
-  pr05,
-  pt145,
-  pt16,
-  pt35,
-  px4,
-} from '../styles/atomic/layout/box-model/padding.css.ts';
-import { p092_145 } from '../styles/atomic/layout/box-model/padding.custom.css.ts';
-import { maxW2xl, minH100svh, minW0, wFull } from '../styles/atomic/layout/box-model/sizing.css.ts';
-import { block, grid, inlineGrid } from '../styles/atomic/layout/display-visibility/display.css.ts';
-import { overflowHidden } from '../styles/atomic/layout/display-visibility/overflow.css.ts';
-import { absolute, inset0, relative } from '../styles/atomic/layout/positioning/position.css.ts';
-import { z1, z2 } from '../styles/atomic/layout/positioning/z-index.css.ts';
-import { md, reducedMotion } from '../styles/atomic/other/media.css.ts';
-import { dark, darkHover, hover } from '../styles/atomic/other/selectors.css.ts';
-import {
-  text086,
-  text098,
-  text11,
-  text128,
-  text145,
-  text20,
-  text395,
-  textBase,
-} from '../styles/atomic/text/font/font-size.css.ts';
-import { fontBold, fontMedium, fontSemibold } from '../styles/atomic/text/font/font-weight.css.ts';
-import {
-  trackingTight,
-  trackingTighter,
-} from '../styles/atomic/text/text-props/letter-spacing.css.ts';
-import {
-  leading084,
-  leading098,
-  leading11,
-  leading112,
-  leading155,
-  leading165,
-  leading17,
-  leadingNone,
-} from '../styles/atomic/text/text-props/line-height.css.ts';
-import {
-  noUnderline,
-  textUppercase,
-  whitespaceNowrap,
-} from '../styles/atomic/text/text-props/text-transform.css.ts';
+import * as a from '../styles/atomic/index.css.ts';
 import { colorTokens } from '../styles/color-tokens.contract.css.ts';
 
 const heroReveal = keyframes({
@@ -108,10 +27,10 @@ const artworkDrift = keyframes({
 });
 
 export const actionButton = style([
-  roundedFull,
-  fontSemibold,
-  wFull,
-  p092_145,
+  a.roundedFull,
+  a.fontSemibold,
+  a.wFull,
+  a.p092_145,
   {
     backgroundColor: colorTokens.info,
     border: 'none',
@@ -119,14 +38,14 @@ export const actionButton = style([
     cursor: 'pointer',
     transition: 'background-color 0.2s ease, transform 0.2s ease',
   },
-  dark({
+  a.dark({
     backgroundColor: '#bae6fd',
     color: colorTokens.slate900,
   }),
-  darkHover({
+  a.darkHover({
     backgroundColor: '#7dd3fc',
   }),
-  hover({
+  a.hover({
     backgroundColor: colorTokens.infoHover,
     transform: 'translate3d(0, -0.125rem, 0)',
   }),
@@ -137,30 +56,30 @@ export const actionButtonLoadingStyle = style([
     color: colorTokens.slate100,
     cursor: 'not-allowed',
   },
-  dark({
+  a.dark({
     backgroundColor: colorTokens.slate500,
   }),
 ]);
 export const actionShell = style([
-  itemsCenter,
-  grid,
-  minW0,
+  a.itemsCenter,
+  a.grid,
+  a.minW0,
 ]);
 export const ctaSecondary = style([
-  itemsCenter,
-  animFillBoth,
-  animCubic,
-  anim700,
-  roundedFull,
-  borderSolid,
-  border1,
-  inlineGrid,
-  fontSemibold,
-  gap05,
-  gridAutoFlowColumn,
-  p092_145,
-  noUnderline,
-  whitespaceNowrap,
+  a.itemsCenter,
+  a.animFillBoth,
+  a.animCubic,
+  a.anim700,
+  a.roundedFull,
+  a.borderSolid,
+  a.border1,
+  a.inlineGrid,
+  a.fontSemibold,
+  a.gap05,
+  a.gridAutoFlowColumn,
+  a.p092_145,
+  a.noUnderline,
+  a.whitespaceNowrap,
   {
     animationDelay: '320ms',
     animationName: heroReveal,
@@ -169,38 +88,38 @@ export const ctaSecondary = style([
     color: colorTokens.slate900,
     transition: 'background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease',
   },
-  dark({
+  a.dark({
     backgroundColor: 'rgba(15, 23, 42, 0.28)',
     borderColor: 'rgba(226, 232, 240, 0.26)',
     color: colorTokens.slate100,
   }),
-  darkHover({
+  a.darkHover({
     backgroundColor: 'rgba(148, 163, 184, 0.12)',
     borderColor: colorTokens.slate400,
   }),
-  hover({
+  a.hover({
     backgroundColor: 'rgba(255, 255, 255, 0.7)',
     borderColor: '#bfdbfe',
     transform: 'translate3d(0, -0.125rem, 0)',
   }),
 ]);
 export const dataLabel = style([
-  text086,
-  mb03,
-  textUppercase,
+  a.text086,
+  a.mb03,
+  a.textUppercase,
   {
     color: colorTokens.slate600,
     letterSpacing: '0.08em',
   },
-  dark({
+  a.dark({
     color: colorTokens.slate400,
   }),
 ]);
 export const dataList = style([
-  grid,
-  gap4,
-  minW0,
-  md({
+  a.grid,
+  a.gap4,
+  a.minW0,
+  a.md({
     gridTemplateColumns: '1fr 1fr',
   }),
   {
@@ -208,81 +127,81 @@ export const dataList = style([
   },
 ]);
 export const dataValue = style([
-  text11,
-  leading155,
-  m0,
-  minW0,
+  a.text11,
+  a.leading155,
+  a.m0,
+  a.minW0,
   {
     color: colorTokens.slate900,
     overflowWrap: 'anywhere',
   },
-  dark({
+  a.dark({
     color: colorTokens.slate100,
   }),
 ]);
 export const errorBox = style([
-  roundedXl,
-  borderSolid,
-  border1,
-  mxAuto,
-  maxW2xl,
-  p4,
+  a.roundedXl,
+  a.borderSolid,
+  a.border1,
+  a.mxAuto,
+  a.maxW2xl,
+  a.p4,
   {
     backgroundColor: '#fef2f2',
     borderColor: '#ef4444',
     color: '#b91c1c',
   },
-  dark({
+  a.dark({
     backgroundColor: '#7f1d1d',
     borderColor: '#dc2626',
     color: '#fca5a5',
   }),
 ]);
 export const errorPage = style([
-  minW0,
-  p8,
+  a.minW0,
+  a.p8,
 ]);
 export const hero = style([
-  minW0,
-  overflowHidden,
-  relative,
+  a.minW0,
+  a.overflowHidden,
+  a.relative,
   {
     backgroundColor: '#edf6ff',
   },
-  dark({
+  a.dark({
     backgroundColor: '#08101b',
   }),
 ]);
 export const heroActions = style([
-  inlineGrid,
-  gap075,
-  gridAutoFlowColumn,
-  justifyStart,
+  a.inlineGrid,
+  a.gap075,
+  a.gridAutoFlowColumn,
+  a.justifyStart,
 ]);
 export const heroBody = style([
-  animFillBoth,
-  animCubic,
-  anim700,
-  textBase,
-  leading17,
-  mb8,
-  mt0,
+  a.animFillBoth,
+  a.animCubic,
+  a.anim700,
+  a.textBase,
+  a.leading17,
+  a.mb8,
+  a.mt0,
   {
     animationDelay: '160ms',
     animationName: heroReveal,
     color: colorTokens.slate800,
     maxWidth: '31rem',
   },
-  dark({
+  a.dark({
     color: colorTokens.slate300,
   }),
 ]);
 export const heroCopy = style([
-  minW0,
-  relative,
-  z2,
-  pb10,
-  md({
+  a.minW0,
+  a.relative,
+  a.z2,
+  a.pb10,
+  a.md({
     paddingBottom: '4rem',
   }),
   {
@@ -290,16 +209,16 @@ export const heroCopy = style([
   },
 ]);
 export const heroInner = style([
-  itemsEnd,
-  grid,
-  mxAuto,
-  minH100svh,
-  minW0,
-  pb8,
-  px4,
-  pt16,
-  relative,
-  md({
+  a.itemsEnd,
+  a.grid,
+  a.mxAuto,
+  a.minH100svh,
+  a.minW0,
+  a.pb8,
+  a.px4,
+  a.pt16,
+  a.relative,
+  a.md({
     paddingBottom: '0',
   }),
   {
@@ -307,16 +226,16 @@ export const heroInner = style([
   },
 ]);
 export const heroLead = style([
-  animFillBoth,
-  animCubic,
-  anim700,
-  text128,
-  fontMedium,
-  trackingTight,
-  leading112,
-  mb085,
-  mt0,
-  md({
+  a.animFillBoth,
+  a.animCubic,
+  a.anim700,
+  a.text128,
+  a.fontMedium,
+  a.trackingTight,
+  a.leading112,
+  a.mb085,
+  a.mt0,
+  a.md({
     fontSize: '1.95rem',
   }),
   {
@@ -325,23 +244,23 @@ export const heroLead = style([
     color: colorTokens.slate900,
     maxWidth: '15ch',
   },
-  dark({
+  a.dark({
     color: colorTokens.slate100,
   }),
 ]);
 export const heroMedia = style([
-  animAlternate,
-  anim18s,
-  animInfinite,
-  animEaseInOut,
-  bgNoRepeat,
-  bgCover,
-  absolute,
-  inset0,
-  md({
+  a.animAlternate,
+  a.anim18s,
+  a.animInfinite,
+  a.animEaseInOut,
+  a.bgNoRepeat,
+  a.bgCover,
+  a.absolute,
+  a.inset0,
+  a.md({
     backgroundPosition: 'center center',
   }),
-  reducedMotion({
+  a.reducedMotion({
     animationDuration: '1ms',
     animationIterationCount: '1',
   }),
@@ -352,118 +271,118 @@ export const heroMedia = style([
     opacity: 0.8,
     transformOrigin: 'center',
   },
-  dark({
+  a.dark({
     backgroundImage: 'url("/assets/hono-rpc-hero-dark.svg")',
     opacity: 1,
   }),
 ]);
 export const heroOverlay = style([
-  absolute,
-  inset0,
-  z1,
+  a.absolute,
+  a.inset0,
+  a.z1,
   {
     backgroundImage:
       'linear-gradient(90deg, rgba(249, 252, 255, 0.995) 0%, rgba(249, 252, 255, 0.94) 28%, rgba(243, 248, 255, 0.78) 48%, rgba(239, 246, 255, 0.48) 68%, rgba(237, 246, 255, 0.26) 100%), linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(226, 239, 255, 0.12) 100%)',
   },
-  dark({
+  a.dark({
     backgroundImage:
       'linear-gradient(90deg, rgba(8, 16, 27, 0.92) 0%, rgba(8, 16, 27, 0.72) 26%, rgba(8, 16, 27, 0.28) 54%, rgba(8, 16, 27, 0.1) 100%), linear-gradient(180deg, rgba(8, 16, 27, 0.12) 0%, rgba(8, 16, 27, 0.18) 100%)',
   }),
 ]);
 export const page = style([
-  minW0,
-  pb16,
+  a.minW0,
+  a.pb16,
 ]);
 export const routesInner = style([
-  mxAuto,
-  minW0,
-  px4,
-  pt35,
+  a.mxAuto,
+  a.minW0,
+  a.px4,
+  a.pt35,
   {
     maxWidth: '84rem',
   },
 ]);
 export const routesIntro = style([
-  textBase,
-  leading17,
-  mb8,
-  mt0,
+  a.textBase,
+  a.leading17,
+  a.mb8,
+  a.mt0,
   {
     color: colorTokens.slate700,
     maxWidth: '34rem',
   },
-  dark({
+  a.dark({
     color: colorTokens.slate300,
   }),
 ]);
 export const routesList = style([
-  minW0,
+  a.minW0,
   {
     borderTopColor: colorTokens.slate200,
     borderTopStyle: 'solid',
     borderTopWidth: '1px',
   },
-  dark({
+  a.dark({
     borderTopColor: colorTokens.slate800,
   }),
 ]);
 export const routesTitle = style([
-  text20,
-  fontBold,
-  trackingTighter,
-  leading098,
-  mb3,
-  mt0,
-  md({
+  a.text20,
+  a.fontBold,
+  a.trackingTighter,
+  a.leading098,
+  a.mb3,
+  a.mt0,
+  a.md({
     fontSize: '2.6rem',
   }),
   {
     color: colorTokens.slate900,
     maxWidth: '12ch',
   },
-  dark({
+  a.dark({
     color: colorTokens.white,
   }),
 ]);
 export const rowBody = style([
-  text098,
-  leading165,
-  m0,
-  minW0,
+  a.text098,
+  a.leading165,
+  a.m0,
+  a.minW0,
   {
     color: colorTokens.slate700,
   },
-  dark({
+  a.dark({
     color: colorTokens.slate300,
   }),
 ]);
 export const rowContent = style([
-  minW0,
+  a.minW0,
 ]);
 export const rowNumber = style([
-  text145,
-  fontBold,
-  trackingTighter,
-  leadingNone,
-  md({
+  a.text145,
+  a.fontBold,
+  a.trackingTighter,
+  a.leadingNone,
+  a.md({
     fontSize: '2rem',
   }),
   {
     color: colorTokens.info,
   },
-  dark({
+  a.dark({
     color: '#7dd3fc',
   }),
 ]);
 export const rowPanel = style([
-  itemsStart,
-  grid,
-  gap4,
-  minW0,
-  pb145,
-  pl05,
-  pr05,
-  pt145,
+  a.itemsStart,
+  a.grid,
+  a.gap4,
+  a.minW0,
+  a.pb145,
+  a.pl05,
+  a.pr05,
+  a.pt145,
   {
     '@media': {
       '(min-width: 960px)': {
@@ -474,33 +393,33 @@ export const rowPanel = style([
   },
 ]);
 export const rowRow = style([
-  minW0,
+  a.minW0,
   {
     borderBottomColor: colorTokens.slate200,
     borderBottomStyle: 'solid',
     borderBottomWidth: '1px',
   },
-  dark({
+  a.dark({
     borderBottomColor: colorTokens.slate800,
   }),
 ]);
 export const rowTitle = style([
-  text145,
-  fontSemibold,
-  leading11,
-  mb03,
-  mt0,
+  a.text145,
+  a.fontSemibold,
+  a.leading11,
+  a.mb03,
+  a.mt0,
   {
     color: colorTokens.slate900,
     letterSpacing: '-0.03em',
   },
-  dark({
+  a.dark({
     color: colorTokens.white,
   }),
 ]);
 export const skeletonAction = style([
-  roundedFull,
-  wFull,
+  a.roundedFull,
+  a.wFull,
   {
     height: '3rem',
   },
@@ -521,18 +440,18 @@ export const skeletonTimestamp = style([
   },
 ]);
 export const title = style([
-  animFillBoth,
-  animCubic,
-  anim700,
-  text395,
-  fontBold,
-  leading084,
-  mb4,
-  mt0,
-  md({
+  a.animFillBoth,
+  a.animCubic,
+  a.anim700,
+  a.text395,
+  a.fontBold,
+  a.leading084,
+  a.mb4,
+  a.mt0,
+  a.md({
     fontSize: '6.4rem',
   }),
-  reducedMotion({
+  a.reducedMotion({
     animationDuration: '1ms',
     animationIterationCount: '1',
   }),
@@ -542,16 +461,16 @@ export const title = style([
     letterSpacing: '-0.07em',
     maxWidth: '7ch',
   },
-  dark({
+  a.dark({
     color: colorTokens.white,
   }),
 ]);
 export const titleAccent = style([
-  block,
+  a.block,
   {
     color: colorTokens.info,
   },
-  dark({
+  a.dark({
     color: '#7dd3fc',
   }),
 ]);

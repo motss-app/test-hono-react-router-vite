@@ -1,76 +1,6 @@
 import { keyframes, style } from '@vanilla-extract/css';
 
-import {
-  anim18s,
-  anim700,
-  animAlternate,
-  animCubic,
-  animEaseInOut,
-  animFillBoth,
-  animInfinite,
-} from '../styles/atomic/animation/animation/animation.css.ts';
-import {
-  borderOrange100,
-  borderRed100,
-  borderSky200,
-} from '../styles/atomic/appearance/border/border-color.custom.css.ts';
-import {
-  borderBlock1,
-  borderBlockSolid,
-} from '../styles/atomic/appearance/border/border-logical.css.ts';
-import { roundedFull } from '../styles/atomic/appearance/border/border-radius.css.ts';
-import { border1, borderSolid } from '../styles/atomic/appearance/border/border-style.css.ts';
-import {
-  itemsCenter,
-  itemsEnd,
-  itemsStart,
-  justifyStart,
-} from '../styles/atomic/flex/flex-container/alignment.css.ts';
-import { gap05, gap075, gap4 } from '../styles/atomic/flex/flex-container/gap.css.ts';
-import { gridAutoFlowColumn } from '../styles/atomic/grid/grid-container/grid-auto-flow.css.ts';
-import { bgCover, bgNoRepeat } from '../styles/atomic/layout/background.css.ts';
-import {
-  m0,
-  mb03,
-  mb085,
-  mb4,
-  mb8,
-  mt0,
-  mxAuto,
-} from '../styles/atomic/layout/box-model/margin.css.ts';
-import { pb16, pb8, pt16, pt35, px4 } from '../styles/atomic/layout/box-model/padding.css.ts';
-import { p092_145 } from '../styles/atomic/layout/box-model/padding.custom.css.ts';
-import { minH100svh, minW0 } from '../styles/atomic/layout/box-model/sizing.css.ts';
-import { block, grid, inlineGrid } from '../styles/atomic/layout/display-visibility/display.css.ts';
-import { overflowHidden } from '../styles/atomic/layout/display-visibility/overflow.css.ts';
-import { absolute, inset0, relative } from '../styles/atomic/layout/positioning/position.css.ts';
-import { z1, z2 } from '../styles/atomic/layout/positioning/z-index.css.ts';
-import { md, reducedMotion } from '../styles/atomic/other/media.css.ts';
-import { dark, darkHover, hover } from '../styles/atomic/other/selectors.css.ts';
-import {
-  text086,
-  text098,
-  text11,
-  text145,
-  textBase,
-} from '../styles/atomic/text/font/font-size.css.ts';
-import { fontBold, fontMedium, fontSemibold } from '../styles/atomic/text/font/font-weight.css.ts';
-import {
-  trackingTight,
-  trackingTighter,
-} from '../styles/atomic/text/text-props/letter-spacing.css.ts';
-import {
-  leading10,
-  leading11,
-  leading155,
-  leading165,
-  leading17,
-} from '../styles/atomic/text/text-props/line-height.css.ts';
-import {
-  noUnderline,
-  textUppercase,
-  whitespaceNowrap,
-} from '../styles/atomic/text/text-props/text-transform.css.ts';
+import * as a from '../styles/atomic/index.css.ts';
 import { colorTokens } from '../styles/color-tokens.contract.css.ts';
 
 const heroReveal = keyframes({
@@ -97,25 +27,25 @@ const artworkDrift = keyframes({
 });
 
 export const ctaPrimary = style([
-  itemsCenter,
-  animFillBoth,
-  animCubic,
-  anim700,
-  roundedFull,
-  inlineGrid,
-  fontSemibold,
-  gap05,
-  gridAutoFlowColumn,
-  p092_145,
-  noUnderline,
-  whitespaceNowrap,
-  dark({
+  a.itemsCenter,
+  a.animFillBoth,
+  a.animCubic,
+  a.anim700,
+  a.roundedFull,
+  a.inlineGrid,
+  a.fontSemibold,
+  a.gap05,
+  a.gridAutoFlowColumn,
+  a.p092_145,
+  a.noUnderline,
+  a.whitespaceNowrap,
+  a.dark({
     backgroundColor: '#ef4444',
   }),
-  darkHover({
+  a.darkHover({
     backgroundColor: '#fca5a5',
   }),
-  hover({
+  a.hover({
     backgroundColor: '#dc2626',
     transform: 'translate3d(0, -0.125rem, 0)',
   }),
@@ -129,14 +59,14 @@ export const ctaPrimary = style([
 ]);
 
 export const ctaPrimaryRuntime = style([
-  dark({
+  a.dark({
     backgroundColor: '#67e8f9',
     color: colorTokens.slate900,
   }),
-  darkHover({
+  a.darkHover({
     backgroundColor: '#a5f3fc',
   }),
-  hover({
+  a.hover({
     backgroundColor: '#0284c7',
     transform: 'translate3d(0, -0.125rem, 0)',
   }),
@@ -147,13 +77,13 @@ export const ctaPrimaryRuntime = style([
 ]);
 
 export const ctaPrimaryWarning = style([
-  dark({
+  a.dark({
     backgroundColor: '#fcd34d',
   }),
-  darkHover({
+  a.darkHover({
     backgroundColor: '#fde68a',
   }),
-  hover({
+  a.hover({
     backgroundColor: '#d97706',
     transform: 'translate3d(0, -0.125rem, 0)',
   }),
@@ -164,29 +94,29 @@ export const ctaPrimaryWarning = style([
 ]);
 
 export const ctaSecondary = style([
-  itemsCenter,
-  animFillBoth,
-  animCubic,
-  anim700,
-  roundedFull,
-  borderSolid,
-  border1,
-  inlineGrid,
-  fontSemibold,
-  gap05,
-  gridAutoFlowColumn,
-  p092_145,
-  noUnderline,
-  whitespaceNowrap,
-  dark({
+  a.itemsCenter,
+  a.animFillBoth,
+  a.animCubic,
+  a.anim700,
+  a.roundedFull,
+  a.borderSolid,
+  a.border1,
+  a.inlineGrid,
+  a.fontSemibold,
+  a.gap05,
+  a.gridAutoFlowColumn,
+  a.p092_145,
+  a.noUnderline,
+  a.whitespaceNowrap,
+  a.dark({
     backgroundColor: 'rgba(15, 23, 42, 0.28)',
     borderColor: 'rgba(226, 232, 240, 0.26)',
     color: colorTokens.slate100,
   }),
-  darkHover({
+  a.darkHover({
     borderColor: colorTokens.slate400,
   }),
-  hover({
+  a.hover({
     backgroundColor: 'rgba(255, 255, 255, 0.72)',
     borderColor: '#fecaca',
     transform: 'translate3d(0, -0.125rem, 0)',
@@ -202,15 +132,15 @@ export const ctaSecondary = style([
 ]);
 
 export const ctaSecondaryRuntime = style([
-  dark({
+  a.dark({
     backgroundColor: 'rgba(15, 23, 42, 0.28)',
     borderColor: 'rgba(103, 232, 249, 0.28)',
     color: colorTokens.slate100,
   }),
-  darkHover({
+  a.darkHover({
     borderColor: '#67e8f9',
   }),
-  hover({
+  a.hover({
     backgroundColor: 'rgba(255, 255, 255, 0.72)',
     borderColor: '#7dd3fc',
     transform: 'translate3d(0, -0.125rem, 0)',
@@ -222,15 +152,15 @@ export const ctaSecondaryRuntime = style([
 ]);
 
 export const ctaSecondaryWarning = style([
-  dark({
+  a.dark({
     backgroundColor: 'rgba(15, 23, 42, 0.28)',
     borderColor: 'rgba(226, 232, 240, 0.26)',
     color: colorTokens.slate100,
   }),
-  darkHover({
+  a.darkHover({
     borderColor: colorTokens.slate400,
   }),
-  hover({
+  a.hover({
     backgroundColor: 'rgba(255, 255, 255, 0.72)',
     borderColor: '#fed7aa',
     transform: 'translate3d(0, -0.125rem, 0)',
@@ -242,10 +172,10 @@ export const ctaSecondaryWarning = style([
 ]);
 
 export const dataLabel = style([
-  text086,
-  textUppercase,
-  mb03,
-  dark({
+  a.text086,
+  a.textUppercase,
+  a.mb03,
+  a.dark({
     color: colorTokens.slate400,
   }),
   {
@@ -255,20 +185,20 @@ export const dataLabel = style([
 ]);
 
 export const dataList = style([
-  grid,
-  gap4,
-  minW0,
-  md({
+  a.grid,
+  a.gap4,
+  a.minW0,
+  a.md({
     gridTemplateColumns: '1fr 1fr',
   }),
 ]);
 
 export const dataValue = style([
-  text11,
-  leading155,
-  m0,
-  minW0,
-  dark({
+  a.text11,
+  a.leading155,
+  a.m0,
+  a.minW0,
+  a.dark({
     color: colorTokens.slate100,
   }),
   {
@@ -278,26 +208,26 @@ export const dataValue = style([
 ]);
 
 export const hero = style([
-  relative,
-  overflowHidden,
-  minW0,
+  a.relative,
+  a.overflowHidden,
+  a.minW0,
 ]);
 
 export const heroActions = style([
-  inlineGrid,
-  gap075,
-  gridAutoFlowColumn,
-  justifyStart,
+  a.inlineGrid,
+  a.gap075,
+  a.gridAutoFlowColumn,
+  a.justifyStart,
 ]);
 
 export const heroBody = style([
-  textBase,
-  leading17,
-  mb8,
-  mt0,
-  animFillBoth,
-  animCubic,
-  anim700,
+  a.textBase,
+  a.leading17,
+  a.mb8,
+  a.mt0,
+  a.animFillBoth,
+  a.animCubic,
+  a.anim700,
   {
     animationDelay: '160ms',
     animationName: heroReveal,
@@ -307,13 +237,13 @@ export const heroBody = style([
 ]);
 
 export const heroBodyCritical = style([
-  dark({
+  a.dark({
     color: colorTokens.slate300,
   }),
 ]);
 
 export const heroBodyRuntime = style([
-  dark({
+  a.dark({
     color: colorTokens.slate300,
   }),
   {
@@ -322,7 +252,7 @@ export const heroBodyRuntime = style([
 ]);
 
 export const heroBodyWarning = style([
-  dark({
+  a.dark({
     color: colorTokens.slate300,
   }),
   {
@@ -331,10 +261,10 @@ export const heroBodyWarning = style([
 ]);
 
 export const heroCopy = style([
-  relative,
-  z2,
-  minW0,
-  md({
+  a.relative,
+  a.z2,
+  a.minW0,
+  a.md({
     paddingBottom: '4rem',
   }),
   {
@@ -344,7 +274,7 @@ export const heroCopy = style([
 ]);
 
 export const heroCritical = style([
-  dark({
+  a.dark({
     backgroundColor: '#12090c',
   }),
   {
@@ -353,16 +283,16 @@ export const heroCritical = style([
 ]);
 
 export const heroInner = style([
-  itemsEnd,
-  grid,
-  mxAuto,
-  minH100svh,
-  relative,
-  minW0,
-  px4,
-  pt16,
-  pb8,
-  md({
+  a.itemsEnd,
+  a.grid,
+  a.mxAuto,
+  a.minH100svh,
+  a.relative,
+  a.minW0,
+  a.px4,
+  a.pt16,
+  a.pb8,
+  a.md({
     paddingBottom: '0',
   }),
   {
@@ -371,14 +301,14 @@ export const heroInner = style([
 ]);
 
 export const heroLead = style([
-  fontMedium,
-  trackingTight,
-  mt0,
-  mb085,
-  animFillBoth,
-  animCubic,
-  anim700,
-  md({
+  a.fontMedium,
+  a.trackingTight,
+  a.mt0,
+  a.mb085,
+  a.animFillBoth,
+  a.animCubic,
+  a.anim700,
+  a.md({
     fontSize: '1.95rem',
   }),
   {
@@ -392,7 +322,7 @@ export const heroLead = style([
 ]);
 
 export const heroLeadCritical = style([
-  dark({
+  a.dark({
     color: '#fca5a5',
   }),
   {
@@ -401,7 +331,7 @@ export const heroLeadCritical = style([
 ]);
 
 export const heroLeadRuntime = style([
-  dark({
+  a.dark({
     color: '#67e8f9',
   }),
   {
@@ -410,7 +340,7 @@ export const heroLeadRuntime = style([
 ]);
 
 export const heroLeadWarning = style([
-  dark({
+  a.dark({
     color: '#fde68a',
   }),
   {
@@ -419,22 +349,22 @@ export const heroLeadWarning = style([
 ]);
 
 export const heroMedia = style([
-  absolute,
-  inset0,
-  animAlternate,
-  animInfinite,
-  animEaseInOut,
-  anim18s,
-  bgCover,
-  bgNoRepeat,
-  md({
+  a.absolute,
+  a.inset0,
+  a.animAlternate,
+  a.animInfinite,
+  a.animEaseInOut,
+  a.anim18s,
+  a.bgCover,
+  a.bgNoRepeat,
+  a.md({
     backgroundPosition: 'center center',
   }),
-  reducedMotion({
+  a.reducedMotion({
     animationDuration: '1ms',
     animationIterationCount: '1',
   }),
-  dark({
+  a.dark({
     opacity: 1,
   }),
   {
@@ -446,7 +376,7 @@ export const heroMedia = style([
 ]);
 
 export const heroMediaCritical = style([
-  dark({
+  a.dark({
     backgroundImage: 'url("/assets/error-code-hero-dark.svg")',
   }),
   {
@@ -455,7 +385,7 @@ export const heroMediaCritical = style([
 ]);
 
 export const heroMediaRuntime = style([
-  dark({
+  a.dark({
     backgroundImage: 'url("/assets/runtime-error-hero-dark.svg")',
   }),
   {
@@ -464,7 +394,7 @@ export const heroMediaRuntime = style([
 ]);
 
 export const heroMediaWarning = style([
-  dark({
+  a.dark({
     backgroundImage: 'url("/assets/error-code-hero-dark.svg")',
   }),
   {
@@ -473,13 +403,13 @@ export const heroMediaWarning = style([
 ]);
 
 export const heroOverlay = style([
-  absolute,
-  inset0,
-  z1,
+  a.absolute,
+  a.inset0,
+  a.z1,
 ]);
 
 export const heroOverlayCritical = style([
-  dark({
+  a.dark({
     backgroundImage:
       'linear-gradient(90deg, rgba(18, 9, 12, 0.95) 0%, rgba(18, 9, 12, 0.74) 28%, rgba(18, 9, 12, 0.28) 56%, rgba(18, 9, 12, 0.1) 100%), linear-gradient(180deg, rgba(18, 9, 12, 0.16) 0%, rgba(18, 9, 12, 0.18) 100%)',
   }),
@@ -490,7 +420,7 @@ export const heroOverlayCritical = style([
 ]);
 
 export const heroOverlayRuntime = style([
-  dark({
+  a.dark({
     backgroundImage:
       'linear-gradient(90deg, rgba(7, 22, 27, 0.94) 0%, rgba(7, 22, 27, 0.72) 28%, rgba(7, 22, 27, 0.28) 56%, rgba(7, 22, 27, 0.1) 100%), linear-gradient(180deg, rgba(7, 22, 27, 0.16) 0%, rgba(7, 22, 27, 0.18) 100%)',
   }),
@@ -501,7 +431,7 @@ export const heroOverlayRuntime = style([
 ]);
 
 export const heroOverlayWarning = style([
-  dark({
+  a.dark({
     backgroundImage:
       'linear-gradient(90deg, rgba(20, 13, 7, 0.94) 0%, rgba(20, 13, 7, 0.74) 28%, rgba(20, 13, 7, 0.28) 56%, rgba(20, 13, 7, 0.1) 100%), linear-gradient(180deg, rgba(20, 13, 7, 0.16) 0%, rgba(20, 13, 7, 0.18) 100%)',
   }),
@@ -512,7 +442,7 @@ export const heroOverlayWarning = style([
 ]);
 
 export const heroRuntime = style([
-  dark({
+  a.dark({
     backgroundColor: '#07161b',
   }),
   {
@@ -521,7 +451,7 @@ export const heroRuntime = style([
 ]);
 
 export const heroWarning = style([
-  dark({
+  a.dark({
     backgroundColor: '#140d07',
   }),
   {
@@ -530,32 +460,32 @@ export const heroWarning = style([
 ]);
 
 export const page = style([
-  minW0,
-  pb16,
+  a.minW0,
+  a.pb16,
 ]);
 
 export const routesInner = style([
-  mxAuto,
-  minW0,
-  px4,
-  pt35,
+  a.mxAuto,
+  a.minW0,
+  a.px4,
+  a.pt35,
   {
     maxWidth: '84rem',
   },
 ]);
 
 export const routesIntro = style([
-  textBase,
-  leading17,
-  mb8,
-  mt0,
+  a.textBase,
+  a.leading17,
+  a.mb8,
+  a.mt0,
   {
     maxWidth: '36rem',
   },
 ]);
 
 export const routesIntroCritical = style([
-  dark({
+  a.dark({
     color: colorTokens.slate300,
   }),
   {
@@ -564,7 +494,7 @@ export const routesIntroCritical = style([
 ]);
 
 export const routesIntroRuntime = style([
-  dark({
+  a.dark({
     color: colorTokens.slate300,
   }),
   {
@@ -573,7 +503,7 @@ export const routesIntroRuntime = style([
 ]);
 
 export const routesIntroWarning = style([
-  dark({
+  a.dark({
     color: colorTokens.slate300,
   }),
   {
@@ -582,41 +512,41 @@ export const routesIntroWarning = style([
 ]);
 
 export const routesList = style([
-  borderBlockSolid,
-  borderBlock1,
-  minW0,
+  a.borderBlockSolid,
+  a.borderBlock1,
+  a.minW0,
 ]);
 
 export const routesListCritical = style([
-  borderRed100,
-  dark({
+  a.borderRed100,
+  a.dark({
     borderColor: colorTokens.slate800,
   }),
 ]);
 
 export const routesListRuntime = style([
-  borderSky200,
-  dark({
+  a.borderSky200,
+  a.dark({
     borderColor: colorTokens.slate800,
   }),
 ]);
 
 export const routesListWarning = style([
-  borderOrange100,
-  dark({
+  a.borderOrange100,
+  a.dark({
     borderColor: colorTokens.slate800,
   }),
 ]);
 
 export const routesTitle = style([
-  fontBold,
-  trackingTighter,
-  mt0,
-  mb03,
-  md({
+  a.fontBold,
+  a.trackingTighter,
+  a.mt0,
+  a.mb03,
+  a.md({
     fontSize: '2.6rem',
   }),
-  dark({
+  a.dark({
     color: colorTokens.white,
   }),
   {
@@ -628,11 +558,11 @@ export const routesTitle = style([
 ]);
 
 export const rowBody = style([
-  text098,
-  leading165,
-  m0,
-  minW0,
-  dark({
+  a.text098,
+  a.leading165,
+  a.m0,
+  a.minW0,
+  a.dark({
     color: colorTokens.slate300,
   }),
   {
@@ -641,9 +571,9 @@ export const rowBody = style([
 ]);
 
 export const rowCode = style([
-  fontBold,
-  leading10,
-  md({
+  a.fontBold,
+  a.leading10,
+  a.md({
     fontSize: '2rem',
   }),
   {
@@ -653,7 +583,7 @@ export const rowCode = style([
 ]);
 
 export const rowCodeCritical = style([
-  dark({
+  a.dark({
     color: '#fca5a5',
   }),
   {
@@ -662,7 +592,7 @@ export const rowCodeCritical = style([
 ]);
 
 export const rowCodeRuntime = style([
-  dark({
+  a.dark({
     color: '#67e8f9',
   }),
   {
@@ -671,7 +601,7 @@ export const rowCodeRuntime = style([
 ]);
 
 export const rowCodeWarning = style([
-  dark({
+  a.dark({
     color: '#fde68a',
   }),
   {
@@ -680,15 +610,15 @@ export const rowCodeWarning = style([
 ]);
 
 export const rowContent = style([
-  minW0,
+  a.minW0,
 ]);
 
 export const rowPanel = style([
-  itemsStart,
-  grid,
-  gap4,
-  minW0,
-  md({
+  a.itemsStart,
+  a.grid,
+  a.gap4,
+  a.minW0,
+  a.md({
     gridTemplateColumns: '6rem minmax(0, 18rem) minmax(0, 1fr)',
   }),
   {
@@ -701,39 +631,39 @@ export const rowPanel = style([
 ]);
 
 export const rowRow = style([
-  borderBlockSolid,
-  borderBlock1,
-  minW0,
+  a.borderBlockSolid,
+  a.borderBlock1,
+  a.minW0,
 ]);
 
 export const rowRowCritical = style([
-  borderRed100,
-  dark({
+  a.borderRed100,
+  a.dark({
     borderColor: colorTokens.slate800,
   }),
 ]);
 
 export const rowRowRuntime = style([
-  borderSky200,
-  dark({
+  a.borderSky200,
+  a.dark({
     borderColor: colorTokens.slate800,
   }),
 ]);
 
 export const rowRowWarning = style([
-  borderOrange100,
-  dark({
+  a.borderOrange100,
+  a.dark({
     borderColor: colorTokens.slate800,
   }),
 ]);
 
 export const rowTitle = style([
-  text145,
-  fontSemibold,
-  leading11,
-  mt0,
-  mb03,
-  dark({
+  a.text145,
+  a.fontSemibold,
+  a.leading11,
+  a.mt0,
+  a.mb03,
+  a.dark({
     color: colorTokens.white,
   }),
   {
@@ -743,16 +673,16 @@ export const rowTitle = style([
 ]);
 
 export const statusLabel = style([
-  text086,
-  m0,
-  textUppercase,
+  a.text086,
+  a.m0,
+  a.textUppercase,
   {
     letterSpacing: '0.08em',
   },
 ]);
 
 export const statusLabelCritical = style([
-  dark({
+  a.dark({
     color: colorTokens.slate400,
   }),
   {
@@ -761,7 +691,7 @@ export const statusLabelCritical = style([
 ]);
 
 export const statusLabelRuntime = style([
-  dark({
+  a.dark({
     color: colorTokens.slate400,
   }),
   {
@@ -770,7 +700,7 @@ export const statusLabelRuntime = style([
 ]);
 
 export const statusLabelWarning = style([
-  dark({
+  a.dark({
     color: colorTokens.slate400,
   }),
   {
@@ -779,21 +709,21 @@ export const statusLabelWarning = style([
 ]);
 
 export const title = style([
-  fontBold,
-  trackingTighter,
-  mt0,
-  mb4,
-  animFillBoth,
-  animCubic,
-  anim700,
-  md({
+  a.fontBold,
+  a.trackingTighter,
+  a.mt0,
+  a.mb4,
+  a.animFillBoth,
+  a.animCubic,
+  a.anim700,
+  a.md({
     fontSize: '7rem',
   }),
-  reducedMotion({
+  a.reducedMotion({
     animationDuration: '1ms',
     animationIterationCount: '1',
   }),
-  dark({
+  a.dark({
     color: colorTokens.white,
   }),
   {
@@ -806,8 +736,8 @@ export const title = style([
 ]);
 
 export const titleAccent = style([
-  block,
-  dark({
+  a.block,
+  a.dark({
     color: '#fca5a5',
   }),
   {
@@ -816,7 +746,7 @@ export const titleAccent = style([
 ]);
 
 export const titleAccentRuntime = style([
-  dark({
+  a.dark({
     color: '#67e8f9',
   }),
   {
@@ -825,7 +755,7 @@ export const titleAccentRuntime = style([
 ]);
 
 export const titleAccentWarning = style([
-  dark({
+  a.dark({
     color: '#fde68a',
   }),
   {

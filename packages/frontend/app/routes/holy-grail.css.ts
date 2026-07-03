@@ -1,43 +1,6 @@
 import { keyframes, style } from '@vanilla-extract/css';
 
-import {
-  anim700,
-  animCubic,
-  animFillBoth,
-} from '../styles/atomic/animation/animation/animation.css.ts';
-import {
-  borderSlate200,
-  borderSlate300,
-} from '../styles/atomic/appearance/border/border-color.css.ts';
-import {
-  borderBlock1,
-  borderBlockSolid,
-} from '../styles/atomic/appearance/border/border-logical.css.ts';
-import { roundedFull, roundedXl } from '../styles/atomic/appearance/border/border-radius.css.ts';
-import { border1, borderSolid } from '../styles/atomic/appearance/border/border-style.css.ts';
-import { itemsCenter, justifyCenter } from '../styles/atomic/flex/flex-container/alignment.css.ts';
-import { gap05, gap4, gap5 } from '../styles/atomic/flex/flex-container/gap.css.ts';
-import { gridAutoFlowColumn } from '../styles/atomic/grid/grid-container/grid-auto-flow.css.ts';
-import { m0, mxAuto } from '../styles/atomic/layout/box-model/margin.css.ts';
-import { p0, p4, pt4 } from '../styles/atomic/layout/box-model/padding.css.ts';
-import { minH100svh, minW0, wFull } from '../styles/atomic/layout/box-model/sizing.css.ts';
-import { grid, inlineGrid } from '../styles/atomic/layout/display-visibility/display.css.ts';
-import { sticky } from '../styles/atomic/layout/positioning/position.css.ts';
-import { z2 } from '../styles/atomic/layout/positioning/z-index.css.ts';
-import { dark, darkHover, hover } from '../styles/atomic/other/selectors.css.ts';
-import { textBase } from '../styles/atomic/text/font/font-size.css.ts';
-import { fontBold, fontSemibold } from '../styles/atomic/text/font/font-weight.css.ts';
-import {
-  leading105,
-  leading16,
-  leading17,
-} from '../styles/atomic/text/text-props/line-height.css.ts';
-import {
-  noUnderline,
-  textCenter,
-  textUppercase,
-  whitespaceNowrap,
-} from '../styles/atomic/text/text-props/text-transform.css.ts';
+import * as a from '../styles/atomic/index.css.ts';
 import { colorTokens } from '../styles/color-tokens.contract.css.ts';
 import { iconStyles } from '../styles/icon.css.ts';
 
@@ -53,45 +16,45 @@ const fadeUp = keyframes({
 });
 
 export const article = style([
-  grid,
-  gap5,
-  minW0,
-  animFillBoth,
-  animCubic,
-  anim700,
+  a.grid,
+  a.gap5,
+  a.minW0,
+  a.animFillBoth,
+  a.animCubic,
+  a.anim700,
   {
     animationDelay: '180ms',
     animationName: fadeUp,
   },
 ]);
 export const articleBody = style([
-  textBase,
-  leading17,
-  m0,
+  a.textBase,
+  a.leading17,
+  a.m0,
   {
     color: colorTokens.slate700,
     maxInlineSize: '54ch',
   },
-  dark({
+  a.dark({
     color: colorTokens.slate300,
   }),
 ]);
 export const articleEyebrow = style([
-  m0,
-  fontSemibold,
-  textUppercase,
+  a.m0,
+  a.fontSemibold,
+  a.textUppercase,
   {
     color: colorTokens.info,
     fontSize: '0.82rem',
     letterSpacing: '0.16em',
   },
-  dark({
+  a.dark({
     color: '#7dd3fc',
   }),
 ]);
 export const articleTitle = style([
-  m0,
-  fontBold,
+  a.m0,
+  a.fontBold,
   {
     '@container': {
       '(min-width: 48rem)': {
@@ -104,26 +67,26 @@ export const articleTitle = style([
     lineHeight: '0.95',
     maxInlineSize: '12ch',
   },
-  dark({
+  a.dark({
     color: colorTokens.white,
   }),
 ]);
 export const bodyCopy = style([
-  textBase,
-  leading17,
-  m0,
+  a.textBase,
+  a.leading17,
+  a.m0,
   {
     color: colorTokens.slate700,
     maxInlineSize: '62ch',
   },
-  dark({
+  a.dark({
     color: colorTokens.slate300,
   }),
 ]);
 export const brand = style([
-  grid,
-  gridAutoFlowColumn,
-  minW0,
+  a.grid,
+  a.gridAutoFlowColumn,
+  a.minW0,
   {
     alignItems: 'center',
     gap: '0.9rem',
@@ -135,15 +98,15 @@ export const brandIconVars = style([
     height: '1.25rem',
     width: '1.25rem',
   },
-  dark({
+  a.dark({
     color: colorTokens.slate900,
   }),
 ]);
 export const brandMark = style([
-  grid,
-  inlineGrid,
-  justifyCenter,
-  roundedXl,
+  a.grid,
+  a.inlineGrid,
+  a.justifyCenter,
+  a.roundedXl,
   {
     alignItems: 'center',
     backgroundColor: colorTokens.info,
@@ -152,16 +115,16 @@ export const brandMark = style([
     placeItems: 'center',
     width: '3rem',
   },
-  dark({
+  a.dark({
     backgroundColor: '#7dd3fc',
   }),
 ]);
 export const footer = style([
-  borderBlockSolid,
-  borderBlock1,
-  borderSlate200,
-  mxAuto,
-  wFull,
+  a.borderBlockSolid,
+  a.borderBlock1,
+  a.borderSlate200,
+  a.mxAuto,
+  a.wFull,
   {
     maxInlineSize: '96rem',
     paddingBlockEnd: '1.25rem',
@@ -169,17 +132,17 @@ export const footer = style([
     paddingInlineEnd: '1.25rem',
     paddingInlineStart: '1.25rem',
   },
-  dark({
+  a.dark({
     borderColor: colorTokens.slate800,
   }),
 ]);
 export const footerInner = style([
-  grid,
-  itemsCenter,
-  gap4,
-  animFillBoth,
-  animCubic,
-  anim700,
+  a.grid,
+  a.itemsCenter,
+  a.gap4,
+  a.animFillBoth,
+  a.animCubic,
+  a.anim700,
   {
     '@container': {
       '(min-width: 48rem)': {
@@ -192,11 +155,11 @@ export const footerInner = style([
   },
 ]);
 export const footerLink = style([
-  grid,
-  inlineGrid,
-  gridAutoFlowColumn,
-  roundedFull,
-  noUnderline,
+  a.grid,
+  a.inlineGrid,
+  a.gridAutoFlowColumn,
+  a.roundedFull,
+  a.noUnderline,
   {
     alignItems: 'center',
     color: colorTokens.slate900,
@@ -205,30 +168,30 @@ export const footerLink = style([
     padding: '0.55rem 0.9rem',
     transition: 'background-color 0.2s ease, transform 0.2s ease',
   },
-  dark({
+  a.dark({
     color: colorTokens.slate100,
   }),
-  darkHover({
+  a.darkHover({
     backgroundColor: 'rgba(125, 211, 252, 0.14)',
   }),
-  hover({
+  a.hover({
     backgroundColor: 'rgba(14, 165, 233, 0.1)',
     transform: 'translate3d(0.25rem, 0, 0)',
   }),
 ]);
 export const footerNote = style([
-  m0,
+  a.m0,
   {
     color: colorTokens.slate600,
     fontSize: '0.92rem',
   },
-  dark({
+  a.dark({
     color: colorTokens.slate400,
   }),
 ]);
 export const header = style([
-  sticky,
-  z2,
+  a.sticky,
+  a.z2,
   {
     backdropFilter: 'blur(20px)',
     backgroundColor: 'rgba(250, 250, 250, 0.82)',
@@ -237,21 +200,21 @@ export const header = style([
     borderBottomWidth: '1px',
     top: 0,
   },
-  dark({
+  a.dark({
     backgroundColor: 'rgba(2, 6, 23, 0.7)',
     borderBottomColor: colorTokens.slate800,
   }),
 ]);
 export const headerInner = style([
-  grid,
-  itemsCenter,
-  gap4,
-  mxAuto,
-  wFull,
-  animFillBoth,
-  animCubic,
-  anim700,
-  pt4,
+  a.grid,
+  a.itemsCenter,
+  a.gap4,
+  a.mxAuto,
+  a.wFull,
+  a.animFillBoth,
+  a.animCubic,
+  a.anim700,
+  a.pt4,
   {
     '@container': {
       '(min-width: 48rem)': {
@@ -268,15 +231,15 @@ export const headerInner = style([
   },
 ]);
 export const layoutBlock = style([
-  borderSolid,
-  border1,
-  borderSlate300,
-  roundedXl,
-  p4,
+  a.borderSolid,
+  a.border1,
+  a.borderSlate300,
+  a.roundedXl,
+  a.p4,
   {
     transition: 'transform 0.2s ease, border-color 0.2s ease',
   },
-  dark({
+  a.dark({
     borderColor: colorTokens.slate700,
   }),
 ]);
@@ -285,7 +248,7 @@ export const layoutBlockCenter = style([
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     minBlockSize: '15rem',
   },
-  dark({
+  a.dark({
     backgroundColor: 'rgba(8, 15, 31, 0.92)',
   }),
 ]);
@@ -293,7 +256,7 @@ export const layoutBlockLeft = style([
   {
     backgroundColor: 'rgba(239, 246, 255, 0.92)',
   },
-  dark({
+  a.dark({
     backgroundColor: 'rgba(15, 23, 42, 0.54)',
   }),
 ]);
@@ -301,19 +264,19 @@ export const layoutBlockRight = style([
   {
     backgroundColor: 'rgba(249, 250, 251, 0.92)',
   },
-  dark({
+  a.dark({
     backgroundColor: 'rgba(15, 23, 42, 0.38)',
   }),
 ]);
 export const layoutDiagram = style([
-  grid,
+  a.grid,
   {
     containerType: 'inline-size',
     gap: '0.85rem',
   },
 ]);
 export const layoutDiagramBody = style([
-  grid,
+  a.grid,
   {
     '@container': {
       '(min-width: 40rem)': {
@@ -325,25 +288,25 @@ export const layoutDiagramBody = style([
   },
 ]);
 export const layoutDiagramFooter = style([
-  textCenter,
+  a.textCenter,
   {
     backgroundColor: 'rgba(241, 245, 249, 0.92)',
   },
-  dark({
+  a.dark({
     backgroundColor: 'rgba(15, 23, 42, 0.5)',
   }),
 ]);
 export const layoutDiagramHeader = style([
-  textCenter,
+  a.textCenter,
   {
     backgroundColor: '#dbeafe',
   },
-  dark({
+  a.dark({
     backgroundColor: '#0f172a',
   }),
 ]);
 export const layoutDiagramMain = style([
-  grid,
+  a.grid,
   {
     '@container': {
       '(min-width: 40rem)': {
@@ -356,27 +319,27 @@ export const layoutDiagramMain = style([
     gridTemplateColumns: '1fr',
     minBlockSize: '15rem',
   },
-  dark({
+  a.dark({
     backgroundColor: 'rgba(125, 211, 252, 0.14)',
   }),
 ]);
 export const layoutLabel = style([
-  m0,
-  fontSemibold,
-  textUppercase,
+  a.m0,
+  a.fontSemibold,
+  a.textUppercase,
   {
     color: colorTokens.info,
     fontSize: '0.78rem',
     letterSpacing: '0.18em',
   },
-  dark({
+  a.dark({
     color: '#7dd3fc',
   }),
 ]);
 export const layoutTitle = style([
-  m0,
-  fontBold,
-  whitespaceNowrap,
+  a.m0,
+  a.fontBold,
+  a.whitespaceNowrap,
   {
     '@container': {
       '(min-width: 48rem)': {
@@ -389,13 +352,13 @@ export const layoutTitle = style([
     lineHeight: '0.94',
     maxInlineSize: 'none',
   },
-  dark({
+  a.dark({
     color: colorTokens.white,
   }),
 ]);
 export const nav = style([
-  grid,
-  gridAutoFlowColumn,
+  a.grid,
+  a.gridAutoFlowColumn,
   {
     alignItems: 'center',
     gap: '0.5rem',
@@ -403,33 +366,33 @@ export const nav = style([
   },
 ]);
 export const navLink = style([
-  roundedFull,
-  noUnderline,
+  a.roundedFull,
+  a.noUnderline,
   {
     color: colorTokens.slate900,
     fontSize: '0.92rem',
     padding: '0.55rem 0.8rem',
     transition: 'background-color 0.2s ease, color 0.2s ease',
   },
-  dark({
+  a.dark({
     color: colorTokens.slate100,
   }),
-  darkHover({
+  a.darkHover({
     backgroundColor: 'rgba(125, 211, 252, 0.12)',
   }),
-  hover({
+  a.hover({
     backgroundColor: 'rgba(14, 165, 233, 0.08)',
   }),
 ]);
 export const page = style([
-  grid,
-  minH100svh,
+  a.grid,
+  a.minH100svh,
   {
     color: colorTokens.slate900,
     containerType: 'inline-size',
     gridTemplateRows: 'auto minmax(0, 1fr) auto',
   },
-  dark({
+  a.dark({
     color: colorTokens.slate100,
   }),
 ]);
@@ -442,7 +405,7 @@ export const pageBg = style([
       },
     },
   },
-  dark({
+  a.dark({
     backgroundImage:
       'radial-gradient(circle at top, rgba(14, 165, 233, 0.12), transparent 40%), linear-gradient(180deg, rgba(2, 6, 23, 0.92) 0%, rgba(2, 6, 23, 1) 55%)',
   }),
@@ -454,12 +417,12 @@ export const pageVars = style({
   },
 });
 export const rail = style([
-  grid,
-  gap4,
-  minW0,
-  animFillBoth,
-  animCubic,
-  anim700,
+  a.grid,
+  a.gap4,
+  a.minW0,
+  a.animFillBoth,
+  a.animCubic,
+  a.anim700,
   {
     '@container': {
       '(min-width: 60rem)': {
@@ -474,26 +437,26 @@ export const rail = style([
   },
 ]);
 export const railBody = style([
-  m0,
-  leading17,
+  a.m0,
+  a.leading17,
   {
     color: colorTokens.slate700,
     fontSize: '0.96rem',
   },
-  dark({
+  a.dark({
     color: colorTokens.slate300,
   }),
 ]);
 export const railHeading = style([
-  m0,
-  fontSemibold,
-  leading105,
+  a.m0,
+  a.fontSemibold,
+  a.leading105,
   {
     color: colorTokens.slate900,
     fontSize: '1.15rem',
     letterSpacing: '-0.03em',
   },
-  dark({
+  a.dark({
     color: colorTokens.white,
   }),
 ]);
@@ -503,49 +466,49 @@ export const railIconVars = style([
     height: '1rem',
     width: '1rem',
   },
-  dark({
+  a.dark({
     color: '#7dd3fc',
   }),
 ]);
 export const railIconWrap = style([
-  grid,
-  inlineGrid,
+  a.grid,
+  a.inlineGrid,
   {
     alignItems: 'center',
     placeItems: 'center',
   },
 ]);
 export const railList = style([
-  grid,
-  m0,
-  p0,
+  a.grid,
+  a.m0,
+  a.p0,
   {
     gap: '0.75rem',
     listStyle: 'none',
   },
 ]);
 export const railListItem = style([
-  borderBlockSolid,
-  borderBlock1,
-  borderSlate300,
+  a.borderBlockSolid,
+  a.borderBlock1,
+  a.borderSlate300,
   {
     paddingBlockStart: '0.75rem',
   },
-  dark({
+  a.dark({
     borderColor: colorTokens.slate800,
   }),
 ]);
 export const railSection = style([
-  grid,
-  borderSolid,
-  border1,
-  borderSlate200,
-  p4,
+  a.grid,
+  a.borderSolid,
+  a.border1,
+  a.borderSlate200,
+  a.p4,
   {
     borderRadius: '1.25rem',
     gap: '0.95rem',
   },
-  dark({
+  a.dark({
     borderColor: colorTokens.slate800,
   }),
 ]);
@@ -553,15 +516,15 @@ export const railSectionAccent = style([
   {
     backgroundColor: 'rgba(14, 165, 233, 0.06)',
   },
-  dark({
+  a.dark({
     backgroundColor: 'rgba(125, 211, 252, 0.08)',
   }),
 ]);
 export const shell = style([
-  grid,
-  gap5,
-  mxAuto,
-  wFull,
+  a.grid,
+  a.gap5,
+  a.mxAuto,
+  a.wFull,
   {
     '@container': {
       '(min-width: 60rem)': {
@@ -585,14 +548,14 @@ export const shellMain = style({
   gridArea: 'main',
 });
 export const shellNote = style([
-  m0,
-  textUppercase,
+  a.m0,
+  a.textUppercase,
   {
     color: colorTokens.slate600,
     fontSize: '0.9rem',
     letterSpacing: '0.08em',
   },
-  dark({
+  a.dark({
     color: colorTokens.slate400,
   }),
 ]);
@@ -600,9 +563,9 @@ export const shellRightGrid = style({
   gridArea: 'right',
 });
 export const shellTitle = style([
-  m0,
-  fontBold,
-  leading105,
+  a.m0,
+  a.fontBold,
+  a.leading105,
   {
     '@container': {
       '(min-width: 48rem)': {
@@ -613,39 +576,39 @@ export const shellTitle = style([
     fontSize: '1.2rem',
     letterSpacing: '-0.03em',
   },
-  dark({
+  a.dark({
     color: colorTokens.white,
   }),
 ]);
 export const shellTopline = style([
-  grid,
-  gap05,
-  animFillBoth,
-  animCubic,
-  anim700,
+  a.grid,
+  a.gap05,
+  a.animFillBoth,
+  a.animCubic,
+  a.anim700,
   {
     animationDelay: '120ms',
     animationName: fadeUp,
   },
 ]);
 export const topLine = style([
-  m0,
-  leading16,
+  a.m0,
+  a.leading16,
   {
     color: colorTokens.slate600,
     fontSize: '0.92rem',
     maxInlineSize: '32ch',
   },
-  dark({
+  a.dark({
     color: colorTokens.slate400,
   }),
 ]);
 export const topLineAccent = style([
-  fontSemibold,
+  a.fontSemibold,
   {
     color: colorTokens.info,
   },
-  dark({
+  a.dark({
     color: '#7dd3fc',
   }),
 ]);

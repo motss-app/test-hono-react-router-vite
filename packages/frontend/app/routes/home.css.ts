@@ -1,76 +1,6 @@
 import { keyframes, style } from '@vanilla-extract/css';
 
-import {
-  anim18s,
-  anim700,
-  animAlternate,
-  animCubic,
-  animEaseInOut,
-  animFillBoth,
-  animInfinite,
-} from '../styles/atomic/animation/animation/animation.css.ts';
-import { roundedFull, roundedXl } from '../styles/atomic/appearance/border/border-radius.css.ts';
-import { border1, borderSolid } from '../styles/atomic/appearance/border/border-style.css.ts';
-import {
-  itemsCenter,
-  itemsEnd,
-  itemsStart,
-} from '../styles/atomic/flex/flex-container/alignment.css.ts';
-import { gap075 } from '../styles/atomic/flex/flex-container/gap.css.ts';
-import { flexWrap } from '../styles/atomic/flex/flex-item/flex.css.ts';
-import { gridAutoFlowColumn } from '../styles/atomic/grid/grid-container/grid-auto-flow.css.ts';
-import { bgCover, bgNoRepeat } from '../styles/atomic/layout/background.css.ts';
-import {
-  m0,
-  mb03,
-  mb085,
-  mb3,
-  mb4,
-  mb8,
-  mt0,
-  mxAuto,
-} from '../styles/atomic/layout/box-model/margin.css.ts';
-import {
-  pb10,
-  pb145,
-  pb16,
-  pb8,
-  pl05,
-  pr05,
-  pt145,
-  pt16,
-  pt35,
-  px4,
-} from '../styles/atomic/layout/box-model/padding.css.ts';
-import { p092_145 } from '../styles/atomic/layout/box-model/padding.custom.css.ts';
-import { minH100svh, minW0 } from '../styles/atomic/layout/box-model/sizing.css.ts';
-import {
-  block,
-  flex,
-  grid,
-  inlineGrid,
-} from '../styles/atomic/layout/display-visibility/display.css.ts';
-import { overflowHidden } from '../styles/atomic/layout/display-visibility/overflow.css.ts';
-import { absolute, inset0, relative } from '../styles/atomic/layout/positioning/position.css.ts';
-import { z1, z2 } from '../styles/atomic/layout/positioning/z-index.css.ts';
-import { md, reducedMotion } from '../styles/atomic/other/media.css.ts';
-import { dark, darkHover, hover } from '../styles/atomic/other/selectors.css.ts';
-import { textBase } from '../styles/atomic/text/font/font-size.css.ts';
-import { fontBold, fontMedium, fontSemibold } from '../styles/atomic/text/font/font-weight.css.ts';
-import {
-  trackingTight,
-  trackingTighter,
-} from '../styles/atomic/text/text-props/letter-spacing.css.ts';
-import {
-  leadingNone,
-  leadingRelaxed,
-  leadingSnug,
-} from '../styles/atomic/text/text-props/line-height.css.ts';
-import {
-  noUnderline,
-  textUppercase,
-  whitespaceNowrap,
-} from '../styles/atomic/text/text-props/text-transform.css.ts';
+import * as s from '../styles/atomic/index.css.ts';
 import { colorTokens } from '../styles/color-tokens.contract.css.ts';
 
 export const heroReveal = keyframes({
@@ -97,25 +27,25 @@ export const artworkDrift = keyframes({
 });
 
 export const ctaPrimary = style([
-  inlineGrid,
-  itemsCenter,
-  roundedFull,
-  p092_145,
-  fontSemibold,
-  whitespaceNowrap,
-  noUnderline,
-  animFillBoth,
-  animCubic,
-  anim700,
-  gridAutoFlowColumn,
-  dark({
+  s.inlineGrid,
+  s.itemsCenter,
+  s.roundedFull,
+  s.p092_145,
+  s.fontSemibold,
+  s.whitespaceNowrap,
+  s.noUnderline,
+  s.animFillBoth,
+  s.animCubic,
+  s.anim700,
+  s.gridAutoFlowColumn,
+  s.dark({
     backgroundColor: '#bae6fd',
     color: colorTokens.slate900,
   }),
-  darkHover({
+  s.darkHover({
     backgroundColor: '#7dd3fc',
   }),
-  hover({
+  s.hover({
     backgroundColor: colorTokens.infoHover,
     transform: 'translate3d(0, -0.125rem, 0)',
   }),
@@ -130,29 +60,29 @@ export const ctaPrimary = style([
 ]);
 
 export const ctaSecondary = style([
-  inlineGrid,
-  itemsCenter,
-  roundedFull,
-  borderSolid,
-  border1,
-  p092_145,
-  fontSemibold,
-  whitespaceNowrap,
-  noUnderline,
-  animFillBoth,
-  animCubic,
-  anim700,
-  gridAutoFlowColumn,
-  dark({
+  s.inlineGrid,
+  s.itemsCenter,
+  s.roundedFull,
+  s.borderSolid,
+  s.border1,
+  s.p092_145,
+  s.fontSemibold,
+  s.whitespaceNowrap,
+  s.noUnderline,
+  s.animFillBoth,
+  s.animCubic,
+  s.anim700,
+  s.gridAutoFlowColumn,
+  s.dark({
     backgroundColor: 'rgba(15, 23, 42, 0.28)',
     borderColor: 'rgba(226, 232, 240, 0.26)',
     color: colorTokens.slate100,
   }),
-  darkHover({
+  s.darkHover({
     backgroundColor: 'rgba(148, 163, 184, 0.12)',
     borderColor: colorTokens.slate400,
   }),
-  hover({
+  s.hover({
     backgroundColor: 'rgba(255, 255, 255, 0.7)',
     borderColor: '#bfdbfe',
     transform: 'translate3d(0, -0.125rem, 0)',
@@ -169,10 +99,10 @@ export const ctaSecondary = style([
 ]);
 
 export const hero = style([
-  relative,
-  overflowHidden,
-  minW0,
-  dark({
+  s.relative,
+  s.overflowHidden,
+  s.minW0,
+  s.dark({
     backgroundColor: '#08101b',
   }),
   {
@@ -181,22 +111,22 @@ export const hero = style([
 ]);
 
 export const heroActions = style([
-  flex,
-  itemsCenter,
-  flexWrap,
-  gap075,
+  s.flex,
+  s.itemsCenter,
+  s.flexWrap,
+  s.gap075,
 ]);
 
 export const heroBody = style([
-  relative,
-  textBase,
-  leadingRelaxed,
-  mb8,
-  mt0,
-  animFillBoth,
-  animCubic,
-  anim700,
-  dark({
+  s.relative,
+  s.textBase,
+  s.leadingRelaxed,
+  s.mb8,
+  s.mt0,
+  s.animFillBoth,
+  s.animCubic,
+  s.anim700,
+  s.dark({
     color: colorTokens.slate300,
   }),
   {
@@ -208,10 +138,10 @@ export const heroBody = style([
 ]);
 
 export const heroCopy = style([
-  relative,
-  z2,
-  pb10,
-  md({
+  s.relative,
+  s.z2,
+  s.pb10,
+  s.md({
     paddingBottom: '4rem',
   }),
   {
@@ -221,16 +151,16 @@ export const heroCopy = style([
 ]);
 
 export const heroInner = style([
-  itemsEnd,
-  grid,
-  mxAuto,
-  minH100svh,
-  relative,
-  minW0,
-  px4,
-  pt16,
-  pb8,
-  md({
+  s.itemsEnd,
+  s.grid,
+  s.mxAuto,
+  s.minH100svh,
+  s.relative,
+  s.minW0,
+  s.px4,
+  s.pt16,
+  s.pb8,
+  s.md({
     paddingBottom: '0',
   }),
   {
@@ -239,18 +169,18 @@ export const heroInner = style([
 ]);
 
 export const heroLead = style([
-  relative,
-  fontMedium,
-  trackingTight,
-  mt0,
-  mb085,
-  animFillBoth,
-  animCubic,
-  anim700,
-  md({
+  s.relative,
+  s.fontMedium,
+  s.trackingTight,
+  s.mt0,
+  s.mb085,
+  s.animFillBoth,
+  s.animCubic,
+  s.anim700,
+  s.md({
     fontSize: '1.95rem',
   }),
-  dark({
+  s.dark({
     color: colorTokens.slate100,
   }),
   {
@@ -264,22 +194,22 @@ export const heroLead = style([
 ]);
 
 export const heroMedia = style([
-  absolute,
-  inset0,
-  animAlternate,
-  animInfinite,
-  animEaseInOut,
-  anim18s,
-  bgCover,
-  bgNoRepeat,
-  md({
+  s.absolute,
+  s.inset0,
+  s.animAlternate,
+  s.animInfinite,
+  s.animEaseInOut,
+  s.anim18s,
+  s.bgCover,
+  s.bgNoRepeat,
+  s.md({
     backgroundPosition: 'center center',
   }),
-  reducedMotion({
+  s.reducedMotion({
     animationDuration: '1ms',
     animationIterationCount: '1',
   }),
-  dark({
+  s.dark({
     backgroundImage: 'url("/assets/home-hero-dark.svg")',
     opacity: 1,
   }),
@@ -293,10 +223,10 @@ export const heroMedia = style([
 ]);
 
 export const heroOverlay = style([
-  absolute,
-  inset0,
-  z1,
-  dark({
+  s.absolute,
+  s.inset0,
+  s.z1,
+  s.dark({
     backgroundImage:
       'linear-gradient(90deg, rgba(8, 16, 27, 0.92) 0%, rgba(8, 16, 27, 0.72) 26%, rgba(8, 16, 27, 0.28) 54%, rgba(8, 16, 27, 0.1) 100%), linear-gradient(180deg, rgba(8, 16, 27, 0.12) 0%, rgba(8, 16, 27, 0.18) 100%)',
   }),
@@ -307,14 +237,14 @@ export const heroOverlay = style([
 ]);
 
 export const page = style([
-  relative,
-  pb16,
-  minW0,
+  s.relative,
+  s.pb16,
+  s.minW0,
 ]);
 
 export const routeAction = style([
-  trackingTight,
-  dark({
+  s.trackingTight,
+  s.dark({
     color: colorTokens.slate300,
   }),
   {
@@ -325,10 +255,10 @@ export const routeAction = style([
 ]);
 
 export const routeDescription = style([
-  leadingSnug,
-  m0,
-  relative,
-  dark({
+  s.leadingSnug,
+  s.m0,
+  s.relative,
+  s.dark({
     color: colorTokens.slate300,
   }),
   {
@@ -338,20 +268,20 @@ export const routeDescription = style([
 ]);
 
 export const routeLink = style([
-  relative,
-  itemsStart,
-  roundedXl,
-  grid,
-  noUnderline,
-  minW0,
-  pb145,
-  pt145,
-  pl05,
-  pr05,
-  darkHover({
+  s.relative,
+  s.itemsStart,
+  s.roundedXl,
+  s.grid,
+  s.noUnderline,
+  s.minW0,
+  s.pb145,
+  s.pt145,
+  s.pl05,
+  s.pr05,
+  s.darkHover({
     backgroundColor: 'rgba(15, 23, 42, 0.22)',
   }),
-  hover({
+  s.hover({
     backgroundColor: 'rgba(248, 250, 252, 0.9)',
     transform: 'translate3d(0.35rem, 0, 0)',
   }),
@@ -369,13 +299,13 @@ export const routeLink = style([
 ]);
 
 export const routeNumber = style([
-  relative,
-  fontBold,
-  leadingNone,
-  md({
+  s.relative,
+  s.fontBold,
+  s.leadingNone,
+  s.md({
     fontSize: '2rem',
   }),
-  dark({
+  s.dark({
     color: '#7dd3fc',
   }),
   {
@@ -386,8 +316,8 @@ export const routeNumber = style([
 ]);
 
 export const routePath = style([
-  textUppercase,
-  dark({
+  s.textUppercase,
+  s.dark({
     color: colorTokens.slate400,
   }),
   {
@@ -398,9 +328,9 @@ export const routePath = style([
 ]);
 
 export const routeRow = style([
-  relative,
-  minW0,
-  dark({
+  s.relative,
+  s.minW0,
+  s.dark({
     borderBottomColor: colorTokens.slate800,
   }),
   {
@@ -411,22 +341,22 @@ export const routeRow = style([
 ]);
 
 export const routesInner = style([
-  mxAuto,
-  relative,
-  minW0,
-  px4,
-  pt35,
+  s.mxAuto,
+  s.relative,
+  s.minW0,
+  s.px4,
+  s.pt35,
   {
     maxWidth: '84rem',
   },
 ]);
 
 export const routesIntro = style([
-  leadingRelaxed,
-  mb8,
-  mt0,
-  relative,
-  dark({
+  s.leadingRelaxed,
+  s.mb8,
+  s.mt0,
+  s.relative,
+  s.dark({
     color: colorTokens.slate300,
   }),
   {
@@ -437,9 +367,9 @@ export const routesIntro = style([
 ]);
 
 export const routesList = style([
-  relative,
-  minW0,
-  dark({
+  s.relative,
+  s.minW0,
+  s.dark({
     borderTopColor: colorTokens.slate800,
   }),
   {
@@ -450,19 +380,19 @@ export const routesList = style([
 ]);
 
 export const routesSection = style([
-  relative,
+  s.relative,
 ]);
 
 export const routesTitle = style([
-  relative,
-  fontBold,
-  trackingTighter,
-  mt0,
-  mb3,
-  md({
+  s.relative,
+  s.fontBold,
+  s.trackingTighter,
+  s.mt0,
+  s.mb3,
+  s.md({
     fontSize: '2.6rem',
   }),
-  dark({
+  s.dark({
     color: colorTokens.white,
   }),
   {
@@ -474,12 +404,12 @@ export const routesTitle = style([
 ]);
 
 export const routeTitle = style([
-  relative,
-  fontSemibold,
-  trackingTighter,
-  mt0,
-  mb03,
-  dark({
+  s.relative,
+  s.fontSemibold,
+  s.trackingTighter,
+  s.mt0,
+  s.mb03,
+  s.dark({
     color: colorTokens.white,
   }),
   {
@@ -490,26 +420,26 @@ export const routeTitle = style([
 ]);
 
 export const routeTitleBlock = style([
-  relative,
+  s.relative,
 ]);
 
 export const title = style([
-  relative,
-  fontBold,
-  trackingTighter,
-  mt0,
-  mb4,
-  animFillBoth,
-  animCubic,
-  anim700,
-  md({
+  s.relative,
+  s.fontBold,
+  s.trackingTighter,
+  s.mt0,
+  s.mb4,
+  s.animFillBoth,
+  s.animCubic,
+  s.anim700,
+  s.md({
     fontSize: '6.4rem',
   }),
-  reducedMotion({
+  s.reducedMotion({
     animationDuration: '1ms',
     animationIterationCount: '1',
   }),
-  dark({
+  s.dark({
     color: colorTokens.white,
   }),
   {
@@ -522,8 +452,8 @@ export const title = style([
 ]);
 
 export const titleAccent = style([
-  block,
-  dark({
+  s.block,
+  s.dark({
     color: '#7dd3fc',
   }),
   {
