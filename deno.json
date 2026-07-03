@@ -59,7 +59,7 @@
     "k6-load-test.mjs"
   ],
   "imports": {
-    "@sentry/browser": "npm:@sentry/browser@10.62.0",
+    "@sentry/browser": "npm:@sentry/browser@10.63.0",
     "@std/path": "jsr:@std/path@1.1.6",
     "clsx/lite": "npm:clsx@2.1.1/lite",
     "react-dom/server": "npm:react-dom@19.2.7/server.edge"
