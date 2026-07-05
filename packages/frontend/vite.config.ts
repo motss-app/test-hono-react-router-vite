@@ -86,7 +86,7 @@ export default defineConfig(async config => {
             veCssTextPlugin(),
             vanillaExtractSsrFixPlugin(),
             paraglideVitePlugin({
-              outdir: './packages/frontend/app/paraglide',
+              outdir: `${repoRootPath}packages/frontend/app/paraglide`,
               project: repoRootPath + 'project.inlang',
               strategy: [
                 'url',

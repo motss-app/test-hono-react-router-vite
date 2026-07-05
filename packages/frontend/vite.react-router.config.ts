@@ -113,7 +113,7 @@ export default function createViteConfig(config: ConfigEnv) {
           }),
           veCssTextPlugin(),
           paraglideVitePlugin({
-            outdir: './packages/frontend/app/paraglide',
+            outdir: `${repoRootPath}packages/frontend/app/paraglide`,
             project: `${repoRootPath}project.inlang`,
             strategy: [
               'url',
