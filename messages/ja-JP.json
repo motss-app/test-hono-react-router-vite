@@ -1,0 +1,9 @@
+{
+  "hero_body": "5つのルートがSSR、RPC、レイアウト、バウンダリー、アーキテクチャを分かりやすく保ち、ホームページをダッシュボードに変えません。",
+  "hero_cta_overview": "概要を読む",
+  "hero_cta_rpc": "RPCフローを開く",
+  "hero_lead": "コンパクトなフルスタックデモで、レンダリング、ルーティング、リカバリを行います。",
+  "home_title": "React Router {#accent}と Hono{/accent}",
+  "routes_section_intro": "各エントリは1つの関心事を分離しているので、すべてを一度に解読する代わりに、部分ごとにスタックを確認できます。",
+  "routes_section_title": "1つのルートから始めましょう。残りはすべて見渡せます。"
+}

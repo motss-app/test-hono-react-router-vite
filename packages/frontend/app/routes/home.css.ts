@@ -33,7 +33,7 @@ export const ctaPrimary = style({
   animationName: heroReveal,
   animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
   backgroundColor: colorTokens.info,
-  borderRadius: '9999px',
+  borderRadius: '0.375rem',
   color: colorTokens.white,
   display: 'inline-grid',
   fontWeight: 600,
@@ -67,7 +67,7 @@ export const ctaSecondary = style({
   animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
   backgroundColor: 'rgba(255, 255, 255, 0.78)',
   borderColor: 'rgba(15, 23, 42, 0.12)',
-  borderRadius: '9999px',
+  borderRadius: '0.375rem',
   borderStyle: 'solid',
   borderWidth: '1px',
   color: colorTokens.slate900,
@@ -215,6 +215,7 @@ export const heroMedia = style({
   backgroundSize: 'cover',
   inset: 0,
   opacity: 0.76,
+  overflow: 'hidden',
   position: 'absolute',
   selectors: {
     ':root[data-theme="dark"] &': {
@@ -278,7 +279,7 @@ export const routeLink = style({
     },
   },
   alignItems: 'flex-start',
-  borderRadius: '1rem',
+  borderRadius: '0.375rem',
   display: 'grid',
   gap: '0.95rem 1rem',
   gridTemplateColumns: '1fr',
@@ -464,6 +465,40 @@ export const titleAccent = style({
   selectors: {
     ':root[data-theme="dark"] &': {
       color: '#7dd3fc',
+    },
+  },
+});
+
+export const footer = style({
+  borderTopColor: colorTokens.slate200,
+  borderTopStyle: 'solid',
+  borderTopWidth: '1px',
+  paddingBlock: '1.5rem',
+  paddingInline: '1rem',
+  selectors: {
+    ':root[data-theme="dark"] &': {
+      borderTopColor: colorTokens.slate800,
+    },
+  },
+});
+
+export const footerInner = style({
+  alignItems: 'center',
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '1rem',
+  justifyContent: 'space-between',
+  marginInline: 'auto',
+  maxInlineSize: '84rem',
+});
+
+export const footerNote = style({
+  color: colorTokens.slate500,
+  fontSize: '0.875rem',
+  margin: 0,
+  selectors: {
+    ':root[data-theme="dark"] &': {
+      color: colorTokens.slate400,
     },
   },
 });

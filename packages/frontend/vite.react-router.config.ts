@@ -1,3 +1,4 @@
+import { paraglideVitePlugin } from '@inlang/paraglide-js';
 import { reactRouter } from '@react-router/dev/vite';
 import { sentryVitePlugin } from '@sentry/vite-plugin';
 import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin';
@@ -111,6 +112,16 @@ export default function createViteConfig(config: ConfigEnv) {
             identifiers: 'short',
           }),
           veCssTextPlugin(),
+          paraglideVitePlugin({
+            outdir: './packages/frontend/app/paraglide',
+            project: `${repoRootPath}project.inlang`,
+            strategy: [
+              'url',
+              'cookie',
+              'preferredLanguage',
+              'baseLocale',
+            ],
+          }),
           reactRouter(),
           headersCopyPlugin({
             dest: 'build/client/_headers',

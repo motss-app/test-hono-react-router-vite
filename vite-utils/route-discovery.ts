@@ -5,6 +5,10 @@ const prerenderExcludedRoutes = [
   '/hono-rpc',
   '/ssr',
 ];
+const SUPPORTED_LOCALES = [
+  'en-US',
+  'ja-JP',
+] as const;
 
 function discoverStaticRoutes(options?: { exclude?: string[]; rootDir?: string }): string[] {
   const normalizedOptions = options ?? {};
@@ -69,7 +73,7 @@ function discoverStaticRoutes(options?: { exclude?: string[]; rootDir?: string }
 
 export function discoverPrerenderRoutes(options?: { rootDir?: string }): string[] {
   const { rootDir } = options ?? {};
-  const routes = discoverStaticRoutes({
+  const baseRoutes = discoverStaticRoutes({
     exclude: prerenderExcludedRoutes,
     ...(rootDir === undefined
       ? {}
@@ -80,9 +84,17 @@ export function discoverPrerenderRoutes(options?: { rootDir?: string }): string[
 
   // Explicitly add the index route since discoverStaticRoutes relies on file names
   // and doesn't know that home.tsx is mapped to /
-  if (!routes.includes('/')) {
-    routes.push('/');
+  if (!baseRoutes.includes('/')) {
+    baseRoutes.push('/');
   }
 
-  return routes;
+  // Generate locale-prefixed routes for SSG pages
+  const localePrefixedRoutes: string[] = [];
+  for (const route of baseRoutes) {
+    for (const locale of SUPPORTED_LOCALES) {
+      localePrefixedRoutes.push(`/${locale}${route === '/' ? '' : route}`);
+    }
+  }
+
+  return localePrefixedRoutes;
 }

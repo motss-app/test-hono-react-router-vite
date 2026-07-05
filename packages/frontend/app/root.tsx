@@ -5,6 +5,7 @@ import openSansMathWghtNormalWoff2 from '@fontsource-variable/open-sans/files/op
 import openSansSymbolsWghtNormalWoff2 from '@fontsource-variable/open-sans/files/open-sans-symbols-wght-normal.woff2';
 import { captureException } from '@sentry/react-router/cloudflare';
 import type { JSX, PropsWithChildren } from 'react';
+import type { MiddlewareFunction } from 'react-router';
 import { isRouteErrorResponse, Link, Outlet, useRouteLoaderData } from 'react-router';
 
 import type { Route } from './+types/root.ts';
@@ -13,6 +14,8 @@ import { RootDocumentHead } from './components/root-document-head.tsx';
 import { RootDocumentScripts } from './components/root-document-scripts.tsx';
 import { ScrollToTopButtonShell } from './components/scroll-to-top-button-shell.tsx';
 import { IconArrowLeft, IconBug, IconExclamationTriangle } from './icons.ts';
+import { getLocale } from './paraglide/runtime.js';
+import { paraglideMiddleware } from './paraglide/server.js';
 import { csp } from './utils/csp.ts';
 
 export const links: Route.LinksFunction = () => [
@@ -49,13 +52,17 @@ export function shouldRevalidate(): boolean {
   return false;
 }
 
+export const middleware: MiddlewareFunction[] = [
+  (ctx, next) => paraglideMiddleware(ctx.request, () => next()),
+];
+
 export function Layout({ children }: PropsWithChildren): JSX.Element {
   const rootLoaderData = useRouteLoaderData<typeof loader>('root');
   const cspNonce = rootLoaderData?.cspNonce ?? undefined;
 
   return (
     <html
-      lang="en"
+      lang={getLocale()}
       suppressHydrationWarning
     >
       <head>

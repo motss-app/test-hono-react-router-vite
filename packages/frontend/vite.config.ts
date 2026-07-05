@@ -1,4 +1,5 @@
 import { cloudflare } from '@cloudflare/vite-plugin';
+import { paraglideVitePlugin } from '@inlang/paraglide-js';
 import { reactRouter } from '@react-router/dev/vite';
 import { sentryReactRouter } from '@sentry/react-router';
 import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin';
@@ -84,6 +85,16 @@ export default defineConfig(async config => {
             vanillaExtractPlugin(),
             veCssTextPlugin(),
             vanillaExtractSsrFixPlugin(),
+            paraglideVitePlugin({
+              outdir: './packages/frontend/app/paraglide',
+              project: repoRootPath + 'project.inlang',
+              strategy: [
+                'url',
+                'cookie',
+                'preferredLanguage',
+                'baseLocale',
+              ],
+            }),
             /**
              * React Router plugin is required to:
              * 1. Build the app (routes, loaders, actions)

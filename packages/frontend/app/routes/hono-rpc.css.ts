@@ -28,7 +28,7 @@ const artworkDrift = keyframes({
 export const actionButton = style({
   backgroundColor: colorTokens.info,
   border: 'none',
-  borderRadius: '9999px',
+  borderRadius: '0.375rem',
   color: colorTokens.white,
   cursor: 'pointer',
   fontWeight: 600,
@@ -73,7 +73,7 @@ export const ctaSecondary = style({
   animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
   backgroundColor: 'rgba(255, 255, 255, 0.78)',
   borderColor: 'rgba(15, 23, 42, 0.12)',
-  borderRadius: '9999px',
+  borderRadius: '0.375rem',
   borderStyle: 'solid',
   borderWidth: '1px',
   color: colorTokens.slate900,
@@ -141,7 +141,7 @@ export const dataValue = style({
 export const errorBox = style({
   backgroundColor: '#fef2f2',
   borderColor: '#ef4444',
-  borderRadius: '1rem',
+  borderRadius: '0.375rem',
   borderStyle: 'solid',
   borderWidth: '1px',
   color: '#b91c1c',
@@ -421,7 +421,7 @@ export const rowTitle = style({
   },
 });
 export const skeletonAction = style({
-  borderRadius: '9999px',
+  borderRadius: '0.375rem',
   height: '3rem',
   inlineSize: '100%',
 });

@@ -130,6 +130,22 @@ function recordWorkerRequestError(
   });
 }
 
+// Redirect `/` to base locale `/en-US`
+const SUPPORTED_LOCALES = [
+  'en-US',
+  'ja-JP',
+] as const;
+const BASE_LOCALE = 'en-US';
+
+app.get('/', c => {
+  const cookieLocale = c.req.header('cookie')?.match(/preferred_language=([^;]+)/)?.[1];
+  const locale = SUPPORTED_LOCALES.includes(cookieLocale as (typeof SUPPORTED_LOCALES)[number])
+    ? cookieLocale
+    : BASE_LOCALE;
+
+  return c.redirect(`/${locale}`, 302);
+});
+
 // Serve React Router SSR in both dev and production.
 createSsrHandler(app);
 

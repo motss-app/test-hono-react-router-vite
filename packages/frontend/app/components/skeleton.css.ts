@@ -19,7 +19,7 @@ export const skeletonStyles = {
     animationName: pulse,
     animationTimingFunction: 'cubic-bezier(0.4, 0, 0.6, 1)',
     backgroundColor: 'rgba(212, 212, 212, 0.25)',
-    borderRadius: '0.5rem',
+    borderRadius: '0.375rem',
     display: 'inline-block',
     lineHeight: '1.5rem',
     verticalAlign: 'middle',

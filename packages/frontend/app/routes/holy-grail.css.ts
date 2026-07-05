@@ -99,7 +99,7 @@ export const brandIconVars = style({
 export const brandMark = style({
   alignItems: 'center',
   backgroundColor: colorTokens.info,
-  borderRadius: '1rem',
+  borderRadius: '0.375rem',
   display: 'inline-grid',
   flexShrink: 0,
   height: '3rem',
@@ -147,7 +147,7 @@ export const footerInner = style({
 });
 export const footerLink = style({
   alignItems: 'center',
-  borderRadius: '9999px',
+  borderRadius: '0.375rem',
   color: colorTokens.slate900,
   display: 'inline-grid',
   gap: '0.45rem',
@@ -220,7 +220,7 @@ export const headerInner = style({
 });
 export const layoutBlock = style({
   borderColor: colorTokens.slate300,
-  borderRadius: '1rem',
+  borderRadius: '0.375rem',
   borderStyle: 'solid',
   borderWidth: '1px',
   padding: '1rem',
@@ -348,7 +348,7 @@ export const nav = style({
   gridAutoFlow: 'column',
 });
 export const navLink = style({
-  borderRadius: '9999px',
+  borderRadius: '0.375rem',
   color: colorTokens.slate900,
   fontSize: '0.92rem',
   padding: '0.55rem 0.8rem',

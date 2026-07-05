@@ -1,0 +1,9 @@
+{
+  "hero_body": "Five routes keep SSR, RPC, layout, boundaries, and architecture legible without turning the homepage into a dashboard.",
+  "hero_cta_overview": "Read the overview",
+  "hero_cta_rpc": "Open the RPC flow",
+  "hero_lead": "Render, route, and recover with a compact full-stack demo.",
+  "home_title": "React Router {#accent}& Hono{/accent}",
+  "routes_section_intro": "Each entry isolates one concern so you can inspect the stack in pieces instead of decoding everything at once.",
+  "routes_section_title": "Start with one route. The rest stays in view."
+}

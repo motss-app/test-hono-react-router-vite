@@ -1,0 +1,84 @@
+name: Route Bundle Size
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+env:
+  SENTRY_DSN: ${{ vars.SENTRY_DSN }}
+  SENTRY_RELEASE: local
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  route-bundle-size:
+    name: Check Route Bundle Size
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - uses: ./.github/actions/setup-deno
+
+      - name: Build
+        run: deno task build
+
+      - name: Measure current bundle sizes
+        run: deno task route-bundle-size --json > /tmp/current-bundle-size.json
+
+      - name: Fetch baseline from main (PR only)
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch origin main --depth=1
+          git show origin/main:route-bundle-size-baseline.json > /tmp/baseline-bundle-size.json 2>/dev/null || echo '{"entry":{"gzipBytes":0,"rawBytes":0},"rootLayout":{"gzipBytes":0,"rawBytes":0},"routes":[]}' > /tmp/baseline-bundle-size.json
+
+      - name: Use current as baseline (main push)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: cp /tmp/current-bundle-size.json /tmp/baseline-bundle-size.json
+
+      - name: Compare and generate comment (PR only)
+        id: compare
+        if: github.event_name == 'pull_request'
+        run: |
+          deno run -A scripts/check-route-bundle-size.ts /tmp/current-bundle-size.json --baseline /tmp/baseline-bundle-size.json --budget 10 --output /tmp/bundle-size-comment.md
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT" || true
+          # Set the step outcome based on exit code
+          if [ -f /tmp/bundle-size-comment.md ] && grep -q "❌" /tmp/bundle-size-comment.md; then
+            echo "regression=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "regression=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upsert comparison comment (PR only)
+        uses: ./.github/actions/upsert-pr-comment
+        if: github.event_name == 'pull_request' && always()
+        with:
+          marker: '<!-- route-bundle-size-comment -->'
+          body-file: /tmp/bundle-size-comment.md
+
+      - name: Fail on budget exceeded (PR only)
+        if: github.event_name == 'pull_request' && steps.compare.outputs.regression == 'true'
+        run: |
+          echo "❌ Route bundle size budget exceeded (>10% gzip increase)."
+          echo "Check the PR comment for details."
+          exit 1
+
+      - name: Update baseline on main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          cp /tmp/current-bundle-size.json route-bundle-size-baseline.json
+          BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add route-bundle-size-baseline.json
+          if git diff --cached --quiet; then
+            echo "No baseline change to commit"
+          else
+            git commit -m "chore: update route bundle size baseline"
+            git fetch origin "${BRANCH}"
+            git rebase "origin/${BRANCH}"
+            git push origin "HEAD:${BRANCH}"
+          fi
