@@ -26,8 +26,11 @@ jobs:
       - name: Build
         run: deno task build
 
-      - name: Measure current bundle sizes
-        run: deno task route-bundle-size --json > /tmp/current-bundle-size.json
+      - name: Measure and summarize bundle sizes
+        run: |
+          deno task route-bundle-size --json > /tmp/current-bundle-size.json
+          echo '## Route Bundle Size' >> "$GITHUB_STEP_SUMMARY"
+          deno task route-bundle-size >> "$GITHUB_STEP_SUMMARY"
 
       - name: Fetch baseline from main (PR only)
         if: github.event_name == 'pull_request'
