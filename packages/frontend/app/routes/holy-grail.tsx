@@ -1,6 +1,7 @@
 import { type JSX, useEffect, useLayoutEffect, useRef } from 'react';
 
 import { Link } from '../components/Link.tsx';
+import { LocaleSwitcher } from '../components/locale-switcher.tsx';
 import { Text } from '../components/text.tsx';
 import {
   IconArrowLeft,
@@ -384,6 +385,7 @@ export default function HolyGrailPage(): JSX.Element {
 
       <footer className={footer}>
         <div className={footerInner}>
+          <LocaleSwitcher />
           <p className={footerNote}>
             Static route • prerendered at build time • no loader required
           </p>

@@ -5,6 +5,7 @@ import { hc } from 'hono/client';
 import { Fragment, type JSX, type ReactNode, useCallback, useEffect, useState } from 'react';
 
 import { Link } from '../components/Link.tsx';
+import { PageFooter } from '../components/page-footer.tsx';
 import { Skeleton } from '../components/skeleton.tsx';
 import { Text } from '../components/text.tsx';
 import { IconArrowLeft } from '../icons.ts';
@@ -387,6 +388,8 @@ function HonoRpcView({ action, isLoading, response }: HonoRpcViewProps): JSX.Ele
           </div>
         </div>
       </section>
+
+      <PageFooter />
     </main>
   );
 }

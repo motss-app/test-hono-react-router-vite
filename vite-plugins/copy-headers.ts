@@ -30,7 +30,6 @@ interface ProcessStaticRouteOptions {
   routePath: string;
   sentryDsn: string;
   sentryCspReportingConfig: ReturnType<typeof createSentryCspReportingConfig>;
-  staticPageCacheControl: string;
 }
 
 interface HeadersCopyPluginContext {
@@ -93,8 +92,7 @@ function createHeadersCopyPluginContext(mode: string): HeadersCopyPluginContext 
 function buildStaticRouteHeaders(
   routePath: string,
   cspDirective: string,
-  sentryCspReportingConfig: ReturnType<typeof createSentryCspReportingConfig>,
-  staticPageCacheControl: string
+  sentryCspReportingConfig: ReturnType<typeof createSentryCspReportingConfig>
 ): string {
   return [
     routePath,
@@ -114,7 +112,6 @@ async function processStaticRoute({
   routePath,
   sentryDsn,
   sentryCspReportingConfig,
-  staticPageCacheControl,
 }: ProcessStaticRouteOptions): Promise<string | null> {
   const htmlFile = htmlFilePathFromRoute(clientDir, routePath);
 
@@ -139,8 +136,7 @@ async function processStaticRoute({
         ...(includeCloudflareAnalyticsStyleHashes ? cloudflareAnalyticsStyleHashes : []),
       ],
     }),
-    sentryCspReportingConfig,
-    staticPageCacheControl
+    sentryCspReportingConfig
   );
 }
 
@@ -191,7 +187,6 @@ export function headersCopyPlugin(options: HeadersCopyPluginOptions): Plugin {
               routePath,
               sentryCspReportingConfig,
               sentryDsn,
-              staticPageCacheControl,
             })
           )
         );

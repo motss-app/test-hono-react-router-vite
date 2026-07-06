@@ -2,6 +2,7 @@ import type { JSX } from 'react';
 import { data } from 'react-router';
 
 import { Link } from '../components/Link.tsx';
+import { PageFooter } from '../components/page-footer.tsx';
 import { Text } from '../components/text.tsx';
 import { IconArrowLeft, IconServer } from '../icons.ts';
 import { HonoContext } from '../router-context.ts';
@@ -283,6 +284,8 @@ export default function SsrPage({ loaderData }: Route.ComponentProps): JSX.Eleme
           </div>
         </div>
       </section>
+
+      <PageFooter />
     </main>
   );
 }

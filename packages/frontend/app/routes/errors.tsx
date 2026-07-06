@@ -1,6 +1,7 @@
 import type { JSX } from 'react';
 
 import { Link } from '../components/Link.tsx';
+import { PageFooter } from '../components/page-footer.tsx';
 import { Text } from '../components/text.tsx';
 import { IconArrowLeft, IconCircleInfo, IconHome, IconTriangleExclamation } from '../icons.ts';
 import { iconStyles } from '../styles/icon.css.ts';
@@ -280,6 +281,8 @@ export default function ErrorsDemo(): JSX.Element {
           </div>
         </div>
       </section>
+
+      <PageFooter />
     </main>
   );
 }

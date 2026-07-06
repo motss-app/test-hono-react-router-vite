@@ -1,7 +1,7 @@
 import { Select } from '@base-ui/react/select';
 import { useCallback } from 'react';
 
-import { getLocale, type Locale, setLocale } from '../paraglide/runtime.js';
+import { deLocalizeHref, getLocale, type Locale, localizeHref } from '../paraglide/runtime.js';
 
 const LOCALES: {
   value: Locale;
@@ -53,7 +53,16 @@ function CheckIcon(props: React.ComponentProps<'svg'>) {
 export function LocaleSwitcherInner() {
   const currentLocale = getLocale();
   const handleLocaleChange = useCallback((value: string | null) => {
-    if (value) setLocale(value as Locale);
+    if (value) {
+      // De-localize current path, then localize for the new locale
+      const path = deLocalizeHref(globalThis.location.pathname);
+      const localized = localizeHref(path, {
+        locale: value as Locale,
+      });
+      // Strip trailing slash — localizeUrlDefaultPattern produces /ja-JP/
+      // on root paths; strip the trailing slash
+      globalThis.location.assign(localized.replace(/\/+$/, '') || '/');
+    }
   }, []);
 
   return (

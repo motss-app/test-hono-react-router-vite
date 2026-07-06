@@ -77,13 +77,13 @@ async function fileSizeWithGzip(filePath: string): Promise<{
 }> {
   try {
     const data = await Deno.readFile(filePath);
-    const raw = data.byteLength;
-    const buf = new ArrayBuffer(raw);
+    const rawBytes = data.byteLength;
+    const buf = new ArrayBuffer(rawBytes);
     new Uint8Array(buf).set(data);
     const gzip = await gzipSize(buf);
     return {
       gzip,
-      raw,
+      raw: rawBytes,
     };
   } catch {
     return {

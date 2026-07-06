@@ -1,6 +1,7 @@
 import type { JSX } from 'react';
 
 import { Link } from '../components/Link.tsx';
+import { PageFooter } from '../components/page-footer.tsx';
 import { Text } from '../components/text.tsx';
 import {
   IconArrowLeft,
@@ -331,6 +332,8 @@ export default function About(): JSX.Element {
           </div>
         </div>
       </section>
+
+      <PageFooter />
     </main>
   );
 }

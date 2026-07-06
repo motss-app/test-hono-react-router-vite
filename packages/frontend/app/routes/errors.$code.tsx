@@ -2,6 +2,7 @@ import type { JSX } from 'react';
 import { isRouteErrorResponse } from 'react-router';
 
 import { Link } from '../components/Link.tsx';
+import { PageFooter } from '../components/page-footer.tsx';
 import { Text } from '../components/text.tsx';
 import { IconArrowLeft, IconCircleInfo, IconHome } from '../icons.ts';
 import { iconStyles } from '../styles/icon.css.ts';
@@ -326,6 +327,8 @@ function ErrorIncidentView({
           </p>
         </div>
       </section>
+
+      <PageFooter />
     </main>
   );
 }
