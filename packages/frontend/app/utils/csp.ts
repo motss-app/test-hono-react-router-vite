@@ -61,6 +61,20 @@ const defaultScriptSrc = [
 export const cloudflareAnalyticsStyleHashes = [
   "'sha256-yA3qHWL4K3kukdLY/T+1vlN/z6FrxQQRjp6/L8l7snM='",
 ];
+
+/**
+ * SHA-256 hash of the deterministic <style> content injected by Base UI's
+ * `styleDisableScrollbar` utility (used by Select, ScrollArea, etc.):
+ *
+ *   .base-ui-disable-scrollbar{scrollbar-width:none}
+ *   .base-ui-disable-scrollbar::-webkit-scrollbar{display:none}
+ *
+ * @see https://github.com/mui/base-ui/blob/master/packages/react/src/utils/styles.tsx
+ */
+export const baseUiStyleHashes = [
+  `'sha256-kLmvWqfziFavKtqHqRsb90f006UAK2Dmd0It5Iz2KFA='`,
+] satisfies string[];
+
 export const inlineScriptPattern = /<script\b(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g;
 export const inlineStylePattern = /<style\b[^>]*>([\s\S]*?)<\/style>/g;
 const documentPolicy = 'js-profiling';
@@ -209,6 +223,7 @@ function buildPolicy(options: ContentSecurityPolicyOptions): string {
   ]);
   const styleSources = uniqueSources([
     "'self'",
+    ...baseUiStyleHashes,
     ...(nonce
       ? [
           `'nonce-${nonce}'`,
@@ -224,7 +239,8 @@ function buildPolicy(options: ContentSecurityPolicyOptions): string {
     `frame-ancestors 'none'`,
     `form-action 'self'`,
     `script-src ${scriptSources.join(' ')}`,
-    `style-src ${styleSources.join(' ')}`,
+    `style-src-elem ${styleSources.join(' ')}`,
+    `style-src-attr 'unsafe-inline'`,
     `font-src 'self'`,
     `img-src 'self' data:`,
     `frame-src ${uniqueSources(resolvedFrameSrc).join(' ')}`,

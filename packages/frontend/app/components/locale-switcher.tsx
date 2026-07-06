@@ -10,18 +10,7 @@ const LocaleSwitcherInner = lazyWithPreload(() =>
 
 export function LocaleSwitcher() {
   return (
-    <Suspense
-      fallback={
-        <span
-          style={{
-            fontSize: '0.875rem',
-            opacity: 0.6,
-          }}
-        >
-          ...
-        </span>
-      }
-    >
+    <Suspense fallback={<span className="locale-switcher-fallback">...</span>}>
       <LocaleSwitcherInner />
     </Suspense>
   );

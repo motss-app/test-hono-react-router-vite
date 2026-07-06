@@ -1,12 +1,13 @@
 import '@fontsource-variable/open-sans/wght.css';
 
+import { CSPProvider } from '@base-ui/react/csp-provider';
 import openSansLatinWghtNormalWoff2 from '@fontsource-variable/open-sans/files/open-sans-latin-wght-normal.woff2';
 import openSansMathWghtNormalWoff2 from '@fontsource-variable/open-sans/files/open-sans-math-wght-normal.woff2';
 import openSansSymbolsWghtNormalWoff2 from '@fontsource-variable/open-sans/files/open-sans-symbols-wght-normal.woff2';
 import { captureException } from '@sentry/react-router/cloudflare';
 import type { JSX, PropsWithChildren } from 'react';
 import type { MiddlewareFunction } from 'react-router';
-import { isRouteErrorResponse, Link, Outlet, useRouteLoaderData } from 'react-router';
+import { isRouteErrorResponse, Link, Outlet, useMatches, useRouteLoaderData } from 'react-router';
 
 import type { Route } from './+types/root.ts';
 import { errorStyles } from './app.css.ts';
@@ -59,17 +60,27 @@ export const middleware: MiddlewareFunction[] = [
 export function Layout({ children }: PropsWithChildren): JSX.Element {
   const rootLoaderData = useRouteLoaderData<typeof loader>('root');
   const cspNonce = rootLoaderData?.cspNonce ?? undefined;
+  const matches = useMatches();
+  const current = matches.at(-1);
+  const htmlAttrs =
+    (
+      current?.handle as {
+        htmlAttrs?: Record<string, string>;
+      }
+    )?.htmlAttrs ?? {};
 
   return (
     <html
       lang={getLocale()}
       suppressHydrationWarning
+      {...htmlAttrs}
     >
       <head>
         <RootDocumentHead cspNonce={cspNonce} />
       </head>
       <body>
-        {children}
+        {/* Biome: <> needed to satisfy noLeakedRender for the else branch */}
+        {cspNonce ? <CSPProvider nonce={cspNonce}>{children}</CSPProvider> : <>{children}</>}
         <RootDocumentScripts cspNonce={cspNonce} />
       </body>
     </html>
@@ -172,7 +183,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): JSX.Element 
 
         <p className={errorStyles.details}>{details}</p>
 
-        {stack && (
+        {stack ? (
           <details className={errorStyles.stackDetails}>
             <summary className={errorStyles.stackSummary}>
               <IconBug />
@@ -182,7 +193,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): JSX.Element 
               <code>{stack}</code>
             </pre>
           </details>
-        )}
+        ) : null}
 
         <Link
           className={errorStyles.link}

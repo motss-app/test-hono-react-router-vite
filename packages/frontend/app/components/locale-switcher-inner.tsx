@@ -21,15 +21,12 @@ function CaretUpDownIcon(props: React.ComponentProps<'svg'>) {
   return (
     <svg
       aria-hidden="true"
+      className="locale-switcher-icon"
       fill="currentColor"
       height="16"
       viewBox="0 0 16 16"
       width="16"
       {...props}
-      style={{
-        display: 'block',
-        ...props.style,
-      }}
     >
       <path d="M11 10H5l3 3.5zm0-4H5l3-3.5z" />
     </svg>
@@ -40,16 +37,13 @@ function CheckIcon(props: React.ComponentProps<'svg'>) {
   return (
     <svg
       aria-hidden="true"
+      className="locale-switcher-icon"
       fill="none"
       height="14"
       stroke="currentColor"
       viewBox="0 0 14 14"
       width="14"
       {...props}
-      style={{
-        display: 'block',
-        ...props.style,
-      }}
     >
       <path d="m2.5 7.5 3 3 6-7" />
     </svg>

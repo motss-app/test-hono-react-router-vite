@@ -3,6 +3,7 @@ import { Hono } from 'hono';
 import { timing } from 'hono/timing';
 
 import { logSentryEnvSnapshot } from '../../vite-utils/sentry-env-log.ts';
+import { isLoadTestMode } from './app/constants.ts';
 import {
   applyAppSessionIdToSpan,
   appSessionIdTagName,
@@ -10,7 +11,6 @@ import {
   createAppSessionId,
   getAppSessionIdFromCookieString,
 } from './app/monitoring/app-session.ts';
-import { isLoadTestMode } from './app/constants.ts';
 import {
   createCloudflareSentryOptions,
   createRequestMetricAttributes,
@@ -130,20 +130,14 @@ function recordWorkerRequestError(
   });
 }
 
-// Redirect `/` to base locale `/en-US`
-const SUPPORTED_LOCALES = [
-  'en-US',
-  'ja-JP',
-] as const;
+// Redirect `/` to base locale `/en-US`.  URL is the source of truth;
+// cookie-based locale detection is not used for the root redirect.
 const BASE_LOCALE = 'en-US';
 
 app.get('/', c => {
-  const cookieLocale = c.req.header('cookie')?.match(/preferred_language=([^;]+)/)?.[1];
-  const locale = SUPPORTED_LOCALES.includes(cookieLocale as (typeof SUPPORTED_LOCALES)[number])
-    ? cookieLocale
-    : BASE_LOCALE;
-
-  return c.redirect(`/${locale}`, 302);
+  const response = c.redirect(`/${BASE_LOCALE}`, 302);
+  response.headers.set('Cache-Control', 'public, s-maxage=3600, no-cache');
+  return response;
 });
 
 // Serve React Router SSR in both dev and production.

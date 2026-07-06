@@ -36,6 +36,7 @@ This repository is a **Deno-first** project using **Hono** and **React Router v7
 - Use `import.meta.env` for environment variables.
 - Avoid default parameter values in function signatures. Do not use `= {}` or any other default parameter value; prefer explicit local normalization instead.
 - Use `//` for single-line comments and `/** */` for multi-line comments/JSDoc.
+- **JSX rendering**: Never use `&&` for conditional rendering — falsy-but-renderable values (e.g. `""`, `0`) slip through and render unintended text. Use `{condition ? <A /> : null}` or `{condition ? <A /> : <B />}` instead.
 
 ## Hono + React Router integration
 

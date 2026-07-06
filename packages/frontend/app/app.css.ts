@@ -219,3 +219,14 @@ globalStyle('.locale-switcher-check', {
   fontWeight: 400,
   marginInlineStart: 'auto',
 });
+
+// Locale Switcher Icon (replaces inline style="display:block" on SVG icons)
+globalStyle('.locale-switcher-icon', {
+  display: 'block',
+});
+
+// Locale Switcher Suspense Fallback (replaces inline style on Suspense fallback span)
+globalStyle('.locale-switcher-fallback', {
+  fontSize: '0.875rem',
+  opacity: 0.6,
+});
