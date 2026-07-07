@@ -136,7 +136,10 @@ const BASE_LOCALE = 'en-US';
 
 app.get('/', c => {
   const response = c.redirect(`/${BASE_LOCALE}`, 302);
-  response.headers.set('Cache-Control', 'public, s-maxage=3600, no-cache');
+  response.headers.set(
+    'Cache-Control',
+    'public, s-maxage=3600, stale-while-revalidate=300, stale-if-error=86400'
+  );
   return response;
 });
 
