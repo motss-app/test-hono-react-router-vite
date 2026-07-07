@@ -147,10 +147,11 @@ globalStyle('.locale-switcher-trigger', {
   borderRadius: '0.375rem',
   color: 'inherit',
   cursor: 'pointer',
-  display: 'flex',
+  display: 'inline-flex',
   fontSize: '0.875rem',
   fontWeight: 500,
   gap: '0.25rem',
+  maxWidth: 'fit-content',
   padding: '0.5rem 0.875rem',
   transition: 'background-color 0.15s ease, border-color 0.15s ease',
 });

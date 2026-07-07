@@ -94,6 +94,34 @@ export default defineConfig(async config => {
                 'preferredLanguage',
                 'baseLocale',
               ],
+              urlPatterns: [
+                {
+                  localized: [
+                    [
+                      'en-US',
+                      '/en-US',
+                    ],
+                    [
+                      'ja-JP',
+                      '/ja-JP',
+                    ],
+                  ],
+                  pattern: '/',
+                },
+                {
+                  localized: [
+                    [
+                      'en-US',
+                      '/en-US/:path(.*)?',
+                    ],
+                    [
+                      'ja-JP',
+                      '/ja-JP/:path(.*)?',
+                    ],
+                  ],
+                  pattern: '/:path(.*)?',
+                },
+              ],
             }),
             /**
              * React Router plugin is required to:

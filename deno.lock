@@ -18,6 +18,7 @@
     "npm:@inlang/message-lint-rule-empty-pattern@1.4.8": "1.4.8_@sinclair+typebox@0.31.28",
     "npm:@inlang/message-lint-rule-missing-translation@1.4.8": "1.4.8_@sinclair+typebox@0.31.28",
     "npm:@inlang/paraglide-js-react@1.0.2": "1.0.2_@inlang+paraglide-js@2.20.2__typescript@6.0.3_react@19.2.7_typescript@6.0.3",
+    "npm:@inlang/paraglide-js@*": "2.20.2_typescript@6.0.3",
     "npm:@inlang/paraglide-js@2.20.2": "2.20.2_typescript@6.0.3",
     "npm:@inlang/plugin-icu1@1.1.0": "1.1.0",
     "npm:@react-router/dev@*": "8.1.0_react-router@8.1.0__react@19.2.7__react-dom@19.2.7___react@19.2.7_typescript@6.0.3_vite@8.1.3_wrangler@4.107.0__@cloudflare+workers-types@4.20260621.1_@cloudflare+workers-types@4.20260621.1",
