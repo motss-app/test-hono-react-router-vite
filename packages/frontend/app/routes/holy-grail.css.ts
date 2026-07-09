@@ -583,13 +583,23 @@ export const topLineAccent = style({
   },
 });
 export const articleShell = style({});
-export const brandIcon = style({});
+export const brandIcon = style({
+  display: 'inline-block',
+  fill: 'currentColor',
+  height: '1.25rem',
+  width: '1.25rem',
+});
 export const layoutCenter = style({});
 export const layoutFooter = style({});
 export const layoutHeader = style({});
 export const layoutLeft = style({});
 export const layoutRight = style({});
 export const pageShell = style({});
-export const railIcon = style({});
+export const railIcon = style({
+  display: 'inline-block',
+  fill: 'currentColor',
+  height: '1rem',
+  width: '1rem',
+});
 export const shellLeft = style({});
 export const shellRight = style({});
