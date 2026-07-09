@@ -50,6 +50,7 @@ const sentryProjectIdLeadingSlashPattern = /^\/+/;
 const defaultConnectSrc = [
   "'self'",
   'https://cloudflareinsights.com',
+  'https://api.iconify.design',
 ];
 const defaultFrameSrc = [
   "'self'",
