@@ -1,10 +1,12 @@
 import { style } from '@vanilla-extract/css';
 
+import { radiusTokens } from '../styles/radius-tokens.contract.css.ts';
+
 export const button = style({
   alignItems: 'center',
   backgroundColor: '#2563eb',
   border: 'none',
-  borderRadius: '0.375rem',
+  borderRadius: radiusTokens.radiusMd,
   bottom: '1.5rem',
   boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
   color: '#fff',

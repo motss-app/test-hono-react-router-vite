@@ -2,6 +2,7 @@ import { createGlobalTheme } from '@vanilla-extract/css';
 
 import { colorTokens } from './color-tokens.contract.css.ts';
 import { fontWeightTokens } from './font-weight-tokens.contract.css.ts';
+import { radiusTokens } from './radius-tokens.contract.css.ts';
 
 const commonColors = {
   amber200: '#fde68a',
@@ -48,6 +49,13 @@ createGlobalTheme(':root', colorTokens, {
 });
 
 createGlobalTheme(':root', fontWeightTokens, commonFontWeights);
+
+createGlobalTheme(':root', radiusTokens, {
+  radiusMd: '0.375rem',
+  radiusSm: '0.25rem',
+  radiusXs: '0.125rem',
+  radiusXxs: '0.0625rem',
+});
 
 // Dark Theme — activates when [data-theme="dark"] is set on <html>
 createGlobalTheme(':root[data-theme="dark"]', colorTokens, {

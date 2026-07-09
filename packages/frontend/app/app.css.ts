@@ -2,6 +2,7 @@ import { globalStyle, style } from '@vanilla-extract/css';
 
 import { colorTokens } from './styles/color-tokens.contract.css.ts';
 import { fontWeightTokens } from './styles/font-weight-tokens.contract.css.ts';
+import { radiusTokens } from './styles/radius-tokens.contract.css.ts';
 import './styles/global-themes.css.ts';
 
 // Global Styles
@@ -34,7 +35,7 @@ globalStyle(':root[data-theme="dark"] body', {
 export const errorStyles = {
   container: style({
     backgroundColor: colorTokens.backgroundDark,
-    borderRadius: '0.375rem',
+    borderRadius: radiusTokens.radiusMd,
     boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
     maxWidth: '42rem',
     padding: '2rem',
@@ -62,7 +63,7 @@ export const errorStyles = {
   link: style({
     alignItems: 'center',
     backgroundColor: colorTokens.info,
-    borderRadius: '0.375rem',
+    borderRadius: radiusTokens.radiusMd,
     color: colorTokens.white,
     display: 'inline-flex',
     fontWeight: fontWeightTokens.fontWeightSemibold,
@@ -80,7 +81,7 @@ export const errorStyles = {
   stackDetails: style({
     backgroundColor: 'rgba(255,255,255,0.08)',
     borderColor: colorTokens.slate700,
-    borderRadius: '0.0625rem',
+    borderRadius: radiusTokens.radiusXxs,
     borderStyle: 'solid',
     borderWidth: '1px',
     marginBottom: '2rem',
@@ -89,7 +90,7 @@ export const errorStyles = {
   }),
   stackPre: style({
     backgroundColor: colorTokens.slate800,
-    borderRadius: '0.125rem',
+    borderRadius: radiusTokens.radiusXs,
     color: colorTokens.slate200,
     fontFamily: 'monospace',
     fontSize: '0.875rem',
@@ -144,7 +145,7 @@ globalStyle('.locale-switcher-trigger', {
   alignItems: 'center',
   backgroundColor: 'transparent',
   border: `1px solid ${colorTokens.borderColor}`,
-  borderRadius: '0.375rem',
+  borderRadius: radiusTokens.radiusMd,
   color: 'inherit',
   cursor: 'pointer',
   display: 'inline-flex',
@@ -169,7 +170,7 @@ globalStyle('.locale-switcher-trigger:focus-visible', {
 globalStyle('.locale-switcher-popup', {
   backgroundColor: colorTokens.slate800,
   border: `1px solid ${colorTokens.borderColor}`,
-  borderRadius: '0.375rem',
+  borderRadius: radiusTokens.radiusMd,
   boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.3), 0 8px 10px -6px rgb(0 0 0 / 0.2)',
   listStyle: 'none',
   margin: 0,
@@ -181,7 +182,7 @@ globalStyle('.locale-switcher-popup', {
 
 globalStyle('.locale-switcher-item', {
   alignItems: 'center',
-  borderRadius: '0.25rem',
+  borderRadius: radiusTokens.radiusSm,
   color: colorTokens.slate200,
   cursor: 'pointer',
   display: 'flex',

@@ -1,6 +1,7 @@
 import { keyframes, style } from '@vanilla-extract/css';
 
 import { colorTokens } from '../styles/color-tokens.contract.css.ts';
+import { radiusTokens } from '../styles/radius-tokens.contract.css.ts';
 
 export const heroReveal = keyframes({
   '0%': {
@@ -34,7 +35,7 @@ export const s = {
     animationName: heroReveal,
     animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
     backgroundColor: colorTokens.info,
-    borderRadius: '0.375rem',
+    borderRadius: radiusTokens.radiusMd,
     color: colorTokens.white,
     display: 'inline-grid',
     fontWeight: 600,
@@ -67,7 +68,7 @@ export const s = {
     animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
     backgroundColor: 'rgba(255, 255, 255, 0.78)',
     borderColor: 'rgba(15, 23, 42, 0.12)',
-    borderRadius: '0.375rem',
+    borderRadius: radiusTokens.radiusMd,
     borderStyle: 'solid',
     borderWidth: '1px',
     color: colorTokens.slate900,
@@ -317,7 +318,7 @@ export const s = {
   }),
   itemBullet: style({
     backgroundColor: colorTokens.info,
-    borderRadius: '0.375rem',
+    borderRadius: radiusTokens.radiusMd,
     height: '0.45rem',
     marginBlockStart: '0.5rem',
     selectors: {
@@ -348,7 +349,7 @@ export const s = {
       },
     },
     alignItems: 'flex-start',
-    borderRadius: '0.375rem',
+    borderRadius: radiusTokens.radiusMd,
     display: 'grid',
     gap: '0.95rem 1rem',
     gridTemplateColumns: '1fr',

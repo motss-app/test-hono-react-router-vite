@@ -1,6 +1,7 @@
 import { keyframes, style } from '@vanilla-extract/css';
 
 import { colorTokens } from '../styles/color-tokens.contract.css.ts';
+import { radiusTokens } from '../styles/radius-tokens.contract.css.ts';
 
 const fadeUp = keyframes({
   '0%': {
@@ -99,7 +100,7 @@ export const brandIconVars = style({
 export const brandMark = style({
   alignItems: 'center',
   backgroundColor: colorTokens.info,
-  borderRadius: '0.375rem',
+  borderRadius: radiusTokens.radiusMd,
   display: 'inline-grid',
   flexShrink: 0,
   height: '3rem',
@@ -147,7 +148,7 @@ export const footerInner = style({
 });
 export const footerLink = style({
   alignItems: 'center',
-  borderRadius: '0.375rem',
+  borderRadius: radiusTokens.radiusMd,
   color: colorTokens.slate900,
   display: 'inline-grid',
   gap: '0.45rem',
@@ -220,7 +221,7 @@ export const headerInner = style({
 });
 export const layoutBlock = style({
   borderColor: colorTokens.slate300,
-  borderRadius: '0.375rem',
+  borderRadius: radiusTokens.radiusMd,
   borderStyle: 'solid',
   borderWidth: '1px',
   padding: '1rem',
@@ -348,7 +349,7 @@ export const nav = style({
   gridAutoFlow: 'column',
 });
 export const navLink = style({
-  borderRadius: '0.375rem',
+  borderRadius: radiusTokens.radiusMd,
   color: colorTokens.slate900,
   fontSize: '0.92rem',
   padding: '0.55rem 0.8rem',

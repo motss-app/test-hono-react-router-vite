@@ -1,6 +1,7 @@
 import { keyframes, style } from '@vanilla-extract/css';
 
 import { colorTokens } from '../styles/color-tokens.contract.css.ts';
+import { radiusTokens } from '../styles/radius-tokens.contract.css.ts';
 
 const heroReveal = keyframes({
   '0%': {
@@ -28,7 +29,7 @@ const artworkDrift = keyframes({
 export const actionButton = style({
   backgroundColor: colorTokens.info,
   border: 'none',
-  borderRadius: '0.375rem',
+  borderRadius: radiusTokens.radiusMd,
   color: colorTokens.white,
   cursor: 'pointer',
   fontWeight: 600,
@@ -73,7 +74,7 @@ export const ctaSecondary = style({
   animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
   backgroundColor: 'rgba(255, 255, 255, 0.78)',
   borderColor: 'rgba(15, 23, 42, 0.12)',
-  borderRadius: '0.375rem',
+  borderRadius: radiusTokens.radiusMd,
   borderStyle: 'solid',
   borderWidth: '1px',
   color: colorTokens.slate900,
@@ -141,7 +142,7 @@ export const dataValue = style({
 export const errorBox = style({
   backgroundColor: '#fef2f2',
   borderColor: '#ef4444',
-  borderRadius: '0.375rem',
+  borderRadius: radiusTokens.radiusMd,
   borderStyle: 'solid',
   borderWidth: '1px',
   color: '#b91c1c',
@@ -421,7 +422,7 @@ export const rowTitle = style({
   },
 });
 export const skeletonAction = style({
-  borderRadius: '0.375rem',
+  borderRadius: radiusTokens.radiusMd,
   height: '3rem',
   inlineSize: '100%',
 });

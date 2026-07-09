@@ -2,6 +2,7 @@ import { keyframes, style } from '@vanilla-extract/css';
 
 import { colorTokens } from '../styles/color-tokens.contract.css.ts';
 import { fontWeightTokens } from '../styles/font-weight-tokens.contract.css.ts';
+import { radiusTokens } from '../styles/radius-tokens.contract.css.ts';
 
 const heroReveal = keyframes({
   '0%': {
@@ -34,7 +35,7 @@ export const ctaPrimary = style({
   animationName: heroReveal,
   animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
   backgroundColor: '#f59e0b',
-  borderRadius: '0.375rem',
+  borderRadius: radiusTokens.radiusMd,
   color: colorTokens.slate900,
   display: 'inline-grid',
   fontWeight: fontWeightTokens.fontWeightSemibold,
@@ -66,7 +67,7 @@ export const ctaSecondary = style({
   animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
   backgroundColor: 'rgba(255, 255, 255, 0.82)',
   borderColor: 'rgba(120, 53, 15, 0.12)',
-  borderRadius: '0.375rem',
+  borderRadius: radiusTokens.radiusMd,
   borderStyle: 'solid',
   borderWidth: '1px',
   color: colorTokens.slate900,
