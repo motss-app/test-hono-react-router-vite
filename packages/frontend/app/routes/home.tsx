@@ -11,39 +11,38 @@ import * as c from './home.css.ts';
 
 const routes = [
   {
-    description: 'Project overview, stack notes, and the migration decisions behind the app.',
-    number: '01',
+    description: m.route_about_description(),
+    number: m.route_number_about(),
     path: '/about',
-    title: 'About',
+    title: m.route_about_title(),
     to: '/about',
   },
   {
-    description: 'Header, main, and footer arranged in the classic holy grail app shell.',
-    number: '02',
+    description: m.route_holy_grail_description(),
+    number: m.route_number_holy_grail(),
     path: '/holy-grail',
-    title: 'Holy Grail Layout',
+    title: m.route_holy_grail_title(),
     to: '/holy-grail',
   },
   {
-    description: 'Request-time rendering with timing data and server-owned state on the page.',
-    number: '03',
+    description: m.route_ssr_description(),
+    number: m.route_number_ssr(),
     path: '/ssr',
-    title: 'SSR Page',
+    title: m.route_ssr_title(),
     to: '/ssr',
   },
   {
-    description: 'Typed client and server calls flowing through Hono without extra ceremony.',
-    number: '04',
+    description: m.route_hono_rpc_description(),
+    number: m.route_number_hono_rpc(),
     path: '/hono-rpc',
-    title: 'Hono RPC Demo',
+    title: m.route_hono_rpc_title(),
     to: '/hono-rpc',
   },
   {
-    description:
-      'Error routes and boundary behavior for failure states, status codes, and recovery.',
-    number: '05',
+    description: m.route_errors_description(),
+    number: m.route_number_errors(),
     path: '/errors',
-    title: 'Error Handling Demo',
+    title: m.route_errors_title(),
     to: '/errors',
   },
 ] as const;
@@ -153,7 +152,7 @@ export default function Home(): JSX.Element {
 
                   <p className={c.routeDescription}>{route.description}</p>
 
-                  <span className={c.routeAction}>Open →</span>
+                  <span className={c.routeAction}>{m.route_open_action()}</span>
                 </Link>
               </div>
             ))}
@@ -164,7 +163,7 @@ export default function Home(): JSX.Element {
       <footer className={c.footer}>
         <div className={c.footerInner}>
           <LocaleSwitcher />
-          <p className={c.footerNote}>React Router + Hono Demo</p>
+          <p className={c.footerNote}>{m.footer_note()}</p>
         </div>
       </footer>
     </main>

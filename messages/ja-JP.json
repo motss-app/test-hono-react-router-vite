@@ -1,9 +1,26 @@
 {
+  "footer_note": "React Router + Hono デモ",
   "hero_body": "5つのルートがSSR、RPC、レイアウト、バウンダリー、アーキテクチャを分かりやすく保ち、ホームページをダッシュボードに変えません。",
   "hero_cta_overview": "概要を読む",
   "hero_cta_rpc": "RPCフローを開く",
   "hero_lead": "コンパクトなフルスタックデモで、レンダリング、ルーティング、リカバリを行います。",
   "home_title": "React Router {#accent}と Hono{/accent}",
+  "route_about_description": "プロジェクトの概要、スタックノート、そしてアプリの移行判断について。",
+  "route_about_title": "概要",
+  "route_errors_description": "障害状態、ステータスコード、リカバリのためのエラールートとバウンダリー動作。",
+  "route_errors_title": "エラーハンドリングデモ",
+  "route_holy_grail_description": "ヘッダー、メイン、フッターをクラシックなホーリーグレイルアプリシェルで配置。",
+  "route_holy_grail_title": "ホーリーグレイルレイアウト",
+  "route_hono_rpc_description": "Honoを介した型付きクライアントとサーバー呼び出しを余分な処理なしで実行。",
+  "route_hono_rpc_title": "Hono RPCデモ",
+  "route_number_about": "01",
+  "route_number_errors": "05",
+  "route_number_holy_grail": "02",
+  "route_number_hono_rpc": "04",
+  "route_number_ssr": "03",
+  "route_open_action": "開く →",
+  "route_ssr_description": "リクエスト時のレンダリング、タイミングデータ、サーバー管理のステートをページ上で表示。",
+  "route_ssr_title": "SSRページ",
   "routes_section_intro": "各エントリは1つの関心事を分離しているので、すべてを一度に解読する代わりに、部分ごとにスタックを確認できます。",
-  "routes_section_title": "1つのルートから始めましょう。残りはすべて見渡せます。"
+  "routes_section_title": "一つのルートから始めましょう。残りはすべて見渡せます。"
 }

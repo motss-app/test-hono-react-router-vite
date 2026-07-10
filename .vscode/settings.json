@@ -23,5 +23,6 @@
   "js/ts.preferences.importModuleSpecifier": "relative",
   "js/ts.suggest.autoImports": true,
   "js/ts.tsdk.path": "node_modules/typescript/lib",
-  "js/ts.tsserver.experimental.enableProjectDiagnostics": false
+  "js/ts.tsserver.experimental.enableProjectDiagnostics": false,
+  "poirot.defaultLocale": "en-US"
 }
