@@ -6,7 +6,6 @@ import openSansMathWghtNormalWoff2 from '@fontsource-variable/open-sans/files/op
 import openSansSymbolsWghtNormalWoff2 from '@fontsource-variable/open-sans/files/open-sans-symbols-wght-normal.woff2';
 import { captureException } from '@sentry/react-router/cloudflare';
 import type { JSX, PropsWithChildren } from 'react';
-import { useLayoutEffect } from 'react';
 import type { MiddlewareFunction } from 'react-router';
 import { isRouteErrorResponse, Link, Outlet, useMatches, useRouteLoaderData } from 'react-router';
 
@@ -19,6 +18,13 @@ import { IconArrowLeft, IconBug, IconExclamationTriangle } from './icons.ts';
 import { getLocale } from './paraglide/runtime.js';
 import { paraglideMiddleware } from './paraglide/server.js';
 import { csp } from './utils/csp.ts';
+
+type Theme = 'light' | 'dark';
+
+function parseThemeCookie(cookieHeader: string | null): Theme | null {
+  const match = cookieHeader?.match(/(?:^|;\s*)theme=(light|dark)/);
+  return match ? (match[1] as Theme) : null;
+}
 
 export const links: Route.LinksFunction = () => [
   {
@@ -47,6 +53,7 @@ export const links: Route.LinksFunction = () => [
 export function loader({ request }: Route.LoaderArgs) {
   return {
     cspNonce: csp.getNonce(request),
+    theme: parseThemeCookie(request.headers.get('cookie')),
   };
 }
 
@@ -61,6 +68,7 @@ export const middleware: MiddlewareFunction[] = [
 export function Layout({ children }: PropsWithChildren): JSX.Element {
   const rootLoaderData = useRouteLoaderData<typeof loader>('root');
   const cspNonce = rootLoaderData?.cspNonce ?? undefined;
+  const serverTheme = rootLoaderData?.theme ?? undefined;
   const matches = useMatches();
   const current = matches.at(-1);
   const htmlAttrs =
@@ -70,29 +78,9 @@ export function Layout({ children }: PropsWithChildren): JSX.Element {
       }
     )?.htmlAttrs ?? {};
 
-  // Restore data-theme from localStorage after React hydration.
-  // When the server renders with en-US but the client hydrates with a different
-  // locale (e.g. ja-JP), React's hydration mismatch triggers a full tree
-  // regeneration that strips the data-theme attribute set by the bootstrap
-  // script. This hook re-applies the saved theme before the browser paints.
-  useLayoutEffect(() => {
-    if (document.documentElement.getAttribute('data-theme')) {
-      return;
-    }
-
-    try {
-      const saved = localStorage.getItem('theme');
-
-      if (saved === 'light' || saved === 'dark') {
-        document.documentElement.setAttribute('data-theme', saved);
-      }
-    } catch {
-      // localStorage may be unavailable
-    }
-  }, []);
-
   return (
     <html
+      data-theme={serverTheme}
       lang={getLocale()}
       suppressHydrationWarning
       {...htmlAttrs}

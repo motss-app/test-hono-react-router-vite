@@ -34,6 +34,14 @@ function applyTheme(theme: Theme): void {
   } catch {
     // localStorage may be unavailable
   }
+
+  // Persist to cookie so SSR can read the theme without localStorage.
+  try {
+    // biome-ignore lint/suspicious/noDocumentCookie: intentional — SSR reads this cookie to render data-theme
+    document.cookie = `${themeStorageKey}=${theme}; path=/; max-age=31536000; samesite=lax`;
+  } catch {
+    // cookie write may fail in restricted environments
+  }
 }
 
 function registerSystemThemeListener(mediaQueryList: MediaQueryList): void {
