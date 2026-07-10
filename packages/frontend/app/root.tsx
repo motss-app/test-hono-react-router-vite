@@ -6,6 +6,7 @@ import openSansMathWghtNormalWoff2 from '@fontsource-variable/open-sans/files/op
 import openSansSymbolsWghtNormalWoff2 from '@fontsource-variable/open-sans/files/open-sans-symbols-wght-normal.woff2';
 import { captureException } from '@sentry/react-router/cloudflare';
 import type { JSX, PropsWithChildren } from 'react';
+import { useLayoutEffect } from 'react';
 import type { MiddlewareFunction } from 'react-router';
 import { isRouteErrorResponse, Link, Outlet, useMatches, useRouteLoaderData } from 'react-router';
 
@@ -68,6 +69,27 @@ export function Layout({ children }: PropsWithChildren): JSX.Element {
         htmlAttrs?: Record<string, string>;
       }
     )?.htmlAttrs ?? {};
+
+  // Restore data-theme from localStorage after React hydration.
+  // When the server renders with en-US but the client hydrates with a different
+  // locale (e.g. ja-JP), React's hydration mismatch triggers a full tree
+  // regeneration that strips the data-theme attribute set by the bootstrap
+  // script. This hook re-applies the saved theme before the browser paints.
+  useLayoutEffect(() => {
+    if (document.documentElement.getAttribute('data-theme')) {
+      return;
+    }
+
+    try {
+      const saved = localStorage.getItem('theme');
+
+      if (saved === 'light' || saved === 'dark') {
+        document.documentElement.setAttribute('data-theme', saved);
+      }
+    } catch {
+      // localStorage may be unavailable
+    }
+  }, []);
 
   return (
     <html

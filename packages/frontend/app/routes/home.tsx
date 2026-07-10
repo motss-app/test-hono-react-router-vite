@@ -9,43 +9,47 @@ import { createBackgroundSvgPreloadLinks } from '../utils/background-svg-preload
 import type { Route } from './+types/home.ts';
 import * as c from './home.css.ts';
 
-const routes = [
-  {
-    description: m.route_about_description(),
-    number: m.route_number_about(),
-    path: '/about',
-    title: m.route_about_title(),
-    to: '/about',
-  },
-  {
-    description: m.route_holy_grail_description(),
-    number: m.route_number_holy_grail(),
-    path: '/holy-grail',
-    title: m.route_holy_grail_title(),
-    to: '/holy-grail',
-  },
-  {
-    description: m.route_ssr_description(),
-    number: m.route_number_ssr(),
-    path: '/ssr',
-    title: m.route_ssr_title(),
-    to: '/ssr',
-  },
-  {
-    description: m.route_hono_rpc_description(),
-    number: m.route_number_hono_rpc(),
-    path: '/hono-rpc',
-    title: m.route_hono_rpc_title(),
-    to: '/hono-rpc',
-  },
-  {
-    description: m.route_errors_description(),
-    number: m.route_number_errors(),
-    path: '/errors',
-    title: m.route_errors_title(),
-    to: '/errors',
-  },
-] as const;
+// Must be a function — m.*() calls resolve locale at call time, so they
+// cannot live at module scope where Paraglide's locale isn't set yet.
+function getRoutes() {
+  return [
+    {
+      description: m.route_about_description(),
+      number: m.route_number_about(),
+      path: '/about',
+      title: m.route_about_title(),
+      to: '/about',
+    },
+    {
+      description: m.route_holy_grail_description(),
+      number: m.route_number_holy_grail(),
+      path: '/holy-grail',
+      title: m.route_holy_grail_title(),
+      to: '/holy-grail',
+    },
+    {
+      description: m.route_ssr_description(),
+      number: m.route_number_ssr(),
+      path: '/ssr',
+      title: m.route_ssr_title(),
+      to: '/ssr',
+    },
+    {
+      description: m.route_hono_rpc_description(),
+      number: m.route_number_hono_rpc(),
+      path: '/hono-rpc',
+      title: m.route_hono_rpc_title(),
+      to: '/hono-rpc',
+    },
+    {
+      description: m.route_errors_description(),
+      number: m.route_number_errors(),
+      path: '/errors',
+      title: m.route_errors_title(),
+      to: '/errors',
+    },
+  ];
+}
 
 export const links: Route.LinksFunction = () =>
   createBackgroundSvgPreloadLinks([
@@ -129,7 +133,7 @@ export default function Home(): JSX.Element {
           <p className={c.routesIntro}>{m.routes_section_intro()}</p>
 
           <div className={c.routesList}>
-            {routes.map(route => (
+            {getRoutes().map(route => (
               <div
                 className={c.routeRow}
                 key={route.to}
