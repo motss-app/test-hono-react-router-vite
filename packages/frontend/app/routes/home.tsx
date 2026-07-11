@@ -10,40 +10,40 @@ import type { Route } from './+types/home.ts';
 import * as c from './home.css.ts';
 
 // Must be a function — m.*() calls resolve locale at call time, so they
-// cannot live at module scope where Paraglide's locale isn't set yet.
+// cannot live at module scope where Paraglide locale isn't set yet.
 function getRoutes() {
   return [
     {
       description: m.route_about_description(),
-      number: m.route_number_about(),
+      number: '01',
       path: '/about',
       title: m.route_about_title(),
       to: '/about',
     },
     {
       description: m.route_holy_grail_description(),
-      number: m.route_number_holy_grail(),
+      number: '02',
       path: '/holy-grail',
       title: m.route_holy_grail_title(),
       to: '/holy-grail',
     },
     {
       description: m.route_ssr_description(),
-      number: m.route_number_ssr(),
+      number: '03',
       path: '/ssr',
       title: m.route_ssr_title(),
       to: '/ssr',
     },
     {
       description: m.route_hono_rpc_description(),
-      number: m.route_number_hono_rpc(),
+      number: '04',
       path: '/hono-rpc',
       title: m.route_hono_rpc_title(),
       to: '/hono-rpc',
     },
     {
       description: m.route_errors_description(),
-      number: m.route_number_errors(),
+      number: '05',
       path: '/errors',
       title: m.route_errors_title(),
       to: '/errors',
@@ -167,7 +167,7 @@ export default function Home(): JSX.Element {
       <footer className={c.footer}>
         <div className={c.footerInner}>
           <LocaleSwitcher />
-          <p className={c.footerNote}>{m.footer_note()}</p>
+          <p className={c.footerNote}>React Router + Hono Demo</p>
         </div>
       </footer>
     </main>
