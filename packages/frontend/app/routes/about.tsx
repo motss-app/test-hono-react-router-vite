@@ -11,12 +11,11 @@ import {
   IconServer,
   IconShield,
 } from '../icons.ts';
+import * as m from '../paraglide/messages.js';
 import { iconStyles } from '../styles/icon.css.ts';
 import { createBackgroundSvgPreloadLinks } from '../utils/background-svg-preload.ts';
 import type { Route } from './+types/about.ts';
 import { s } from './about.css.ts';
-
-import * as m from '../paraglide/messages.js';
 
 // Must be functions — m.*() calls resolve locale at call time, so they
 // cannot live at module scope where Paraglide's locale isn't set yet.

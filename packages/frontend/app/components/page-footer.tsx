@@ -1,8 +1,8 @@
 import type { JSX } from 'react';
 
+import * as m from '../paraglide/messages.js';
 import { LocaleSwitcher } from './locale-switcher.tsx';
 import * as s from './page-footer.css.ts';
-import * as m from '../paraglide/messages.js';
 
 export function PageFooter(): JSX.Element {
   return (

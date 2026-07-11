@@ -11,6 +11,7 @@ import {
   IconServer,
   IconShield,
 } from '../icons.ts';
+import * as m from '../paraglide/messages.js';
 import type { Route } from './+types/holy-grail.ts';
 import {
   articleBody,
@@ -52,23 +53,31 @@ import {
   topLine,
 } from './holy-grail.css.ts';
 
-const layoutNotes = [
-  'The document shell stays in `root.tsx`.',
-  'The page shell is a grid with `header`, `main`, and `footer` rows.',
-  'The middle track uses grid columns so the sidebars never steal the spotlight.',
-] as const;
+// Must be functions — m.*() calls resolve locale at call time, so they
+// cannot live at module scope where Paraglide locale isn't set yet.
+function getLayoutNotes() {
+  return [
+    m.holy_grail_layout_note_1(),
+    m.holy_grail_layout_note_2(),
+    m.holy_grail_layout_note_3(),
+  ] as const;
+}
 
-const leftRailNotes = [
-  'Persistent navigation stays out of the main reading flow.',
-  'Useful metadata belongs in the rail, not in the hero copy.',
-  'The layout still works when the rails collapse on mobile.',
-] as const;
+function getLeftRailNotes() {
+  return [
+    m.holy_grail_left_note_1(),
+    m.holy_grail_left_note_2(),
+    m.holy_grail_left_note_3(),
+  ] as const;
+}
 
-const rightRailNotes = [
-  'Sticky sidebars create the classic holy grail silhouette.',
-  'The center column is the only region that should stretch hard.',
-  'Header and footer frame the content without boxing it in.',
-] as const;
+function getRightRailNotes() {
+  return [
+    m.holy_grail_right_note_1(),
+    m.holy_grail_right_note_2(),
+    m.holy_grail_right_note_3(),
+  ] as const;
+}
 
 export function meta(): Route.MetaDescriptors {
   return [
@@ -91,17 +100,17 @@ export default function HolyGrailPage(): JSX.Element {
     typeof globalThis.document === 'undefined' ? useEffect : useLayoutEffect;
 
   useIsomorphicLayoutEffect(() => {
-    const shell = shellRef.current;
-    const header = headerRef.current;
+    const shellEl = shellRef.current;
+    const headerEl = headerRef.current;
 
-    if (shell === null || header === null) {
+    if (shellEl === null || headerEl === null) {
       return;
     }
 
     const updateHeaderHeight = (): void => {
-      shell.style.setProperty(
+      shellEl.style.setProperty(
         '--holy-grail-header-height',
-        `${header.getBoundingClientRect().height}px`
+        `${headerEl.getBoundingClientRect().height}px`
       );
     };
 
@@ -116,7 +125,7 @@ export default function HolyGrailPage(): JSX.Element {
     }
 
     const observer = new ResizeObserver(updateHeaderHeight);
-    observer.observe(header);
+    observer.observe(headerEl);
     globalThis.addEventListener('resize', updateHeaderHeight);
 
     return () => {
@@ -145,13 +154,13 @@ export default function HolyGrailPage(): JSX.Element {
                 as="p"
                 className={articleEyebrow}
               >
-                SSG grid demo
+                {m.holy_grail_eyebrow()}
               </Text>
               <Text
                 as="h1"
                 className={layoutTitle}
               >
-                Holy grail layout
+                {m.holy_grail_title()}
               </Text>
             </div>
           </div>
@@ -164,19 +173,19 @@ export default function HolyGrailPage(): JSX.Element {
               className={navLink}
               to="/"
             >
-              Home
+              {m.holy_grail_nav_home()}
             </Link>
             <Link
               className={navLink}
               to="/about"
             >
-              About
+              {m.holy_grail_nav_about()}
             </Link>
             <Link
               className={navLink}
               to="/hono-rpc"
             >
-              RPC
+              {m.holy_grail_nav_rpc()}
             </Link>
           </nav>
         </div>
@@ -189,23 +198,20 @@ export default function HolyGrailPage(): JSX.Element {
               as="p"
               className={shellNote}
             >
-              Left rail
+              {m.holy_grail_label_left_rail()}
             </Text>
             <Text
               as="h2"
               className={shellTitle}
             >
-              Navigation and context.
+              {m.holy_grail_left_title()}
             </Text>
           </div>
 
-          <p className={railBody}>
-            This column keeps the supporting information close without asking the main content to
-            carry everything.
-          </p>
+          <p className={railBody}>{m.holy_grail_left_desc()}</p>
 
           <ul className={railList}>
-            {leftRailNotes.map(note => (
+            {getLeftRailNotes().map(note => (
               <li
                 className={railListItem}
                 key={note}
@@ -225,20 +231,17 @@ export default function HolyGrailPage(): JSX.Element {
               as="p"
               className={articleEyebrow}
             >
-              Page-owned shell
+              {m.holy_grail_article_eyebrow()}
             </Text>
             <Text
               as="h2"
               className={articleTitle}
             >
-              Header on top, main in the middle, footer at the bottom.
+              {m.holy_grail_article_title()}
             </Text>
           </div>
 
-          <p className={articleBody}>
-            The root keeps the document skeleton. This route owns the visible structure, so the holy
-            grail pattern stays local to the page instead of leaking into the app shell.
-          </p>
+          <p className={articleBody}>{m.holy_grail_article_desc()}</p>
 
           <section className={layoutDiagram}>
             <header className={layoutHeader}>
@@ -246,20 +249,19 @@ export default function HolyGrailPage(): JSX.Element {
                 as="p"
                 className={layoutLabel}
               >
-                Nested header
+                {m.holy_grail_nested_label()}
               </Text>
               <Text
                 as="h3"
                 className={shellTitle}
               >
-                Header, main, footer inside the article.
+                {m.holy_grail_nested_title()}
               </Text>
               <Text
                 as="p"
                 className={topLine}
               >
-                The nested shell lets the middle track adapt to the article width instead of the
-                viewport.
+                {m.holy_grail_nested_desc()}
               </Text>
             </header>
 
@@ -272,13 +274,13 @@ export default function HolyGrailPage(): JSX.Element {
                   as="p"
                   className={layoutLabel}
                 >
-                  Left rail
+                  {m.holy_grail_label_left_rail()}
                 </Text>
                 <Text
                   as="p"
                   className={topLine}
                 >
-                  Secondary navigation and supporting context.
+                  {m.holy_grail_layout_left_desc()}
                 </Text>
               </aside>
 
@@ -287,13 +289,13 @@ export default function HolyGrailPage(): JSX.Element {
                   as="p"
                   className={layoutLabel}
                 >
-                  Main
+                  {m.holy_grail_label_main()}
                 </Text>
                 <Text
                   as="p"
                   className={topLine}
                 >
-                  The middle track expands and remains readable at every width.
+                  {m.holy_grail_layout_main_desc()}
                 </Text>
               </article>
 
@@ -302,13 +304,13 @@ export default function HolyGrailPage(): JSX.Element {
                   as="p"
                   className={layoutLabel}
                 >
-                  Right rail
+                  {m.holy_grail_label_right_rail()}
                 </Text>
                 <Text
                   as="p"
                   className={topLine}
                 >
-                  Status, notes, and related links that should not dominate the flow.
+                  {m.holy_grail_layout_right_desc()}
                 </Text>
               </aside>
             </main>
@@ -318,11 +320,11 @@ export default function HolyGrailPage(): JSX.Element {
                 as="h3"
                 className={shellTitle}
               >
-                Why it stays flexible.
+                {m.holy_grail_flexible_title()}
               </Text>
 
               <ul className={railList}>
-                {layoutNotes.map(note => (
+                {getLayoutNotes().map(note => (
                   <li
                     className={railListItem}
                     key={note}
@@ -344,23 +346,20 @@ export default function HolyGrailPage(): JSX.Element {
               as="p"
               className={shellNote}
             >
-              Right rail
+              {m.holy_grail_label_right_rail()}
             </Text>
             <Text
               as="h2"
               className={shellTitle}
             >
-              Notes and status.
+              {m.holy_grail_right_title()}
             </Text>
           </div>
 
-          <p className={railBody}>
-            The side rail is where you place references, status, or helper content without forcing
-            the central article to do double duty.
-          </p>
+          <p className={railBody}>{m.holy_grail_right_desc()}</p>
 
           <ul className={railList}>
-            {rightRailNotes.map(note => (
+            {getRightRailNotes().map(note => (
               <li
                 className={railListItem}
                 key={note}
@@ -378,7 +377,7 @@ export default function HolyGrailPage(): JSX.Element {
             to="/"
           >
             <IconHome className={railIcon} />
-            <span>Back home</span>
+            <span>{m.holy_grail_back_home()}</span>
           </Link>
         </aside>
       </main>
@@ -386,9 +385,7 @@ export default function HolyGrailPage(): JSX.Element {
       <footer className={footer}>
         <div className={footerInner}>
           <LocaleSwitcher />
-          <p className={footerNote}>
-            Static route • prerendered at build time • no loader required
-          </p>
+          <p className={footerNote}>{m.holy_grail_footer_note()}</p>
 
           <div className={nav}>
             <Link
@@ -396,7 +393,7 @@ export default function HolyGrailPage(): JSX.Element {
               to="/"
             >
               <IconArrowLeft className={railIcon} />
-              <span>Back home</span>
+              <span>{m.holy_grail_back_home()}</span>
             </Link>
 
             <Link
@@ -404,7 +401,7 @@ export default function HolyGrailPage(): JSX.Element {
               to="/errors"
             >
               <IconCircleInfo className={railIcon} />
-              <span>See another layout</span>
+              <span>{m.holy_grail_see_another()}</span>
             </Link>
           </div>
         </div>
