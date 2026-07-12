@@ -134,9 +134,7 @@ export default function SsrPage({ loaderData }: Route.ComponentProps): JSX.Eleme
               {m.ssr_hero_lead()}
             </Text>
 
-            <p className={s.heroBody}>
-              {m.ssr_hero_body()}
-            </p>
+            <p className={s.heroBody}>{m.ssr_hero_body()}</p>
 
             <div className={s.heroActions}>
               <Link
@@ -167,9 +165,7 @@ export default function SsrPage({ loaderData }: Route.ComponentProps): JSX.Eleme
             {m.ssr_section_response_title()}
           </Text>
 
-          <p className={s.routesIntro}>
-            {m.ssr_section_response_intro()}
-          </p>
+          <p className={s.routesIntro}>{m.ssr_section_response_intro()}</p>
 
           <div className={s.routesList}>
             <div className={s.rowRow}>
@@ -183,9 +179,7 @@ export default function SsrPage({ loaderData }: Route.ComponentProps): JSX.Eleme
                   >
                     {m.ssr_live_response_title()}
                   </Text>
-                  <p className={s.rowBody}>
-                    {m.ssr_live_response_desc()}
-                  </p>
+                  <p className={s.rowBody}>{m.ssr_live_response_desc()}</p>
                 </div>
 
                 <dl className={s.dataList}>
@@ -211,9 +205,7 @@ export default function SsrPage({ loaderData }: Route.ComponentProps): JSX.Eleme
                     >
                       {m.ssr_hono_context_title()}
                     </Text>
-                    <p className={s.rowBody}>
-                      {m.ssr_hono_context_desc()}
-                    </p>
+                    <p className={s.rowBody}>{m.ssr_hono_context_desc()}</p>
                   </div>
 
                   <dl className={s.dataList}>
@@ -244,9 +236,7 @@ export default function SsrPage({ loaderData }: Route.ComponentProps): JSX.Eleme
             {m.ssr_section_verify_title()}
           </Text>
 
-          <p className={s.routesIntro}>
-            {m.ssr_section_verify_intro()}
-          </p>
+          <p className={s.routesIntro}>{m.ssr_section_verify_intro()}</p>
 
           <div className={s.routesList}>
             <div className={s.rowRow}>
@@ -260,9 +250,7 @@ export default function SsrPage({ loaderData }: Route.ComponentProps): JSX.Eleme
                   >
                     {m.ssr_verify_title()}
                   </Text>
-                  <p className={s.rowBody}>
-                    {m.ssr_verify_desc()}
-                  </p>
+                  <p className={s.rowBody}>{m.ssr_verify_desc()}</p>
                 </div>
 
                 <dl className={s.dataList}>
