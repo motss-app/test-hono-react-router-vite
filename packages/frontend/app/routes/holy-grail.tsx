@@ -82,11 +82,10 @@ function getRightRailNotes() {
 export function meta(): Route.MetaDescriptors {
   return [
     {
-      title: 'Holy Grail Layout · React Router + Hono Demo',
+      title: m.meta_holy_grail_title(),
     },
     {
-      content:
-        'A prerendered holy grail layout demo with header, main, footer, and responsive side rails.',
+      content: m.meta_holy_grail_desc(),
       name: 'description',
     },
   ];

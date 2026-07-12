@@ -18,7 +18,7 @@ const noStoreCacheControl = 'no-store';
 export function meta(): Route.MetaDescriptors {
   return [
     {
-      title: 'SSR Demo · React Router + Hono Demo',
+      title: m.meta_ssr_title(),
     },
   ];
 }

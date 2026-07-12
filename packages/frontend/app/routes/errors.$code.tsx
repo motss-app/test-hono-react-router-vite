@@ -5,6 +5,7 @@ import { Link } from '../components/Link.tsx';
 import { PageFooter } from '../components/page-footer.tsx';
 import { Text } from '../components/text.tsx';
 import { IconArrowLeft, IconCircleInfo, IconHome } from '../icons.ts';
+import * as m from '../paraglide/messages.js';
 import { iconStyles } from '../styles/icon.css.ts';
 import { createBackgroundSvgPreloadLinks } from '../utils/background-svg-preload.ts';
 import {
@@ -23,10 +24,10 @@ const noStoreCacheControl = 'no-store';
 export function meta(): Route.MetaDescriptors {
   return [
     {
-      title: 'Error Case Demo · React Router + Hono Demo',
+      title: m.meta_error_code_title(),
     },
     {
-      content: 'Dynamic error route demonstrating thrown responses and runtime failures.',
+      content: m.meta_error_code_desc(),
       name: 'description',
     },
   ];

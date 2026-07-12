@@ -4,6 +4,7 @@ import { Link } from '../components/Link.tsx';
 import { PageFooter } from '../components/page-footer.tsx';
 import { Text } from '../components/text.tsx';
 import { IconArrowLeft, IconCircleInfo, IconHome, IconTriangleExclamation } from '../icons.ts';
+import * as m from '../paraglide/messages.js';
 import { iconStyles } from '../styles/icon.css.ts';
 import { createBackgroundSvgPreloadLinks } from '../utils/background-svg-preload.ts';
 import { errorScenarios } from '../utils/error-scenarios.ts';
@@ -47,11 +48,10 @@ import {
 export function meta(): Route.MetaDescriptors {
   return [
     {
-      title: 'Error Handling Demo · React Router + Hono Demo',
+      title: m.meta_errors_title(),
     },
     {
-      content:
-        'Explore thrown response errors and runtime failures in the React Router + Hono demo.',
+      content: m.meta_errors_desc(),
       name: 'description',
     },
   ];

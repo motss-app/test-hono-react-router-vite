@@ -1,13 +1,14 @@
 import type { JSX } from 'react/jsx-runtime';
 import { data, Link } from 'react-router';
 
+import * as m from '../paraglide/messages.js';
 import type { Route } from './+types/$.ts';
 import { s } from './$.css.ts';
 
 export function meta(): Route.MetaDescriptors {
   return [
     {
-      title: '404 · React Router + Hono Demo',
+      title: m.meta_404_title(),
     },
   ];
 }

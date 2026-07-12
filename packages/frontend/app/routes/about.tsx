@@ -111,10 +111,10 @@ export const links: Route.LinksFunction = () =>
 export function meta(_args: Route.MetaArgs): Route.MetaDescriptors {
   return [
     {
-      title: 'About · React Router + Hono Demo',
+      title: m.meta_about_title(),
     },
     {
-      content: 'Architecture, stack, and design decisions for the React Router + Hono demo.',
+      content: m.meta_about_desc(),
       name: 'description',
     },
   ];
