@@ -4,6 +4,14 @@ import { data, Link } from 'react-router';
 import type { Route } from './+types/$.ts';
 import { s } from './$.css.ts';
 
+export function meta(): Route.MetaDescriptors {
+  return [
+    {
+      title: '404 · React Router + Hono Demo',
+    },
+  ];
+}
+
 // Catch-all route for 404s (including Chrome DevTools special paths)
 export function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url);

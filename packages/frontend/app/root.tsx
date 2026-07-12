@@ -14,17 +14,11 @@ import { errorStyles } from './app.css.ts';
 import { RootDocumentHead } from './components/root-document-head.tsx';
 import { RootDocumentScripts } from './components/root-document-scripts.tsx';
 import { ScrollToTopButtonShell } from './components/scroll-to-top-button-shell.tsx';
+import { ThemeSync } from './components/theme-sync.tsx';
 import { IconArrowLeft, IconBug, IconExclamationTriangle } from './icons.ts';
 import { getLocale } from './paraglide/runtime.js';
 import { paraglideMiddleware } from './paraglide/server.js';
 import { csp } from './utils/csp.ts';
-
-type Theme = 'light' | 'dark';
-
-function parseThemeCookie(cookieHeader: string | null): Theme | null {
-  const match = cookieHeader?.match(/(?:^|;\s*)theme=(light|dark)/);
-  return match ? (match[1] as Theme) : null;
-}
 
 export const links: Route.LinksFunction = () => [
   {
@@ -53,7 +47,6 @@ export const links: Route.LinksFunction = () => [
 export function loader({ request }: Route.LoaderArgs) {
   return {
     cspNonce: csp.getNonce(request),
-    theme: parseThemeCookie(request.headers.get('cookie')),
   };
 }
 
@@ -68,7 +61,6 @@ export const middleware: MiddlewareFunction[] = [
 export function Layout({ children }: PropsWithChildren): JSX.Element {
   const rootLoaderData = useRouteLoaderData<typeof loader>('root');
   const cspNonce = rootLoaderData?.cspNonce ?? undefined;
-  const serverTheme = rootLoaderData?.theme ?? undefined;
   const matches = useMatches();
   const current = matches.at(-1);
   const htmlAttrs =
@@ -80,7 +72,6 @@ export function Layout({ children }: PropsWithChildren): JSX.Element {
 
   return (
     <html
-      data-theme={serverTheme}
       lang={getLocale()}
       suppressHydrationWarning
       {...htmlAttrs}
@@ -102,6 +93,7 @@ export default function RootApp(): JSX.Element {
     <>
       <Outlet />
       <ScrollToTopButtonShell />
+      <ThemeSync />
     </>
   );
 }

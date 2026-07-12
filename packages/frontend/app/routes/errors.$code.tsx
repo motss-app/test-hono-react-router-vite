@@ -23,7 +23,7 @@ const noStoreCacheControl = 'no-store';
 export function meta(): Route.MetaDescriptors {
   return [
     {
-      title: 'Error Case Demo',
+      title: 'Error Case Demo · React Router + Hono Demo',
     },
     {
       content: 'Dynamic error route demonstrating thrown responses and runtime failures.',

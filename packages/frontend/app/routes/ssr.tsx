@@ -15,6 +15,14 @@ import { s } from './ssr.css.ts';
 
 const noStoreCacheControl = 'no-store';
 
+export function meta(): Route.MetaDescriptors {
+  return [
+    {
+      title: 'SSR Demo · React Router + Hono Demo',
+    },
+  ];
+}
+
 export const links: Route.LinksFunction = () =>
   createBackgroundSvgPreloadLinks([
     '/assets/ssr-hero-dark.svg',

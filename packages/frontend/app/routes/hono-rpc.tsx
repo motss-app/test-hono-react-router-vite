@@ -62,7 +62,7 @@ const isDevSentryMode = isDevelopmentSentryMode(import.meta.env.MODE);
 export function meta(): Route.MetaDescriptors {
   return [
     {
-      title: 'Hono RPC Demo',
+      title: 'Hono RPC Demo · React Router + Hono Demo',
     },
     {
       content: 'Typed Hono RPC demo with client refresh',

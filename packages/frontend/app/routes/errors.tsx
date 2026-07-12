@@ -47,7 +47,7 @@ import {
 export function meta(): Route.MetaDescriptors {
   return [
     {
-      title: 'Error Handling Demo',
+      title: 'Error Handling Demo · React Router + Hono Demo',
     },
     {
       content:

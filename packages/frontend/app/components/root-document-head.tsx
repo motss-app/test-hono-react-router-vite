@@ -16,7 +16,6 @@ export function RootDocumentHead({ cspNonce }: RootDocumentHeadProps): JSX.Eleme
         content="width=device-width, initial-scale=1"
         name="viewport"
       />
-      <title>React Router + Hono Demo</title>
       <Meta />
 
       <style nonce={cspNonce}>{criticalCss}</style>
