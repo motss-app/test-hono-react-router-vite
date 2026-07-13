@@ -6,6 +6,7 @@
     "jsr:@std/path@1.0.0": "1.0.0",
     "jsr:@std/path@1.1.6": "1.1.6",
     "npm:@base-ui/react@1.6.0": "1.6.0_@types+react@19.2.17_react@19.2.7_react-dom@19.2.7__react@19.2.7",
+    "npm:@biomejs/biome@*": "2.5.3",
     "npm:@biomejs/biome@2.5.3": "2.5.3",
     "npm:@cloudflare/vite-plugin@1.43.0": "1.43.0_vite@8.1.4_wrangler@4.107.0__@cloudflare+workers-types@4.20260621.1",
     "npm:@cloudflare/workers-types@4.20260621.1": "4.20260621.1",

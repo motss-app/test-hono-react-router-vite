@@ -4,10 +4,10 @@ description: Install the pinned Deno toolchain and repo dependencies for canary 
 runs:
   using: composite
   steps:
-    - name: Install Deno v2.9.1
+    - name: Install Deno v2.9.2
       uses: denoland/setup-deno@667a34cdef165d8d2b2e98dde39547c9daac7282 # v2
       with:
-        deno-version: 2.9.1
+        deno-version: 2.9.2
         cache: true
 
     - name: Install repository dependencies

@@ -2,11 +2,7 @@ import { Select } from '@base-ui/react/select';
 import { useCallback } from 'react';
 
 import { labels, locales } from '../../locales.ts';
-import {
-  deLocalizeHref,
-  getLocale,
-  localizeHref,
-} from '../paraglide/runtime.js';
+import { deLocalizeHref, getLocale, localizeHref } from '../paraglide/runtime.js';
 import type { Locale } from '../paraglide/runtime.js';
 
 const LOCALES = locales.map(value => ({

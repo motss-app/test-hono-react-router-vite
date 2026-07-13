@@ -10,24 +10,37 @@ export type Locale = (typeof settings.locales)[number];
 const LABELS: Record<string, string> = {
   'en-US': 'English (US)',
   'ja-JP': '日本語',
+  'zh-HK': '繁體中文（香港）',
   'zh-TW': '繁體中文',
 };
 
 export const labels: Record<Locale, string> = Object.fromEntries(
-  locales.map(l => [l, LABELS[l] ?? l]),
+  locales.map(l => [
+    l,
+    LABELS[l] ?? l,
+  ])
 ) as Record<Locale, string>;
 
 export function urlPatterns(): {
-  localized: [string, string][];
+  localized: [
+    string,
+    string,
+  ][];
   pattern: string;
 }[] {
   return [
     {
-      localized: locales.map(l => [l, `/${l}`]),
+      localized: locales.map(l => [
+        l,
+        `/${l}`,
+      ]),
       pattern: '/',
     },
     {
-      localized: locales.map(l => [l, `/${l}/:path(.*)?`]),
+      localized: locales.map(l => [
+        l,
+        `/${l}/:path(.*)?`,
+      ]),
       pattern: '/:path(.*)?',
     },
   ];
