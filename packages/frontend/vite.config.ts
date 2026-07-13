@@ -10,6 +10,7 @@ import { veCssTextPlugin } from '../../vite-plugins/ve-css-text/plugin.ts';
 import { loadConfigEnvironment } from '../../vite-utils/load-env.ts';
 import { createSentryBuildOptions } from '../../vite-utils/sentry-build.ts';
 import { createBuildSentryEnvSnapshot } from '../../vite-utils/sentry-build-env-log.ts';
+import { urlPatterns } from './locales.ts';
 
 const repoRootPath = new URL('../../', import.meta.url).pathname;
 const publicDirPath = new URL('./public', import.meta.url).pathname;
@@ -94,34 +95,7 @@ export default defineConfig(async config => {
                 'preferredLanguage',
                 'baseLocale',
               ],
-              urlPatterns: [
-                {
-                  localized: [
-                    [
-                      'en-US',
-                      '/en-US',
-                    ],
-                    [
-                      'ja-JP',
-                      '/ja-JP',
-                    ],
-                  ],
-                  pattern: '/',
-                },
-                {
-                  localized: [
-                    [
-                      'en-US',
-                      '/en-US/:path(.*)?',
-                    ],
-                    [
-                      'ja-JP',
-                      '/ja-JP/:path(.*)?',
-                    ],
-                  ],
-                  pattern: '/:path(.*)?',
-                },
-              ],
+              urlPatterns: urlPatterns(),
             }),
             /**
              * React Router plugin is required to:

@@ -13,6 +13,7 @@ import { loadConfigEnvironment } from '../../vite-utils/load-env.ts';
 import { readEnv } from '../../vite-utils/read-env.ts';
 import { createSentryVitePluginOptions } from '../../vite-utils/sentry-build.ts';
 import { createBuildSentryEnvSnapshot } from '../../vite-utils/sentry-build-env-log.ts';
+import { urlPatterns } from './locales.ts';
 import {
   sentryBrowserProfilingCodeSplittingGroup,
   sentryCodeSplittingGroup,
@@ -121,34 +122,7 @@ export default function createViteConfig(config: ConfigEnv) {
               'preferredLanguage',
               'baseLocale',
             ],
-            urlPatterns: [
-              {
-                localized: [
-                  [
-                    'en-US',
-                    '/en-US',
-                  ],
-                  [
-                    'ja-JP',
-                    '/ja-JP',
-                  ],
-                ],
-                pattern: '/',
-              },
-              {
-                localized: [
-                  [
-                    'en-US',
-                    '/en-US/:path(.*)?',
-                  ],
-                  [
-                    'ja-JP',
-                    '/ja-JP/:path(.*)?',
-                  ],
-                ],
-                pattern: '/:path(.*)?',
-              },
-            ],
+            urlPatterns: urlPatterns(),
           }),
           reactRouter(),
           headersCopyPlugin({

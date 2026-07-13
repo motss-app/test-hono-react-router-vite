@@ -4,6 +4,7 @@ import { timing } from 'hono/timing';
 
 import { logSentryEnvSnapshot } from '../../vite-utils/sentry-env-log.ts';
 import { isLoadTestMode } from './app/constants.ts';
+import { locales } from './locales.ts';
 import {
   applyAppSessionIdToSpan,
   appSessionIdTagName,
@@ -132,7 +133,7 @@ function recordWorkerRequestError(
 
 // Redirect `/` to base locale `/en-US`.  URL is the source of truth;
 // cookie-based locale detection is not used for the root redirect.
-const BASE_LOCALE = 'en-US';
+const [BASE_LOCALE] = locales;
 
 app.get('/', c => {
   const response = c.redirect(`/${BASE_LOCALE}`, 302);

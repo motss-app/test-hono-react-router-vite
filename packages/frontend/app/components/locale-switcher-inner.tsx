@@ -1,21 +1,18 @@
 import { Select } from '@base-ui/react/select';
 import { useCallback } from 'react';
 
-import { deLocalizeHref, getLocale, type Locale, localizeHref } from '../paraglide/runtime.js';
+import { labels, locales } from '../../locales.ts';
+import {
+  deLocalizeHref,
+  getLocale,
+  localizeHref,
+} from '../paraglide/runtime.js';
+import type { Locale } from '../paraglide/runtime.js';
 
-const LOCALES: {
-  value: Locale;
-  label: string;
-}[] = [
-  {
-    label: 'English (US)',
-    value: 'en-US',
-  },
-  {
-    label: '日本語',
-    value: 'ja-JP',
-  },
-];
+const LOCALES = locales.map(value => ({
+  value,
+  label: labels[value] ?? value,
+}));
 
 function CaretUpDownIcon(props: React.ComponentProps<'svg'>) {
   return (
