@@ -1,5 +1,5 @@
 # Static assets
-/*.html
+/**/*.html
   Cache-Control: public, max-age=600, s-maxage=3600, stale-while-revalidate=180, stale-if-error=86400, no-transform
 
 /*.ico
