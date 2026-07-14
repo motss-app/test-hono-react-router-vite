@@ -1,49 +1,55 @@
+import { ParaglideMessage } from '@inlang/paraglide-js-react';
 import type { JSX } from 'react';
 
 import { Link } from '../components/Link.tsx';
+import { LocaleSwitcher } from '../components/locale-switcher.tsx';
 import { Text } from '../components/text.tsx';
+import * as m from '../paraglide/messages.js';
 import { createBackgroundSvgPreloadLinks } from '../utils/background-svg-preload.ts';
 import type { Route } from './+types/home.ts';
 import * as c from './home.css.ts';
 
-const routes = [
-  {
-    description: 'Project overview, stack notes, and the migration decisions behind the app.',
-    number: '01',
-    path: '/about',
-    title: 'About',
-    to: '/about',
-  },
-  {
-    description: 'Header, main, and footer arranged in the classic holy grail app shell.',
-    number: '02',
-    path: '/holy-grail',
-    title: 'Holy Grail Layout',
-    to: '/holy-grail',
-  },
-  {
-    description: 'Request-time rendering with timing data and server-owned state on the page.',
-    number: '03',
-    path: '/ssr',
-    title: 'SSR Page',
-    to: '/ssr',
-  },
-  {
-    description: 'Typed client and server calls flowing through Hono without extra ceremony.',
-    number: '04',
-    path: '/hono-rpc',
-    title: 'Hono RPC Demo',
-    to: '/hono-rpc',
-  },
-  {
-    description:
-      'Error routes and boundary behavior for failure states, status codes, and recovery.',
-    number: '05',
-    path: '/errors',
-    title: 'Error Handling Demo',
-    to: '/errors',
-  },
-] as const;
+// Must be a function — m.*() calls resolve locale at call time, so they
+// cannot live at module scope where Paraglide locale isn't set yet.
+function getRoutes() {
+  return [
+    {
+      description: m.route_about_description(),
+      number: '01',
+      path: '/about',
+      title: m.route_about_title(),
+      to: '/about',
+    },
+    {
+      description: m.route_holy_grail_description(),
+      number: '02',
+      path: '/holy-grail',
+      title: m.route_holy_grail_title(),
+      to: '/holy-grail',
+    },
+    {
+      description: m.route_ssr_description(),
+      number: '03',
+      path: '/ssr',
+      title: m.route_ssr_title(),
+      to: '/ssr',
+    },
+    {
+      description: m.route_hono_rpc_description(),
+      number: '04',
+      path: '/hono-rpc',
+      title: m.route_hono_rpc_title(),
+      to: '/hono-rpc',
+    },
+    {
+      description: m.route_errors_description(),
+      number: '05',
+      path: '/errors',
+      title: m.route_errors_title(),
+      to: '/errors',
+    },
+  ];
+}
 
 export const links: Route.LinksFunction = () =>
   createBackgroundSvgPreloadLinks([
@@ -78,38 +84,37 @@ export default function Home(): JSX.Element {
 
         <div className={c.heroInner}>
           <div className={c.heroCopy}>
-            <Text
-              as="h1"
-              className={c.title}
-            >
-              React Router
-              <span className={c.titleAccent}>&amp; Hono</span>
-            </Text>
+            <h1 className={c.title}>
+              <ParaglideMessage
+                inputs={{}}
+                markup={{
+                  accent: ({ children }) => <span className={c.titleAccent}>{children}</span>,
+                }}
+                message={m.home_title}
+              />
+            </h1>
 
             <Text
               as="p"
               className={c.heroLead}
             >
-              Render, route, and recover with a compact full-stack demo.
+              {m.hero_lead()}
             </Text>
 
-            <p className={c.heroBody}>
-              Five routes keep SSR, RPC, layout, boundaries, and architecture legible without
-              turning the homepage into a dashboard.
-            </p>
+            <p className={c.heroBody}>{m.hero_body()}</p>
 
             <div className={c.heroActions}>
               <Link
                 className={c.ctaPrimary}
                 to="/about"
               >
-                Read the overview
+                {m.hero_cta_overview()}
               </Link>
               <Link
                 className={c.ctaSecondary}
                 to="/hono-rpc"
               >
-                Open the RPC flow
+                {m.hero_cta_rpc()}
               </Link>
             </div>
           </div>
@@ -122,16 +127,13 @@ export default function Home(): JSX.Element {
             as="h2"
             className={c.routesTitle}
           >
-            Start with one route. The rest stays in view.
+            {m.routes_section_title()}
           </Text>
 
-          <p className={c.routesIntro}>
-            Each entry isolates one concern so you can inspect the stack in pieces instead of
-            decoding everything at once.
-          </p>
+          <p className={c.routesIntro}>{m.routes_section_intro()}</p>
 
           <div className={c.routesList}>
-            {routes.map(route => (
+            {getRoutes().map(route => (
               <div
                 className={c.routeRow}
                 key={route.to}
@@ -154,13 +156,20 @@ export default function Home(): JSX.Element {
 
                   <p className={c.routeDescription}>{route.description}</p>
 
-                  <span className={c.routeAction}>Open →</span>
+                  <span className={c.routeAction}>{m.route_open_action()}</span>
                 </Link>
               </div>
             ))}
           </div>
         </div>
       </section>
+
+      <footer className={c.footer}>
+        <div className={c.footerInner}>
+          <LocaleSwitcher />
+          <p className={c.footerNote}>React Router + Hono Demo</p>
+        </div>
+      </footer>
     </main>
   );
 }

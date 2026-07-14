@@ -1,38 +1,38 @@
 # Static assets
-/*.html
-  Cache-Control: public, max-age=600, s-maxage=3600, stale-while-revalidate=180, must-revalidate, no-transform
+/**/*.html
+  Cache-Control: public, max-age=600, s-maxage=3600, stale-while-revalidate=180, stale-if-error=86400, no-transform
 
 /*.ico
-  Cache-Control: public, max-age=1800, s-maxage=10800, stale-while-revalidate=300, must-revalidate
+  Cache-Control: public, max-age=1800, s-maxage=10800, stale-while-revalidate=300, stale-if-error=86400
 
 /*.txt
-  Cache-Control: public, max-age=1800, s-maxage=10800, stale-while-revalidate=300, must-revalidate
+  Cache-Control: public, max-age=1800, s-maxage=10800, stale-while-revalidate=300, stale-if-error=86400
 
 /*.json
-  Cache-Control: public, max-age=1800, s-maxage=10800, stale-while-revalidate=300, must-revalidate
+  Cache-Control: public, max-age=1800, s-maxage=10800, stale-while-revalidate=300, stale-if-error=86400
 
 /*.png
-  Cache-Control: public, max-age=1800, s-maxage=10800, stale-while-revalidate=300, must-revalidate
+  Cache-Control: public, max-age=1800, s-maxage=10800, stale-while-revalidate=300, stale-if-error=86400
 
 /*.jpg
-  Cache-Control: public, max-age=1800, s-maxage=10800, stale-while-revalidate=300, must-revalidate
+  Cache-Control: public, max-age=1800, s-maxage=10800, stale-while-revalidate=300, stale-if-error=86400
 
 /*.jpeg
-  Cache-Control: public, max-age=1800, s-maxage=10800, stale-while-revalidate=300, must-revalidate
+  Cache-Control: public, max-age=1800, s-maxage=10800, stale-while-revalidate=300, stale-if-error=86400
 
 /*.svg
-  Cache-Control: public, max-age=1800, s-maxage=10800, stale-while-revalidate=300, must-revalidate
+  Cache-Control: public, max-age=1800, s-maxage=10800, stale-while-revalidate=300, stale-if-error=86400
 
 /*.css
-  Cache-Control: public, max-age=900, s-maxage=86400, stale-while-revalidate=300, must-revalidate
+  Cache-Control: public, max-age=900, s-maxage=86400, stale-while-revalidate=300, stale-if-error=86400
 
 /*.js
-  Cache-Control: public, max-age=900, s-maxage=86400, stale-while-revalidate=300, must-revalidate
+  Cache-Control: public, max-age=900, s-maxage=86400, stale-while-revalidate=300, stale-if-error=86400
 
 # Static assets with content hashing
 /assets/*
   ! Cache-Control
-  Cache-Control: public, max-age=2592000, s-maxage=31536000, stale-while-revalidate=86400, immutable
+  Cache-Control: public, max-age=2592000, s-maxage=31536000, stale-while-revalidate=86400, stale-if-error=604800, immutable
 
 # Static SSG route headers are generated during the build so each page
 # gets a route-specific CSP based on its final inline scripts and styles.

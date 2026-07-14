@@ -30,7 +30,6 @@ interface ProcessStaticRouteOptions {
   routePath: string;
   sentryDsn: string;
   sentryCspReportingConfig: ReturnType<typeof createSentryCspReportingConfig>;
-  staticPageCacheControl: string;
 }
 
 interface HeadersCopyPluginContext {
@@ -40,7 +39,7 @@ interface HeadersCopyPluginContext {
 }
 
 const staticPageCacheControl =
-  'public, max-age=600, s-maxage=3600, stale-while-revalidate=180, must-revalidate, no-transform';
+  'public, max-age=600, s-maxage=3600, stale-while-revalidate=180, stale-if-error=86400, no-transform';
 
 function fileExists(path: string): boolean {
   try {
@@ -93,8 +92,7 @@ function createHeadersCopyPluginContext(mode: string): HeadersCopyPluginContext 
 function buildStaticRouteHeaders(
   routePath: string,
   cspDirective: string,
-  sentryCspReportingConfig: ReturnType<typeof createSentryCspReportingConfig>,
-  staticPageCacheControl: string
+  sentryCspReportingConfig: ReturnType<typeof createSentryCspReportingConfig>
 ): string {
   return [
     routePath,
@@ -114,7 +112,6 @@ async function processStaticRoute({
   routePath,
   sentryDsn,
   sentryCspReportingConfig,
-  staticPageCacheControl,
 }: ProcessStaticRouteOptions): Promise<string | null> {
   const htmlFile = htmlFilePathFromRoute(clientDir, routePath);
 
@@ -139,8 +136,7 @@ async function processStaticRoute({
         ...(includeCloudflareAnalyticsStyleHashes ? cloudflareAnalyticsStyleHashes : []),
       ],
     }),
-    sentryCspReportingConfig,
-    staticPageCacheControl
+    sentryCspReportingConfig
   );
 }
 
@@ -191,7 +187,6 @@ export function headersCopyPlugin(options: HeadersCopyPluginOptions): Plugin {
               routePath,
               sentryCspReportingConfig,
               sentryDsn,
-              staticPageCacheControl,
             })
           )
         );

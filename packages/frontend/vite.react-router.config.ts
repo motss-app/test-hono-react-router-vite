@@ -1,3 +1,4 @@
+import { paraglideVitePlugin } from '@inlang/paraglide-js';
 import { reactRouter } from '@react-router/dev/vite';
 import { sentryVitePlugin } from '@sentry/vite-plugin';
 import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin';
@@ -12,6 +13,7 @@ import { loadConfigEnvironment } from '../../vite-utils/load-env.ts';
 import { readEnv } from '../../vite-utils/read-env.ts';
 import { createSentryVitePluginOptions } from '../../vite-utils/sentry-build.ts';
 import { createBuildSentryEnvSnapshot } from '../../vite-utils/sentry-build-env-log.ts';
+import { urlPatterns } from './locales.ts';
 import {
   sentryBrowserProfilingCodeSplittingGroup,
   sentryCodeSplittingGroup,
@@ -111,6 +113,17 @@ export default function createViteConfig(config: ConfigEnv) {
             identifiers: 'short',
           }),
           veCssTextPlugin(),
+          paraglideVitePlugin({
+            outdir: `${repoRootPath}packages/frontend/app/paraglide`,
+            project: `${repoRootPath}project.inlang`,
+            strategy: [
+              'url',
+              'cookie',
+              'preferredLanguage',
+              'baseLocale',
+            ],
+            urlPatterns: urlPatterns(),
+          }),
           reactRouter(),
           headersCopyPlugin({
             dest: 'build/client/_headers',

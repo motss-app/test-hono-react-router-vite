@@ -12,8 +12,8 @@ const port = Number(Deno.env.get('PORT') ?? 9999);
 
 Deno.serve(
   {
-    port,
     hostname: '127.0.0.1',
+    port,
   },
   () =>
     new Response(

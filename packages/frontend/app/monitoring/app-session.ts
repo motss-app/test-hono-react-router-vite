@@ -1,7 +1,7 @@
 const appSessionIdCookieName = 'app_session_id';
 
 type AppSessionSpanDataValue =
-  | Array<boolean | null | number | string | undefined>
+  | (boolean | null | number | string | undefined)[]
   | boolean
   | number
   | string

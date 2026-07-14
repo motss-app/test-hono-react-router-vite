@@ -2,8 +2,10 @@ import type { JSX } from 'react';
 import { data } from 'react-router';
 
 import { Link } from '../components/Link.tsx';
+import { PageFooter } from '../components/page-footer.tsx';
 import { Text } from '../components/text.tsx';
 import { IconArrowLeft, IconServer } from '../icons.ts';
+import * as m from '../paraglide/messages.js';
 import { HonoContext } from '../router-context.ts';
 import { iconStyles } from '../styles/icon.css.ts';
 import type { HonoEnv } from '../types/hono.types.ts';
@@ -12,6 +14,14 @@ import type { Route } from './+types/ssr.ts';
 import { s } from './ssr.css.ts';
 
 const noStoreCacheControl = 'no-store';
+
+export function meta(): Route.MetaDescriptors {
+  return [
+    {
+      title: m.meta_ssr_title(),
+    },
+  ];
+}
 
 export const links: Route.LinksFunction = () =>
   createBackgroundSvgPreloadLinks([
@@ -35,7 +45,7 @@ export function loader({ context, request }: Route.LoaderArgs) {
   return data(
     {
       honoVars: honoVars?.honoData,
-      message: 'This page is rendered on the server on EVERY request!',
+      message: m.ssr_loader_message(),
       renderTime: duration,
       requestId,
       timestamp,
@@ -71,37 +81,35 @@ export function headers({ loaderHeaders, parentHeaders }: Route.HeadersArgs): He
 export default function SsrPage({ loaderData }: Route.ComponentProps): JSX.Element {
   const responseRows = [
     {
-      label: 'Timestamp',
+      label: m.ssr_label_timestamp(),
       value: loaderData.timestamp,
     },
     {
-      label: 'Render time',
+      label: m.ssr_label_render_time(),
       value: `${loaderData.renderTime}ms`,
     },
     {
-      label: 'User agent',
+      label: m.ssr_label_user_agent(),
       value: loaderData.userAgent,
     },
     {
-      label: 'Message',
+      label: m.ssr_label_message(),
       value: loaderData.message,
     },
   ] as const;
 
   const verificationRows = [
     {
-      label: 'Refresh the route',
-      value:
-        'The timestamp changes on every request because the loader runs server-side each time.',
+      label: m.ssr_verify_refresh_label(),
+      value: m.ssr_verify_refresh_value(),
     },
     {
-      label: 'Inspect response headers',
-      value: 'Open the Network tab and check `Server-Timing` to verify the loader duration.',
+      label: m.ssr_verify_headers_label(),
+      value: m.ssr_verify_headers_value(),
     },
     {
-      label: 'Compare rendering modes',
-      value:
-        'Unlike `/` or `/about`, this route is not SSG. Unlike CSR-only UI, its first HTML already contains the server response.',
+      label: m.ssr_verify_compare_label(),
+      value: m.ssr_verify_compare_value(),
     },
   ] as const;
 
@@ -124,20 +132,17 @@ export default function SsrPage({ loaderData }: Route.ComponentProps): JSX.Eleme
               className={s.title}
             >
               SSR
-              <span className={s.titleAccent}>Live on request</span>
+              <span className={s.titleAccent}>{m.ssr_title()}</span>
             </Text>
 
             <Text
               as="p"
               className={s.heroLead}
             >
-              This route renders on the server for every visit.
+              {m.ssr_hero_lead()}
             </Text>
 
-            <p className={s.heroBody}>
-              The loader runs on each request, forwards timing metadata, and can read Hono context
-              before the page reaches the browser.
-            </p>
+            <p className={s.heroBody}>{m.ssr_hero_body()}</p>
 
             <div className={s.heroActions}>
               <Link
@@ -145,14 +150,14 @@ export default function SsrPage({ loaderData }: Route.ComponentProps): JSX.Eleme
                 to="/"
               >
                 <IconArrowLeft className={iconStyles.base} />
-                <span>Back home</span>
+                <span>{m.ssr_cta_home()}</span>
               </Link>
               <Link
                 className={s.ctaPrimary}
                 to="/hono-rpc"
               >
                 <IconServer className={iconStyles.base} />
-                <span>Compare with RPC</span>
+                <span>{m.ssr_cta_rpc()}</span>
               </Link>
             </div>
           </div>
@@ -165,13 +170,10 @@ export default function SsrPage({ loaderData }: Route.ComponentProps): JSX.Eleme
             as="h2"
             className={s.routesTitle}
           >
-            The current response came from the server.
+            {m.ssr_section_response_title()}
           </Text>
 
-          <p className={s.routesIntro}>
-            These values are generated during the request, then serialized into the rendered HTML
-            and response headers.
-          </p>
+          <p className={s.routesIntro}>{m.ssr_section_response_intro()}</p>
 
           <div className={s.routesList}>
             <div className={s.rowRow}>
@@ -183,11 +185,9 @@ export default function SsrPage({ loaderData }: Route.ComponentProps): JSX.Eleme
                     as="h3"
                     className={s.rowTitle}
                   >
-                    Live response
+                    {m.ssr_live_response_title()}
                   </Text>
-                  <p className={s.rowBody}>
-                    Request-specific data produced by the SSR loader before the page is delivered.
-                  </p>
+                  <p className={s.rowBody}>{m.ssr_live_response_desc()}</p>
                 </div>
 
                 <dl className={s.dataList}>
@@ -211,22 +211,19 @@ export default function SsrPage({ loaderData }: Route.ComponentProps): JSX.Eleme
                       as="h3"
                       className={s.rowTitle}
                     >
-                      Hono context
+                      {m.ssr_hono_context_title()}
                     </Text>
-                    <p className={s.rowBody}>
-                      Data forwarded from the Hono request context into the React Router loader
-                      through `RouterContextProvider`.
-                    </p>
+                    <p className={s.rowBody}>{m.ssr_hono_context_desc()}</p>
                   </div>
 
                   <dl className={s.dataList}>
                     <div>
-                      <dt className={s.dataLabel}>Request URL</dt>
+                      <dt className={s.dataLabel}>{m.ssr_label_request_url()}</dt>
                       <dd className={s.dataValue}>{loaderData.honoVars.meta.requestUrl}</dd>
                     </div>
                     {loaderData.honoVars.meta.requestId ? (
                       <div>
-                        <dt className={s.dataLabel}>Request ID</dt>
+                        <dt className={s.dataLabel}>{m.ssr_label_request_id()}</dt>
                         <dd className={s.dataValue}>{loaderData.honoVars.meta.requestId}</dd>
                       </div>
                     ) : null}
@@ -244,13 +241,10 @@ export default function SsrPage({ loaderData }: Route.ComponentProps): JSX.Eleme
             as="h2"
             className={s.routesTitle}
           >
-            How to verify the page is really SSR.
+            {m.ssr_section_verify_title()}
           </Text>
 
-          <p className={s.routesIntro}>
-            The route is meant to be inspected, not just viewed. These checks make the rendering
-            mode obvious.
-          </p>
+          <p className={s.routesIntro}>{m.ssr_section_verify_intro()}</p>
 
           <div className={s.routesList}>
             <div className={s.rowRow}>
@@ -262,12 +256,9 @@ export default function SsrPage({ loaderData }: Route.ComponentProps): JSX.Eleme
                     as="h3"
                     className={s.rowTitle}
                   >
-                    Verification steps
+                    {m.ssr_verify_title()}
                   </Text>
-                  <p className={s.rowBody}>
-                    Use the browser and network tooling to confirm the response is generated at
-                    request time.
-                  </p>
+                  <p className={s.rowBody}>{m.ssr_verify_desc()}</p>
                 </div>
 
                 <dl className={s.dataList}>
@@ -283,6 +274,8 @@ export default function SsrPage({ loaderData }: Route.ComponentProps): JSX.Eleme
           </div>
         </div>
       </section>
+
+      <PageFooter />
     </main>
   );
 }

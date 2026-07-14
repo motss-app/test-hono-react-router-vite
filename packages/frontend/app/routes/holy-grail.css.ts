@@ -1,6 +1,7 @@
 import { keyframes, style } from '@vanilla-extract/css';
 
 import { colorTokens } from '../styles/color-tokens.contract.css.ts';
+import { radiusTokens } from '../styles/radius-tokens.contract.css.ts';
 
 const fadeUp = keyframes({
   '0%': {
@@ -99,7 +100,7 @@ export const brandIconVars = style({
 export const brandMark = style({
   alignItems: 'center',
   backgroundColor: colorTokens.info,
-  borderRadius: '1rem',
+  borderRadius: radiusTokens.radiusMd,
   display: 'inline-grid',
   flexShrink: 0,
   height: '3rem',
@@ -147,7 +148,7 @@ export const footerInner = style({
 });
 export const footerLink = style({
   alignItems: 'center',
-  borderRadius: '9999px',
+  borderRadius: radiusTokens.radiusMd,
   color: colorTokens.slate900,
   display: 'inline-grid',
   gap: '0.45rem',
@@ -220,7 +221,7 @@ export const headerInner = style({
 });
 export const layoutBlock = style({
   borderColor: colorTokens.slate300,
-  borderRadius: '1rem',
+  borderRadius: radiusTokens.radiusMd,
   borderStyle: 'solid',
   borderWidth: '1px',
   padding: '1rem',
@@ -348,7 +349,7 @@ export const nav = style({
   gridAutoFlow: 'column',
 });
 export const navLink = style({
-  borderRadius: '9999px',
+  borderRadius: radiusTokens.radiusMd,
   color: colorTokens.slate900,
   fontSize: '0.92rem',
   padding: '0.55rem 0.8rem',
@@ -582,13 +583,23 @@ export const topLineAccent = style({
   },
 });
 export const articleShell = style({});
-export const brandIcon = style({});
+export const brandIcon = style({
+  display: 'inline-block',
+  fill: 'currentColor',
+  height: '1.25rem',
+  width: '1.25rem',
+});
 export const layoutCenter = style({});
 export const layoutFooter = style({});
 export const layoutHeader = style({});
 export const layoutLeft = style({});
 export const layoutRight = style({});
 export const pageShell = style({});
-export const railIcon = style({});
+export const railIcon = style({
+  display: 'inline-block',
+  fill: 'currentColor',
+  height: '1rem',
+  width: '1rem',
+});
 export const shellLeft = style({});
 export const shellRight = style({});

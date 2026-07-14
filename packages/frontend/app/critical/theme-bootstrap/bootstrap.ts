@@ -14,9 +14,9 @@ interface ThemeBootstrapGlobal {
 
 function getSavedTheme(): Theme | null {
   try {
-    const savedTheme = localStorage.getItem(themeStorageKey);
+    const match = document.cookie.match(new RegExp(`(?:^|;\\s*)${themeStorageKey}=(light|dark)`));
 
-    return savedTheme === 'light' || savedTheme === 'dark' ? savedTheme : null;
+    return match ? (match[1] as Theme) : null;
   } catch {
     return null;
   }
@@ -29,10 +29,12 @@ function getSystemTheme(mediaQueryList: MediaQueryList): Theme {
 function applyTheme(theme: Theme): void {
   document.documentElement.setAttribute('data-theme', theme);
 
+  // Persist to cookie so SSR can read the theme without localStorage access.
   try {
-    localStorage.setItem(themeStorageKey, theme);
+    // biome-ignore lint/suspicious/noDocumentCookie: intentional — SSR reads this cookie to render data-theme
+    document.cookie = `${themeStorageKey}=${theme}; path=/; max-age=31536000; samesite=lax`;
   } catch {
-    // localStorage may be unavailable
+    // cookie write may fail in restricted environments
   }
 }
 

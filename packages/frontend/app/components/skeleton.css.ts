@@ -1,5 +1,7 @@
 import { keyframes, style } from '@vanilla-extract/css';
 
+import { radiusTokens } from '../styles/radius-tokens.contract.css.ts';
+
 const pulse = keyframes({
   '0%': {
     opacity: 1,
@@ -19,7 +21,7 @@ export const skeletonStyles = {
     animationName: pulse,
     animationTimingFunction: 'cubic-bezier(0.4, 0, 0.6, 1)',
     backgroundColor: 'rgba(212, 212, 212, 0.25)',
-    borderRadius: '0.5rem',
+    borderRadius: radiusTokens.radiusMd,
     display: 'inline-block',
     lineHeight: '1.5rem',
     verticalAlign: 'middle',

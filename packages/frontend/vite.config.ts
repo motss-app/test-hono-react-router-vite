@@ -1,4 +1,5 @@
 import { cloudflare } from '@cloudflare/vite-plugin';
+import { paraglideVitePlugin } from '@inlang/paraglide-js';
 import { reactRouter } from '@react-router/dev/vite';
 import { sentryReactRouter } from '@sentry/react-router';
 import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin';
@@ -9,6 +10,7 @@ import { veCssTextPlugin } from '../../vite-plugins/ve-css-text/plugin.ts';
 import { loadConfigEnvironment } from '../../vite-utils/load-env.ts';
 import { createSentryBuildOptions } from '../../vite-utils/sentry-build.ts';
 import { createBuildSentryEnvSnapshot } from '../../vite-utils/sentry-build-env-log.ts';
+import { urlPatterns } from './locales.ts';
 
 const repoRootPath = new URL('../../', import.meta.url).pathname;
 const publicDirPath = new URL('./public', import.meta.url).pathname;
@@ -84,6 +86,17 @@ export default defineConfig(async config => {
             vanillaExtractPlugin(),
             veCssTextPlugin(),
             vanillaExtractSsrFixPlugin(),
+            paraglideVitePlugin({
+              outdir: `${repoRootPath}packages/frontend/app/paraglide`,
+              project: repoRootPath + 'project.inlang',
+              strategy: [
+                'url',
+                'cookie',
+                'preferredLanguage',
+                'baseLocale',
+              ],
+              urlPatterns: urlPatterns(),
+            }),
             /**
              * React Router plugin is required to:
              * 1. Build the app (routes, loaders, actions)
@@ -112,6 +125,12 @@ export default defineConfig(async config => {
     root: repoRootPath,
     server: {
       port: 5173,
+      proxy: {
+        '/api': {
+          changeOrigin: true,
+          target: 'http://127.0.0.1:8787',
+        },
+      },
       strictPort: true,
     },
   };

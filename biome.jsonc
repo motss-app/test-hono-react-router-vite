@@ -290,7 +290,18 @@
           },
           "style": {
             "noDefaultExport": "off"
-          },
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "scripts/convert-fa-pro.ts",
+        "scripts/check-route-bundle-size.ts",
+        "scripts/route-bundle-size.ts"
+      ],
+      "linter": {
+        "rules": {
           "suspicious": {
             "noConsole": {
               "level": "error",

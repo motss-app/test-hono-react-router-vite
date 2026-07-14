@@ -1,0 +1,68 @@
+{
+  "entry": {
+    "gzipBytes": 161743,
+    "rawBytes": 490428
+  },
+  "rootLayout": {
+    "gzipBytes": 12763,
+    "rawBytes": 30755
+  },
+  "routes": [
+    {
+      "gzipBytes": 174887,
+      "ownGzipBytes": 381,
+      "ownRawBytes": 649,
+      "rawBytes": 521832,
+      "route": "/$"
+    },
+    {
+      "gzipBytes": 177373,
+      "ownGzipBytes": 2867,
+      "ownRawBytes": 8020,
+      "rawBytes": 529203,
+      "route": "/about"
+    },
+    {
+      "gzipBytes": 177894,
+      "ownGzipBytes": 3388,
+      "ownRawBytes": 8784,
+      "rawBytes": 529967,
+      "route": "/errors"
+    },
+    {
+      "gzipBytes": 178360,
+      "ownGzipBytes": 3854,
+      "ownRawBytes": 11651,
+      "rawBytes": 532834,
+      "route": "/errors.$code"
+    },
+    {
+      "gzipBytes": 176869,
+      "ownGzipBytes": 2363,
+      "ownRawBytes": 6873,
+      "rawBytes": 528056,
+      "route": "/holy-grail"
+    },
+    {
+      "gzipBytes": 177967,
+      "ownGzipBytes": 3461,
+      "ownRawBytes": 8022,
+      "rawBytes": 529205,
+      "route": "/home"
+    },
+    {
+      "gzipBytes": 179691,
+      "ownGzipBytes": 5185,
+      "ownRawBytes": 13829,
+      "rawBytes": 535012,
+      "route": "/hono-rpc"
+    },
+    {
+      "gzipBytes": 176684,
+      "ownGzipBytes": 2178,
+      "ownRawBytes": 6269,
+      "rawBytes": 527452,
+      "route": "/ssr"
+    }
+  ]
+}
