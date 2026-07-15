@@ -107,14 +107,18 @@ jobs:
         run: curl -sL https://sentry.io/get-cli/ | sh
 
       - name: Upload snapshots to Sentry
-        if: secrets.SENTRY_PROJECT_SLUG != '' && secrets.SENTRY_SNAPSHOTS_AUTH_TOKEN != ''
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_SNAPSHOTS_AUTH_TOKEN }}
+          SENTRY_PROJECT_SLUG: ${{ secrets.SENTRY_PROJECT_SLUG }}
           BASE_SHA: ${{ steps.merge-base.outputs.sha }}
         run: |
+          if [ -z "$SENTRY_PROJECT_SLUG" ] || [ -z "$SENTRY_AUTH_TOKEN" ]; then
+            echo "Skipping upload: secrets not available"
+            exit 0
+          fi
           sentry-cli \
             --log-level=debug \
             snapshots upload __screenshots__ \
             --app-id sentry-snapshots \
-            --project ${{ secrets.SENTRY_PROJECT_SLUG }} \
+            --project "$SENTRY_PROJECT_SLUG" \
             ${BASE_SHA:+--base-sha "$BASE_SHA"}
