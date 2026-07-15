@@ -107,6 +107,7 @@ jobs:
         run: curl -sL https://sentry.io/get-cli/ | sh
 
       - name: Upload snapshots to Sentry
+        if: secrets.SENTRY_PROJECT_SLUG != '' && secrets.SENTRY_SNAPSHOTS_AUTH_TOKEN != ''
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_SNAPSHOTS_AUTH_TOKEN }}
           BASE_SHA: ${{ steps.merge-base.outputs.sha }}
