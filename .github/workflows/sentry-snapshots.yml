@@ -49,24 +49,39 @@ jobs:
 
       - name: Visual tests
         run: |
+          set +e
           cleanup() {
             kill "$app_pid" "$gateway_pid" 2>/dev/null || true
             wait "$app_pid" "$gateway_pid" 2>/dev/null || true
           }
           trap cleanup EXIT
 
+          echo "Starting dev servers..."
           deno task dev:app & app_pid=$!
           deno task dev:gateway & gateway_pid=$!
 
-          for i in $(seq 1 60); do
-            status=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 http://localhost:5173/en-US 2>/dev/null)
-            if [ "$status" = "200" ]; then
-              echo "Dev servers ready after ${i}s"
+          # Phase 1: wait for gateway health endpoint (servers up)
+          echo "Waiting for gateway..."
+          for i in $(seq 1 30); do
+            if curl -sf --max-time 5 -o /dev/null http://localhost:8787/fe/healthz 2>/dev/null; then
+              echo "Gateway ready after ${i}s"
               break
             fi
             sleep 2
           done
 
+          # Phase 2: wait for SSR page to render (confirms Vite SSR optimizer is done)
+          echo "Waiting for SSR..."
+          for i in $(seq 1 30); do
+            if curl -sf --max-time 10 -o /dev/null http://localhost:8787/ 2>/dev/null; then
+              echo "SSR ready after ${i}s"
+              break
+            fi
+            sleep 2
+          done
+
+          set -e
+          echo "Running visual tests..."
           deno task test:visual
 
       - name: Compute merge base SHA
