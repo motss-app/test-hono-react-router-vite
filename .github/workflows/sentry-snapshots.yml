@@ -59,7 +59,8 @@ jobs:
           deno task dev:gateway & gateway_pid=$!
 
           for i in $(seq 1 60); do
-            if curl -sf http://localhost:8787/fe/healthz > /dev/null 2>&1; then
+            status=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 http://localhost:5173/en-US 2>/dev/null)
+            if [ "$status" = "200" ]; then
               echo "Dev servers ready after ${i}s"
               break
             fi
