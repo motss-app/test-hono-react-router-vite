@@ -109,12 +109,13 @@ jobs:
       - name: Upload snapshots to Sentry
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_SNAPSHOTS_AUTH_TOKEN }}
-          SENTRY_PROJECT_SLUG: ${{ vars.SENTRY_PROJECT }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
           BASE_SHA: ${{ steps.merge-base.outputs.sha }}
         run: |
           sentry-cli \
             --log-level=debug \
             snapshots upload __screenshots__ \
             --app-id sentry-snapshots \
-            --project "$SENTRY_PROJECT_SLUG" \
+            --project "$SENTRY_PROJECT" \
             ${BASE_SHA:+--base-sha "$BASE_SHA"}
