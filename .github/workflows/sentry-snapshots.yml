@@ -20,6 +20,8 @@ concurrency:
 env:
   SENTRY_CLI_VERSION: 3.6.0
   PLAYWRIGHT_VERSION: 1.61.1
+  SENTRY_DSN: https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400
+  SENTRY_RELEASE: local
 
 jobs:
   snapshots:
@@ -47,17 +49,21 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: deno run -A npm:playwright install chromium --with-deps
 
+      - name: Build frontend
+        run: deno task --cwd=packages/frontend build:react-router
+
       - name: Visual tests
         run: |
           set +e
           cleanup() {
-            kill "$app_pid" "$gateway_pid" 2>/dev/null || true
-            wait "$app_pid" "$gateway_pid" 2>/dev/null || true
+            kill "$ssr_pid" "$gateway_pid" 2>/dev/null || true
+            wait "$ssr_pid" "$gateway_pid" 2>/dev/null || true
           }
           trap cleanup EXIT
 
-          echo "Starting dev servers..."
-          deno task dev:app & app_pid=$!
+          echo "Starting production SSR..."
+          PORT=5173 deno run -A scripts/standalone-ssr.ts & ssr_pid=$!
+          echo "Starting gateway..."
           deno task dev:gateway & gateway_pid=$!
 
           # Phase 1: wait for gateway health endpoint (servers up)
@@ -70,7 +76,7 @@ jobs:
             sleep 2
           done
 
-          # Phase 2: wait for SSR page to render (confirms Vite SSR optimizer is done)
+          # Phase 2: wait for SSR page to render
           echo "Waiting for SSR..."
           for i in $(seq 1 30); do
             if curl -sfL --max-time 10 -o /dev/null http://localhost:8787/en-US 2>/dev/null; then
