@@ -59,8 +59,8 @@ jobs:
           deno task dev:gateway & gateway_pid=$!
 
           for i in $(seq 1 60); do
-            if curl -sf http://localhost:8787/healthz > /dev/null 2>&1; then
-              echo "Gateway ready after ${i}s"
+            if curl -sf http://localhost:8787/fe/healthz > /dev/null 2>&1; then
+              echo "Dev servers ready after ${i}s"
               break
             fi
             sleep 2
