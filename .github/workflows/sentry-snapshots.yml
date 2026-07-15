@@ -109,13 +109,9 @@ jobs:
       - name: Upload snapshots to Sentry
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_SNAPSHOTS_AUTH_TOKEN }}
-          SENTRY_PROJECT_SLUG: ${{ secrets.SENTRY_PROJECT_SLUG }}
+          SENTRY_PROJECT_SLUG: ${{ vars.SENTRY_PROJECT_SLUG }}
           BASE_SHA: ${{ steps.merge-base.outputs.sha }}
         run: |
-          if [ -z "$SENTRY_PROJECT_SLUG" ] || [ -z "$SENTRY_AUTH_TOKEN" ]; then
-            echo "Skipping upload: secrets not available"
-            exit 0
-          fi
           sentry-cli \
             --log-level=debug \
             snapshots upload __screenshots__ \
