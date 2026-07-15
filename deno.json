@@ -62,6 +62,7 @@
     "@sentry/browser": "npm:@sentry/browser@10.63.0",
     "@std/path": "jsr:@std/path@1.1.6",
     "clsx/lite": "npm:clsx@2.1.1/lite",
+    "playwright": "npm:playwright@1.61.1",
     "react-dom/server": "npm:react-dom@19.2.7/server.edge"
   },
   "lock": true,
@@ -118,7 +119,8 @@
     "preview:worker": "deno task preview",
     "spotlight": "pnpm dlx @spotlightjs/spotlight",
     "start": "deno task preview",
-    "typegen": "REACT_ROUTER_ROOT=$PWD deno run -A npm:@react-router/dev typegen --config packages/frontend/vite.react-router.config.ts"
+    "typegen": "REACT_ROUTER_ROOT=$PWD deno run -A npm:@react-router/dev typegen --config packages/frontend/vite.react-router.config.ts",
+    "test:visual": "deno run -A scripts/vrt.ts"
   },
   "unstable": [
     "bare-node-builtins",

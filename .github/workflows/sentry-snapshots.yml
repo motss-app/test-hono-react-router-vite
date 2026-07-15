@@ -1,0 +1,85 @@
+name: Sentry Snapshots
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/vrt.ts'
+      - 'tests/visual/**'
+      - '.github/workflows/sentry-snapshots.yml'
+  pull_request:
+    paths:
+      - 'scripts/vrt.ts'
+      - 'tests/visual/**'
+      - '.github/workflows/sentry-snapshots.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+env:
+  SENTRY_CLI_VERSION: 3.6.0
+  PLAYWRIGHT_VERSION: 1.61.1
+
+jobs:
+  snapshots:
+    name: Visual snapshots
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - uses: ./.github/actions/setup-deno
+
+      # actions/cache v6.1.0
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        id: playwright-cache
+        with:
+          path: |
+            ~/.cache/ms-playwright
+            ~/.cache/puppeteer
+          key: playwright-${{ env.PLAYWRIGHT_VERSION }}-${{ runner.os }}
+
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: deno run -A npm:playwright install chromium --with-deps
+
+      - name: Run visual tests
+        run: deno task test:visual
+
+      - name: Compute merge base SHA
+        if: github.event_name == 'pull_request'
+        id: merge-base
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          MERGE_BASE=$(gh api repos/${{ github.repository }}/compare/${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }} --jq '.merge_base_commit.sha')
+          echo "sha=$MERGE_BASE" >> "$GITHUB_OUTPUT"
+
+      # actions/cache v6.1.0
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        id: sentry-cli-cache
+        with:
+          path: /usr/local/bin/sentry-cli
+          key: sentry-cli-${{ env.SENTRY_CLI_VERSION }}-${{ runner.os }}
+
+      - name: Install sentry-cli
+        if: steps.sentry-cli-cache.outputs.cache-hit != 'true'
+        env:
+          SENTRY_CLI_VERSION: ${{ env.SENTRY_CLI_VERSION }}
+        run: curl -sL https://sentry.io/get-cli/ | sh
+
+      - name: Upload snapshots to Sentry
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_SNAPSHOTS_AUTH_TOKEN }}
+          BASE_SHA: ${{ steps.merge-base.outputs.sha }}
+        run: |
+          sentry-cli \
+            --log-level=debug \
+            snapshots upload __screenshots__ \
+            --app-id sentry-snapshots \
+            --project ${{ secrets.SENTRY_PROJECT_SLUG }} \
+            ${BASE_SHA:+--base-sha "$BASE_SHA"}
