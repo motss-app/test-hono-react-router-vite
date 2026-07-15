@@ -108,7 +108,7 @@ jobs:
 
       - name: Upload snapshots to Sentry
         env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_SNAPSHOTS_AUTH_TOKEN }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_SNAPSHOTS_PAT }}
           SENTRY_ORG: ${{ vars.SENTRY_ORG }}
           SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
           BASE_SHA: ${{ steps.merge-base.outputs.sha }}
