@@ -16,7 +16,9 @@ node_modules/
 /packages/frontend/app/**/+types/
 
 # AI coding assistant internal data
-.opencode/
 .codex/
 __screenshots__
 .vitest-attachments
+
+# Vite temp files
+*.timestamp-*.mjs

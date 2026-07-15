@@ -1,6 +1,7 @@
 import type { JSX } from 'react';
 
 import { Link } from '../components/Link.tsx';
+import { PageFooter } from '../components/page-footer.tsx';
 import { Text } from '../components/text.tsx';
 import {
   IconArrowLeft,
@@ -10,90 +11,96 @@ import {
   IconServer,
   IconShield,
 } from '../icons.ts';
+import * as m from '../paraglide/messages.js';
 import { iconStyles } from '../styles/icon.css.ts';
 import { createBackgroundSvgPreloadLinks } from '../utils/background-svg-preload.ts';
 import type { Route } from './+types/about.ts';
 import { s } from './about.css.ts';
 
-const stackSections = [
-  {
-    description:
-      'The interface layer keeps routing, components, styling, and iconography easy to inspect.',
-    icon: IconGears,
-    iconStyle: s.rowIconBlue,
-    items: [
-      'React 19 with TypeScript',
-      'React Router 7 for routing',
-      'Vanilla Extract for styling',
-      'Iconify with FontAwesome 7',
-    ],
-    number: '01',
-    title: 'Frontend',
-  },
-  {
-    description:
-      'The server side stays deliberately small so rendering and request flow are visible instead of hidden.',
-    icon: IconServer,
-    iconStyle: s.rowIconGreen,
-    items: [
-      'Hono web framework',
-      'Deno-first runtime',
-      'Cloudflare Workers target',
-      'Typed RPC capabilities',
-    ],
-    number: '02',
-    title: 'Runtime',
-  },
-] as const;
+// Must be functions — m.*() calls resolve locale at call time, so they
+// cannot live at module scope where Paraglide's locale isn't set yet.
+function getStackSections() {
+  return [
+    {
+      description: m.about_stack_frontend_desc(),
+      icon: IconGears,
+      iconStyle: s.rowIconBlue,
+      items: [
+        m.about_stack_frontend_item_1(),
+        m.about_stack_frontend_item_2(),
+        m.about_stack_frontend_item_3(),
+        m.about_stack_frontend_item_4(),
+      ],
+      number: '01',
+      title: m.about_stack_frontend_title(),
+    },
+    {
+      description: m.about_stack_runtime_desc(),
+      icon: IconServer,
+      iconStyle: s.rowIconGreen,
+      items: [
+        m.about_stack_runtime_item_1(),
+        m.about_stack_runtime_item_2(),
+        m.about_stack_runtime_item_3(),
+        m.about_stack_runtime_item_4(),
+      ],
+      number: '02',
+      title: m.about_stack_runtime_title(),
+    },
+  ];
+}
 
-const features = [
-  {
-    description:
-      'Vite keeps iteration tight so route, style, and server changes are quick to verify.',
-    icon: IconBolt,
-    iconStyle: s.featureIconAmber,
-    number: '03',
-    title: 'Fast development',
-  },
-  {
-    description: 'Typed boundaries across routes, loaders, actions, and RPC keep the demo honest.',
-    icon: IconShield,
-    iconStyle: s.featureIconBlue,
-    number: '04',
-    title: 'Type safety',
-  },
-  {
-    description: 'The layouts are built to hold together on narrow screens without turning dense.',
-    icon: IconMobile,
-    iconStyle: s.featureIconGreen,
-    number: '05',
-    title: 'Responsive by default',
-  },
-] as const;
+function getFeatures() {
+  return [
+    {
+      description: m.about_feature_fast_dev_desc(),
+      icon: IconBolt,
+      iconStyle: s.featureIconAmber,
+      number: '03',
+      title: m.about_feature_fast_dev_title(),
+    },
+    {
+      description: m.about_feature_type_safety_desc(),
+      icon: IconShield,
+      iconStyle: s.featureIconBlue,
+      number: '04',
+      title: m.about_feature_type_safety_title(),
+    },
+    {
+      description: m.about_feature_responsive_desc(),
+      icon: IconMobile,
+      iconStyle: s.featureIconGreen,
+      number: '05',
+      title: m.about_feature_responsive_title(),
+    },
+  ];
+}
 
-const nextRoutes = [
-  {
-    description: 'Inspect request-time rendering and timing data on a server-owned page.',
-    number: '06',
-    path: '/ssr',
-    title: 'SSR Page',
-    to: '/ssr',
-  },
-  {
-    description: 'Follow the typed client and server exchange through the Hono RPC demo.',
-    number: '07',
-    path: '/hono-rpc',
-    title: 'Hono RPC Demo',
-    to: '/hono-rpc',
-  },
-  {
-    description: 'See boundaries, status codes, and recovery behavior under failure conditions.',
-    number: '08',
-    path: '/errors',
-    title: 'Error Handling Demo',
-    to: '/errors',
-  },
-] as const;
+function getNextRoutes() {
+  return [
+    {
+      description: m.about_next_ssr_desc(),
+      number: '06',
+      path: '/ssr',
+      title: m.about_next_ssr_title(),
+      to: '/ssr',
+    },
+    {
+      description: m.about_next_hono_rpc_desc(),
+      number: '07',
+      path: '/hono-rpc',
+      title: m.about_next_hono_rpc_title(),
+      to: '/hono-rpc',
+    },
+    {
+      description: m.about_next_errors_desc(),
+      number: '08',
+      path: '/errors',
+      title: m.about_next_errors_title(),
+      to: '/errors',
+    },
+  ];
+}
 
 export const links: Route.LinksFunction = () =>
   createBackgroundSvgPreloadLinks([
@@ -104,10 +111,10 @@ export const links: Route.LinksFunction = () =>
 export function meta(_args: Route.MetaArgs): Route.MetaDescriptors {
   return [
     {
-      title: 'About · React Router + Hono Demo',
+      title: m.meta_about_title(),
     },
     {
-      content: 'Architecture, stack, and design decisions for the React Router + Hono demo.',
+      content: m.meta_about_desc(),
       name: 'description',
     },
   ];
@@ -132,22 +139,18 @@ export default function About(): JSX.Element {
               as="h1"
               className={s.title}
             >
-              About
-              <span className={s.titleAccent}>This Project</span>
+              {m.about_title()}
+              <span className={s.titleAccent}>{m.about_title_accent()}</span>
             </Text>
 
             <Text
               as="p"
               className={s.heroLead}
             >
-              Architecture, stack, and design decisions in one place.
+              {m.about_hero_lead()}
             </Text>
 
-            <p className={s.heroBody}>
-              This demo keeps the stack intentionally compact so React Router, Hono, Vanilla
-              Extract, and typed request flows stay easy to inspect instead of disappearing behind
-              abstraction.
-            </p>
+            <p className={s.heroBody}>{m.about_hero_body()}</p>
 
             <div className={s.heroActions}>
               <Link
@@ -155,13 +158,13 @@ export default function About(): JSX.Element {
                 to="/"
               >
                 <IconArrowLeft className={iconStyles.base} />
-                <span>Back home</span>
+                <span>{m.about_cta_back_home()}</span>
               </Link>
               <Link
                 className={s.ctaPrimary}
                 to="/hono-rpc"
               >
-                Open the RPC demo
+                {m.about_cta_rpc()}
               </Link>
             </div>
           </div>
@@ -174,16 +177,13 @@ export default function About(): JSX.Element {
             as="h2"
             className={s.routesTitle}
           >
-            The stack stays small so the ideas stay visible.
+            {m.about_stack_title()}
           </Text>
 
-          <p className={s.routesIntro}>
-            Rather than hide the app behind heavy framework chrome, each layer is exposed clearly so
-            you can read how the demo is assembled.
-          </p>
+          <p className={s.routesIntro}>{m.about_stack_intro()}</p>
 
           <div className={s.stackList}>
-            {stackSections.map(section => {
+            {getStackSections().map(section => {
               const Icon = section.icon;
 
               return (
@@ -238,16 +238,13 @@ export default function About(): JSX.Element {
             as="h2"
             className={s.routesTitle}
           >
-            Three qualities shape the build.
+            {m.about_features_title()}
           </Text>
 
-          <p className={s.routesIntro}>
-            The goal is not visual noise or framework gymnastics — it is a readable demo surface
-            with fast iteration and clear behavior.
-          </p>
+          <p className={s.routesIntro}>{m.about_features_intro()}</p>
 
           <div className={s.nextList}>
-            {features.map(feature => {
+            {getFeatures().map(feature => {
               const Icon = feature.icon;
 
               return (
@@ -277,7 +274,7 @@ export default function About(): JSX.Element {
 
                     <p className={s.featureBody}>{feature.description}</p>
 
-                    <span className={s.nextAction}>Built in →</span>
+                    <span className={s.nextAction}>{m.about_built_in()}</span>
                   </div>
                 </div>
               );
@@ -292,16 +289,13 @@ export default function About(): JSX.Element {
             as="h2"
             className={s.routesTitle}
           >
-            Continue through the demo routes.
+            {m.about_next_title()}
           </Text>
 
-          <p className={s.routesIntro}>
-            After the overview, use the remaining routes to inspect rendering, data flow, and
-            failure handling in isolation.
-          </p>
+          <p className={s.routesIntro}>{m.about_next_intro()}</p>
 
           <div className={s.nextList}>
-            {nextRoutes.map(route => (
+            {getNextRoutes().map(route => (
               <div
                 className={s.nextRow}
                 key={route.to}
@@ -324,13 +318,15 @@ export default function About(): JSX.Element {
 
                   <p className={s.rowBody}>{route.description}</p>
 
-                  <span className={s.nextAction}>Open →</span>
+                  <span className={s.nextAction}>{m.about_open()}</span>
                 </Link>
               </div>
             ))}
           </div>
         </div>
       </section>
+
+      <PageFooter />
     </main>
   );
 }

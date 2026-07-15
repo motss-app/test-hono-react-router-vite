@@ -1,8 +1,10 @@
 import type { JSX } from 'react';
 
 import { Link } from '../components/Link.tsx';
+import { PageFooter } from '../components/page-footer.tsx';
 import { Text } from '../components/text.tsx';
 import { IconArrowLeft, IconCircleInfo, IconHome, IconTriangleExclamation } from '../icons.ts';
+import * as m from '../paraglide/messages.js';
 import { iconStyles } from '../styles/icon.css.ts';
 import { createBackgroundSvgPreloadLinks } from '../utils/background-svg-preload.ts';
 import { errorScenarios } from '../utils/error-scenarios.ts';
@@ -46,11 +48,10 @@ import {
 export function meta(): Route.MetaDescriptors {
   return [
     {
-      title: 'Error Handling Demo',
+      title: m.meta_errors_title(),
     },
     {
-      content:
-        'Explore thrown response errors and runtime failures in the React Router + Hono demo.',
+      content: m.meta_errors_desc(),
       name: 'description',
     },
   ];
@@ -63,6 +64,51 @@ export const links: Route.LinksFunction = () =>
   ]);
 
 export default function ErrorsDemo(): JSX.Element {
+  const scenarioTranslations: Record<
+    string,
+    {
+      label: string;
+      summary: string;
+      detail: string;
+    }
+  > = {
+    '401': {
+      detail: m.error_scenario_401_detail(),
+      label: m.error_scenario_401_label(),
+      summary: m.error_scenario_401_summary(),
+    },
+    '403': {
+      detail: m.error_scenario_403_detail(),
+      label: m.error_scenario_403_label(),
+      summary: m.error_scenario_403_summary(),
+    },
+    '404': {
+      detail: m.error_scenario_404_detail(),
+      label: m.error_scenario_404_label(),
+      summary: m.error_scenario_404_summary(),
+    },
+    '500': {
+      detail: m.error_scenario_500_detail(),
+      label: m.error_scenario_500_label(),
+      summary: m.error_scenario_500_summary(),
+    },
+    '502': {
+      detail: m.error_scenario_502_detail(),
+      label: m.error_scenario_502_label(),
+      summary: m.error_scenario_502_summary(),
+    },
+    '503': {
+      detail: m.error_scenario_503_detail(),
+      label: m.error_scenario_503_label(),
+      summary: m.error_scenario_503_summary(),
+    },
+    runtime: {
+      detail: m.error_scenario_runtime_detail(),
+      label: m.error_scenario_runtime_label(),
+      summary: m.error_scenario_runtime_summary(),
+    },
+  };
+
   return (
     <main className={page}>
       <section className={hero}>
@@ -77,28 +123,24 @@ export default function ErrorsDemo(): JSX.Element {
 
         <div className={heroInner}>
           <div className={heroCopy}>
-            <p className={statusLabel}>Error handling</p>
+            <p className={statusLabel}>{m.errors_hero_status_label()}</p>
 
             <Text
               as="h1"
               className={title}
             >
-              Error routes
-              <span className={titleAccent}>Responses and runtime failures</span>
+              {m.errors_hero_title()}
+              <span className={titleAccent}>{m.errors_hero_title_accent()}</span>
             </Text>
 
             <Text
               as="p"
               className={heroLead}
             >
-              A static index for the failure paths the app can intentionally trigger.
+              {m.errors_hero_lead()}
             </Text>
 
-            <p className={heroBody}>
-              Use this page to jump into thrown response errors, runtime exceptions, and the route
-              boundaries that present them. The hub itself is prerendered; each case underneath is a
-              live server-rendered incident surface.
-            </p>
+            <p className={heroBody}>{m.errors_hero_body()}</p>
 
             <div className={heroActions}>
               <Link
@@ -106,7 +148,7 @@ export default function ErrorsDemo(): JSX.Element {
                 to="/errors/404"
               >
                 <IconTriangleExclamation className={iconStyles.base} />
-                <span>Trigger a 404</span>
+                <span>{m.errors_cta_trigger_404()}</span>
               </Link>
 
               <Link
@@ -114,7 +156,7 @@ export default function ErrorsDemo(): JSX.Element {
                 to="/"
               >
                 <IconHome className={iconStyles.base} />
-                <span>Back home</span>
+                <span>{m.errors_cta_back_home()}</span>
               </Link>
             </div>
           </div>
@@ -127,17 +169,15 @@ export default function ErrorsDemo(): JSX.Element {
             as="h2"
             className={routesTitle}
           >
-            Choose a failure path.
+            {m.errors_section_title_choose()}
           </Text>
 
-          <p className={routesIntro}>
-            Every route below demonstrates a different way the app can fail and how the route-level
-            boundary reshapes that failure into something inspectable.
-          </p>
+          <p className={routesIntro}>{m.errors_section_intro_choose()}</p>
 
           <div className={routesList}>
             {errorScenarios.map(scenario => {
               const toneStyles = allToneStyles[scenario.tone];
+              const translated = scenarioTranslations[scenario.code];
 
               return (
                 <div
@@ -154,18 +194,18 @@ export default function ErrorsDemo(): JSX.Element {
                         as="h3"
                         className={rowTitle}
                       >
-                        {scenario.label}
+                        {translated?.label ?? scenario.label}
                       </Text>
-                      <p className={rowBody}>{scenario.summary}</p>
+                      <p className={rowBody}>{translated?.summary ?? scenario.summary}</p>
                     </div>
 
                     <div className={rowDetail}>
-                      <p className={rowDetailText}>{scenario.detail}</p>
+                      <p className={rowDetailText}>{translated?.detail ?? scenario.detail}</p>
                       <Link
                         className={`${rowLink} ${toneStyles.link}`}
                         to={`/errors/${scenario.code}`}
                       >
-                        <span>Open case</span>
+                        <span>{m.errors_open_case()}</span>
                         <IconArrowLeft
                           className={iconStyles.base}
                           style={{
@@ -185,13 +225,10 @@ export default function ErrorsDemo(): JSX.Element {
               as="h2"
               className={routesTitle}
             >
-              What to notice.
+              {m.errors_section_title_notice()}
             </Text>
 
-            <p className={routesIntro}>
-              The interesting split is between the static entry page, the dynamic route loader, and
-              the boundary that formats both response errors and thrown exceptions.
-            </p>
+            <p className={routesIntro}>{m.errors_section_intro_notice()}</p>
 
             <div className={routesList}>
               <div className={rowRow}>
@@ -203,18 +240,15 @@ export default function ErrorsDemo(): JSX.Element {
                       as="h3"
                       className={rowTitle}
                     >
-                      Static hub
+                      {m.errors_notice_1_title()}
                     </Text>
                     <p className={rowBody}>
-                      <code>/errors</code> is safe to prerender because it never throws.
+                      <code>/errors</code> {m.errors_notice_1_body()}
                     </p>
                   </div>
 
                   <div className={rowDetail}>
-                    <p className={rowDetailText}>
-                      It works as a navigational map into the error cases rather than an error
-                      screen itself.
-                    </p>
+                    <p className={rowDetailText}>{m.errors_notice_1_detail()}</p>
                   </div>
                 </div>
               </div>
@@ -228,18 +262,15 @@ export default function ErrorsDemo(): JSX.Element {
                       as="h3"
                       className={rowTitle}
                     >
-                      Dynamic incident routes
+                      {m.errors_notice_2_title()}
                     </Text>
                     <p className={rowBody}>
-                      <code>/errors/:code</code> throws from the loader to simulate real failures.
+                      <code>/errors/:code</code> {m.errors_notice_2_body()}
                     </p>
                   </div>
 
                   <div className={rowDetail}>
-                    <p className={rowDetailText}>
-                      That makes the page useful for seeing how SSR, status codes, and response
-                      headers behave when a route does not resolve normally.
-                    </p>
+                    <p className={rowDetailText}>{m.errors_notice_2_detail()}</p>
                   </div>
                 </div>
               </div>
@@ -253,33 +284,26 @@ export default function ErrorsDemo(): JSX.Element {
                       as="h3"
                       className={rowTitle}
                     >
-                      Boundary formatting
+                      {m.errors_notice_3_title()}
                     </Text>
-                    <p className={rowBody}>
-                      The route boundary catches the failure and turns it into the final visual
-                      surface.
-                    </p>
+                    <p className={rowBody}>{m.errors_notice_3_body()}</p>
                   </div>
 
                   <div className={rowDetail}>
-                    <p className={rowDetailText}>
-                      That means the page you see for <code>404</code>, <code>500</code>, or{' '}
-                      <code>runtime</code> is intentionally designed by the route, not by a browser
-                      fallback.
-                    </p>
+                    <p className={rowDetailText}>{m.errors_notice_3_detail()}</p>
                   </div>
                 </div>
               </div>
             </div>
 
             <p className={routesIntroSpacer}>
-              <IconCircleInfo className={iconStyles.base} /> Start with <code>/errors/404</code> or{' '}
-              <code>/errors/runtime</code> to compare a thrown response with a thrown JavaScript
-              error.
+              <IconCircleInfo className={iconStyles.base} /> {m.errors_spacer_intro()}
             </p>
           </div>
         </div>
       </section>
+
+      <PageFooter />
     </main>
   );
 }

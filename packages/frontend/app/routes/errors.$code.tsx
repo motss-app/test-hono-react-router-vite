@@ -2,8 +2,10 @@ import type { JSX } from 'react';
 import { isRouteErrorResponse } from 'react-router';
 
 import { Link } from '../components/Link.tsx';
+import { PageFooter } from '../components/page-footer.tsx';
 import { Text } from '../components/text.tsx';
 import { IconArrowLeft, IconCircleInfo, IconHome } from '../icons.ts';
+import * as m from '../paraglide/messages.js';
 import { iconStyles } from '../styles/icon.css.ts';
 import { createBackgroundSvgPreloadLinks } from '../utils/background-svg-preload.ts';
 import {
@@ -22,10 +24,10 @@ const noStoreCacheControl = 'no-store';
 export function meta(): Route.MetaDescriptors {
   return [
     {
-      title: 'Error Case Demo',
+      title: m.meta_error_code_title(),
     },
     {
-      content: 'Dynamic error route demonstrating thrown responses and runtime failures.',
+      content: m.meta_error_code_desc(),
       name: 'description',
     },
   ];
@@ -93,22 +95,6 @@ export function headers({ loaderHeaders, parentHeaders }: Route.HeadersArgs): He
   return parentHeaders;
 }
 
-function getTone(
-  errorType: string,
-  scenario: ErrorScenario | undefined,
-  statusCode: number
-): 'critical' | 'runtime' | 'warning' {
-  if (scenario) {
-    return scenario.tone;
-  }
-
-  if (errorType === 'Runtime Error') {
-    return 'runtime';
-  }
-
-  return statusCode >= serverErrorStatusCode ? 'critical' : 'warning';
-}
-
 function ErrorIncidentView({
   errorType,
   message,
@@ -124,8 +110,73 @@ function ErrorIncidentView({
   statusCode: number;
   statusText: string;
 }): JSX.Element {
+  const defaultErrorType = m.error_code_default_error_type();
+
+  function getTone(
+    errType: string,
+    errScenario: ErrorScenario | undefined,
+    errStatusCode: number
+  ): 'critical' | 'runtime' | 'warning' {
+    if (errScenario) {
+      return errScenario.tone;
+    }
+
+    if (errType === defaultErrorType) {
+      return 'runtime';
+    }
+
+    return errStatusCode >= serverErrorStatusCode ? 'critical' : 'warning';
+  }
+
   const tone = getTone(errorType, scenario, statusCode);
   const toneStyles = allToneStyles[tone];
+
+  const scenarioTranslations: Record<
+    string,
+    {
+      label: string;
+      summary: string;
+      detail: string;
+    }
+  > = {
+    '401': {
+      detail: m.error_scenario_401_detail(),
+      label: m.error_scenario_401_label(),
+      summary: m.error_scenario_401_summary(),
+    },
+    '403': {
+      detail: m.error_scenario_403_detail(),
+      label: m.error_scenario_403_label(),
+      summary: m.error_scenario_403_summary(),
+    },
+    '404': {
+      detail: m.error_scenario_404_detail(),
+      label: m.error_scenario_404_label(),
+      summary: m.error_scenario_404_summary(),
+    },
+    '500': {
+      detail: m.error_scenario_500_detail(),
+      label: m.error_scenario_500_label(),
+      summary: m.error_scenario_500_summary(),
+    },
+    '502': {
+      detail: m.error_scenario_502_detail(),
+      label: m.error_scenario_502_label(),
+      summary: m.error_scenario_502_summary(),
+    },
+    '503': {
+      detail: m.error_scenario_503_detail(),
+      label: m.error_scenario_503_label(),
+      summary: m.error_scenario_503_summary(),
+    },
+    runtime: {
+      detail: m.error_scenario_runtime_detail(),
+      label: m.error_scenario_runtime_label(),
+      summary: m.error_scenario_runtime_summary(),
+    },
+  };
+
+  const translated = scenario ? scenarioTranslations[scenario.code] : undefined;
 
   return (
     <main className={s.page}>
@@ -141,13 +192,15 @@ function ErrorIncidentView({
 
         <div className={s.heroInner}>
           <div className={s.heroCopy}>
-            <p className={`${s.statusLabel} ${toneStyles.statusLabel}`}>Incident surface</p>
+            <p className={`${s.statusLabel} ${toneStyles.statusLabel}`}>
+              {m.error_code_hero_status_label()}
+            </p>
 
             <Text
               as="h1"
               className={s.title}
             >
-              Error {statusCode}
+              {m.error_code_hero_title_prefix()} {statusCode}
               <span className={`${s.titleAccent} ${toneStyles.titleAccent}`}>{statusText}</span>
             </Text>
 
@@ -155,14 +208,11 @@ function ErrorIncidentView({
               as="p"
               className={`${s.heroLead} ${toneStyles.heroLead}`}
             >
-              {scenario?.summary ??
-                'The loader intentionally failed so the route boundary could take over.'}
+              {translated?.summary ?? m.error_code_default_summary()}
             </Text>
 
             <p className={`${s.heroBody} ${toneStyles.heroBody}`}>
-              {message}.{' '}
-              {scenario?.detail ??
-                'This route formats both thrown responses and runtime exceptions into a consistent SSR error view.'}
+              {message}. {translated?.detail ?? m.error_code_default_detail()}
             </p>
 
             <div className={s.heroActions}>
@@ -171,7 +221,7 @@ function ErrorIncidentView({
                 to="/errors"
               >
                 <IconArrowLeft className={iconStyles.base} />
-                <span>Back to error index</span>
+                <span>{m.error_code_cta_back_index()}</span>
               </Link>
 
               <Link
@@ -179,7 +229,7 @@ function ErrorIncidentView({
                 to="/"
               >
                 <IconHome className={iconStyles.base} />
-                <span>Go home</span>
+                <span>{m.error_code_cta_go_home()}</span>
               </Link>
             </div>
           </div>
@@ -192,12 +242,11 @@ function ErrorIncidentView({
             as="h2"
             className={s.routesTitle}
           >
-            Incident details.
+            {m.error_code_section_title()}
           </Text>
 
           <p className={`${s.routesIntro} ${toneStyles.routesIntro}`}>
-            This route throws in the loader, then the route-level boundary renders the final page
-            you are seeing now.
+            {m.error_code_section_intro()}
           </p>
 
           <div className={`${s.routesList} ${toneStyles.routesList}`}>
@@ -210,28 +259,26 @@ function ErrorIncidentView({
                     as="h3"
                     className={s.rowTitle}
                   >
-                    Failure signal
+                    {m.error_code_row_1_title()}
                   </Text>
-                  <p className={s.rowBody}>
-                    The boundary normalized the thrown value into a readable status surface.
-                  </p>
+                  <p className={s.rowBody}>{m.error_code_row_1_body()}</p>
                 </div>
 
                 <dl className={s.dataList}>
                   <div>
-                    <dt className={s.dataLabel}>Status</dt>
+                    <dt className={s.dataLabel}>{m.error_code_label_status()}</dt>
                     <dd className={s.dataValue}>{statusCode}</dd>
                   </div>
                   <div>
-                    <dt className={s.dataLabel}>Status text</dt>
+                    <dt className={s.dataLabel}>{m.error_code_label_status_text()}</dt>
                     <dd className={s.dataValue}>{statusText}</dd>
                   </div>
                   <div>
-                    <dt className={s.dataLabel}>Error type</dt>
+                    <dt className={s.dataLabel}>{m.error_code_label_error_type()}</dt>
                     <dd className={s.dataValue}>{errorType}</dd>
                   </div>
                   <div>
-                    <dt className={s.dataLabel}>Route param</dt>
+                    <dt className={s.dataLabel}>{m.error_code_label_route_param()}</dt>
                     <dd className={s.dataValue}>{routeCode ?? scenario?.code ?? '<missing>'}</dd>
                   </div>
                 </dl>
@@ -247,29 +294,27 @@ function ErrorIncidentView({
                     as="h3"
                     className={s.rowTitle}
                   >
-                    Capture path
+                    {m.error_code_row_2_title()}
                   </Text>
-                  <p className={s.rowBody}>
-                    The error starts in the route loader and finishes in the route boundary.
-                  </p>
+                  <p className={s.rowBody}>{m.error_code_row_2_body()}</p>
                 </div>
 
                 <dl className={s.dataList}>
                   <div>
-                    <dt className={s.dataLabel}>Thrown from</dt>
-                    <dd className={s.dataValue}>loader() in `errors.$code.tsx`</dd>
+                    <dt className={s.dataLabel}>{m.error_code_label_thrown_from()}</dt>
+                    <dd className={s.dataValue}>{m.error_code_value_thrown_from()}</dd>
                   </div>
                   <div>
-                    <dt className={s.dataLabel}>Rendered by</dt>
-                    <dd className={s.dataValue}>ErrorBoundary in the same route file</dd>
+                    <dt className={s.dataLabel}>{m.error_code_label_rendered_by()}</dt>
+                    <dd className={s.dataValue}>{m.error_code_value_rendered_by()}</dd>
                   </div>
                   <div>
-                    <dt className={s.dataLabel}>Delivery</dt>
-                    <dd className={s.dataValue}>Server-rendered error response</dd>
+                    <dt className={s.dataLabel}>{m.error_code_label_delivery()}</dt>
+                    <dd className={s.dataValue}>{m.error_code_value_delivery()}</dd>
                   </div>
                   <div>
-                    <dt className={s.dataLabel}>Server timing</dt>
-                    <dd className={s.dataValue}>Appended through `headers()` after the throw</dd>
+                    <dt className={s.dataLabel}>{m.error_code_label_server_timing()}</dt>
+                    <dd className={s.dataValue}>{m.error_code_value_server_timing()}</dd>
                   </div>
                 </dl>
               </div>
@@ -284,16 +329,14 @@ function ErrorIncidentView({
                     as="h3"
                     className={s.rowTitle}
                   >
-                    Guidance
+                    {m.error_code_row_3_title()}
                   </Text>
-                  <p className={s.rowBody}>
-                    Compare different routes to see how the boundary behaves across status families.
-                  </p>
+                  <p className={s.rowBody}>{m.error_code_row_3_body()}</p>
                 </div>
 
                 <dl className={s.dataList}>
                   <div>
-                    <dt className={s.dataLabel}>Try next</dt>
+                    <dt className={s.dataLabel}>{m.error_code_label_try_next()}</dt>
                     <dd className={s.dataValue}>
                       {(routeCode ?? scenario?.code) === 'runtime'
                         ? '/errors/404'
@@ -301,17 +344,17 @@ function ErrorIncidentView({
                     </dd>
                   </div>
                   <div>
-                    <dt className={s.dataLabel}>Reference route</dt>
+                    <dt className={s.dataLabel}>{m.error_code_label_reference_route()}</dt>
                     <dd className={s.dataValue}>/errors</dd>
                   </div>
                   <div>
-                    <dt className={s.dataLabel}>Scenario note</dt>
+                    <dt className={s.dataLabel}>{m.error_code_label_scenario_note()}</dt>
                     <dd className={s.dataValue}>
-                      {scenario?.summary ?? 'This code path is not part of the curated examples.'}
+                      {translated?.summary ?? m.error_code_default_scenario_note()}
                     </dd>
                   </div>
                   <div>
-                    <dt className={s.dataLabel}>Message</dt>
+                    <dt className={s.dataLabel}>{m.error_code_label_message()}</dt>
                     <dd className={s.dataValue}>{message}</dd>
                   </div>
                 </dl>
@@ -320,12 +363,12 @@ function ErrorIncidentView({
           </div>
 
           <p className={`${s.routesIntro} ${toneStyles.routesIntro}`}>
-            <IconCircleInfo className={iconStyles.base} /> Thrown responses preserve their HTTP
-            semantics; thrown runtime errors are still caught here, but the boundary presents them
-            as an application failure.
+            <IconCircleInfo className={iconStyles.base} /> {m.error_code_footer_note()}
           </p>
         </div>
       </section>
+
+      <PageFooter />
     </main>
   );
 }
@@ -333,15 +376,15 @@ function ErrorIncidentView({
 export function ErrorBoundary({ error, params }: Route.ErrorBoundaryProps): JSX.Element {
   const routeCode = getRouteCodeParam(params);
   let statusCode = serverErrorStatusCode;
-  let statusText = 'Internal Server Error';
-  let message = 'An unexpected error occurred';
-  let errorType = 'Runtime Error';
+  let statusText: string = m.error_code_default_status_text();
+  let message: string = m.error_code_default_message();
+  let errorType: string = m.error_code_default_error_type();
   let scenario = getErrorScenario(routeCode);
 
   if (isRouteErrorResponse(error)) {
     statusCode = error.status;
     statusText = error.statusText;
-    errorType = 'HTTP Response Error';
+    errorType = m.error_code_http_error_type();
     scenario ??= getErrorScenarioByStatus(error.status);
 
     if (typeof error.data === 'string' && error.data.length > 0) {
@@ -351,7 +394,7 @@ export function ErrorBoundary({ error, params }: Route.ErrorBoundaryProps): JSX.
     }
   } else if (error instanceof Error) {
     message = error.message;
-    statusText = 'Runtime Error';
+    statusText = m.error_code_runtime_status_text();
   }
 
   return (
@@ -372,12 +415,12 @@ export default function ErrorCode({ params }: Route.ComponentProps): JSX.Element
 
   return (
     <ErrorIncidentView
-      errorType="Pending Error"
-      message="This route is designed to throw before the normal component renders"
+      errorType={m.error_code_pending_error_type()}
+      message={m.error_code_pending_message()}
       routeCode={routeCode}
       scenario={scenario}
       statusCode={500}
-      statusText="Intentional Error Route"
+      statusText={m.error_code_intentional_status_text()}
     />
   );
 }

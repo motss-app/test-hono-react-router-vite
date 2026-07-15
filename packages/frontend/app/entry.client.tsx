@@ -179,6 +179,7 @@ globalThis.requestIdleCallback(async function lazyLoadBrowserIntegration() {
               import('./monitoring/lazy-browser-integrations/http-client.ts').then(
                 mod => mod.httpClientIntegration
               ),
+            name: 'http-client',
           },
           {
             enabled: true,
@@ -186,6 +187,7 @@ globalThis.requestIdleCallback(async function lazyLoadBrowserIntegration() {
               import('./monitoring/lazy-browser-integrations/extra-error-data.ts').then(
                 mod => mod.extraErrorDataIntegration
               ),
+            name: 'extra-error-data',
           },
           {
             enabled: true,
@@ -193,6 +195,7 @@ globalThis.requestIdleCallback(async function lazyLoadBrowserIntegration() {
               import('./monitoring/lazy-browser-integrations/context-lines.ts').then(
                 mod => mod.contextLinesIntegration
               ),
+            name: 'context-lines',
           },
           {
             enabled: true,
@@ -200,6 +203,7 @@ globalThis.requestIdleCallback(async function lazyLoadBrowserIntegration() {
               import('./monitoring/lazy-browser-integrations/view-hierarchy.ts').then(
                 mod => mod.viewHierarchyIntegration
               ),
+            name: 'view-hierarchy',
           },
           {
             // Don't load the browser-profiling integration in development.
@@ -216,6 +220,7 @@ globalThis.requestIdleCallback(async function lazyLoadBrowserIntegration() {
               import('./monitoring/lazy-browser-integrations/browser-profiling.ts').then(
                 mod => mod.browserProfilingIntegration
               ),
+            name: 'browser-profiling',
           },
           // {
           //   // Don't load the Replay integration in development when we're sending
@@ -225,13 +230,16 @@ globalThis.requestIdleCallback(async function lazyLoadBrowserIntegration() {
           //   enabled: !isDevSentryMode,
           //   loader: () => import('@sentry/browser').then(mod => mod.replayIntegration),
           // },
-        ].filter(n => n.enabled);
+        ];
 
-        const loaderPromises = lazyBrowserIntegrations.map(({ loader }) => loader());
+        const enabledIntegrations = lazyBrowserIntegrations.filter(n => n.enabled);
+
+        const loaderPromises = enabledIntegrations.map(({ loader }) => loader());
         const integrations = await Promise.all(loaderPromises);
 
-        const loadedIntegrations = integrations.map(integration => {
-          console.info('[entry.client] Lazy-loaded Sentry browser integration', integration.name);
+        const loadedIntegrations = integrations.map((integration, i) => {
+          const name = enabledIntegrations[i]?.name ?? 'unknown';
+          console.info('[entry.client] Lazy-loaded Sentry browser integration', name);
           return integration();
         });
 

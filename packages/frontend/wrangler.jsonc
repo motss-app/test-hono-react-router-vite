@@ -6,6 +6,9 @@
     "html_handling": "drop-trailing-slash"
   },
   "base_dir": "../../build",
+  "cache": {
+    "enabled": true
+  },
   "compatibility_date": "2026-05-13",
   "compatibility_flags": [
     "enable_request_signal",

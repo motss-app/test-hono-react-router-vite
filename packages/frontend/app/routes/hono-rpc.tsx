@@ -5,9 +5,11 @@ import { hc } from 'hono/client';
 import { Fragment, type JSX, type ReactNode, useCallback, useEffect, useState } from 'react';
 
 import { Link } from '../components/Link.tsx';
+import { PageFooter } from '../components/page-footer.tsx';
 import { Skeleton } from '../components/skeleton.tsx';
 import { Text } from '../components/text.tsx';
 import { IconArrowLeft } from '../icons.ts';
+import * as m from '../paraglide/messages.js';
 import {
   createRequestMetricAttributes,
   isDevelopmentSentryMode,
@@ -61,10 +63,10 @@ const isDevSentryMode = isDevelopmentSentryMode(import.meta.env.MODE);
 export function meta(): Route.MetaDescriptors {
   return [
     {
-      title: 'Hono RPC Demo',
+      title: m.meta_hono_rpc_title(),
     },
     {
-      content: 'Typed Hono RPC demo with client refresh',
+      content: m.meta_hono_rpc_desc(),
       name: 'description',
     },
   ];
@@ -198,21 +200,18 @@ function HonoRpcView({ action, isLoading, response }: HonoRpcViewProps): JSX.Ele
               as="h1"
               className={title}
             >
-              Hono RPC
-              <span className={titleAccent}>Typed on both sides</span>
+              {m.hono_rpc_title()}
+              <span className={titleAccent}>{m.hono_rpc_title_accent()}</span>
             </Text>
 
             <Text
               as="p"
               className={heroLead}
             >
-              A typed request surface that refreshes without leaving the route.
+              {m.hono_rpc_hero_lead()}
             </Text>
 
-            <p className={heroBody}>
-              The initial response comes through the route loader, then the same endpoint can be
-              revalidated on the client through the Hono RPC client.
-            </p>
+            <p className={heroBody}>{m.hono_rpc_hero_body()}</p>
 
             <div className={heroActions}>
               <Link
@@ -220,7 +219,7 @@ function HonoRpcView({ action, isLoading, response }: HonoRpcViewProps): JSX.Ele
                 to="/"
               >
                 <IconArrowLeft className={iconStyles.base} />
-                <span>Back home</span>
+                <span>{m.hono_rpc_cta_back_home()}</span>
               </Link>
 
               <div className={actionShell}>{action}</div>
@@ -235,12 +234,10 @@ function HonoRpcView({ action, isLoading, response }: HonoRpcViewProps): JSX.Ele
             as="h2"
             className={routesTitle}
           >
-            The response is live and re-fetchable.
+            {m.hono_rpc_section_title()}
           </Text>
 
-          <p className={routesIntro}>
-            The same typed endpoint powers the initial route load and the in-page refresh action.
-          </p>
+          <p className={routesIntro}>{m.hono_rpc_section_intro()}</p>
 
           <div className={routesList}>
             <div className={rowRow}>
@@ -252,17 +249,14 @@ function HonoRpcView({ action, isLoading, response }: HonoRpcViewProps): JSX.Ele
                     as="h3"
                     className={rowTitle}
                   >
-                    RPC response
+                    {m.hono_rpc_row_1_title()}
                   </Text>
-                  <p className={rowBody}>
-                    Values returned from `GET /api/rpc/hello`, rendered first by the loader and then
-                    refreshed on demand.
-                  </p>
+                  <p className={rowBody}>{m.hono_rpc_row_1_body()}</p>
                 </div>
 
                 <dl className={dataList}>
                   <Fragment key="message">
-                    <dt className={dataLabel}>Message</dt>
+                    <dt className={dataLabel}>{m.hono_rpc_label_message()}</dt>
                     <dd className={dataValue}>
                       <Skeleton
                         className={skeletonMessage}
@@ -274,7 +268,7 @@ function HonoRpcView({ action, isLoading, response }: HonoRpcViewProps): JSX.Ele
                   </Fragment>
 
                   <Fragment key="server">
-                    <dt className={dataLabel}>Server</dt>
+                    <dt className={dataLabel}>{m.hono_rpc_label_server()}</dt>
                     <dd className={dataValue}>
                       <Skeleton
                         className={skeletonServer}
@@ -286,7 +280,7 @@ function HonoRpcView({ action, isLoading, response }: HonoRpcViewProps): JSX.Ele
                   </Fragment>
 
                   <Fragment key="timestamp">
-                    <dt className={dataLabel}>Timestamp</dt>
+                    <dt className={dataLabel}>{m.hono_rpc_label_timestamp()}</dt>
                     <dd className={dataValue}>
                       <Skeleton
                         className={skeletonTimestamp}
@@ -309,30 +303,27 @@ function HonoRpcView({ action, isLoading, response }: HonoRpcViewProps): JSX.Ele
                     as="h3"
                     className={rowTitle}
                   >
-                    Endpoint contract
+                    {m.hono_rpc_row_2_title()}
                   </Text>
-                  <p className={rowBody}>
-                    The route and API stay connected through the generated Hono client instead of
-                    manual fetch strings.
-                  </p>
+                  <p className={rowBody}>{m.hono_rpc_row_2_body()}</p>
                 </div>
 
                 <dl className={dataList}>
                   <div>
-                    <dt className={dataLabel}>Endpoint</dt>
-                    <dd className={dataValue}>GET /api/rpc/hello</dd>
+                    <dt className={dataLabel}>{m.hono_rpc_label_endpoint()}</dt>
+                    <dd className={dataValue}>{m.hono_rpc_label_endpoint_value()}</dd>
                   </div>
                   <div>
-                    <dt className={dataLabel}>Implementation</dt>
-                    <dd className={dataValue}>packages/bff/src/api.ts</dd>
+                    <dt className={dataLabel}>{m.hono_rpc_label_implementation()}</dt>
+                    <dd className={dataValue}>{m.hono_rpc_label_implementation_value()}</dd>
                   </div>
                   <div>
-                    <dt className={dataLabel}>Initial source</dt>
-                    <dd className={dataValue}>Route loader / shared API response factory</dd>
+                    <dt className={dataLabel}>{m.hono_rpc_label_initial_source()}</dt>
+                    <dd className={dataValue}>{m.hono_rpc_label_initial_source_value()}</dd>
                   </div>
                   <div>
-                    <dt className={dataLabel}>Refresh path</dt>
-                    <dd className={dataValue}>Action button → Hono RPC client</dd>
+                    <dt className={dataLabel}>{m.hono_rpc_label_refresh_path()}</dt>
+                    <dd className={dataValue}>{m.hono_rpc_label_refresh_path_value()}</dd>
                   </div>
                 </dl>
               </div>
@@ -347,39 +338,27 @@ function HonoRpcView({ action, isLoading, response }: HonoRpcViewProps): JSX.Ele
                     as="h3"
                     className={rowTitle}
                   >
-                    What this demonstrates
+                    {m.hono_rpc_row_3_title()}
                   </Text>
-                  <p className={rowBody}>
-                    The page is built to show where SSG, hydration, revalidation, and typed API
-                    calls intersect.
-                  </p>
+                  <p className={rowBody}>{m.hono_rpc_row_3_body()}</p>
                 </div>
 
                 <dl className={dataList}>
                   <div>
-                    <dt className={dataLabel}>Prerendered shell</dt>
-                    <dd className={dataValue}>
-                      The route can ship static structure at build time.
-                    </dd>
+                    <dt className={dataLabel}>{m.hono_rpc_label_prerendered_shell()}</dt>
+                    <dd className={dataValue}>{m.hono_rpc_value_prerendered_shell()}</dd>
                   </div>
                   <div>
-                    <dt className={dataLabel}>Hydrated data</dt>
-                    <dd className={dataValue}>
-                      The initial server-rendered response stays visible while the client can fetch
-                      fresh data on demand.
-                    </dd>
+                    <dt className={dataLabel}>{m.hono_rpc_label_hydrated_data()}</dt>
+                    <dd className={dataValue}>{m.hono_rpc_value_hydrated_data()}</dd>
                   </div>
                   <div>
-                    <dt className={dataLabel}>Client refresh</dt>
-                    <dd className={dataValue}>
-                      The button fetches fresh RPC data without reloading the page.
-                    </dd>
+                    <dt className={dataLabel}>{m.hono_rpc_label_client_refresh()}</dt>
+                    <dd className={dataValue}>{m.hono_rpc_value_client_refresh()}</dd>
                   </div>
                   <div>
-                    <dt className={dataLabel}>Typed boundary</dt>
-                    <dd className={dataValue}>
-                      The `hc()` client keeps route code aligned with the API contract.
-                    </dd>
+                    <dt className={dataLabel}>{m.hono_rpc_label_typed_boundary()}</dt>
+                    <dd className={dataValue}>{m.hono_rpc_value_typed_boundary()}</dd>
                   </div>
                 </dl>
               </div>
@@ -387,6 +366,8 @@ function HonoRpcView({ action, isLoading, response }: HonoRpcViewProps): JSX.Ele
           </div>
         </div>
       </section>
+
+      <PageFooter />
     </main>
   );
 }
@@ -395,10 +376,11 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): JSX.Element 
   return (
     <div className={errorPage}>
       <div className={errorBox}>
-        <strong>Error:</strong> {error instanceof Error ? error.message : 'Unknown error'}
+        <strong>{m.hono_rpc_error_title()}</strong>{' '}
+        {error instanceof Error ? error.message : 'Unknown error'}
       </div>
       <Text className={routesIntro}>
-        <a href="/hono-rpc">Try reloading the Hono RPC page</a>
+        <a href="/hono-rpc">{m.hono_rpc_error_retry()}</a>
       </Text>
     </div>
   );
@@ -408,7 +390,7 @@ export default function HonoRpcDemo({ loaderData }: Route.ComponentProps): JSX.E
   const [response, setResponse] = useState(loaderData);
   const [refreshError, setRefreshError] = useState<Error | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const buttonText = isLoading ? 'Refreshing…' : 'Refresh RPC data';
+  const buttonText = isLoading ? m.hono_rpc_button_refreshing() : m.hono_rpc_button_refresh();
 
   useEffect(() => {
     setResponse(loaderData);
