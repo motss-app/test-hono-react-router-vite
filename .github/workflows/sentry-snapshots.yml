@@ -73,7 +73,7 @@ jobs:
           # Phase 2: wait for SSR page to render (confirms Vite SSR optimizer is done)
           echo "Waiting for SSR..."
           for i in $(seq 1 30); do
-            if curl -sf --max-time 10 -o /dev/null http://localhost:8787/ 2>/dev/null; then
+            if curl -sfL --max-time 10 -o /dev/null http://localhost:8787/en-US 2>/dev/null; then
               echo "SSR ready after ${i}s"
               break
             fi
