@@ -17,6 +17,8 @@ node_modules/
 
 # AI coding assistant internal data
 .codex/
+__screenshots__
+.vitest-attachments
 
 # Vite temp files
 *.timestamp-*.mjs
