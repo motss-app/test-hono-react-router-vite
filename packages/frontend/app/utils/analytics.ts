@@ -1,5 +1,4 @@
-import amplitudePlugin from '@analytics/amplitude';
-import Analytics from 'analytics';
+import { Identify, identify, init, page, track } from '@amplitude/analytics-browser';
 import { onCLS, onFCP, onINP, onLCP, onTTFB } from 'web-vitals';
 
 import { getBrowserAppSessionId } from '../monitoring/app-session.ts';
@@ -22,39 +21,43 @@ function getVisitorId(): string {
 }
 
 /**
- * Shared analytics client backed by the Amplitude plugin.
- *
- * Uses the `analytics` abstraction (getanalytics.io) so the provider can be
- * swapped without touching call-sites throughout the app.
- */
-export const analytics = Analytics({
-  app: 'test-hono-react-router-vite',
-  plugins: [
-    amplitudePlugin({
-      apiKey: import.meta.env.VITE_AMPLITUDE_API_KEY ?? '',
-      options: {
-        trackingOptions: {
-          ip_address: false,
-        },
-      },
-    }),
-  ],
-});
-
-/**
  * Initializes Amplitude analytics: identifies the current visitor, records the
  * initial page view, and registers Core Web Vitals listeners. Call once after
  * the client entry module has loaded.
  */
 export function initAnalytics(): void {
-  analytics.identify(getVisitorId(), {
-    app_session_id: getBrowserAppSessionId(),
+  const apiKey = import.meta.env.VITE_AMPLITUDE_API_KEY;
+
+  if (!apiKey) {
+    // biome-ignore lint/suspicious/noConsole: Warn when analytics API key is missing so devs notice in dev tools.
+    console.warn('[analytics] VITE_AMPLITUDE_API_KEY is not set, skipping Amplitude init');
+    return;
+  }
+
+  init(apiKey, undefined, {
+    fetchRemoteConfig: false,
+    optOut: false,
+    tracking: {
+      cookies: {
+        expiration: 365 * 24 * 60 * 60 * 1000,
+      },
+      disableCookies: false,
+      sessionTimeout: 30 * 60 * 1000,
+    },
   });
-  analytics.page();
+
+  const visitorId = getVisitorId();
+  const identifyObj = new Identify();
+  identifyObj.set('app_session_id', getBrowserAppSessionId());
+  identify(visitorId, identifyObj);
+
+  page('Page View', {
+    path: globalThis.location.pathname,
+  });
 
   // Core Web Vitals → Amplitude
   const webVitalsHandler = (metric: { name: string; value: number; rating: string }) => {
-    analytics.track('Web Vitals', {
+    track('Web Vitals', {
       name: metric.name,
       path: globalThis.location.pathname,
       rating: metric.rating,
