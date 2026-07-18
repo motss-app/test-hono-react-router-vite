@@ -51,6 +51,7 @@ const defaultConnectSrc = [
   "'self'",
   'https://cloudflareinsights.com',
   'https://api.iconify.design',
+  'https://api2.amplitude.com',
 ];
 const defaultFrameSrc = [
   "'self'",

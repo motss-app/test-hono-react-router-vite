@@ -1,6 +1,7 @@
 {
   "dependencies": {
-    "@amplitude/analytics-browser": "^2.45.2",
+    "@amplitude/analytics-browser": "2.45.2",
+    "@amplitude/plugin-web-vitals-browser": "1.1.41",
     "@base-ui/react": "1.6.0",
     "@cloudflare/vite-plugin": "1.45.1",
     "@fontsource-variable/open-sans": "5.2.7",
@@ -25,8 +26,7 @@
     "react": "19.2.7",
     "react-dom": "19.2.7",
     "react-router": "8.2.0",
-    "vitest": "4.1.10",
-    "web-vitals": "^5.3.0"
+    "vitest": "4.1.10"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.4",

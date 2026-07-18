@@ -1,5 +1,6 @@
-import { Identify, identify, init, track } from '@amplitude/analytics-browser';
-import { onCLS, onFCP, onINP, onLCP, onTTFB } from 'web-vitals';
+import { add, Identify, identify, init, track } from '@amplitude/analytics-browser';
+import { webVitalsPlugin } from '@amplitude/plugin-web-vitals-browser';
+import { captureException } from '@sentry/browser';
 
 import { getBrowserAppSessionId } from '../monitoring/app-session.ts';
 
@@ -21,9 +22,9 @@ function getVisitorId(): string {
 }
 
 /**
- * Initializes Amplitude analytics: identifies the current visitor, records the
- * initial page view, and registers Core Web Vitals listeners. Call once after
- * the client entry module has loaded.
+ * Initializes Amplitude analytics: sets up the SDK, registers the web-vitals
+ * plugin, and identifies the current visitor. Call once after the client entry
+ * module has loaded. Page views are tracked separately by RouteChangeTracker.
  */
 export function initAnalytics(): void {
   const apiKey = import.meta.env.VITE_AMPLITUDE_API_KEY;
@@ -37,6 +38,9 @@ export function initAnalytics(): void {
   const visitorId = getVisitorId();
   const appSessionId = getBrowserAppSessionId();
 
+  // Plugin must be registered before init per Amplitude docs.
+  add(webVitalsPlugin());
+
   init(apiKey, visitorId, {
     cookieOptions: {
       expiration: 365 * 24 * 60 * 60 * 1000,
@@ -46,31 +50,21 @@ export function initAnalytics(): void {
     trackingOptions: {
       ipAddress: false,
     },
-  });
+  }).promise.catch((err: unknown) => captureException(err));
 
   if (appSessionId) {
     const identifyObj = new Identify();
     identifyObj.set('app_session_id', appSessionId);
     identify(identifyObj);
   }
+}
 
+/**
+ * Tracks a page view on client-side navigation. Call this from a React Router
+ * route change listener to capture all SPA page views.
+ */
+export function trackPageView(pathname: string): void {
   track('Page View', {
-    path: globalThis.location.pathname,
+    path: pathname,
   });
-
-  // Core Web Vitals → Amplitude
-  const webVitalsHandler = (metric: { name: string; value: number; rating: string }) => {
-    track('Web Vitals', {
-      name: metric.name,
-      path: globalThis.location.pathname,
-      rating: metric.rating,
-      value: metric.value,
-    });
-  };
-
-  onLCP(webVitalsHandler);
-  onCLS(webVitalsHandler);
-  onINP(webVitalsHandler);
-  onFCP(webVitalsHandler);
-  onTTFB(webVitalsHandler);
 }
