@@ -3,7 +3,6 @@
     "@base-ui/react": "1.6.0",
     "@cloudflare/vite-plugin": "1.43.0",
     "@fontsource-variable/open-sans": "5.2.7",
-    "@i18nexus/cli": "5.1.1",
     "@iconify-react/fa7-brands": "1.0.3",
     "@iconify-react/fa7-regular": "1.0.2",
     "@iconify-react/fa7-solid": "1.0.3",
