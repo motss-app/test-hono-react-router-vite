@@ -1,13 +1,13 @@
 # Benchmark Baseline
 
-Last updated: <!-- updated -->2026-07-16<!-- /updated -->
+Last updated: <!-- updated -->2026-07-18<!-- /updated -->
 
 ## System
 
 - **OS**: linux x86_64
 - **Deno**: 2.9.2
 - **CPUs**: 2 logical cores
-- **Runner**: GitHub Actions 1000004381
+- **Runner**: GitHub Actions 1000004403
 - **Runner label**: unknown
 
 Only direct servers (bypassing workerd) are benchmarked. Gateway routes are excluded because workerd dev mode is too noisy for regression detection.
