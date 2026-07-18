@@ -24,6 +24,7 @@ import {
   getBrowserAppSessionId,
 } from './monitoring/app-session.ts';
 import { createBrowserSentryOptions, isDevelopmentSentryMode } from './monitoring/sentry.ts';
+import { initAnalytics } from './utils/analytics.ts';
 
 const isDevSentryMode = isDevelopmentSentryMode(import.meta.env.MODE);
 const browserTunnel = '/api/tunnel';
@@ -104,6 +105,9 @@ init({
 if (appSessionId) {
   setTag(appSessionIdTagName, appSessionId);
 }
+
+// Initialize Amplitude analytics (identify, first page view, web vitals)
+initAnalytics();
 
 if (isDevSentryMode) {
   const initializedAt = new Date().toISOString();
