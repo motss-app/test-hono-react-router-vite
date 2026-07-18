@@ -39,7 +39,7 @@ interface HeadersCopyPluginContext {
 }
 
 const staticPageCacheControl =
-  'public, max-age=600, s-maxage=3600, stale-while-revalidate=180, stale-if-error=86400, no-transform';
+  'public, max-age=0, s-maxage=3600, stale-while-revalidate=180, stale-if-error=86400, no-transform';
 
 function fileExists(path: string): boolean {
   try {

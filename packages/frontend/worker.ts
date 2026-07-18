@@ -145,7 +145,7 @@ app.get('/', c => {
   const response = c.redirect(`/${BASE_LOCALE}`, 302);
   response.headers.set(
     'Cache-Control',
-    'public, s-maxage=3600, stale-while-revalidate=300, stale-if-error=86400'
+    'public, max-age=0, s-maxage=3600, stale-while-revalidate=300, stale-if-error=86400'
   );
   return response;
 });
