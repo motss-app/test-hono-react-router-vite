@@ -1,4 +1,10 @@
-import { getIsolationScope, logger, metrics, setTag, withSentry } from '@sentry/cloudflare';
+import {
+  getIsolationScope,
+  logger,
+  metrics,
+  setTag,
+  withSentry,
+} from '@sentry/cloudflare/nodejs_compat';
 import { Hono } from 'hono';
 import { timing } from 'hono/timing';
 

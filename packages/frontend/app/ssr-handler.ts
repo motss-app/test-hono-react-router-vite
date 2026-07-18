@@ -1,4 +1,4 @@
-import { logger } from '@sentry/cloudflare';
+import { logger } from '@sentry/cloudflare/nodejs_compat';
 import type { Context, Hono } from 'hono';
 import { endTime, startTime } from 'hono/timing';
 import type { ServerBuild } from 'react-router';

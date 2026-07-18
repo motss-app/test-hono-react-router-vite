@@ -14,7 +14,7 @@
  * 3. SEO & Performance: It handles bot detection (isbot) to ensure crawlers see the
  *    full content immediately.
  */
-import { getIsolationScope, logger } from '@sentry/cloudflare';
+import { getIsolationScope, logger } from '@sentry/cloudflare/nodejs_compat';
 import {
   captureException,
   injectTraceMetaTags,

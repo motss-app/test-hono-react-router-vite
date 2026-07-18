@@ -1,4 +1,4 @@
-import { withSentry } from '@sentry/cloudflare';
+import { withSentry } from '@sentry/cloudflare/nodejs_compat';
 import { Hono } from 'hono';
 import { timing, wrapTime } from 'hono/timing';
 import { problemDetailsHandler } from 'hono-problem-details';

@@ -1,4 +1,4 @@
-import type { CloudflareOptions } from '@sentry/cloudflare';
+import type { CloudflareOptions } from '@sentry/cloudflare/nodejs_compat';
 
 import { isLoadTestMode } from '../constants.ts';
 
