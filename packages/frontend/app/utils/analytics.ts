@@ -1,4 +1,4 @@
-import { Identify, identify, init, page, track } from '@amplitude/analytics-browser';
+import { Identify, identify, init, track } from '@amplitude/analytics-browser';
 import { onCLS, onFCP, onINP, onLCP, onTTFB } from 'web-vitals';
 
 import { getBrowserAppSessionId } from '../monitoring/app-session.ts';
@@ -54,7 +54,7 @@ export function initAnalytics(): void {
     identify(identifyObj);
   }
 
-  page('Page View', {
+  track('Page View', {
     path: globalThis.location.pathname,
   });
 
