@@ -13,7 +13,6 @@ import {
 } from '@sentry/react-router/cloudflare';
 import { StrictMode, startTransition, useEffect } from 'react';
 import { hydrateRoot } from 'react-dom/client';
-import { useLocation } from 'react-router';
 import { HydratedRouter } from 'react-router/dom';
 
 import './polyfills/request-idle-callback.mjs';
@@ -25,7 +24,7 @@ import {
   getBrowserAppSessionId,
 } from './monitoring/app-session.ts';
 import { createBrowserSentryOptions, isDevelopmentSentryMode } from './monitoring/sentry.ts';
-import { initAnalytics, trackPageView } from './utils/analytics.ts';
+import { initAnalytics } from './utils/analytics.ts';
 
 const isDevSentryMode = isDevelopmentSentryMode(import.meta.env.MODE);
 const browserTunnel = '/api/tunnel';
@@ -146,29 +145,11 @@ browserBootstrapSpan = startInactiveSpan({
   op: 'ui.load',
 });
 
-/**
- * Tracks client-side route changes for Amplitude page view analytics.
- * Renders inside StrictMode/HydratedRouter so `useLocation` fires on every
- * navigation.
- */
-function RouteChangeTracker(): null {
-  const location = useLocation();
-
-  useEffect(() => {
-    trackPageView(location.pathname);
-  }, [
-    location.pathname,
-  ]);
-
-  return null;
-}
-
 startTransition(() => {
   hydrateRoot(
     document,
     <StrictMode>
       <BrowserBootstrapSpanEnder />
-      <RouteChangeTracker />
       {/* Keep this prop wiring for future Framework Mode support; do not remove it lightly. */}
       <HydratedRouter
         instrumentations={[
