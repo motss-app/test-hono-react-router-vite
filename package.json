@@ -1,7 +1,9 @@
 {
   "dependencies": {
+    "@amplitude/analytics-browser": "2.45.2",
+    "@amplitude/plugin-web-vitals-browser": "1.1.41",
     "@base-ui/react": "1.6.0",
-    "@cloudflare/vite-plugin": "1.45.0",
+    "@cloudflare/vite-plugin": "1.45.1",
     "@fontsource-variable/open-sans": "5.2.7",
     "@iconify-react/fa7-brands": "1.0.3",
     "@iconify-react/fa7-regular": "1.0.2",
@@ -37,7 +39,7 @@
     "@vanilla-extract/vite-plugin": "5.2.5",
     "typescript": "7.0.2",
     "vite": "8.1.5",
-    "wrangler": "4.111.0"
+    "wrangler": "4.112.0"
   },
   "name": "test-hono-react-router-vite",
   "private": true,

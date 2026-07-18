@@ -6,8 +6,16 @@ import openSansMathWghtNormalWoff2 from '@fontsource-variable/open-sans/files/op
 import openSansSymbolsWghtNormalWoff2 from '@fontsource-variable/open-sans/files/open-sans-symbols-wght-normal.woff2';
 import { captureException } from '@sentry/react-router/cloudflare';
 import type { JSX, PropsWithChildren } from 'react';
+import { useEffect } from 'react';
 import type { MiddlewareFunction } from 'react-router';
-import { isRouteErrorResponse, Link, Outlet, useMatches, useRouteLoaderData } from 'react-router';
+import {
+  isRouteErrorResponse,
+  Link,
+  Outlet,
+  useLocation,
+  useMatches,
+  useRouteLoaderData,
+} from 'react-router';
 
 import type { Route } from './+types/root.ts';
 import { errorStyles } from './app.css.ts';
@@ -18,6 +26,7 @@ import { ThemeSync } from './components/theme-sync.tsx';
 import { IconArrowLeft, IconBug, IconExclamationTriangle } from './icons.ts';
 import { getLocale } from './paraglide/runtime.js';
 import { paraglideMiddleware } from './paraglide/server.js';
+import { trackPageView } from './utils/analytics.ts';
 import { csp } from './utils/csp.ts';
 
 export const links: Route.LinksFunction = () => [
@@ -88,10 +97,27 @@ export function Layout({ children }: PropsWithChildren): JSX.Element {
   );
 }
 
+/**
+ * Tracks client-side route changes for Amplitude page view analytics.
+ * Must be rendered inside the Router context (i.e. in the root route component).
+ */
+function RouteChangeTracker(): null {
+  const location = useLocation();
+
+  useEffect(() => {
+    trackPageView(location.pathname);
+  }, [
+    location.pathname,
+  ]);
+
+  return null;
+}
+
 export default function RootApp(): JSX.Element {
   return (
     <>
       <Outlet />
+      <RouteChangeTracker />
       <ScrollToTopButtonShell />
       <ThemeSync />
     </>

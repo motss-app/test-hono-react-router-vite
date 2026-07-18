@@ -63,7 +63,7 @@ mode: primary
 
 ## Repository Rules
 
-- **Package management**: Use `deno install` for dependencies. Do not use `npm install`. Always pin dependency versions — never install without a version specifier (e.g. `deno install npm:package@1.2.3`, not `deno install npm:package`).
+- **Package management**: Use `deno install` for dependencies. Do not use `npm install`. Always use **exact** pinned versions — no caret (`^`) or tilde (`~`) prefixes in `package.json` (e.g. `"react": "19.2.7"`, not `"^19.2.7"` or `"~19.2.7"`). When installing via CLI, specify the exact version: `deno install npm:package@1.2.3`, never `deno install npm:package`.
 - **Task execution**: Prefer `deno task [script-name]` for project scripts. Do not use `npm run` or `pnpm run` for repo tasks.
 - **One-off CLIs**: If a one-off external CLI is needed, use `pnpm dlx` instead of `npx`.
 - **CLI tools**: Prefer Rust-based CLI tools when available (e.g. `rg` over `grep`, `bat` over `cat`, `fd` over `find`, `sd` over `sed`).
