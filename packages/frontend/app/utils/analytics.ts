@@ -34,22 +34,25 @@ export function initAnalytics(): void {
     return;
   }
 
-  init(apiKey, undefined, {
+  const visitorId = getVisitorId();
+  const appSessionId = getBrowserAppSessionId();
+
+  init(apiKey, visitorId, {
+    cookieOptions: {
+      expiration: 365 * 24 * 60 * 60 * 1000,
+    },
     fetchRemoteConfig: false,
-    optOut: false,
-    tracking: {
-      cookies: {
-        expiration: 365 * 24 * 60 * 60 * 1000,
-      },
-      disableCookies: false,
-      sessionTimeout: 30 * 60 * 1000,
+    sessionTimeout: 30 * 60 * 1000,
+    trackingOptions: {
+      ipAddress: false,
     },
   });
 
-  const visitorId = getVisitorId();
-  const identifyObj = new Identify();
-  identifyObj.set('app_session_id', getBrowserAppSessionId());
-  identify(visitorId, identifyObj);
+  if (appSessionId) {
+    const identifyObj = new Identify();
+    identifyObj.set('app_session_id', appSessionId);
+    identify(identifyObj);
+  }
 
   page('Page View', {
     path: globalThis.location.pathname,
