@@ -14,6 +14,7 @@ env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
   SENTRY_DSN: ${{ vars.SENTRY_DSN }}
   SENTRY_RELEASE: ${{ github.sha }}
+  VITE_AMPLITUDE_API_KEY: ${{ secrets.VITE_AMPLITUDE_API_KEY_CANARY }}
   VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
 
 jobs:

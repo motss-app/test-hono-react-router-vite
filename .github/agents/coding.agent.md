@@ -1,7 +1,7 @@
 ---
 name: coding
 description: Full-stack coding agent for this Deno-first Hono + React Router 8 repository. Handles code changes, typechecking, linting, formatting, benchmarking, and dev server validation.
-tools: [vscode, execute, read, agent, vscode.mermaid-markdown-features, GitHub.vscode-pull-request-github, ms-azuretools.vscode-containers, edit, search, web, 'io.github.chromedevtools/chrome-devtools-mcp/*', 'io.github.getsentry/sentry-mcp/*', 'playwright/*', 'github/*', browser, todo]
+tools: [vscode, execute, read, agent, GitHub.vscode-pull-request-github, ms-azuretools.vscode-containers, edit, search, web, 'io.github.chromedevtools/chrome-devtools-mcp/*', 'io.github.getsentry/sentry-mcp/*', 'playwright/*', 'github/*', browser, 'amplitude/mcp-server-guide/*', todo]
 ---
 
 # Coding Agent
