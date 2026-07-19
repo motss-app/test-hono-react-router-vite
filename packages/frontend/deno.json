@@ -34,7 +34,6 @@
     "./worker": "./worker.ts"
   },
   "imports": {
-    "@posthog/react": "npm:@posthog/react@1.10.3",
     "posthog-js": "npm:posthog-js@1.404.1",
     "posthog-node": "npm:posthog-node@5.45.2"
   },

@@ -1,4 +1,3 @@
-import { PostHogProvider } from '@posthog/react';
 import { elementTimingIntegration } from '@sentry/browser';
 import {
   addIntegration,
@@ -13,6 +12,12 @@ import {
   startSpan,
 } from '@sentry/react-router/cloudflare';
 import posthog from 'posthog-js';
+import {
+  AnalyticsExtensions,
+  ErrorTrackingExtensions,
+  LogsExtensions,
+  TracingExtensions,
+} from 'posthog-js/dist/extension-bundles';
 import { StrictMode, startTransition, useEffect } from 'react';
 import { hydrateRoot } from 'react-dom/client';
 import { HydratedRouter } from 'react-router/dom';
@@ -152,6 +157,13 @@ posthog.init(import.meta.env.VITE_POSTHOG_TOKEN as string, {
     window.location.hostname,
     'localhost',
   ],
+  // Use slim bundle with only the extensions we need
+  __extensionClasses: {
+    ...AnalyticsExtensions,
+    ...ErrorTrackingExtensions,
+    ...TracingExtensions,
+    ...LogsExtensions,
+  },
 });
 
 browserBootstrapSpan = startInactiveSpan({
@@ -170,16 +182,14 @@ startTransition(() => {
   hydrateRoot(
     document,
     <StrictMode>
-      <PostHogProvider client={posthog}>
-        <BrowserBootstrapSpanEnder />
-        {/* Keep this prop wiring for future Framework Mode support; do not remove it lightly. */}
-        <HydratedRouter
-          instrumentations={[
-            tracing.clientInstrumentation,
-          ]}
-          onError={sentryOnError}
-        />
-      </PostHogProvider>
+      <BrowserBootstrapSpanEnder />
+      {/* Keep this prop wiring for future Framework Mode support; do not remove it lightly. */}
+      <HydratedRouter
+        instrumentations={[
+          tracing.clientInstrumentation,
+        ]}
+        onError={sentryOnError}
+      />
     </StrictMode>
   );
 });

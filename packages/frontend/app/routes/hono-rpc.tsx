@@ -2,6 +2,7 @@ import type { ApiAppType } from '@motss-app/bff';
 import { flush, logger, metrics, startNewTrace, startSpan } from '@sentry/react-router/cloudflare';
 import type { InferResponseType } from 'hono';
 import { hc } from 'hono/client';
+import posthog from 'posthog-js';
 import { Fragment, type JSX, type ReactNode, useCallback, useEffect, useState } from 'react';
 
 import { Link } from '../components/Link.tsx';
@@ -401,6 +402,8 @@ export default function HonoRpcDemo({ loaderData }: Route.ComponentProps): JSX.E
   const refresh = useCallback(async () => {
     setIsLoading(true);
     setRefreshError(null);
+
+    posthog.capture('rpc_refresh_data');
 
     try {
       const nextResponse = await startNewTrace(() =>

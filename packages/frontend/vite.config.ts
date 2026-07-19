@@ -119,6 +119,14 @@ export default defineConfig(async config => {
           find: /^@motss-app\/frontend\/monitoring\/sentry$/,
           replacement: `${repoRootPath}packages/frontend/app/monitoring/sentry.ts`,
         },
+        {
+          find: 'posthog-js',
+          replacement: 'posthog-js/dist/module.slim.js',
+        },
+        {
+          find: '@posthog/react',
+          replacement: '@posthog/react/slim',
+        },
       ],
       tsconfigPaths: true,
     },

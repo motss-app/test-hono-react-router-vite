@@ -19,7 +19,6 @@
     "npm:@inlang/paraglide-js-react@1.0.2": "1.0.2_@inlang+paraglide-js@2.22.0__typescript@7.0.2__vite@8.1.5_react@19.2.7_typescript@7.0.2_vite@8.1.5",
     "npm:@inlang/paraglide-js@2.22.0": "2.22.0_typescript@7.0.2_vite@8.1.5",
     "npm:@inlang/plugin-icu1@1.1.0": "1.1.0",
-    "npm:@posthog/react@1.10.3": "1.10.3_@types+react@19.2.17_posthog-js@1.404.1_react@19.2.7",
     "npm:@react-router/dev@*": "8.2.0_react-router@8.2.0__react@19.2.7__react-dom@19.2.7___react@19.2.7_typescript@7.0.2_vite@8.1.5_wrangler@4.111.0__@cloudflare+workers-types@5.20260717.1_@cloudflare+workers-types@5.20260717.1_react@19.2.7_react-dom@19.2.7__react@19.2.7",
     "npm:@react-router/dev@8.2.0": "8.2.0_react-router@8.2.0__react@19.2.7__react-dom@19.2.7___react@19.2.7_typescript@7.0.2_vite@8.1.5_wrangler@4.111.0__@cloudflare+workers-types@5.20260717.1_@cloudflare+workers-types@5.20260717.1_react@19.2.7_react-dom@19.2.7__react@19.2.7",
     "npm:@sentry/browser@10.66.0": "10.66.0",
@@ -1142,17 +1141,6 @@
       "integrity": "sha512-hGM8f5sp3we6Em/RQHXbmyYm554hUx9+9jhf92ZQgDS4/xW72KHyZiO9wcFye+qAx2cJAOhOCDIznmO1FV8IbA==",
       "dependencies": [
         "@posthog/types"
-      ]
-    },
-    "@posthog/react@1.10.3_@types+react@19.2.17_posthog-js@1.404.1_react@19.2.7": {
-      "integrity": "sha512-Qu//fGQmVlX0B9kTA3LLg67e7AYLEmeuA0Bf1qSyUM0uUILcRQGjQezhNQPLYSTakOqvXEnl6fM2iQBF6Toxrw==",
-      "dependencies": [
-        "@types/react",
-        "posthog-js",
-        "react"
-      ],
-      "optionalPeers": [
-        "@types/react"
       ]
     },
     "@posthog/types@1.397.0": {
@@ -3262,6 +3250,7 @@
       "npm:@sentry/browser@10.66.0",
       "npm:clsx@2.1.1",
       "npm:playwright@1.61.1",
+      "npm:posthog-js@1.404.1",
       "npm:react-dom@19.2.7"
     ],
     "packageJson": {
@@ -3307,7 +3296,6 @@
     "members": {
       "packages/frontend": {
         "dependencies": [
-          "npm:@posthog/react@1.10.3",
           "npm:posthog-js@1.404.1",
           "npm:posthog-node@5.45.2"
         ]

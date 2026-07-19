@@ -63,6 +63,7 @@
     "@std/path": "jsr:@std/path@1.1.6",
     "clsx/lite": "npm:clsx@2.1.1/lite",
     "playwright": "npm:playwright@1.61.1",
+    "posthog-js": "npm:posthog-js@1.404.1",
     "react-dom/server": "npm:react-dom@19.2.7/server.edge"
   },
   "lock": true,
