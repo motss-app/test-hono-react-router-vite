@@ -141,6 +141,12 @@ posthog.init(import.meta.env.VITE_POSTHOG_TOKEN as string, {
   // capture_pageview → 'history_change' (SPA auto-detection),
   // persistence_save_debounce_ms → 250, split_storage → true
   defaults: '2026-05-30',
+  // Disable surveys (not needed)
+  disable_surveys: true,
+  // Disable session recording (not needed)
+  disable_session_recording: true,
+  // Disable feature flags (not needed)
+  advanced_disable_flags: true,
   // Add tracing headers so server-side events link back to frontend sessions
   tracing_headers: [
     window.location.hostname,
