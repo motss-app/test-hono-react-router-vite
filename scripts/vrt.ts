@@ -11,7 +11,7 @@
  *   deno run -A scripts/vrt.ts
  */
 
-import { chromium, type BrowserContext } from 'playwright';
+import { type BrowserContext, chromium } from 'playwright';
 
 const BASE_URL = 'http://localhost:8787';
 const OUTPUT_DIR = new URL('../__screenshots__/', import.meta.url).pathname;
@@ -24,17 +24,17 @@ const OUTPUT_DIR = new URL('../__screenshots__/', import.meta.url).pathname;
  * - desktop: Common laptop — 1280×720 logical pixels (CSS)
  */
 const VIEWPORTS = {
+  desktop: {
+    height: 720,
+    width: 1280,
+  },
   mobile: {
-    width: 375,
     height: 812,
+    width: 375,
   },
   tablet: {
-    width: 768,
     height: 1024,
-  },
-  desktop: {
-    width: 1280,
-    height: 720,
+    width: 768,
   },
 } as const;
 
@@ -52,8 +52,8 @@ async function screenshot(context: BrowserContext, viewportName: string, theme: 
 
   const path = `${OUTPUT_DIR}/homepage-${viewportName}-${theme}.png`;
   await page.screenshot({
-    path,
     fullPage: true,
+    path,
   });
   console.log(`✓ ${viewportName} ${theme} → ${path}`);
 
@@ -78,8 +78,8 @@ async function main() {
     for (const [viewportName, viewport] of Object.entries(VIEWPORTS)) {
       for (const theme of THEMES) {
         const context = await browser.newContext({
-          viewport,
           colorScheme: theme,
+          viewport,
         });
 
         await screenshot(context, viewportName, theme);

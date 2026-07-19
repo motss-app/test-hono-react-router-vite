@@ -10,7 +10,6 @@ import { timing } from 'hono/timing';
 
 import { logSentryEnvSnapshot } from '../../vite-utils/sentry-env-log.ts';
 import { isLoadTestMode } from './app/constants.ts';
-import { locales } from './locales.ts';
 import {
   applyAppSessionIdToSpan,
   appSessionIdTagName,
@@ -26,7 +25,9 @@ import {
 } from './app/monitoring/sentry.ts';
 import { createSsrHandler } from './app/ssr-handler.ts';
 import type { HonoEnv } from './app/types/hono.types.ts';
+import { createPostHogClient } from './app/utils/posthog.ts';
 import { PromiseFrom } from './app/utils/promise-from.ts';
+import { locales } from './locales.ts';
 
 const app = new Hono<HonoEnv>()
   .use(
@@ -196,6 +197,20 @@ export default withSentry<HonoEnv['Bindings']>(
     ): Promise<Response> {
       const requestUrl = new URL(request.url);
       const requestStartedAt = performance.now();
+      const posthog = createPostHogClient(env);
+
+      if (posthog) {
+        executionContext.waitUntil(
+          posthog.captureImmediate({
+            distinctId: 'server',
+            event: 'worker_request',
+            properties: {
+              $current_url: request.url,
+            },
+          })
+        );
+        executionContext.waitUntil(posthog.shutdown());
+      }
 
       try {
         const { appSessionId, shouldSetAppSessionCookie } = getWorkerAppSessionState(request);

@@ -1,3 +1,4 @@
+import { PostHogProvider } from '@posthog/react';
 import { elementTimingIntegration } from '@sentry/browser';
 import {
   addIntegration,
@@ -11,6 +12,7 @@ import {
   startInactiveSpan,
   startSpan,
 } from '@sentry/react-router/cloudflare';
+import posthog from 'posthog-js';
 import { StrictMode, startTransition, useEffect } from 'react';
 import { hydrateRoot } from 'react-dom/client';
 import { HydratedRouter } from 'react-router/dom';
@@ -129,6 +131,23 @@ if (isDevSentryMode) {
   flush(2000);
 }
 
+posthog.init(import.meta.env.VITE_POSTHOG_TOKEN as string, {
+  api_host: import.meta.env.VITE_POSTHOG_API_HOST as string,
+  // Enable autocapture of DOM interactions (clicks, form submissions, etc.)
+  autocapture: true,
+  // Enable web vitals autocapture (FCP, LCP, INP, CLS)
+  capture_performance: true,
+  // Use 2026-05-30 defaults for modern behavior:
+  // capture_pageview → 'history_change' (SPA auto-detection),
+  // persistence_save_debounce_ms → 250, split_storage → true
+  defaults: '2026-05-30',
+  // Add tracing headers so server-side events link back to frontend sessions
+  tracing_headers: [
+    window.location.hostname,
+    'localhost',
+  ],
+});
+
 browserBootstrapSpan = startInactiveSpan({
   attributes: {
     'app.entry': 'app/entry.client.tsx',
@@ -145,14 +164,16 @@ startTransition(() => {
   hydrateRoot(
     document,
     <StrictMode>
-      <BrowserBootstrapSpanEnder />
-      {/* Keep this prop wiring for future Framework Mode support; do not remove it lightly. */}
-      <HydratedRouter
-        instrumentations={[
-          tracing.clientInstrumentation,
-        ]}
-        onError={sentryOnError}
-      />
+      <PostHogProvider client={posthog}>
+        <BrowserBootstrapSpanEnder />
+        {/* Keep this prop wiring for future Framework Mode support; do not remove it lightly. */}
+        <HydratedRouter
+          instrumentations={[
+            tracing.clientInstrumentation,
+          ]}
+          onError={sentryOnError}
+        />
+      </PostHogProvider>
     </StrictMode>
   );
 });

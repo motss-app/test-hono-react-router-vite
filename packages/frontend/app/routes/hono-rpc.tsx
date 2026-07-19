@@ -9,12 +9,12 @@ import { PageFooter } from '../components/page-footer.tsx';
 import { Skeleton } from '../components/skeleton.tsx';
 import { Text } from '../components/text.tsx';
 import { IconArrowLeft } from '../icons.ts';
-import * as m from '../paraglide/messages.js';
 import {
   createRequestMetricAttributes,
   isDevelopmentSentryMode,
   sentryMetricNames,
 } from '../monitoring/sentry.ts';
+import * as m from '../paraglide/messages.js';
 import { iconStyles } from '../styles/icon.css.ts';
 import { createBackgroundSvgPreloadLinks } from '../utils/background-svg-preload.ts';
 import type { Route } from './+types/hono-rpc.ts';

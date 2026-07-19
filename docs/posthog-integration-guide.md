@@ -1,8 +1,8 @@
 # PostHog Integration Guide (Browser — React Router v8)
 
-This document is the source of truth for adding **PostHog product analytics** to the browser
-side of this project's React Router v8 app. It covers the client-side wiring only —
-server-side (Cloudflare Workers) event capture is future work.
+This document is the source of truth for adding **PostHog product analytics** to this
+project. It covers both client-side (browser) and server-side (Cloudflare Workers)
+wiring using the `posthog-node` SDK designed for edge runtimes.
 
 ## What this guide covers
 
@@ -98,7 +98,7 @@ sequenceDiagram
 ## Installation
 
 ```sh
-deno install npm:posthog-js@1.230.0 npm:@posthog/react@1.1.0
+deno install npm:posthog-js@1.404.1 npm:@posthog/react@1.10.3
 ```
 
 ## Files to create / modify
@@ -106,7 +106,10 @@ deno install npm:posthog-js@1.230.0 npm:@posthog/react@1.1.0
 | File | Action |
 |---|---|
 | `packages/frontend/app/entry.client.tsx` | **Edit** — init PostHog and wrap with `<PostHogProvider>` |
-| `packages/frontend/.dev.vars` | **Edit** — add `VITE_POSTHOG_API_KEY` and `VITE_POSTHOG_API_HOST` |
+| `packages/frontend/app/utils/posthog.ts` | **Create** — PostHog client helper for Cloudflare Workers |
+| `packages/frontend/worker.ts` | **Edit** — create PostHog client in fetch handler, capture + shutdown |
+| `packages/frontend/app/types/vite-env.d.ts` | **Edit** — add `VITE_POSTHOG_TOKEN` and `VITE_POSTHOG_API_HOST` |
+| `packages/frontend/wrangler.jsonc` | **Edit** — add `VITE_POSTHOG_TOKEN` and `VITE_POSTHOG_API_HOST` to all envs |
 
 The official PostHog guide for React Router framework mode also recommends adding
 `ssr.noExternal` in `vite.config.ts`:
@@ -136,24 +139,18 @@ import { PostHogProvider } from '@posthog/react';
 import posthog from 'posthog-js';
 
 // — add this block after the Sentry init (after line 106) —
-posthog.init(import.meta.env.VITE_POSTHOG_API_KEY as string, {
-  api_host: import.meta.env.VITE_POSTHOG_API_HOST as string,
-  // Respect Do Not Track
-  respect_dnt: true,
-  // Persist the user identity across sessions
-  persistence: 'localStorage',
-  // Capture page views on navigation (auto-detects SPA route changes)
-  capture_pageview: true,
-  // Capture page leave events
-  capture_pageleave: true,
-  // Capture dead clicks (clicks on non-responsive elements)
-  capture_dead_clicks: true,
-  // Enable web vitals autocapture (FCP, LCP, INP, CLS).
-  // Must also be enabled in PostHog project settings at:
-  // Settings → Project autocapture → Web vitals autocapture
-  capture_performance: true,
-  // Enable autocapture of DOM interactions (clicks, form submissions, etc.).
+posthog.init(import.meta.env['VITE_POSTHOG_TOKEN'] as string, {
+  api_host: import.meta.env['VITE_POSTHOG_API_HOST'] as string,
+  // Use 2026-05-30 defaults for modern behavior:
+  // capture_pageview → 'history_change' (SPA auto-detection),
+  // persistence_save_debounce_ms → 250, split_storage → true
+  defaults: '2026-05-30',
+  // Add tracing headers so server-side events link back to frontend sessions
+  tracing_headers: [window.location.hostname, 'localhost'],
+  // Enable autocapture of DOM interactions (clicks, form submissions, etc.)
   autocapture: true,
+  // Enable web vitals autocapture (FCP, LCP, INP, CLS)
+  capture_performance: true,
 });
 
 // — wrap the hydration block with PostHogProvider —
@@ -191,22 +188,112 @@ Once enabled, PostHog sends `$web_vitals` events automatically. Metrics appear i
 > Web vitals autocapture is separate from PostHog's regular autocapture (element
 > clicks, form submissions). It works independently.
 
-### 3. Add environment variables
+### 3. Update Content Security Policy
+
+The official PostHog docs require these additions to your CSP (in
+`packages/frontend/app/utils/csp.ts`):
+
+```
+script-src 'self' https://*.posthog.com;
+connect-src 'self' https://*.posthog.com;
+worker-src 'self' blob: data:;
+```
+
+- `script-src` — covers lazy-loaded PostHog bundles (autocapture recorder, surveys)
+- `connect-src` — covers event ingestion and feature flag evaluation
+- `worker-src` — covers session replay (if enabled later)
+
+Without these, PostHog silently fails — `capture()` and `identify()` calls never
+send, and the integration looks complete while zero events arrive.
+
+These are already added to `packages/frontend/app/utils/csp.ts` in the
+`defaultConnectSrc` and `defaultScriptSrc` arrays, and `worker-src` is in the
+policy builder.
+
+### 4. Add environment variables
 
 **Local development:**
 
 ```bash
 # packages/frontend/.dev.vars
-VITE_POSTHOG_API_KEY=phc_your_project_api_key
-VITE_POSTHOG_API_HOST=https://app.posthog.com
+VITE_POSTHOG_TOKEN=phc_your_project_api_key
+VITE_POSTHOG_API_HOST=https://us.i.posthog.com
 ```
 
 **Production** — set in the Cloudflare Worker environment:
 
 | Variable | Where to set |
 |---|---|
-| `VITE_POSTHOG_API_KEY` | Wrangler `vars` in `packages/frontend/wrangler.jsonc` |
+| `VITE_POSTHOG_TOKEN` | Wrangler `vars` in `packages/frontend/wrangler.jsonc` |
 | `VITE_POSTHOG_API_HOST` | Wrangler `vars` in `packages/frontend/wrangler.jsonc` |
+
+### 5. Add server-side PostHog to the Cloudflare Worker
+
+The PostHog client is created in the actual Worker fetch handler (`worker.ts`), not
+in React Router middleware. The [Cloudflare Workers PostHog docs](https://posthog.com/docs/libraries/cloudflare-workers)
+recommend this pattern: create a client per request, capture with `captureImmediate()`,
+and flush with `ctx.waitUntil(posthog.shutdown())` since Workers can terminate before
+batched data is sent.
+
+Create the helper at `packages/frontend/app/utils/posthog.ts`:
+
+```ts
+import { PostHog } from 'posthog-node';
+
+export function createPostHogClient(env: {
+  VITE_POSTHOG_API_HOST?: string;
+  VITE_POSTHOG_TOKEN?: string;
+}): PostHog | undefined {
+  const token = env.VITE_POSTHOG_TOKEN;
+
+  if (!token) {
+    return undefined;
+  }
+
+  return new PostHog(token, {
+    flushAt: 1,
+    flushInterval: 0,
+    host: env.VITE_POSTHOG_API_HOST ?? 'https://us.i.posthog.com',
+  });
+}
+```
+
+Then use it in `packages/frontend/worker.ts`:
+
+```ts
+// — add this import —
+import { createPostHogClient } from './app/utils/posthog.ts';
+
+// — inside the fetch handler (after getting requestUrl / requestStartedAt) —
+const posthog = createPostHogClient(env);
+
+if (posthog) {
+  executionContext.waitUntil(posthog.captureImmediate({
+    distinctId: 'server',
+    event: 'worker_request',
+    properties: {
+      $current_url: request.url,
+    },
+  }));
+  executionContext.waitUntil(posthog.shutdown());
+}
+```
+
+Key details:
+
+- `posthog-node` ships a `workerd` export that avoids Node.js built-ins — it
+  works on Cloudflare Workers without requiring `nodejs_compat` for itself.
+- `flushAt: 1` and `flushInterval: 0` send events immediately instead of batching,
+  which is critical on Workers where the isolate can be terminated before
+  a batched flush would fire.
+- `ctx.waitUntil()` extends the Worker lifetime so the shutdown completes
+  after the response is sent — events are not lost.
+- A new PostHog client is created per request. Workers may reuse globals across
+  requests on the same isolate, but the shutdown/flush lifecycle makes per-request
+  instantiation safer.
+- The client-side `tracing_headers` config attaches `X-POSTHOG-DISTINCT-ID` and
+  `X-POSTHOG-SESSION-ID` headers to same-origin requests so SSR-captured events
+  correlate with the correct frontend session.
 
 ## Usage patterns
 
@@ -276,18 +363,6 @@ import { PostHogCaptureOnViewed } from '@posthog/react';
 </PostHogCaptureOnViewed>
 ```
 
-## Files to be aware of (existing stack)
-
-| File | Why unchanged |
-|---|---|
-| `packages/frontend/app/entry.server.tsx` | PostHog tracking is browser-only in this phase |
-| `packages/frontend/app/root.tsx` | No page view tracking needed — PostHog handles it automatically |
-| `packages/frontend/app/utils/` | No analytics module needed — PostHog init lives in `entry.client.tsx` |
-| `packages/frontend/worker.ts` | Server-side PostHog events are future work |
-| `packages/bff/src/worker.ts` | Server-side PostHog events are future work |
-| `packages/gateway/src/worker.ts` | No PostHog at the edge yet |
-| All monitoring/sentry files | PostHog and Sentry are independent |
-
 ## Verification checklist
 
 - [ ] `deno task check` passes without errors.
@@ -301,7 +376,6 @@ import { PostHogCaptureOnViewed } from '@posthog/react';
 
 | Item | When |
 |---|---|
-| Server-side event capture in the BFF (`packages/bff/src/worker.ts`) | When server events need PostHog |
 | Self-hosted PostHog deployment guide | When the team decides to self-host |
 
 ## Related docs
