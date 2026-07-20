@@ -12,6 +12,11 @@ import {
   startSpan,
 } from '@sentry/react-router/cloudflare';
 import posthog from 'posthog-js';
+import {
+  AnalyticsExtensions,
+  ErrorTrackingExtensions,
+  TracingExtensions,
+} from 'posthog-js/dist/extension-bundles';
 import { StrictMode, startTransition, useEffect } from 'react';
 import { hydrateRoot } from 'react-dom/client';
 import { HydratedRouter } from 'react-router/dom';
@@ -136,6 +141,8 @@ posthog.init(import.meta.env.VITE_POSTHOG_TOKEN as string, {
   autocapture: true,
   // Enable web vitals autocapture (FCP, LCP, INP, CLS)
   capture_performance: true,
+  // Autocapture unhandled exceptions and unhandled promise rejections
+  capture_exceptions: true,
   // Use 2026-05-30 defaults for modern behavior:
   // capture_pageview → 'history_change' (SPA auto-detection),
   // persistence_save_debounce_ms → 250, split_storage → true
@@ -148,9 +155,17 @@ posthog.init(import.meta.env.VITE_POSTHOG_TOKEN as string, {
   advanced_disable_flags: true,
   // Add tracing headers so server-side events link back to frontend sessions
   tracing_headers: [
-    window.location.hostname,
+    globalThis.location.hostname,
     'localhost',
   ],
+  // Slim build with only the extensions we need
+  __extensionClasses: {
+    ...AnalyticsExtensions,
+    ...ErrorTrackingExtensions,
+    ...TracingExtensions,
+  } as Record<string, new (...args: never[]) => unknown> as NonNullable<
+    NonNullable<Parameters<typeof posthog.init>[1]>['__extensionClasses']
+  >,
 });
 
 browserBootstrapSpan = startInactiveSpan({
