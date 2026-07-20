@@ -12,11 +12,6 @@ import {
   startSpan,
 } from '@sentry/react-router/cloudflare';
 import posthog from 'posthog-js';
-import {
-  AnalyticsExtensions,
-  ErrorTrackingExtensions,
-  TracingExtensions,
-} from 'posthog-js/dist/extension-bundles';
 import { StrictMode, startTransition, useEffect } from 'react';
 import { hydrateRoot } from 'react-dom/client';
 import { HydratedRouter } from 'react-router/dom';
@@ -158,14 +153,6 @@ posthog.init(import.meta.env.VITE_POSTHOG_TOKEN as string, {
     globalThis.location.hostname,
     'localhost',
   ],
-  // Slim build with only the extensions we need
-  __extensionClasses: {
-    ...AnalyticsExtensions,
-    ...ErrorTrackingExtensions,
-    ...TracingExtensions,
-  } as Record<string, new (...args: never[]) => unknown> as NonNullable<
-    NonNullable<Parameters<typeof posthog.init>[1]>['__extensionClasses']
-  >,
 });
 
 browserBootstrapSpan = startInactiveSpan({
