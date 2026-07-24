@@ -1,6 +1,7 @@
 name: Sentry Snapshots
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
     paths:
