@@ -202,7 +202,9 @@ const outputPath = outputFlagIdx !== -1 ? args[outputFlagIdx + 1] : undefined;
 const benchText = await Deno.readTextFile(benchOutputPath);
 const currentRows = parseBenchOutput(benchText);
 
-if (currentRows.length === 0) {
+// Guard: when updating the baseline file (no --baseline flag), abort if empty
+// to prevent committing useless empty tables.
+if (currentRows.length === 0 && !baselinePath) {
   console.error('ERROR: No benchmark data found in output. The benchmark may have failed.');
   console.error('       Aborting baseline update to prevent committing empty data.');
   Deno.exit(1);
