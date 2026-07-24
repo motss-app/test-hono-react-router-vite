@@ -155,6 +155,14 @@ posthog.init(import.meta.env.VITE_POSTHOG_TOKEN as string, {
   ],
 });
 
+// Attach the app session ID to all PostHog events so client-side captures
+// can be correlated with server-side events and Sentry spans.
+if (appSessionId) {
+  posthog.register({
+    app_session_id: appSessionId,
+  });
+}
+
 browserBootstrapSpan = startInactiveSpan({
   attributes: {
     'app.entry': 'app/entry.client.tsx',

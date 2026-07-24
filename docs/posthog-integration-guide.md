@@ -240,7 +240,7 @@ Create the helper at `packages/frontend/app/utils/posthog.ts`:
 ```ts
 import { PostHog } from 'posthog-node';
 
-export function createPostHogClient(env: {
+export function createServerPostHog(env: {
   VITE_POSTHOG_API_HOST?: string;
   VITE_POSTHOG_TOKEN?: string;
 }): PostHog | undefined {
@@ -262,10 +262,10 @@ Then use it in `packages/frontend/worker.ts`:
 
 ```ts
 // — add this import —
-import { createPostHogClient } from './app/utils/posthog.ts';
+import { createServerPostHog } from './app/utils/posthog.ts';
 
 // — inside the fetch handler (after getting requestUrl / requestStartedAt) —
-const posthog = createPostHogClient(env);
+const posthog = createServerPostHog(env);
 
 if (posthog) {
   executionContext.waitUntil(posthog.captureImmediate({

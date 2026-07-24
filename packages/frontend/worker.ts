@@ -25,7 +25,7 @@ import {
 } from './app/monitoring/sentry.ts';
 import { createSsrHandler } from './app/ssr-handler.ts';
 import type { HonoEnv } from './app/types/hono.types.ts';
-import { createPostHogClient } from './app/utils/posthog.ts';
+import { createServerPostHog } from './app/utils/posthog.ts';
 import { PromiseFrom } from './app/utils/promise-from.ts';
 import { locales } from './locales.ts';
 
@@ -197,7 +197,8 @@ export default withSentry<HonoEnv['Bindings']>(
     ): Promise<Response> {
       const requestUrl = new URL(request.url);
       const requestStartedAt = performance.now();
-      const posthog = createPostHogClient(env);
+      const { appSessionId, shouldSetAppSessionCookie } = getWorkerAppSessionState(request);
+      const posthog = createServerPostHog(env);
 
       if (posthog) {
         executionContext.waitUntil(
@@ -206,6 +207,7 @@ export default withSentry<HonoEnv['Bindings']>(
             event: 'worker_request',
             properties: {
               $current_url: request.url,
+              app_session_id: appSessionId,
             },
           })
         );
@@ -213,8 +215,6 @@ export default withSentry<HonoEnv['Bindings']>(
       }
 
       try {
-        const { appSessionId, shouldSetAppSessionCookie } = getWorkerAppSessionState(request);
-
         const response = await handleWorkerAppRequest({
           appSessionId,
           env,
