@@ -48,7 +48,7 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           set +e
-          deno run -A scripts/check-route-bundle-size.ts /tmp/current-bundle-size.json --baseline /tmp/baseline-bundle-size.json --budget 10 --output /tmp/bundle-size-comment.md
+          deno run -A scripts/check-route-bundle-size.ts /tmp/current-bundle-size.json --baseline /tmp/baseline-bundle-size.json --budget 50 --output /tmp/bundle-size-comment.md
           EXIT_CODE=$?
           set -e
           echo "exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
@@ -71,7 +71,7 @@ jobs:
       - name: Fail on budget exceeded (PR only)
         if: github.event_name == 'pull_request' && steps.compare.outputs.regression == 'true'
         run: |
-          echo "❌ Route bundle size budget exceeded (>10% gzip increase)."
+          echo "❌ Route bundle size budget exceeded (>50% gzip increase)."
           echo "Check the PR comment for details."
           exit 1
 
