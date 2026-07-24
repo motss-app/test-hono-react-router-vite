@@ -1,7 +1,8 @@
 #!/usr/bin/env -S deno run -A
 import { Hono } from 'hono';
-import type { ServerBuild } from 'react-router';
+import type { RouterContext, ServerBuild } from 'react-router';
 import { createRequestHandler, RouterContextProvider } from 'react-router';
+import type { HonoEnv } from '../packages/frontend/app/types/hono.types.ts';
 
 const clientDir = Deno.env.get('FE_CLIENT_DIR') ?? 'build/client';
 const port = Number(Deno.env.get('PORT') ?? 5175);
@@ -11,7 +12,9 @@ const hostname = Deno.env.get('HOST') ?? '127.0.0.1';
 const build = (await import('../build/server/index.js')) as any as ServerBuild;
 const handler = createRequestHandler(build, 'production');
 
-const honoContextSymbol = Symbol.for('hono.context');
+const honoContextSymbol = Symbol.for('hono.context') as unknown as RouterContext<
+  HonoEnv['Variables']
+>;
 
 const app = new Hono();
 
@@ -55,13 +58,12 @@ app.get('*', async c => {
   };
 
   const loadContext = new RouterContextProvider(
-    // deno-lint-ignore no-explicit-any
     new Map([
       [
         honoContextSymbol,
         honoVars,
       ],
-    ]) as any
+    ])
   );
 
   const response = await handler(c.req.raw, loadContext);
