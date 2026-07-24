@@ -202,6 +202,12 @@ const outputPath = outputFlagIdx !== -1 ? args[outputFlagIdx + 1] : undefined;
 const benchText = await Deno.readTextFile(benchOutputPath);
 const currentRows = parseBenchOutput(benchText);
 
+if (currentRows.length === 0) {
+  console.error('ERROR: No benchmark data found in output. The benchmark may have failed.');
+  console.error('       Aborting baseline update to prevent committing empty data.');
+  Deno.exit(1);
+}
+
 const bffRows = currentRows.filter(r => r.route.startsWith('BFF Direct'));
 const feRows = currentRows.filter(r => r.route.startsWith('FE Direct'));
 const ssrRows = currentRows.filter(r => r.route.startsWith('SSR Direct'));

@@ -56,7 +56,9 @@ jobs:
           OHA_BINARY: /usr/local/bin/oha
           DIRECT_ONLY: 'true'
           BENCH_DURATION: 10s
-        run: deno run -A scripts/bench-all.ts 2>&1 | tee /tmp/bench-output.txt
+        run: |
+          set -eo pipefail
+          deno run -A scripts/bench-all.ts 2>&1 | tee /tmp/bench-output.txt
 
       - name: Fetch baseline from main (PR only)
         if: github.event_name == 'pull_request'
