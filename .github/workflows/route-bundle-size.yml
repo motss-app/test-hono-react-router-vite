@@ -47,11 +47,15 @@ jobs:
         id: compare
         if: github.event_name == 'pull_request'
         run: |
+          set +e
           deno run -A scripts/check-route-bundle-size.ts /tmp/current-bundle-size.json --baseline /tmp/baseline-bundle-size.json --budget 10 --output /tmp/bundle-size-comment.md
-          echo "exit_code=$?" >> "$GITHUB_OUTPUT" || true
+          EXIT_CODE=$?
+          set -e
+          echo "exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
           # Set the step outcome based on exit code
           if [ -f /tmp/bundle-size-comment.md ] && grep -q "❌" /tmp/bundle-size-comment.md; then
             echo "regression=true" >> "$GITHUB_OUTPUT"
+            cat /tmp/bundle-size-comment.md
           else
             echo "regression=false" >> "$GITHUB_OUTPUT"
           fi
