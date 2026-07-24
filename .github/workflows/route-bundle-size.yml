@@ -87,7 +87,5 @@ jobs:
             echo "No baseline change to commit"
           else
             git commit -m "chore: update route bundle size baseline"
-            git fetch origin "${BRANCH}"
-            git rebase "origin/${BRANCH}"
             git push origin "HEAD:${BRANCH}"
           fi

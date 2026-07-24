@@ -2,6 +2,10 @@ name: Benchmark
 
 on:
   workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
 
 env:
   OHA_VERSION: v1.14.0
@@ -52,7 +56,9 @@ jobs:
           OHA_BINARY: /usr/local/bin/oha
           DIRECT_ONLY: 'true'
           BENCH_DURATION: 10s
-        run: deno run -A scripts/bench-all.ts 2>&1 | tee /tmp/bench-output.txt
+        run: |
+          set -eo pipefail
+          deno run -A scripts/bench-all.ts 2>&1 | tee /tmp/bench-output.txt
 
       - name: Fetch baseline from main (PR only)
         if: github.event_name == 'pull_request'
@@ -84,7 +90,7 @@ jobs:
           exit 1
 
       - name: Update baseline on main
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
         run: |
           deno run -A scripts/update-baseline.ts /tmp/bench-output.txt
           BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
@@ -95,7 +101,5 @@ jobs:
             echo "No baseline change to commit"
           else
             git commit -m "chore: update benchmark baseline"
-            git fetch origin "${BRANCH}"
-            git rebase "origin/${BRANCH}"
             git push origin "HEAD:${BRANCH}"
           fi

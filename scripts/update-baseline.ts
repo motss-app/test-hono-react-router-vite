@@ -29,15 +29,15 @@ function parseBenchOutput(text: string): Row[] {
   for (const line of text.slice(idx).split('\n')) {
     const parts = line.split('|').map(s => s.trim());
     if (parts.length < 8) continue;
-    const route = parts[1];
+    const route = parts[0];
     if (!route || route === 'Route' || route.startsWith('─')) continue;
-    const rps = Number(parts[2]!.replace(/,/g, ''));
+    const rps = Number(parts[1]!.replace(/,/g, ''));
     if (Number.isNaN(rps)) continue;
     rows.push({
-      avg: parseLatency(parts[6]!),
-      p75: parseLatency(parts[3]!),
-      p95: parseLatency(parts[4]!),
-      p99: parseLatency(parts[5]!),
+      avg: parseLatency(parts[5]!),
+      p75: parseLatency(parts[2]!),
+      p95: parseLatency(parts[3]!),
+      p99: parseLatency(parts[4]!),
       route,
       rps,
     });
@@ -201,6 +201,14 @@ const outputPath = outputFlagIdx !== -1 ? args[outputFlagIdx + 1] : undefined;
 
 const benchText = await Deno.readTextFile(benchOutputPath);
 const currentRows = parseBenchOutput(benchText);
+
+// Guard: when updating the baseline file (no --baseline flag), abort if empty
+// to prevent committing useless empty tables.
+if (currentRows.length === 0 && !baselinePath) {
+  console.error('ERROR: No benchmark data found in output. The benchmark may have failed.');
+  console.error('       Aborting baseline update to prevent committing empty data.');
+  Deno.exit(1);
+}
 
 const bffRows = currentRows.filter(r => r.route.startsWith('BFF Direct'));
 const feRows = currentRows.filter(r => r.route.startsWith('FE Direct'));

@@ -523,7 +523,7 @@ async function waitForAllServers(baseUrl: string): Promise<void> {
   await Promise.all([
     waitForServer(`${BFF_DIRECT_URL}/api/healthz`, 120_000),
     waitForServer('http://127.0.0.1:5173/healthz', 120_000),
-    waitForServer(`${FE_DIRECT_URL}/`, 120_000),
+    waitForServer(`${FE_DIRECT_URL}/healthz`, 120_000),
     waitForServer(`${SSR_DIRECT_URL}/healthz`, 120_000),
     waitForServer(`${baseUrl}/healthz`, 120_000),
   ]);
