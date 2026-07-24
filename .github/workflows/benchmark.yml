@@ -88,7 +88,7 @@ jobs:
           exit 1
 
       - name: Update baseline on main
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
         run: |
           deno run -A scripts/update-baseline.ts /tmp/bench-output.txt
           BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
