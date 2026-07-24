@@ -88,17 +88,11 @@ jobs:
 
       - name: Update baseline on main
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: |
-          deno run -A scripts/update-baseline.ts /tmp/bench-output.txt
-          BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git add docs/benchmark-baseline.md
-          if git diff --cached --quiet; then
-            echo "No baseline change to commit"
-          else
-            git commit -m "chore: update benchmark baseline"
-            git fetch origin "${BRANCH}"
-            git rebase "origin/${BRANCH}"
-            git push origin "HEAD:${BRANCH}"
-          fi
+        run: deno run -A scripts/update-baseline.ts /tmp/bench-output.txt
+
+      - name: Commit baseline update
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: stefanzweifel/git-commit-and-push-action@v5
+        with:
+          commit_message: "chore: update benchmark baseline"
+          file_pattern: docs/benchmark-baseline.md
