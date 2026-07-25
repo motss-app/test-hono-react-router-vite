@@ -1,6 +1,7 @@
 import { cloudflare } from '@cloudflare/vite-plugin';
 import { paraglideVitePlugin } from '@inlang/paraglide-js';
 import { reactRouter } from '@react-router/dev/vite';
+import { sentryCloudflareVitePlugin } from '@sentry/cloudflare/vite';
 import { sentryReactRouter } from '@sentry/react-router';
 import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin';
 import { defineConfig, type UserConfig } from 'vite';
@@ -78,6 +79,12 @@ export default defineConfig(async config => {
               configPath: './packages/frontend/wrangler.jsonc',
               viteEnvironment: {
                 name: 'ssr',
+              },
+            }),
+            sentryCloudflareVitePlugin({
+              _experimental: {
+                autoInstrumentation: true,
+                useDiagnosticsChannelInjection: true,
               },
             }),
             themeBuildPlugin({

@@ -1,4 +1,5 @@
 import { cloudflare } from '@cloudflare/vite-plugin';
+import { sentryCloudflareVitePlugin } from '@sentry/cloudflare/vite';
 import { defineConfig } from 'vite';
 
 import { readRequiredEnv } from '../../vite-utils/get-required-env.ts';
@@ -28,6 +29,12 @@ export default defineConfig(({ command }) => {
             }
           : {}),
         configPath: './wrangler.jsonc',
+      }),
+      sentryCloudflareVitePlugin({
+        _experimental: {
+          autoInstrumentation: true,
+          useDiagnosticsChannelInjection: true,
+        },
       }),
     ],
     preview: {
