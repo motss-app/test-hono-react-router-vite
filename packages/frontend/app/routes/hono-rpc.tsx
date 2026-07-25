@@ -2,6 +2,7 @@ import type { ApiAppType } from '@motss-app/bff';
 import { flush, logger, metrics, startNewTrace, startSpan } from '@sentry/react-router/cloudflare';
 import type { InferResponseType } from 'hono';
 import { hc } from 'hono/client';
+import posthog from 'posthog-js';
 import { Fragment, type JSX, type ReactNode, useCallback, useEffect, useState } from 'react';
 
 import { Link } from '../components/Link.tsx';
@@ -9,12 +10,12 @@ import { PageFooter } from '../components/page-footer.tsx';
 import { Skeleton } from '../components/skeleton.tsx';
 import { Text } from '../components/text.tsx';
 import { IconArrowLeft } from '../icons.ts';
-import * as m from '../paraglide/messages.js';
 import {
   createRequestMetricAttributes,
   isDevelopmentSentryMode,
   sentryMetricNames,
 } from '../monitoring/sentry.ts';
+import * as m from '../paraglide/messages.js';
 import { iconStyles } from '../styles/icon.css.ts';
 import { createBackgroundSvgPreloadLinks } from '../utils/background-svg-preload.ts';
 import type { Route } from './+types/hono-rpc.ts';
@@ -401,6 +402,8 @@ export default function HonoRpcDemo({ loaderData }: Route.ComponentProps): JSX.E
   const refresh = useCallback(async () => {
     setIsLoading(true);
     setRefreshError(null);
+
+    posthog.capture('rpc_refresh_data');
 
     try {
       const nextResponse = await startNewTrace(() =>

@@ -4,6 +4,8 @@ export interface HonoEnv {
   Bindings: {
     ASSETS: Fetcher;
     SENTRY_DSN?: string;
+    VITE_POSTHOG_API_HOST?: string;
+    VITE_POSTHOG_TOKEN?: string;
   };
   Variables: {
     honoData: {

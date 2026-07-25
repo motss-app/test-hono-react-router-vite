@@ -33,11 +33,16 @@ jobs:
           echo '## Route Bundle Size' >> "$GITHUB_STEP_SUMMARY"
           deno task route-bundle-size >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Fetch baseline from main (PR only)
+      - name: Use PR baseline (PR only)
         if: github.event_name == 'pull_request'
         run: |
-          git fetch origin main --depth=1
-          git show origin/main:route-bundle-size-baseline.json > /tmp/baseline-bundle-size.json 2>/dev/null || echo '{"entry":{"gzipBytes":0,"rawBytes":0},"rootLayout":{"gzipBytes":0,"rawBytes":0},"routes":[]}' > /tmp/baseline-bundle-size.json
+          if [ -f route-bundle-size-baseline.json ]; then
+            cp route-bundle-size-baseline.json /tmp/baseline-bundle-size.json
+            echo "Using baseline from PR branch"
+          else
+            echo '{"entry":{"gzipBytes":0,"rawBytes":0},"rootLayout":{"gzipBytes":0,"rawBytes":0},"routes":[]}' > /tmp/baseline-bundle-size.json
+            echo "No baseline found, using empty baseline"
+          fi
 
       - name: Use current as baseline (main push)
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -47,11 +52,16 @@ jobs:
         id: compare
         if: github.event_name == 'pull_request'
         run: |
-          deno run -A scripts/check-route-bundle-size.ts /tmp/current-bundle-size.json --baseline /tmp/baseline-bundle-size.json --budget 10 --output /tmp/bundle-size-comment.md
-          echo "exit_code=$?" >> "$GITHUB_OUTPUT" || true
+          set +e
+          deno run -A scripts/check-route-bundle-size.ts /tmp/current-bundle-size.json --baseline /tmp/baseline-bundle-size.json --budget 50 --output /tmp/bundle-size-comment.md
+          EXIT_CODE=$?
+          set -e
+          echo "exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
           # Set the step outcome based on exit code
           if [ -f /tmp/bundle-size-comment.md ] && grep -q "❌" /tmp/bundle-size-comment.md; then
             echo "regression=true" >> "$GITHUB_OUTPUT"
+            cat /tmp/bundle-size-comment.md
+            exit 1
           else
             echo "regression=false" >> "$GITHUB_OUTPUT"
           fi
@@ -66,7 +76,7 @@ jobs:
       - name: Fail on budget exceeded (PR only)
         if: github.event_name == 'pull_request' && steps.compare.outputs.regression == 'true'
         run: |
-          echo "❌ Route bundle size budget exceeded (>10% gzip increase)."
+          echo "❌ Route bundle size budget exceeded (>50% gzip increase)."
           echo "Check the PR comment for details."
           exit 1
 

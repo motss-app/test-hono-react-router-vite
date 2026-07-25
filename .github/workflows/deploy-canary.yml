@@ -15,6 +15,8 @@ env:
   SENTRY_DSN: ${{ vars.SENTRY_DSN }}
   SENTRY_RELEASE: ${{ github.sha }}
   VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
+  VITE_POSTHOG_TOKEN: ${{ secrets.VITE_POSTHOG_TOKEN_CANARY }}
+  VITE_POSTHOG_API_HOST: ${{ vars.VITE_POSTHOG_API_HOST }}
 
 jobs:
   frontend_canary:

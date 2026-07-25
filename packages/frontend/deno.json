@@ -33,6 +33,10 @@
     "./utils/error-scenarios": "./app/utils/error-scenarios.ts",
     "./worker": "./worker.ts"
   },
+  "imports": {
+    "posthog-js": "npm:posthog-js@1.404.1",
+    "posthog-node": "npm:posthog-node@5.45.2"
+  },
   "name": "@motss-app/frontend",
   "tasks": {
     "build": "deno task build:react-router && deno task build:worker",

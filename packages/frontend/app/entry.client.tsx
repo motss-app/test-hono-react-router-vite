@@ -11,6 +11,7 @@ import {
   startInactiveSpan,
   startSpan,
 } from '@sentry/react-router/cloudflare';
+import posthog from 'posthog-js';
 import { StrictMode, startTransition, useEffect } from 'react';
 import { hydrateRoot } from 'react-dom/client';
 import { HydratedRouter } from 'react-router/dom';
@@ -127,6 +128,39 @@ if (isDevSentryMode) {
   });
 
   flush(2000);
+}
+
+posthog.init(import.meta.env.VITE_POSTHOG_TOKEN as string, {
+  api_host: import.meta.env.VITE_POSTHOG_API_HOST as string,
+  // Enable autocapture of DOM interactions (clicks, form submissions, etc.)
+  autocapture: true,
+  // Enable web vitals autocapture (FCP, LCP, INP, CLS)
+  capture_performance: true,
+  // Autocapture unhandled exceptions and unhandled promise rejections
+  capture_exceptions: true,
+  // Use 2026-05-30 defaults for modern behavior:
+  // capture_pageview → 'history_change' (SPA auto-detection),
+  // persistence_save_debounce_ms → 250, split_storage → true
+  defaults: '2026-05-30',
+  // Disable surveys (not needed)
+  disable_surveys: true,
+  // Disable session recording (not needed)
+  disable_session_recording: true,
+  // Disable feature flags (not needed)
+  advanced_disable_flags: true,
+  // Add tracing headers so server-side events link back to frontend sessions
+  tracing_headers: [
+    globalThis.location.hostname,
+    'localhost',
+  ],
+});
+
+// Attach the app session ID to all PostHog events so client-side captures
+// can be correlated with server-side events and Sentry spans.
+if (appSessionId) {
+  posthog.register({
+    app_session_id: appSessionId,
+  });
 }
 
 browserBootstrapSpan = startInactiveSpan({

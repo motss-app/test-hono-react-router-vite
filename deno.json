@@ -54,6 +54,13 @@
     "useUnknownInCatchVariables": true,
     "verbatimModuleSyntax": true
   },
+  "lint": {
+    "rules": {
+      "exclude": [
+        "no-slow-types"
+      ]
+    }
+  },
   "exclude": [
     ".wrangler",
     "k6-load-test.mjs"
@@ -63,7 +70,8 @@
     "@std/path": "jsr:@std/path@1.1.6",
     "clsx/lite": "npm:clsx@2.1.1/lite",
     "playwright": "npm:playwright@1.61.1",
-    "react-dom/server": "npm:react-dom@19.2.7/server.edge"
+    "posthog-js": "npm:posthog-js@1.407.2",
+    "react-dom/server": "npm:react-dom@19.2.8/server.edge"
   },
   "lock": true,
   "nodeModulesDir": "auto",
@@ -120,8 +128,8 @@
     "route-bundle-size": "deno run -A scripts/route-bundle-size.ts",
     "spotlight": "pnpm dlx @spotlightjs/spotlight",
     "start": "deno task preview",
-    "typegen": "REACT_ROUTER_ROOT=$PWD deno run -A npm:@react-router/dev typegen --config packages/frontend/vite.react-router.config.ts",
-    "test:visual": "deno run -A scripts/vrt.ts"
+    "test:visual": "deno run -A scripts/vrt.ts",
+    "typegen": "REACT_ROUTER_ROOT=$PWD deno run -A npm:@react-router/dev typegen --config packages/frontend/vite.react-router.config.ts"
   },
   "unstable": [
     "bare-node-builtins",

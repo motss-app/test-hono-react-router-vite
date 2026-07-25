@@ -51,6 +51,7 @@ const defaultConnectSrc = [
   "'self'",
   'https://cloudflareinsights.com',
   'https://api.iconify.design',
+  'https://*.posthog.com',
 ];
 const defaultFrameSrc = [
   "'self'",
@@ -58,6 +59,7 @@ const defaultFrameSrc = [
 const defaultScriptSrc = [
   "'self'",
   'https://static.cloudflareinsights.com',
+  'https://*.posthog.com',
 ];
 export const cloudflareAnalyticsStyleHashes = [
   "'sha256-yA3qHWL4K3kukdLY/T+1vlN/z6FrxQQRjp6/L8l7snM='",
@@ -246,6 +248,7 @@ function buildPolicy(options: ContentSecurityPolicyOptions): string {
     `img-src 'self' data:`,
     `frame-src ${uniqueSources(resolvedFrameSrc).join(' ')}`,
     `connect-src ${uniqueSources(resolvedConnectSrc).join(' ')}`,
+    `worker-src 'self' blob: data:`,
   ].join('; ');
 }
 
