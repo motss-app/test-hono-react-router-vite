@@ -14,7 +14,6 @@ env:
   SENTRY_CLI_VERSION: 3.6.0
   PLAYWRIGHT_VERSION: 1.61.1
   SENTRY_DSN: https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400
-  SENTRY_RELEASE: local
 
 jobs:
   snapshots:
@@ -105,6 +104,10 @@ jobs:
           SENTRY_CLI_VERSION: ${{ env.SENTRY_CLI_VERSION }}
         run: curl -sL https://sentry.io/get-cli/ | sh
 
+      # On main pushes: uploads snapshots tagged with git commit SHA (the baseline).
+      # On PRs: uploads head snapshots with --base-sha so Sentry can diff against
+      # the matching main commit. Requires SENTRY_RELEASE to be unset so sentry-cli
+      # auto-uses the commit SHA instead of a static release name.
       - name: Upload snapshots to Sentry
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_SNAPSHOTS_PAT }}
@@ -117,4 +120,5 @@ jobs:
             snapshots upload __screenshots__ \
             --app-id sentry-snapshots \
             --project "$SENTRY_PROJECT" \
-            ${BASE_SHA:+--base-sha "$BASE_SHA"}
+            ${BASE_SHA:+--base-sha "$BASE_SHA"} \
+            ${BASE_SHA:+--base-repo-name "${{ github.repository }}"}
