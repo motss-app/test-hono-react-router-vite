@@ -1,81 +1,81 @@
 {
   "entry": {
-    "gzipBytes": 275263,
-    "rawBytes": 838545
+    "gzipBytes": 236978,
+    "rawBytes": 716538
   },
   "rootLayout": {
-    "gzipBytes": 19633,
-    "rawBytes": 52124
+    "gzipBytes": 19641,
+    "rawBytes": 52117
   },
   "routes": [
     {
-      "gzipBytes": 295455,
+      "gzipBytes": 257178,
       "ownGzipBytes": 559,
       "ownRawBytes": 1006,
-      "rawBytes": 891675,
+      "rawBytes": 769661,
       "route": "/$"
     },
     {
-      "gzipBytes": 302293,
-      "ownGzipBytes": 7397,
+      "gzipBytes": 264023,
+      "ownGzipBytes": 7404,
       "ownRawBytes": 21474,
-      "rawBytes": 912143,
+      "rawBytes": 790129,
       "route": "/about"
     },
     {
-      "gzipBytes": 304754,
-      "ownGzipBytes": 9858,
+      "gzipBytes": 266483,
+      "ownGzipBytes": 9864,
       "ownRawBytes": 27609,
-      "rawBytes": 918278,
+      "rawBytes": 796264,
       "route": "/errors"
     },
     {
-      "gzipBytes": 305638,
-      "ownGzipBytes": 10742,
+      "gzipBytes": 267368,
+      "ownGzipBytes": 10749,
       "ownRawBytes": 32930,
-      "rawBytes": 923599,
+      "rawBytes": 801585,
       "route": "/errors.$code"
     },
     {
-      "gzipBytes": 301175,
-      "ownGzipBytes": 6279,
+      "gzipBytes": 262907,
+      "ownGzipBytes": 6288,
       "ownRawBytes": 18536,
-      "rawBytes": 909205,
+      "rawBytes": 787191,
       "route": "/holy-grail"
     },
     {
-      "gzipBytes": 299992,
-      "ownGzipBytes": 5096,
+      "gzipBytes": 261724,
+      "ownGzipBytes": 5105,
       "ownRawBytes": 13235,
-      "rawBytes": 903904,
+      "rawBytes": 781890,
       "route": "/home"
     },
     {
-      "gzipBytes": 304081,
-      "ownGzipBytes": 9185,
+      "gzipBytes": 265811,
+      "ownGzipBytes": 9192,
       "ownRawBytes": 25975,
-      "rawBytes": 916644,
+      "rawBytes": 794630,
       "route": "/hono-rpc"
     },
     {
-      "gzipBytes": 295077,
+      "gzipBytes": 256800,
       "ownGzipBytes": 181,
       "ownRawBytes": 197,
-      "rawBytes": 890866,
+      "rawBytes": 768852,
       "route": "/page-layout"
     },
     {
-      "gzipBytes": 300584,
-      "ownGzipBytes": 5688,
+      "gzipBytes": 262314,
+      "ownGzipBytes": 5695,
       "ownRawBytes": 16215,
-      "rawBytes": 906884,
+      "rawBytes": 784870,
       "route": "/ssr"
     }
   ],
   "summary": {
     "maxRoute": "/errors.$code",
-    "maxRouteRawBytes": 923599,
+    "maxRouteRawBytes": 801585,
     "minRoute": "/page-layout",
-    "minRouteRawBytes": 890866
+    "minRouteRawBytes": 768852
   }
 }
