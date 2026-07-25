@@ -33,11 +33,16 @@ jobs:
           echo '## Route Bundle Size' >> "$GITHUB_STEP_SUMMARY"
           deno task route-bundle-size >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Fetch baseline from main (PR only)
+      - name: Use PR baseline (PR only)
         if: github.event_name == 'pull_request'
         run: |
-          git fetch origin main --depth=1
-          git show origin/main:route-bundle-size-baseline.json > /tmp/baseline-bundle-size.json 2>/dev/null || echo '{"entry":{"gzipBytes":0,"rawBytes":0},"rootLayout":{"gzipBytes":0,"rawBytes":0},"routes":[]}' > /tmp/baseline-bundle-size.json
+          if [ -f route-bundle-size-baseline.json ]; then
+            cp route-bundle-size-baseline.json /tmp/baseline-bundle-size.json
+            echo "Using baseline from PR branch"
+          else
+            echo '{"entry":{"gzipBytes":0,"rawBytes":0},"rootLayout":{"gzipBytes":0,"rawBytes":0},"routes":[]}' > /tmp/baseline-bundle-size.json
+            echo "No baseline found, using empty baseline"
+          fi
 
       - name: Use current as baseline (main push)
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
