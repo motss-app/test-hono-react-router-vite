@@ -8,7 +8,11 @@ const hostname = Deno.env.get('HOST') ?? '127.0.0.1';
 
 const app = new Hono();
 
-app.get('/healthz', (c: Context) => c.json({ status: 'ok' }));
+app.get('/healthz', (c: Context) =>
+  c.json({
+    status: 'ok',
+  })
+);
 
 const staticDirs = [
   'assets',

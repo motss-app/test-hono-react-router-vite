@@ -473,4 +473,7 @@ export const titleAccent = style({
   },
 });
 
-export const actionButtonLoading = style({});
+export const actionButtonLoading = style([
+  actionButton,
+  actionButtonLoadingStyle,
+]);
