@@ -72,6 +72,17 @@ export function meta(_args: Route.MetaArgs): Route.MetaDescriptors {
 export default function Home(): JSX.Element {
   return (
     <main className={c.page}>
+      <div
+        style={{
+          background: '#ff00ff',
+          color: '#ffffff',
+          fontWeight: 700,
+          padding: '16px',
+          textAlign: 'center',
+        }}
+      >
+        SNAPSHOT-APPROVAL-TEST
+      </div>
       <section className={c.hero}>
         <div
           aria-hidden="true"
