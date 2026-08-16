@@ -12,7 +12,7 @@ concurrency:
 
 env:
   SENTRY_CLI_VERSION: 3.6.0
-  PLAYWRIGHT_VERSION: 1.61.1
+  PLAYWRIGHT_VERSION: 1.62.1
   SENTRY_DSN: https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400
 
 jobs:

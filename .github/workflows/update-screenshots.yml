@@ -10,7 +10,7 @@ env:
     test: update visual regression screenshots
 
     Co-authored-by: ${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com>
-  PLAYWRIGHT_VERSION: 1.61.1
+  PLAYWRIGHT_VERSION: 1.62.1
 
 jobs:
   update-screenshots:
