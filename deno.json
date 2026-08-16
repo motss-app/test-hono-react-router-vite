@@ -54,24 +54,24 @@
     "useUnknownInCatchVariables": true,
     "verbatimModuleSyntax": true
   },
+  "exclude": [
+    ".wrangler",
+    "k6-load-test.mjs"
+  ],
+  "imports": {
+    "@sentry/browser": "npm:@sentry/browser@10.70.0",
+    "@std/path": "jsr:@std/path@1.1.6",
+    "clsx/lite": "npm:clsx@2.1.1/lite",
+    "playwright": "npm:playwright@1.62.1",
+    "posthog-js": "npm:posthog-js@1.417.1",
+    "react-dom/server": "npm:react-dom@19.2.8/server.edge"
+  },
   "lint": {
     "rules": {
       "exclude": [
         "no-slow-types"
       ]
     }
-  },
-  "exclude": [
-    ".wrangler",
-    "k6-load-test.mjs"
-  ],
-  "imports": {
-    "@sentry/browser": "npm:@sentry/browser@10.68.0",
-    "@std/path": "jsr:@std/path@1.1.6",
-    "clsx/lite": "npm:clsx@2.1.1/lite",
-    "playwright": "npm:playwright@1.61.1",
-    "posthog-js": "npm:posthog-js@1.407.2",
-    "react-dom/server": "npm:react-dom@19.2.8/server.edge"
   },
   "lock": true,
   "nodeModulesDir": "auto",
