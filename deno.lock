@@ -16,8 +16,8 @@
     "npm:@iconify-react/fa7-solid@1.0.3": "1.0.3_react@19.2.8",
     "npm:@inlang/message-lint-rule-empty-pattern@1.4.8": "1.4.8_@sinclair+typebox@0.31.28",
     "npm:@inlang/message-lint-rule-missing-translation@1.4.8": "1.4.8_@sinclair+typebox@0.31.28",
-    "npm:@inlang/paraglide-js-react@1.0.3": "1.0.3_@inlang+paraglide-js@2.24.0__typescript@7.0.2__vite@8.2.1_react@19.2.8_typescript@7.0.2_vite@8.2.1",
-    "npm:@inlang/paraglide-js@2.24.0": "2.24.0_typescript@7.0.2_vite@8.2.1",
+    "npm:@inlang/paraglide-js-react@1.0.3": "1.0.3_@inlang+paraglide-js@2.24.1__typescript@7.0.2__vite@8.2.1_react@19.2.8_typescript@7.0.2_vite@8.2.1",
+    "npm:@inlang/paraglide-js@2.24.1": "2.24.1_typescript@7.0.2_vite@8.2.1",
     "npm:@inlang/plugin-icu1@1.1.0": "1.1.0",
     "npm:@react-router/dev@*": "8.3.0_react-router@8.3.0__react@19.2.8__react-dom@19.2.8___react@19.2.8_typescript@7.0.2_vite@8.2.1_wrangler@4.123.0__@cloudflare+workers-types@5.20260815.1_@cloudflare+workers-types@5.20260815.1",
     "npm:@react-router/dev@8.3.0": "8.3.0_react-router@8.3.0__react@19.2.8__react-dom@19.2.8___react@19.2.8_typescript@7.0.2_vite@8.2.1_wrangler@4.123.0__@cloudflare+workers-types@5.20260815.1_@cloudflare+workers-types@5.20260815.1",
@@ -932,15 +932,15 @@
       ],
       "deprecated": true
     },
-    "@inlang/paraglide-js-react@1.0.3_@inlang+paraglide-js@2.24.0__typescript@7.0.2__vite@8.2.1_react@19.2.8_typescript@7.0.2_vite@8.2.1": {
+    "@inlang/paraglide-js-react@1.0.3_@inlang+paraglide-js@2.24.1__typescript@7.0.2__vite@8.2.1_react@19.2.8_typescript@7.0.2_vite@8.2.1": {
       "integrity": "sha512-YWy3yTBr8x+RiZbMu7mdunbD2sqKeqZx7Ylj6XKkpmhtP/id23VnBBXnCfiZ4ykstVAl3dfzoOmtszJMgbzVCw==",
       "dependencies": [
         "@inlang/paraglide-js",
         "react"
       ]
     },
-    "@inlang/paraglide-js@2.24.0_typescript@7.0.2_vite@8.2.1": {
-      "integrity": "sha512-xI5nFnqcapa2CrSY0Z0VotC1Dt6+vBZEcb8zqR7mX6C+NP5CfztxxTccjBwdVmPZqm7OzmEY9auhRA7W54jibg==",
+    "@inlang/paraglide-js@2.24.1_typescript@7.0.2_vite@8.2.1": {
+      "integrity": "sha512-r/gak0kY2yuqgz0RFxccb7A89fgcLpiqoEbYfv3nxlqyhdW2v8NajE1A2xiXrv/iAo7WCX4zk8EJAhL69rcp0g==",
       "dependencies": [
         "@inlang/recommend-sherlock",
         "@inlang/sdk",
@@ -3270,7 +3270,7 @@
         "npm:@inlang/message-lint-rule-empty-pattern@1.4.8",
         "npm:@inlang/message-lint-rule-missing-translation@1.4.8",
         "npm:@inlang/paraglide-js-react@1.0.3",
-        "npm:@inlang/paraglide-js@2.24.0",
+        "npm:@inlang/paraglide-js@2.24.1",
         "npm:@inlang/plugin-icu1@1.1.0",
         "npm:@react-router/dev@8.3.0",
         "npm:@sentry/browser@10.70.0",

@@ -8,7 +8,7 @@
     "@iconify-react/fa7-solid": "1.0.3",
     "@inlang/message-lint-rule-empty-pattern": "1.4.8",
     "@inlang/message-lint-rule-missing-translation": "1.4.8",
-    "@inlang/paraglide-js": "2.24.0",
+    "@inlang/paraglide-js": "2.24.1",
     "@inlang/paraglide-js-react": "1.0.3",
     "@inlang/plugin-icu1": "1.1.0",
     "@sentry/browser": "10.70.0",
