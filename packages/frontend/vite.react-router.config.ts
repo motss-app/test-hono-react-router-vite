@@ -21,7 +21,6 @@ import {
   sentryHttpClientCodeSplittingGroup,
   sentryViewHierarchyCodeSplittingGroup,
 } from '../../vite-utils/sentry-chunking.ts';
-import { urlPatterns } from './locales.ts';
 
 const repoRootPath = new URL('../../', import.meta.url).pathname;
 const publicDirPath = new URL('./public', import.meta.url).pathname;
@@ -116,13 +115,6 @@ export default function createViteConfig(config: ConfigEnv) {
           paraglideVitePlugin({
             outdir: `${repoRootPath}packages/frontend/app/paraglide`,
             project: `${repoRootPath}project.inlang`,
-            strategy: [
-              'url',
-              'cookie',
-              'preferredLanguage',
-              'baseLocale',
-            ],
-            urlPatterns: urlPatterns(),
           }),
           reactRouter(),
           headersCopyPlugin({

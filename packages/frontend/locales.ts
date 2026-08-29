@@ -20,28 +20,3 @@ export const labels: Record<Locale, string> = Object.fromEntries(
     LABELS[l] ?? l,
   ])
 ) as Record<Locale, string>;
-
-export function urlPatterns(): {
-  localized: [
-    string,
-    string,
-  ][];
-  pattern: string;
-}[] {
-  return [
-    {
-      localized: locales.map(l => [
-        l,
-        `/${l}`,
-      ]),
-      pattern: '/',
-    },
-    {
-      localized: locales.map(l => [
-        l,
-        `/${l}/:path(.*)?`,
-      ]),
-      pattern: '/:path(.*)?',
-    },
-  ];
-}
