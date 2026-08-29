@@ -1,6 +1,18 @@
 name: Benchmark
 
 on:
+  pull_request:
+    paths:
+      - 'packages/**'
+      - 'vite-plugins/**'
+      - 'vite-utils/**'
+      - 'scripts/bench-all.ts'
+      - 'scripts/standalone-*.ts'
+      - 'deno.json'
+      - 'deno.lock'
+      - 'biome.jsonc'
+      - 'tsconfig.json'
+      - 'react-router.config.ts'
   workflow_dispatch:
 
 env:
@@ -16,7 +28,7 @@ jobs:
   benchmark:
     name: Benchmark & Compare
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
@@ -51,7 +63,7 @@ jobs:
         env:
           OHA_BINARY: /usr/local/bin/oha
           DIRECT_ONLY: 'true'
-          BENCH_DURATION: 10s
+          BENCH_DURATION: 30s
         run: |
           set -eo pipefail
           deno run -A scripts/bench-all.ts 2>&1 | tee /tmp/bench-output.txt
