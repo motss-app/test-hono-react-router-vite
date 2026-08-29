@@ -2,6 +2,7 @@
 import { Hono } from 'hono';
 import type { RouterContext, ServerBuild } from 'react-router';
 import { createRequestHandler, RouterContextProvider } from 'react-router';
+
 import type { HonoEnv } from '../packages/frontend/app/types/hono.types.ts';
 
 const clientDir = Deno.env.get('FE_CLIENT_DIR') ?? 'build/client';
