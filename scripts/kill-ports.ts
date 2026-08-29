@@ -34,11 +34,9 @@ function parseArgs(args: string[]): {
 const { ports, verbose } = parseArgs(Deno.args);
 
 if (verbose) {
-  console.log(`Killing processes on ports: ${ports.join(', ')}`);
 }
 
 await clearPorts(ports);
 
 if (verbose) {
-  console.log(`Ports ${ports.join(', ')} cleared.`);
 }

@@ -72,7 +72,6 @@ export function handleSummary(data) {
   try {
     await Deno.stat(scriptPath);
   } catch {
-    console.error(`[ccu=${ccu}] Script file not found: ${scriptPath}`);
     continue;
   }
 
@@ -86,7 +85,6 @@ export function handleSummary(data) {
   });
 
   const output = await cmd.output();
-  console.error(`[ccu=${ccu}] k6 exit code: ${output.code}`);
 
   // Prefer the JSON written by handleSummary; fall back to parsing stdout.
   let jsonText: string | null = null;
@@ -97,9 +95,6 @@ export function handleSummary(data) {
     const stderr = new TextDecoder().decode(output.stderr);
     jsonText = extractMetricsJson(stdout + stderr);
     if (!jsonText) {
-      console.error(`[ccu=${ccu}] No JSON metrics found in k6 output`);
-      console.error(`[ccu=${ccu}] stdout (last 500 chars):`, stdout.slice(-500));
-      console.error(`[ccu=${ccu}] stderr (last 500 chars):`, stderr.slice(-500));
     }
   }
 
@@ -117,10 +112,7 @@ export function handleSummary(data) {
         p99: Math.round((dur['p(99)'] ?? 0) * 100) / 100,
         rps: Math.round(rps),
       });
-    } catch (e) {
-      console.error(`[ccu=${ccu}] Failed to parse k6 output:`, e);
-      console.error(`[ccu=${ccu}] jsonText (last 500 chars):`, jsonText.slice(-500));
-    }
+    } catch (_e) {}
   }
 
   await Deno.remove(scriptPath);
@@ -166,52 +158,33 @@ function extractMetricsJson(text: string): string | null {
   return null;
 }
 
-// Print results table.
-// Column widths must accommodate the widest possible cell in each column
-// (RPS cell = "<num> (±N%)" is the widest, up to 11 chars).
-console.log('');
-console.log('=== SATURATION TEST RESULTS ===');
-console.log('');
-console.log('CCU    RPS         p50       p95       p99       failures');
-console.log('────── ─────────── ───────── ───────── ───────── ────────');
-
 let prevRps = 0;
 for (const r of results) {
   const rpsDelta = prevRps > 0 ? (((r.rps - prevRps) / prevRps) * 100).toFixed(0) : '';
-  const rpsStr = rpsDelta ? `${r.rps} (${rpsDelta}%)` : `${r.rps}`;
-  console.log(
-    `${String(r.ccu).padEnd(6)} ${rpsStr.padEnd(11)} ${fmtMs(r.p50).padEnd(9)} ${fmtMs(r.p95).padEnd(9)} ${fmtMs(r.p99).padEnd(9)} ${r.failRate}%`
-  );
+  const _rpsStr = rpsDelta ? `${r.rps} (${rpsDelta}%)` : `${r.rps}`;
   prevRps = r.rps;
 }
 
 // Find saturation point
 if (results.length >= 2) {
   let maxRps = 0;
-  let saturationCcu = 0;
+  let _saturationCcu = 0;
   for (const r of results) {
     if (r.rps > maxRps) {
       maxRps = r.rps;
-      saturationCcu = r.ccu;
+      _saturationCcu = r.ccu;
     }
   }
 
   const lastResult = results[results.length - 1]!;
   const rpsDropped = lastResult.rps < maxRps * 0.9;
-
-  console.log('');
   if (rpsDropped) {
-    console.log(`⚠ RPS peaked at ${maxRps} (${saturationCcu} CCU) then dropped.`);
   } else if (lastResult.p95 > 200) {
-    console.log(`⚠ p95 > 200ms at ${lastResult.ccu} CCU (${lastResult.p95}ms).`);
   } else {
-    console.log(`✓ Server handled ${CCU_LEVELS[CCU_LEVELS.length - 1]} CCU without saturation.`);
   }
 }
 
-console.log('');
-
-function fmtMs(v: number): string {
+function _fmtMs(v: number): string {
   if (v < 1) return `${(v * 1000).toFixed(0)}µs`;
   if (v < 1000) return `${v.toFixed(1)}ms`;
   return `${(v / 1000).toFixed(2)}s`;

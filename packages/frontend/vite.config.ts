@@ -94,7 +94,7 @@ export default defineConfig(async config => {
             vanillaExtractSsrFixPlugin(),
             paraglideVitePlugin({
               outdir: `${repoRootPath}packages/frontend/app/paraglide`,
-              project: repoRootPath + 'project.inlang',
+              project: `${repoRootPath}project.inlang`,
             }),
             /**
              * React Router plugin is required to:

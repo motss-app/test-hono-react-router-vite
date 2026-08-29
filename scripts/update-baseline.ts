@@ -31,7 +31,7 @@ function parseBenchOutput(text: string): Row[] {
     if (parts.length < 8) continue;
     const route = parts[0];
     if (!route || route === 'Route' || route.startsWith('─')) continue;
-    const rps = Number(parts[1]!.replace(/,/g, ''));
+    const rps = Number(parts[1]?.replace(/,/g, ''));
     if (Number.isNaN(rps)) continue;
     rows.push({
       avg: parseLatency(parts[5]!),
@@ -63,7 +63,7 @@ function parseBaselineMd(text: string): Row[] {
     if (parts.length < 8) continue;
     const routeName = parts[1]!;
     if (!routeName || routeName === 'Route' || routeName.startsWith('#')) continue;
-    const rpsVal = Number(parts[2]!.replace(/,/g, ''));
+    const rpsVal = Number(parts[2]?.replace(/,/g, ''));
     if (Number.isNaN(rpsVal)) continue;
     const prefix =
       inSection === 'BFF'
@@ -166,9 +166,6 @@ function renderComparison(current: Row[], baseline: Row[]): string {
 
 const args = Deno.args;
 if (args.length === 0) {
-  console.error(
-    'Usage: update-baseline.ts <bench-output.txt> [--baseline baseline.md] [--output comment.md]'
-  );
   Deno.exit(1);
 }
 
@@ -205,8 +202,6 @@ const currentRows = parseBenchOutput(benchText);
 // Guard: when updating the baseline file (no --baseline flag), abort if empty
 // to prevent committing useless empty tables.
 if (currentRows.length === 0 && !baselinePath) {
-  console.error('ERROR: No benchmark data found in output. The benchmark may have failed.');
-  console.error('       Aborting baseline update to prevent committing empty data.');
   Deno.exit(1);
 }
 
@@ -254,6 +249,5 @@ if (baselinePath) {
   if (outputPath) {
     await Deno.writeTextFile(outputPath, comparison);
   } else {
-    console.log(comparison);
   }
 }

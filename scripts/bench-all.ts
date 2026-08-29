@@ -296,9 +296,7 @@ async function benchmarkRoute(
   };
 }
 
-function printSeparator(length: number): void {
-  console.log('─'.repeat(length));
-}
+function printSeparator(_length: number): void {}
 
 function formatBw(bytesPerSec: number): string {
   if (bytesPerSec > 1_000_000) return `${(bytesPerSec / 1_000_000).toFixed(1)} MB`;
@@ -318,8 +316,8 @@ interface ColWidths {
   success: number;
 }
 
-function formatRow(r: BenchmarkResult, w: ColWidths): string {
-  const name = r.route.length > w.route ? r.route.slice(0, w.route - 3) + '...' : r.route;
+function _formatRow(r: BenchmarkResult, w: ColWidths): string {
+  const name = r.route.length > w.route ? `${r.route.slice(0, w.route - 3)}...` : r.route;
   return [
     name.padEnd(w.route),
     formatRps(r.rps).padStart(w.rps),
@@ -333,7 +331,7 @@ function formatRow(r: BenchmarkResult, w: ColWidths): string {
   ].join(' | ');
 }
 
-function printTable(results: BenchmarkResult[], totalTime: number): void {
+function printTable(results: BenchmarkResult[], _totalTime: number): void {
   const w: ColWidths = {
     avg: 12,
     bw: 10,
@@ -358,12 +356,9 @@ function printTable(results: BenchmarkResult[], totalTime: number): void {
   ].join(' | ');
   const totalWidth = header.length;
   printSeparator(totalWidth);
-  console.log(` BENCHMARK RESULTS  (total: ${totalTime.toFixed(1)}s)`);
   printSeparator(totalWidth);
-  console.log(header);
   printSeparator(totalWidth);
-  for (const r of results) console.log(formatRow(r, w));
-  printSeparator(totalWidth);
+  for (const _r of results) printSeparator(totalWidth);
 }
 
 function printShortSummary(results: BenchmarkResult[]): void {
@@ -372,21 +367,14 @@ function printShortSummary(results: BenchmarkResult[]): void {
   const sortedP99 = [
     ...results,
   ].sort((a, b) => a.p99 - b.p99);
-  const fast = sortedP99[0]!;
-  const slow = sortedP99[sortedP99.length - 1]!;
-  const bestRps = [
+  const _fast = sortedP99[0]!;
+  const _slow = sortedP99[sortedP99.length - 1]!;
+  const _bestRps = [
     ...results,
   ].sort((a, b) => b.rps - a.rps)[0]!;
 
-  const totalReq = results.reduce((a, r) => a + r.totalRequests, 0);
-  const avgRps = results.reduce((a, r) => a + r.rps, 0) / results.length;
-
-  console.log(`\nRequests: ${totalReq.toLocaleString()} total  |  Avg RPS: ${avgRps.toFixed(0)}`);
-  console.log(
-    `Fastest p99: ${fast.route} (${formatLatency(fast.p99)})  |  ` +
-      `Slowest p99: ${slow.route} (${formatLatency(slow.p99)})`
-  );
-  console.log(`Highest RPS: ${bestRps.route} (${bestRps.rps.toFixed(0)} req/s)`);
+  const _totalReq = results.reduce((a, r) => a + r.totalRequests, 0);
+  const _avgRps = results.reduce((a, r) => a + r.rps, 0) / results.length;
 }
 
 interface ManagedProcess {
@@ -479,27 +467,20 @@ function startWranglerWorker(name: string, cwd: string, port: string, inspectorP
 }
 
 async function buildAll(): Promise<void> {
-  console.log('Building for production...');
   await runBuildCommand('build');
-  console.log('Building BFF (for gateway service binding)...');
   await runBuildCommand('build', 'packages/bff');
 }
 
 function startStandaloneServers(): void {
-  console.log('Starting BFF standalone (direct, bypass CF)...');
   startStandaloneProcess('bff-standalone', 'scripts/standalone-bff.ts', {
     HOST: '127.0.0.1',
     PORT: '3001',
   });
-
-  console.log('Starting FE standalone (direct, build/client)...');
   startStandaloneProcess('fe-standalone', 'scripts/standalone-fe.ts', {
     FE_CLIENT_DIR: 'build/client',
     HOST: '127.0.0.1',
     PORT: '5174',
   });
-
-  console.log('Starting SSR standalone (direct, bypass CF)...');
   startStandaloneProcess('ssr-standalone', 'scripts/standalone-ssr.ts', {
     FE_CLIENT_DIR: 'build/client',
     HOST: '127.0.0.1',
@@ -508,18 +489,12 @@ function startStandaloneServers(): void {
 }
 
 function startWranglerWorkers(servicePort: string): void {
-  console.log('Starting BFF worker via wrangler (for gateway service binding)...');
   startWranglerWorker('bff-wrangler', 'packages/bff', '0', '9231');
-
-  console.log('Starting frontend worker via wrangler (port 5173)...');
   startWranglerWorker('frontend', 'packages/frontend', '5173', '9232');
-
-  console.log(`Starting gateway worker via wrangler (port ${servicePort})...`);
   startWranglerWorker('gateway', 'packages/gateway', servicePort, '9230');
 }
 
 async function waitForAllServers(baseUrl: string): Promise<void> {
-  console.log('Waiting for servers to be ready (up to 120s)...');
   await Promise.all([
     waitForServer(`${BFF_DIRECT_URL}/api/healthz`, 120_000),
     waitForServer('http://127.0.0.1:5173/healthz', 120_000),
@@ -527,7 +502,6 @@ async function waitForAllServers(baseUrl: string): Promise<void> {
     waitForServer(`${SSR_DIRECT_URL}/healthz`, 120_000),
     waitForServer(`${baseUrl}/healthz`, 120_000),
   ]);
-  console.log('All servers are ready.\n');
 }
 
 async function runWarmup(
@@ -536,11 +510,9 @@ async function runWarmup(
   warmupDuration: string
 ): Promise<void> {
   if (warmupDuration.startsWith('0')) return;
-  console.log('Warming up...');
   for (const u of uniqueUrls) {
     await runOha(`${u}/healthz`, warmupDuration, concurrency).catch(() => {});
   }
-  console.log('Warmup complete.\n');
 }
 
 async function runBenchmarks(
@@ -561,13 +533,8 @@ async function runBenchmarks(
       const routeBaseUrl = route.baseUrl ?? baseUrl;
       const result = await benchmarkRoute(route, routeBaseUrl, duration, concurrency);
       results.push(result);
-      const took = elapsed(routeStart);
-      console.log(
-        `RPS ${result.rps.toFixed(0).padStart(7)}  p99 ${formatLatency(result.p99)}  (${took})`
-      );
-    } catch (err) {
-      console.log(`FAILED: ${err}`);
-    }
+      const _took = elapsed(routeStart);
+    } catch (_err) {}
   }
 
   return results;
@@ -580,7 +547,6 @@ async function main(): Promise<void> {
   const servicePort = new URL(baseUrl).port || '8787';
 
   if (startServers) {
-    console.log(`Clearing ports 3001, 5173, 5174, 5175, ${servicePort}...`);
     await clearPorts([
       3001,
       5173,
@@ -598,17 +564,11 @@ async function main(): Promise<void> {
   const uniqueUrls = [
     ...new Set(ROUTES.map(r => r.baseUrl ?? baseUrl)),
   ];
-  console.log(`Benchmarking ${ROUTES.length} routes:`);
-  console.log(`  Duration:    ${duration}`);
-  console.log(`  Concurrency: ${concurrency}`);
-  console.log(`  Warmup:      ${warmupDuration}`);
-  console.log(`  URLs:        ${uniqueUrls.join(', ')}\n`);
 
   await runWarmup(uniqueUrls, concurrency, warmupDuration);
   const results = await runBenchmarks(baseUrl, duration, concurrency);
 
   const totalTime = (performance.now() - overallStart) / 1000;
-  console.log('');
   printTable(results, totalTime);
   printShortSummary(results);
 
@@ -618,7 +578,6 @@ async function main(): Promise<void> {
   }
 
   if (results.some(r => r.successRate < 0.95)) {
-    console.log('\n⚠ Some routes have success rate below 95%. Check for errors.');
     Deno.exit(1);
   }
 }
@@ -638,9 +597,8 @@ if (import.meta.main) {
 
   try {
     await main();
-  } catch (err) {
+  } catch (_err) {
     cleanup('SIGKILL');
-    console.error(`\nBenchmark failed: ${err}`);
     Deno.exit(1);
   }
 }

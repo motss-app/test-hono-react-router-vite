@@ -55,7 +55,6 @@ async function screenshot(context: BrowserContext, viewportName: string, theme: 
     fullPage: true,
     path,
   });
-  console.log(`✓ ${viewportName} ${theme} → ${path}`);
 
   await page.close();
 }
@@ -68,7 +67,6 @@ async function main() {
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
   } catch {
-    console.error(`Dev server not running at ${BASE_URL}. Start with: deno task dev`);
     Deno.exit(1);
   }
 

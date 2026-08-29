@@ -16,14 +16,7 @@ Deno.serve(
     port,
   },
   () =>
-    new Response(
-      JSON.stringify({
-        ok: true,
-      }),
-      {
-        headers: {
-          'content-type': 'application/json',
-        },
-      }
-    )
+    Response.json({
+      ok: true,
+    })
 );

@@ -20,7 +20,7 @@ async function getListeningPids(port: number): Promise<number[]> {
     process = new Deno.Command('lsof', {
       args: [
         '-nP',
-        '-iTCP:' + port,
+        `-iTCP:${port}`,
         '-sTCP:LISTEN',
         '-t',
       ],

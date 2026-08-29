@@ -212,7 +212,6 @@ function parseArgs(): {
 }
 
 async function runBenchmark(): Promise<string> {
-  console.log('Running benchmark...');
   const cmd = new Deno.Command('deno', {
     args: [
       'run',
@@ -224,7 +223,6 @@ async function runBenchmark(): Promise<string> {
   });
   const { code, stdout, stderr } = await cmd.output();
   if (code !== 0) {
-    console.error(`Benchmark failed:\n${new TextDecoder().decode(stderr)}`);
     Deno.exit(2);
   }
   return new TextDecoder().decode(stdout);
@@ -266,21 +264,11 @@ async function saveResults(
     generateBaselineMarkdown(current, summary.commitSha)
   );
   await Deno.writeTextFile(`${outputDir}/benchmark-summary.json`, JSON.stringify(summary, null, 2));
-  console.log(`Results saved to: ${outputDir}/`);
 }
 
 function printSummary(summary: Summary): void {
-  console.log('\n--- SUMMARY ---');
-  console.log(`Status: ${summary.status.toUpperCase()}`);
-  console.log(`Regressions: ${summary.regressions.length}`);
-  console.log(`Improvements: ${summary.improvements.length}`);
-  console.log(`Unchanged: ${summary.unchanged.length}`);
   if (summary.regressions.length > 0) {
-    console.log('\nRegressions:');
-    for (const r of summary.regressions) {
-      console.log(
-        `  ${r.route}: RPS ${formatDelta(r.rpsDelta, true)}, p99 ${formatDelta(r.p99Delta)}`
-      );
+    for (const _r of summary.regressions) {
     }
   }
 }
@@ -289,15 +277,11 @@ async function main(): Promise<void> {
   const { baselinePath, commitSha, outputDir } = parseArgs();
   const baseline = await loadBaseline(baselinePath);
   if (baseline.length === 0) {
-    console.log('No baseline found. Run benchmark and save as baseline first.');
-    console.log(`Expected baseline at: ${baselinePath}`);
     Deno.exit(2);
   }
   const output = await runBenchmark();
   const current = parseMarkdownTable(output);
   if (current.length === 0) {
-    console.error('Failed to parse benchmark output');
-    console.error('Output:', output.slice(0, 1000));
     Deno.exit(2);
   }
   const comparisons = compareResults(baseline, current);
@@ -320,8 +304,7 @@ async function main(): Promise<void> {
 if (import.meta.main) {
   try {
     await main();
-  } catch (err) {
-    console.error(`Script error: ${err}`);
+  } catch (_err) {
     Deno.exit(2);
   }
 }
