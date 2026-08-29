@@ -16,6 +16,10 @@ export function RootDocumentHead({ cspNonce }: RootDocumentHeadProps): JSX.Eleme
         content="width=device-width, initial-scale=1"
         name="viewport"
       />
+      <meta
+        content="light dark"
+        name="color-scheme"
+      />
       <Meta />
 
       <style nonce={cspNonce}>{criticalCss}</style>
