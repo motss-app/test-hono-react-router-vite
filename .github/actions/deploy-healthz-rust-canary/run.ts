@@ -5,6 +5,9 @@ await withLogGroup('🚀 Installing worker-build', async () => {
     'cargo',
     'install',
     'worker-build',
+    '--version',
+    '0.8.5',
+    '--locked',
   ]);
 });
 
