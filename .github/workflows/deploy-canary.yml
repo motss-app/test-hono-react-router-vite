@@ -45,6 +45,7 @@ jobs:
 
   gateway_canary:
     name: Gateway Canary
+    needs: healthz_rust_canary
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
