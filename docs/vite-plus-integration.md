@@ -7,7 +7,7 @@ See `2026-08-30-vite-plus-integration-plan.md` for the full fit assessment.
 
 | Capability | Command | Notes |
 |---|---|---|
-| Tests (unit + browser) | `vp test run` / `deno task --cwd=packages/frontend test` | Two named projects: `unit` (node), `browser` (system Google Chrome via `launchOptions: { channel: 'chrome' }`) |
+| Tests (unit + browser) | `vp test run` / `deno task --cwd=packages/frontend test` | Two named projects: `unit` (node), `browser` (Playwright Chromium, headless) |
 | Commit hooks | `vp hooks enable` / `vp staged` | `staged` block in root `vite.config.ts` (Biome on staged files) + project-owned `.vite-hooks/pre-commit` |
 
 ## What was NOT adopted (and why)
@@ -34,7 +34,7 @@ See `2026-08-30-vite-plus-integration-plan.md` for the full fit assessment.
 | Suffix | Project | Environment | Notes |
 |---|---|---|---|
 | `*.unit.test.ts` | `unit` | node | `describe/expect/it` from `vite-plus/test` |
-| `*.browser.test.ts` | `browser` | system Google Chrome | Same imports; `channel: 'chrome'` launches `/Applications/Google Chrome.app` |
+| `*.browser.test.ts` | `browser` | Playwright Chromium (headless) | Same imports; runs in Playwright-managed Chromium via `vitest browser` |
 
 ## Command guidance
 
@@ -55,6 +55,6 @@ See `2026-08-30-vite-plus-integration-plan.md` for the full fit assessment.
 - Global CLI: `curl -fsSL https://vite.plus | bash` (already done on this machine).
 - Playwright browsers must match the pinned `playwright@1.62.1`:
   `deno run -A npm:playwright@1.62.1 install chromium`
-- Browser tests use system Google Chrome (`channel: 'chrome'`); no Playwright
-  browser download is required for them.
+- Browser tests use Playwright-managed Chromium (headless), not system Chrome.
+  Run the Playwright install command above before running browser tests.
 - CI: `.github/actions/setup-deno` pins Deno 2.9.6 (matches local).
