@@ -1,5 +1,4 @@
 #!/usr/bin/env -S deno run -A
-import process from 'node:process';
 
 import { clearPorts } from './dev-ports.ts';
 
@@ -48,27 +47,6 @@ interface RouteDef {
   path: string;
   method?: string;
   baseUrl?: string;
-}
-
-function elapsed(start: number): string {
-  const s = ((performance.now() - start) / 1000).toFixed(1);
-  return `${s}s`;
-}
-
-function formatLatency(seconds: number | null): string {
-  if (seconds === null || seconds === undefined) return 'N/A';
-  const ms = seconds * 1000;
-  if (ms < 1) return `${(ms * 1000).toFixed(2)}µs`;
-  if (ms < 1000) return `${ms.toFixed(2)}ms`;
-  return `${seconds.toFixed(3)}s`;
-}
-
-function formatRps(rps: number): string {
-  return `${rps.toFixed(0).padStart(7)}`;
-}
-
-function formatPercent(pct: number): string {
-  return `${(pct * 100).toFixed(1)}%`;
 }
 
 function getConfig() {
@@ -296,12 +274,8 @@ async function benchmarkRoute(
   };
 }
 
-function printSeparator(_length: number): void {}
-
-function formatBw(bytesPerSec: number): string {
-  if (bytesPerSec > 1_000_000) return `${(bytesPerSec / 1_000_000).toFixed(1)} MB`;
-  if (bytesPerSec > 1_000) return `${(bytesPerSec / 1_000).toFixed(0)} KB`;
-  return `${bytesPerSec.toFixed(0)} B`;
+function printSeparator(_length: number): void {
+  // Row printing is intentionally disabled; separators only.
 }
 
 interface ColWidths {
@@ -314,21 +288,6 @@ interface ColWidths {
   route: number;
   rps: number;
   success: number;
-}
-
-function _formatRow(r: BenchmarkResult, w: ColWidths): string {
-  const name = r.route.length > w.route ? `${r.route.slice(0, w.route - 3)}...` : r.route;
-  return [
-    name.padEnd(w.route),
-    formatRps(r.rps).padStart(w.rps),
-    formatLatency(r.p75).padStart(w.p75),
-    formatLatency(r.p95).padStart(w.p95),
-    formatLatency(r.p99).padStart(w.p99),
-    formatLatency(r.avgLatency).padStart(w.avg),
-    String(r.totalRequests).padStart(w.reqs),
-    formatPercent(r.successRate).padStart(w.success),
-    formatBw(r.bytesPerSec).padStart(w.bw),
-  ].join(' | ');
 }
 
 function printTable(results: BenchmarkResult[], _totalTime: number): void {
@@ -363,18 +322,6 @@ function printTable(results: BenchmarkResult[], _totalTime: number): void {
 
 function printShortSummary(results: BenchmarkResult[]): void {
   if (results.length === 0) return;
-
-  const sortedP99 = [
-    ...results,
-  ].sort((a, b) => a.p99 - b.p99);
-  const _fast = sortedP99[0]!;
-  const _slow = sortedP99[sortedP99.length - 1]!;
-  const _bestRps = [
-    ...results,
-  ].sort((a, b) => b.rps - a.rps)[0]!;
-
-  const _totalReq = results.reduce((a, r) => a + r.totalRequests, 0);
-  const _avgRps = results.reduce((a, r) => a + r.rps, 0) / results.length;
 }
 
 interface ManagedProcess {
@@ -510,8 +457,11 @@ async function runWarmup(
   warmupDuration: string
 ): Promise<void> {
   if (warmupDuration.startsWith('0')) return;
+
   for (const u of uniqueUrls) {
-    await runOha(`${u}/healthz`, warmupDuration, concurrency).catch(() => {});
+    await runOha(`${u}/healthz`, warmupDuration, concurrency).catch(() => {
+      // Warmup failures are non-fatal.
+    });
   }
 }
 
@@ -526,15 +476,15 @@ async function runBenchmarks(
     : ROUTES;
 
   for (const route of activeRoutes) {
-    const routeStart = performance.now();
-    process.stdout.write(`  ${route.name.padEnd(20)} ... `);
+    Deno.stdout.writeSync(new TextEncoder().encode(`  ${route.name.padEnd(20)} ... `));
 
     try {
       const routeBaseUrl = route.baseUrl ?? baseUrl;
       const result = await benchmarkRoute(route, routeBaseUrl, duration, concurrency);
       results.push(result);
-      const _took = elapsed(routeStart);
-    } catch (_err) {}
+    } catch (_err) {
+      // Ignore individual route failures.
+    }
   }
 
   return results;

@@ -31,6 +31,7 @@ export function RootDocumentHead({ cspNonce }: RootDocumentHeadProps): JSX.Eleme
         rel="preload"
       />
       <Links />
+      {/* biome-ignore lint/performance/noSyncScripts: theme bootstrap must run before paint to avoid FOUC */}
       <script src={themeBootstrapSrc} />
     </>
   );

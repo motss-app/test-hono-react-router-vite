@@ -47,6 +47,11 @@
     "build:worker:canary": "deno run -A npm:vite build --config ./vite.worker.config.ts --mode canary",
     "dev": "CLOUDFLARE_ENV=dev deno run -A ../../scripts/run-with-cleared-ports.ts 5173 -- deno run -A npm:vite",
     "preview": "deno run -A npm:vite preview",
+    "test": "deno x vp test run",
+    "test:browser": "deno x vp test run --project browser",
+    "test:browser:watch": "deno x vp test --project browser",
+    "test:unit": "deno x vp test run --project unit",
+    "test:unit:watch": "deno x vp test --project unit",
     "typecheck": "deno check --unstable-tsgo worker.ts react-router.config.ts vite.config.ts vite.react-router.config.ts vite.worker.config.ts"
   },
   "version": "0.1.0"

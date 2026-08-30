@@ -249,5 +249,6 @@ if (baselinePath) {
   if (outputPath) {
     await Deno.writeTextFile(outputPath, comparison);
   } else {
+    // No output path given; the comparison is only printed to stdout.
   }
 }

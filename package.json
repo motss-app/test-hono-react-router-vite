@@ -35,8 +35,10 @@
     "@types/react-dom": "19.2.5",
     "@vanilla-extract/css": "1.21.2",
     "@vanilla-extract/vite-plugin": "5.2.6",
+    "@vitest/coverage-v8": "4.1.11",
     "typescript": "7.0.2",
     "vite": "8.2.2",
+    "vite-plus": "0.3.0",
     "wrangler": "4.126.0"
   },
   "name": "test-hono-react-router-vite",

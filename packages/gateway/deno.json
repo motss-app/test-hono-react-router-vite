@@ -21,6 +21,7 @@
     "build:canary": "deno run -A npm:vite build --mode canary",
     "dev": "CLOUDFLARE_ENV=dev deno run -A ../../scripts/run-with-cleared-ports.ts 8787 -- deno run -A npm:vite",
     "preview": "deno run -A npm:vite preview",
+    "test": "echo \"No tests yet\"",
     "typecheck": "deno check --unstable-tsgo src/worker.ts vite.config.ts"
   },
   "version": "0.1.0"

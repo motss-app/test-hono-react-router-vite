@@ -2,6 +2,7 @@ import type { SentryReactRouterBuildOptions } from '@sentry/react-router';
 import type { SentryVitePluginOptions } from '@sentry/vite-plugin';
 
 import { readRequiredEnv } from './get-required-env.ts';
+import { getEnv } from './runtime-env.ts';
 
 type RuntimeMode = 'canary' | 'development' | 'production' | string;
 
@@ -35,7 +36,7 @@ const sentryOrganization = 'ipohjs';
 const sentryProject = 'hono-react-router-vite';
 
 function isDeploymentBuild(): boolean {
-  return Deno.env.get('DEPLOYMENT_BUILD') === 'true';
+  return getEnv('DEPLOYMENT_BUILD') === 'true';
 }
 
 function isDevelopmentSentryMode(mode: RuntimeMode): boolean {

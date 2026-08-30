@@ -30,10 +30,10 @@ await withLogGroup(`🚀 Purging Cloudflare cache for Canary (zone ${zoneFingerp
 });
 
 async function purgeCache(hosts: string[]): Promise<void> {
-  const zoneId = readEnv('CLOUDFLARE_ZONE_ID');
+  const purgeZoneId = readEnv('CLOUDFLARE_ZONE_ID');
   const token = readEnv('CLOUDFLARE_API_TOKEN');
 
-  const res = await fetch(`https://api.cloudflare.com/client/v4/zones/${zoneId}/purge_cache`, {
+  const res = await fetch(`https://api.cloudflare.com/client/v4/zones/${purgeZoneId}/purge_cache`, {
     body: JSON.stringify({
       hosts,
     }),

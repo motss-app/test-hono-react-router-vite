@@ -1,17 +1,18 @@
+import { getEnv } from './runtime-env.ts';
 import { logSentryEnvSnapshot } from './sentry-env-log.ts';
 
 export function createBuildSentryEnvSnapshot(
   source: string,
   mode: string
 ): Record<string, unknown> {
-  const port = Deno.env.get('PORT') ?? undefined;
-  const sentryAuthToken = Deno.env.get('SENTRY_AUTH_TOKEN') ?? undefined;
-  const sentryDsn = Deno.env.get('SENTRY_DSN') ?? undefined;
-  const sentryRelease = Deno.env.get('SENTRY_RELEASE') ?? undefined;
-  const viteSentryDsn = Deno.env.get('VITE_SENTRY_DSN') ?? undefined;
+  const port = getEnv('PORT');
+  const sentryAuthToken = getEnv('SENTRY_AUTH_TOKEN');
+  const sentryDsn = getEnv('SENTRY_DSN');
+  const sentryRelease = getEnv('SENTRY_RELEASE');
+  const viteSentryDsn = getEnv('VITE_SENTRY_DSN');
 
   return logSentryEnvSnapshot({
-    deploymentBuild: Deno.env.get('DEPLOYMENT_BUILD') === 'true',
+    deploymentBuild: getEnv('DEPLOYMENT_BUILD') === 'true',
     mode,
     phase: 'build',
     source,

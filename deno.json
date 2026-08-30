@@ -128,6 +128,7 @@
     "route-bundle-size": "deno run -A scripts/route-bundle-size.ts",
     "spotlight": "pnpm dlx @spotlightjs/spotlight",
     "start": "deno task preview",
+    "test": "deno task --cwd=packages/bff test && deno task --cwd=packages/frontend test && deno task --cwd=packages/gateway test",
     "test:visual": "deno run -A scripts/vrt.ts",
     "typegen": "REACT_ROUTER_ROOT=$PWD deno run -A npm:@react-router/dev typegen --config packages/frontend/vite.react-router.config.ts"
   },
