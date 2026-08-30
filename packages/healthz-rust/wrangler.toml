@@ -2,6 +2,14 @@ name = "healthz-rust"
 main = "build/index.js"
 compatibility_date = "2026-05-13"
 workers_dev = true
+preview_urls = true
+upload_source_maps = true
+
+[cache]
+enabled = true
+
+[placement]
+mode = "smart"
 
 [observability]
 enabled = true
