@@ -17,7 +17,6 @@ function discoverStaticRoutes(options?: { exclude?: string[]; rootDir?: string }
   const routes: string[] = [];
   const { exclude = [] } = normalizedOptions;
 
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Recursive directory scanning
   function scan(currentDir: string, urlPrefix: string): void {
     for (const entry of Deno.readDirSync(currentDir)) {
       // Skip hidden files/dirs

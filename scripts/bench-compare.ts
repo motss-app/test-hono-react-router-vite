@@ -221,7 +221,7 @@ async function runBenchmark(): Promise<string> {
     stderr: 'piped',
     stdout: 'piped',
   });
-  const { code, stdout, stderr } = await cmd.output();
+  const { code, stdout } = await cmd.output();
   if (code !== 0) {
     Deno.exit(2);
   }
@@ -266,13 +266,6 @@ async function saveResults(
   await Deno.writeTextFile(`${outputDir}/benchmark-summary.json`, JSON.stringify(summary, null, 2));
 }
 
-function printSummary(summary: Summary): void {
-  if (summary.regressions.length > 0) {
-    for (const _r of summary.regressions) {
-    }
-  }
-}
-
 async function main(): Promise<void> {
   const { baselinePath, commitSha, outputDir } = parseArgs();
   const baseline = await loadBaseline(baselinePath);
@@ -297,7 +290,6 @@ async function main(): Promise<void> {
     unchanged,
   };
   await saveResults(outputDir, summary, current);
-  printSummary(summary);
   if (status === 'regression') Deno.exit(1);
 }
 

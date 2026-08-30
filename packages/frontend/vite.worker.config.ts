@@ -5,6 +5,7 @@ import { readRequiredEnv } from '../../vite-utils/get-required-env.ts';
 import { createImportMetaEnvDefine } from '../../vite-utils/import-meta-env.ts';
 import { loadConfigEnvironment } from '../../vite-utils/load-env.ts';
 import { readEnv } from '../../vite-utils/read-env.ts';
+import { getEnv, writeStderr } from '../../vite-utils/runtime-env.ts';
 import { createSentryVitePluginOptions } from '../../vite-utils/sentry-build.ts';
 import { createBuildSentryEnvSnapshot } from '../../vite-utils/sentry-build-env-log.ts';
 import { sentryCodeSplittingGroup } from '../../vite-utils/sentry-chunking.ts';
@@ -19,12 +20,10 @@ function getSentrySourceMapsGlobPatterns() {
 }
 
 export default defineConfig(({ mode }) => {
-  const isDeploymentBuild = Deno.env.get('DEPLOYMENT_BUILD') === 'true';
+  const isDeploymentBuild = getEnv('DEPLOYMENT_BUILD') === 'true';
   loadConfigEnvironment(mode, repoRootPath);
-  Deno.stderr.writeSync(
-    new TextEncoder().encode(
-      `[packages/frontend/vite.worker.config.ts] Sentry env snapshot ${JSON.stringify(createBuildSentryEnvSnapshot('packages/frontend/vite.worker.config.ts', mode))}\n`
-    )
+  writeStderr(
+    `[packages/frontend/vite.worker.config.ts] Sentry env snapshot ${JSON.stringify(createBuildSentryEnvSnapshot('packages/frontend/vite.worker.config.ts', mode))}\n`
   );
 
   const sentryVitePluginOptions = createSentryVitePluginOptions(mode, {

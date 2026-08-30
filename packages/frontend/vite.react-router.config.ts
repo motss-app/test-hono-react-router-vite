@@ -11,6 +11,7 @@ import { readRequiredEnv } from '../../vite-utils/get-required-env.ts';
 import { createImportMetaEnvDefine } from '../../vite-utils/import-meta-env.ts';
 import { loadConfigEnvironment } from '../../vite-utils/load-env.ts';
 import { readEnv } from '../../vite-utils/read-env.ts';
+import { getEnv, writeStderr } from '../../vite-utils/runtime-env.ts';
 import { createSentryVitePluginOptions } from '../../vite-utils/sentry-build.ts';
 import { createBuildSentryEnvSnapshot } from '../../vite-utils/sentry-build-env-log.ts';
 import {
@@ -40,10 +41,8 @@ const frontendResolveAlias = [
 ];
 
 function logReactRouterSentryEnvSnapshot(mode: string): void {
-  Deno.stderr.writeSync(
-    new TextEncoder().encode(
-      `[packages/frontend/vite.react-router.config.ts] Sentry env snapshot ${JSON.stringify(createBuildSentryEnvSnapshot('packages/frontend/vite.react-router.config.ts', mode))}\n`
-    )
+  writeStderr(
+    `[packages/frontend/vite.react-router.config.ts] Sentry env snapshot ${JSON.stringify(createBuildSentryEnvSnapshot('packages/frontend/vite.react-router.config.ts', mode))}\n`
   );
 }
 
@@ -76,7 +75,7 @@ const reactRouterBuildConfig = {
 export default function createViteConfig(config: ConfigEnv) {
   const { mode } = config;
   const isDev = mode === 'development';
-  const isDeploymentBuild = Deno.env.get('DEPLOYMENT_BUILD') === 'true';
+  const isDeploymentBuild = getEnv('DEPLOYMENT_BUILD') === 'true';
   loadConfigEnvironment(mode, repoRootPath);
   logReactRouterSentryEnvSnapshot(mode);
 

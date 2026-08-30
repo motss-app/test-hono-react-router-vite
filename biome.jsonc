@@ -281,15 +281,12 @@
     },
     {
       "includes": [
-        "scripts/convert-fa-pro.ts"
+        "vite-utils/**/*.ts"
       ],
       "linter": {
         "rules": {
           "correctness": {
             "noNodejsModules": "off"
-          },
-          "style": {
-            "noDefaultExport": "off"
           }
         }
       }
@@ -302,6 +299,12 @@
       ],
       "linter": {
         "rules": {
+          "correctness": {
+            "noNodejsModules": "off"
+          },
+          "style": {
+            "noDefaultExport": "off"
+          },
           "suspicious": {
             "noConsole": {
               "level": "error",
@@ -399,6 +402,18 @@
           "style": {
             "noExportedImports": "off",
             "noRestrictedImports": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "scripts/update-baseline.ts"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noNonNullAssertion": "off"
           }
         }
       }

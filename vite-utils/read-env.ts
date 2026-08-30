@@ -1,3 +1,5 @@
+import { getEnv } from './runtime-env.ts';
+
 type EnvironmentLike = Record<string, unknown> | undefined;
 
 export interface ReadEnvOptions {
@@ -11,5 +13,5 @@ export function readEnv(name: string, options?: ReadEnvOptions): string | undefi
     return value;
   }
 
-  return Deno.env.get(name) ?? undefined;
+  return getEnv(name);
 }

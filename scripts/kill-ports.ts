@@ -34,9 +34,11 @@ function parseArgs(args: string[]): {
 const { ports, verbose } = parseArgs(Deno.args);
 
 if (verbose) {
+  // Verbose logging is not implemented yet.
 }
 
 await clearPorts(ports);
 
 if (verbose) {
+  // Verbose logging is not implemented yet.
 }

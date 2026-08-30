@@ -95,6 +95,7 @@ export function handleSummary(data) {
     const stderr = new TextDecoder().decode(output.stderr);
     jsonText = extractMetricsJson(stdout + stderr);
     if (!jsonText) {
+      // Metrics JSON missing from output; skip this sample.
     }
   }
 
@@ -112,7 +113,9 @@ export function handleSummary(data) {
         p99: Math.round((dur['p(99)'] ?? 0) * 100) / 100,
         rps: Math.round(rps),
       });
-    } catch (_e) {}
+    } catch (_e) {
+      // Ignore individual sample failures.
+    }
   }
 
   await Deno.remove(scriptPath);
@@ -158,34 +161,23 @@ function extractMetricsJson(text: string): string | null {
   return null;
 }
 
-let prevRps = 0;
-for (const r of results) {
-  const rpsDelta = prevRps > 0 ? (((r.rps - prevRps) / prevRps) * 100).toFixed(0) : '';
-  const _rpsStr = rpsDelta ? `${r.rps} (${rpsDelta}%)` : `${r.rps}`;
-  prevRps = r.rps;
-}
-
 // Find saturation point
 if (results.length >= 2) {
   let maxRps = 0;
-  let _saturationCcu = 0;
   for (const r of results) {
     if (r.rps > maxRps) {
       maxRps = r.rps;
-      _saturationCcu = r.ccu;
     }
   }
 
+  // biome-ignore lint/style/noNonNullAssertion: guarded by results.length >= 2
   const lastResult = results[results.length - 1]!;
   const rpsDropped = lastResult.rps < maxRps * 0.9;
   if (rpsDropped) {
+    // Throughput collapsed: saturation point reached.
   } else if (lastResult.p95 > 200) {
+    // p95 latency exceeded the 200ms budget.
   } else {
+    // No saturation detected within the tested CCU range.
   }
-}
-
-function _fmtMs(v: number): string {
-  if (v < 1) return `${(v * 1000).toFixed(0)}µs`;
-  if (v < 1000) return `${v.toFixed(1)}ms`;
-  return `${(v / 1000).toFixed(2)}s`;
 }

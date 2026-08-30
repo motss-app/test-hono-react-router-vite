@@ -22,3 +22,4 @@ __screenshots__
 
 # Vite temp files
 *.timestamp-*.mjs
+coverage/

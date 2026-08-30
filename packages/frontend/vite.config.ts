@@ -9,6 +9,7 @@ import { defineConfig, type UserConfig } from 'vite';
 import { themeBuildPlugin } from '../../vite-plugins/theme-bootstrap/plugin.ts';
 import { veCssTextPlugin } from '../../vite-plugins/ve-css-text/plugin.ts';
 import { loadConfigEnvironment } from '../../vite-utils/load-env.ts';
+import { writeStderr } from '../../vite-utils/runtime-env.ts';
 import { createSentryBuildOptions } from '../../vite-utils/sentry-build.ts';
 import { createBuildSentryEnvSnapshot } from '../../vite-utils/sentry-build-env-log.ts';
 
@@ -58,10 +59,8 @@ export default defineConfig(async config => {
   const isDev = mode === 'development';
 
   loadConfigEnvironment(mode, repoRootPath);
-  Deno.stderr.writeSync(
-    new TextEncoder().encode(
-      `[packages/frontend/vite.config.ts] Sentry env snapshot ${JSON.stringify(createBuildSentryEnvSnapshot('packages/frontend/vite.config.ts', mode))}\n`
-    )
+  writeStderr(
+    `[packages/frontend/vite.config.ts] Sentry env snapshot ${JSON.stringify(createBuildSentryEnvSnapshot('packages/frontend/vite.config.ts', mode))}\n`
   );
 
   const sentryBuildOptions = createSentryBuildOptions(mode, 'react-router-dev') ?? undefined;

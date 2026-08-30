@@ -80,8 +80,8 @@ export function Layout({ children }: PropsWithChildren): JSX.Element {
         <RootDocumentHead cspNonce={cspNonce} />
       </head>
       <body>
-        {/* Biome: <> needed to satisfy noLeakedRender for the else branch */}
-        {cspNonce ? <CSPProvider nonce={cspNonce}>{children}</CSPProvider> : children}
+        {/* biome-ignore lint/complexity/noUselessFragments: fragment required by noLeakedRender for the else branch */}
+        {cspNonce ? <CSPProvider nonce={cspNonce}>{children}</CSPProvider> : <>{children}</>}
         <RootDocumentScripts cspNonce={cspNonce} />
       </body>
     </html>

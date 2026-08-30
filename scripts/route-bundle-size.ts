@@ -249,10 +249,12 @@ if (jsonOutput) {
   if (nonRoot.length > 0) {
     const maxEntry = nonRoot.reduce(
       (m, e) => (sumSize(e.unionFiles, 'raw') > sumSize(m.unionFiles, 'raw') ? e : m),
+      // biome-ignore lint/style/noNonNullAssertion: guarded by nonRoot.length > 0
       nonRoot[0]!
     );
     const minEntry = nonRoot.reduce(
       (m, e) => (sumSize(e.unionFiles, 'raw') < sumSize(m.unionFiles, 'raw') ? e : m),
+      // biome-ignore lint/style/noNonNullAssertion: guarded by nonRoot.length > 0
       nonRoot[0]!
     );
 
