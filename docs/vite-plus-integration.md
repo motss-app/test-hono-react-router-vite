@@ -1,7 +1,7 @@
 # Vite+ Integration
 
 Vite+ (`vp` 0.3.0) is integrated for **testing and commit hooks only**.
-See `2026-08-30-vite-plus-integration-plan.md` for the full fit assessment.
+See the "What was NOT adopted" table below for the full fit assessment.
 
 ## What was adopted
 
