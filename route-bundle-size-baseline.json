@@ -4,78 +4,78 @@
     "rawBytes": 734018
   },
   "rootLayout": {
-    "gzipBytes": 20634,
-    "rawBytes": 55201
+    "gzipBytes": 20638,
+    "rawBytes": 55234
   },
   "routes": [
     {
-      "gzipBytes": 266198,
+      "gzipBytes": 266202,
       "ownGzipBytes": 553,
       "ownRawBytes": 1006,
-      "rawBytes": 790225,
+      "rawBytes": 790258,
       "route": "/$"
     },
     {
-      "gzipBytes": 273149,
+      "gzipBytes": 273153,
       "ownGzipBytes": 7504,
       "ownRawBytes": 21474,
-      "rawBytes": 810693,
+      "rawBytes": 810726,
       "route": "/about"
     },
     {
-      "gzipBytes": 275675,
+      "gzipBytes": 275679,
       "ownGzipBytes": 10030,
       "ownRawBytes": 27609,
-      "rawBytes": 816828,
+      "rawBytes": 816861,
       "route": "/errors"
     },
     {
-      "gzipBytes": 276562,
+      "gzipBytes": 276566,
       "ownGzipBytes": 10917,
       "ownRawBytes": 32930,
-      "rawBytes": 822149,
+      "rawBytes": 822182,
       "route": "/errors.$code"
     },
     {
-      "gzipBytes": 272032,
+      "gzipBytes": 272036,
       "ownGzipBytes": 6387,
       "ownRawBytes": 18536,
-      "rawBytes": 807755,
+      "rawBytes": 807788,
       "route": "/holy-grail"
     },
     {
-      "gzipBytes": 270800,
+      "gzipBytes": 270804,
       "ownGzipBytes": 5155,
       "ownRawBytes": 13229,
-      "rawBytes": 802448,
+      "rawBytes": 802481,
       "route": "/home"
     },
     {
-      "gzipBytes": 274975,
+      "gzipBytes": 274979,
       "ownGzipBytes": 9330,
       "ownRawBytes": 26039,
-      "rawBytes": 815258,
+      "rawBytes": 815291,
       "route": "/hono-rpc"
     },
     {
-      "gzipBytes": 265825,
+      "gzipBytes": 265829,
       "ownGzipBytes": 180,
       "ownRawBytes": 197,
-      "rawBytes": 789416,
+      "rawBytes": 789449,
       "route": "/page-layout"
     },
     {
-      "gzipBytes": 271410,
+      "gzipBytes": 271414,
       "ownGzipBytes": 5765,
       "ownRawBytes": 16215,
-      "rawBytes": 805434,
+      "rawBytes": 805467,
       "route": "/ssr"
     }
   ],
   "summary": {
     "maxRoute": "/errors.$code",
-    "maxRouteRawBytes": 822149,
+    "maxRouteRawBytes": 822182,
     "minRoute": "/page-layout",
-    "minRouteRawBytes": 789416
+    "minRouteRawBytes": 789449
   }
 }
