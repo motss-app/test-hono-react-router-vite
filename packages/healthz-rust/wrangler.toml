@@ -1,0 +1,13 @@
+name = "healthz-rust"
+main = "build/index.js"
+compatibility_date = "2026-05-13"
+workers_dev = true
+
+[env.canary]
+name = "healthz-rust-canary"
+
+[env.dev]
+name = "healthz-rust-dev"
+
+[env.production]
+name = "healthz-rust-production"

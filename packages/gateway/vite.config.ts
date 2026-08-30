@@ -5,6 +5,14 @@ import { defineConfig } from 'vite';
 import { readRequiredEnv } from '../../vite-utils/get-required-env.ts';
 import { createImportMetaEnvDefine } from '../../vite-utils/import-meta-env.ts';
 
+function isHealthzRustBuilt(): boolean {
+  try {
+    return Deno.statSync(new URL('../healthz-rust/build/worker/shim.mjs', import.meta.url)).isFile;
+  } catch {
+    return false;
+  }
+}
+
 export default defineConfig(({ command }) => {
   const isDev = command === 'serve';
   const isDeploymentBuild = Deno.env.get('DEPLOYMENT_BUILD') === 'true';
@@ -25,6 +33,14 @@ export default defineConfig(({ command }) => {
                 {
                   configPath: '../bff/wrangler.jsonc',
                 },
+                // Healthz Rust worker only once built (requires Rust toolchain).
+                ...(isHealthzRustBuilt()
+                  ? [
+                      {
+                        configPath: '../healthz-rust/wrangler.toml',
+                      },
+                    ]
+                  : []),
               ],
             }
           : {}),

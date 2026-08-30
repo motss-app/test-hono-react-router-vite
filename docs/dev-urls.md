@@ -9,6 +9,7 @@ All URLs assume the gateway runs on `localhost:8787` and the frontend dev server
 | `GET /healthz` | `"gateway ok"` | Gateway |
 | `GET /api/healthz` | `"bff ok"` | BFF (via gateway proxy) |
 | `GET /fe/healthz` | `"frontend ok"` | Frontend (via gateway proxy) |
+| `GET /rust/healthz` | `"gateway rust ok"` | Healthz Rust (via gateway service binding) |
 
 ## Direct frontend access
 
