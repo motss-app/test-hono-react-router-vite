@@ -160,7 +160,13 @@ export default withSentry<GatewayBindings>(
     createCloudflareSentryOptions(
       import.meta.env.MODE,
       env.SENTRY_DSN,
-      import.meta.env.SENTRY_RELEASE
+      import.meta.env.SENTRY_RELEASE,
+      // Only Sentry-instrumented receivers know how to strip the RPC trace-context argument. The
+      // Rust healthz worker does not run Sentry, so it stays out of the allow list.
+      [
+        'FRONTEND',
+        'BFF',
+      ]
     ),
   {
     fetch(

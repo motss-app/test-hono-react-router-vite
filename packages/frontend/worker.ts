@@ -180,7 +180,10 @@ export default withSentry<HonoEnv['Bindings']>(
       ...createCloudflareSentryOptions(
         import.meta.env.MODE,
         env.SENTRY_DSN,
-        import.meta.env.SENTRY_RELEASE
+        import.meta.env.SENTRY_RELEASE,
+        // The frontend worker is an RPC receiver (continuing traces via `enableRpcTracePropagation`)
+        // but only has the static ASSETS binding, so it propagates to nothing.
+        []
       ),
       beforeSendSpan: span =>
         applyAppSessionIdToSpan(

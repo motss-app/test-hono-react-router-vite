@@ -23,7 +23,10 @@ export default withSentry<BffBindings>(
     createCloudflareSentryOptions(
       import.meta.env.MODE,
       env.SENTRY_DSN,
-      import.meta.env.SENTRY_RELEASE
+      import.meta.env.SENTRY_RELEASE,
+      // The BFF is an RPC receiver (continuing traces via `enableRpcTracePropagation`) but has no
+      // Sentry-instrumented bindings of its own, so it propagates to nothing.
+      []
     ),
   {
     fetch(

@@ -204,7 +204,6 @@ export function createBrowserSentryOptions(mode: RuntimeMode, dsn?: string, rele
           release: runtimeRelease,
         }
       : {}),
-    enableRpcTracePropagation: true,
     profileLifecycle: 'trace' as const,
     profileSessionSampleRate,
     replaysOnErrorSampleRate,
@@ -216,13 +215,22 @@ export function createBrowserSentryOptions(mode: RuntimeMode, dsn?: string, rele
 export function createCloudflareSentryOptions(
   mode: RuntimeMode,
   dsn?: string,
-  release?: string
+  release?: string,
+  rpcTracePropagationBindings?: CloudflareOptions['rpcTracePropagationBindings']
 ): CloudflareOptions {
   const runtimeRelease = getRequiredRuntimeRelease(mode, release);
 
   return {
     ...createBaseOptions(mode, dsn),
+    // Receivers keep using `enableRpcTracePropagation` to continue incoming RPC traces until it is
+    // removed in a future Sentry major. On the caller side the `rpcTracePropagationBindings` allow
+    // list below takes precedence, so propagation is scoped to bindings whose receiver runs Sentry.
     enableRpcTracePropagation: true,
+    ...(rpcTracePropagationBindings
+      ? {
+          rpcTracePropagationBindings,
+        }
+      : {}),
     ...(runtimeRelease
       ? {
           release: runtimeRelease,
