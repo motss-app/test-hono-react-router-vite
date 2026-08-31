@@ -1,6 +1,9 @@
 import type { JSX } from 'react';
 
-// Bundle-size baseline update trigger.
+// Bundle-size baseline update trigger — runtime reference so bundler keeps it.
+const BUNDLE_TRIGGER = 'route-bundle-size-baseline-test-' + Date.now();
+void BUNDLE_TRIGGER;
+
 import { Link } from '../components/Link.tsx';
 import { PageFooter } from '../components/page-footer.tsx';
 import { Text } from '../components/text.tsx';
