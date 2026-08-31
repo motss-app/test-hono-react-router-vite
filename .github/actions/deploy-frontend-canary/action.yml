@@ -1,9 +1,0 @@
-name: Deploy Frontend Canary
-description: Build and deploy the frontend worker to Cloudflare Workers (canary).
-
-runs:
-  using: composite
-  steps:
-    - name: Run Frontend Canary deployment
-      shell: bash
-      run: deno run -A "${GITHUB_ACTION_PATH}/run.ts"

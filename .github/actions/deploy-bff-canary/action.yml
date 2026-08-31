@@ -1,9 +1,0 @@
-name: Deploy BFF Canary
-description: Build and deploy the BFF worker to Cloudflare Workers (canary).
-
-runs:
-  using: composite
-  steps:
-    - name: Run BFF Canary deployment
-      shell: bash
-      run: deno run -A "${GITHUB_ACTION_PATH}/run.ts"
