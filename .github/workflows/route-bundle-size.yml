@@ -99,18 +99,13 @@ jobs:
           HEAD_SHA=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$BRANCH" --jq '.object.sha')
           BLOB_SHA=$(gh api "repos/$GITHUB_REPOSITORY/git/blobs" \
             -f content="$CONTENT_B64" -f encoding=base64 --jq '.sha')
-          TREE_SHA=$(gh api "repos/$GITHUB_REPOSITORY/git/trees" \
-            -f base_tree="$HEAD_SHA" \
-            -f "tree[0][path]=$BASELINE_FILE" \
-            -f "tree[0][mode]=100644" \
-            -f "tree[0][type]=blob" \
-            -f "tree[0][sha]=$BLOB_SHA" \
-            --jq '.sha')
-          COMMIT_SHA=$(gh api "repos/$GITHUB_REPOSITORY/git/commits" \
-            -f message='chore: update route bundle size baseline' \
-            -f tree="$TREE_SHA" \
-            -f "parents[]=$HEAD_SHA" \
-            --jq '.sha')
+          TREE_PAYLOAD=$(jq -nc --arg path "$BASELINE_FILE" --arg sha "$BLOB_SHA" \
+            '{base_tree:$ENV.HEAD_SHA, tree:[{path:$path, mode:"100644", type:"blob", sha:$sha}]}')
+          TREE_SHA=$(echo "$TREE_PAYLOAD" | gh api "repos/$GITHUB_REPOSITORY/git/trees" --input - --jq '.sha')
+          COMMIT_PAYLOAD=$(jq -nc --arg msg 'chore: update route bundle size baseline' \
+            --arg tree "$TREE_SHA" --arg parent "$HEAD_SHA" \
+            '{message:$msg, tree:$tree, parents:[$parent]}')
+          COMMIT_SHA=$(echo "$COMMIT_PAYLOAD" | gh api "repos/$GITHUB_REPOSITORY/git/commits" --input - --jq '.sha')
           gh api "repos/$GITHUB_REPOSITORY/git/refs/heads/$BRANCH" \
             -X PATCH -f sha="$COMMIT_SHA" >/dev/null
           echo "Committed $COMMIT_SHA on $BRANCH"
