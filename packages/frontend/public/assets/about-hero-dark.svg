@@ -1,0 +1,61 @@
+<svg width="1600" height="1080" viewBox="0 0 1600 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="182" y1="102" x2="1420" y2="1016" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#06111C"/>
+      <stop offset="0.5" stop-color="#0B1626"/>
+      <stop offset="1" stop-color="#13263F"/>
+    </linearGradient>
+    <linearGradient id="beam" x1="724" y1="0" x2="1288" y2="1080" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1E3A8A" stop-opacity="0.24"/>
+      <stop offset="0.54" stop-color="#38BDF8" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#38BDF8" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="orb" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1170 398) rotate(90) scale(330)">
+      <stop stop-color="#1D4ED8" stop-opacity="0.6"/>
+      <stop offset="1" stop-color="#1D4ED8" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="72" height="72" patternUnits="userSpaceOnUse">
+      <path d="M72 0H0V72" stroke="#284264" stroke-opacity="0.58"/>
+    </pattern>
+    <filter id="blurLarge" x="804" y="46" width="752" height="772" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="62"/>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="1080" fill="url(#bg)"/>
+  <rect width="1600" height="1080" fill="url(#grid)"/>
+  <rect width="1600" height="1080" fill="url(#grid)" opacity="0.32" transform="translate(36 36)"/>
+  <path d="M0 0H772V1080H0V0Z" fill="#08101B"/>
+  <path d="M562 0H1600V1080H562C784 850 908 668 944 520C996 298 834 108 562 0Z" fill="url(#beam)"/>
+
+  <g filter="url(#blurLarge)" opacity="0.8">
+    <circle cx="1170" cy="398" r="240" fill="url(#orb)"/>
+  </g>
+
+  <text x="694" y="936" fill="#7DD3FC" fill-opacity="0.08" font-family="'Open Sans', sans-serif" font-size="250" font-weight="700" letter-spacing="-0.08em">SYSTEM</text>
+  <text x="946" y="1024" fill="#BAE6FD" fill-opacity="0.12" font-family="'Open Sans', sans-serif" font-size="128" font-weight="700" letter-spacing="-0.05em">stack → runtime</text>
+
+  <path d="M826 222H1284" stroke="#7DD3FC" stroke-opacity="0.36" stroke-width="3"/>
+  <path d="M826 440H1300" stroke="#38BDF8" stroke-opacity="0.3" stroke-width="3"/>
+  <path d="M826 658H1270" stroke="#E2E8F0" stroke-opacity="0.16" stroke-width="3"/>
+  <path d="M826 876H1320" stroke="#4ADE80" stroke-opacity="0.32" stroke-width="3"/>
+
+  <circle cx="826" cy="222" r="8" fill="#7DD3FC"/>
+  <circle cx="826" cy="440" r="8" fill="#38BDF8"/>
+  <circle cx="826" cy="658" r="8" fill="#E2E8F0" fill-opacity="0.55"/>
+  <circle cx="826" cy="876" r="8" fill="#4ADE80"/>
+
+  <text x="902" y="178" fill="#BAE6FD" fill-opacity="0.28" font-family="'Open Sans', sans-serif" font-size="26" font-weight="700" letter-spacing="0.18em">SYSTEM MAP</text>
+
+  <text x="902" y="230" fill="#F8FAFC" fill-opacity="0.94" font-family="'Open Sans', sans-serif" font-size="30" font-weight="700">FRONTEND</text>
+  <text x="902" y="268" fill="#CBD5E1" fill-opacity="0.84" font-family="'Open Sans', sans-serif" font-size="18">React 19, React Router 7, StyleX, Iconify</text>
+
+  <text x="902" y="448" fill="#F8FAFC" fill-opacity="0.94" font-family="'Open Sans', sans-serif" font-size="30" font-weight="700">SERVER</text>
+  <text x="902" y="486" fill="#CBD5E1" fill-opacity="0.84" font-family="'Open Sans', sans-serif" font-size="18">Hono handlers and typed request boundaries</text>
+
+  <text x="902" y="666" fill="#F8FAFC" fill-opacity="0.94" font-family="'Open Sans', sans-serif" font-size="30" font-weight="700">RUNTIME</text>
+  <text x="902" y="704" fill="#CBD5E1" fill-opacity="0.84" font-family="'Open Sans', sans-serif" font-size="18">Deno-first local flow and Cloudflare Workers target</text>
+
+  <text x="902" y="884" fill="#F8FAFC" fill-opacity="0.94" font-family="'Open Sans', sans-serif" font-size="30" font-weight="700">QUALITY</text>
+  <text x="902" y="922" fill="#CBD5E1" fill-opacity="0.84" font-family="'Open Sans', sans-serif" font-size="18">type safety, responsiveness, and fast iteration</text>
+</svg>

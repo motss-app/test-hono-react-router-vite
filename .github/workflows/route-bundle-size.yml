@@ -1,0 +1,119 @@
+name: Route Bundle Size
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+env:
+  SENTRY_DSN: ${{ vars.SENTRY_DSN }}
+  SENTRY_RELEASE: local
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  route-bundle-size:
+    name: Check Route Bundle Size
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - uses: ./.github/actions/setup-deno
+
+      - name: Build
+        run: deno task build
+
+      - name: Measure and summarize bundle sizes
+        run: |
+          deno task route-bundle-size --json > /tmp/current-bundle-size.json
+          echo '## Route Bundle Size' >> "$GITHUB_STEP_SUMMARY"
+          deno task route-bundle-size >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Use PR baseline (PR only)
+        if: github.event_name == 'pull_request'
+        run: |
+          if [ -f route-bundle-size-baseline.json ]; then
+            cp route-bundle-size-baseline.json /tmp/baseline-bundle-size.json
+            echo "Using baseline from PR branch"
+          else
+            echo '{"entry":{"gzipBytes":0,"rawBytes":0},"rootLayout":{"gzipBytes":0,"rawBytes":0},"routes":[]}' > /tmp/baseline-bundle-size.json
+            echo "No baseline found, using empty baseline"
+          fi
+
+      - name: Use current as baseline (main push)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: cp /tmp/current-bundle-size.json /tmp/baseline-bundle-size.json
+
+      - name: Compare and generate comment (PR only)
+        id: compare
+        if: github.event_name == 'pull_request'
+        run: |
+          set +e
+          deno run -A scripts/check-route-bundle-size.ts /tmp/current-bundle-size.json --baseline /tmp/baseline-bundle-size.json --budget 50 --output /tmp/bundle-size-comment.md
+          EXIT_CODE=$?
+          set -e
+          echo "exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
+          # Set the step outcome based on exit code
+          if [ -f /tmp/bundle-size-comment.md ] && grep -q "❌" /tmp/bundle-size-comment.md; then
+            echo "regression=true" >> "$GITHUB_OUTPUT"
+            cat /tmp/bundle-size-comment.md
+            exit 1
+          else
+            echo "regression=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upsert comparison comment (PR only)
+        uses: ./.github/actions/upsert-pr-comment
+        if: github.event_name == 'pull_request' && always()
+        with:
+          marker: '<!-- route-bundle-size-comment -->'
+          body-file: /tmp/bundle-size-comment.md
+
+      - name: Fail on budget exceeded (PR only)
+        if: github.event_name == 'pull_request' && steps.compare.outputs.regression == 'true'
+        run: |
+          echo "❌ Route bundle size budget exceeded (>50% gzip increase)."
+          echo "Check the PR comment for details."
+          exit 1
+
+      - name: Update baseline on main
+        # Create the commit via the GitHub API as github-actions[bot] (no custom
+        # author/committer/signature) so GitHub signs it server-side and marks it Verified.
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cp /tmp/current-bundle-size.json route-bundle-size-baseline.json
+          CONTENT=$(base64 -w0 route-bundle-size-baseline.json)
+
+          FILE_RESP=$(curl -sS -H "Authorization: Bearer $GH_TOKEN" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/contents/route-bundle-size-baseline.json?ref=main")
+          CURRENT_SHA=$(printf '%s' "$FILE_RESP" | jq -r '.sha // empty')
+          REMOTE_B64=$(printf '%s' "$FILE_RESP" | jq -r '.content // empty' | tr -d '\n')
+
+          if [ "$CONTENT" = "$REMOTE_B64" ]; then
+            echo "No baseline change to commit"
+            exit 0
+          fi
+
+          if [ -n "$CURRENT_SHA" ]; then
+            jq -n --arg message "chore: update route bundle size baseline" \
+              --arg content "$CONTENT" --arg branch "main" --arg sha "$CURRENT_SHA" \
+              '{message:$message,content:$content,branch:$branch,sha:$sha}' > /tmp/payload.json
+          else
+            jq -n --arg message "chore: update route bundle size baseline" \
+              --arg content "$CONTENT" --arg branch "main" \
+              '{message:$message,content:$content,branch:$branch}' > /tmp/payload.json
+          fi
+
+          curl -sS -X PUT \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/contents/route-bundle-size-baseline.json" \
+            -d @/tmp/payload.json | jq -e '.commit.sha' >/dev/null

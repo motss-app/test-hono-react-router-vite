@@ -1,0 +1,75 @@
+<svg width="1600" height="1080" viewBox="0 0 1600 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="180" y1="102" x2="1422" y2="1012" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#06111C"/>
+      <stop offset="0.5" stop-color="#0B1626"/>
+      <stop offset="1" stop-color="#13263F"/>
+    </linearGradient>
+    <linearGradient id="beam" x1="726" y1="0" x2="1290" y2="1080" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1E3A8A" stop-opacity="0.24"/>
+      <stop offset="0.54" stop-color="#38BDF8" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#38BDF8" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="flowPrimary" x1="1100" y1="150" x2="1100" y2="888" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7DD3FC"/>
+      <stop offset="1" stop-color="#38BDF8" stop-opacity="0.18"/>
+    </linearGradient>
+    <linearGradient id="flowSecondary" x1="806" y1="262" x2="1310" y2="650" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#BAE6FD"/>
+      <stop offset="1" stop-color="#4ADE80" stop-opacity="0.42"/>
+    </linearGradient>
+    <radialGradient id="orb" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1170 410) rotate(90) scale(324)">
+      <stop stop-color="#1D4ED8" stop-opacity="0.6"/>
+      <stop offset="1" stop-color="#1D4ED8" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="72" height="72" patternUnits="userSpaceOnUse">
+      <path d="M72 0H0V72" stroke="#284264" stroke-opacity="0.58"/>
+    </pattern>
+    <filter id="blurLarge" x="804" y="56" width="744" height="760" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="60"/>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="1080" fill="url(#bg)"/>
+  <rect width="1600" height="1080" fill="url(#grid)"/>
+  <rect width="1600" height="1080" fill="url(#grid)" opacity="0.32" transform="translate(36 36)"/>
+  <path d="M0 0H772V1080H0V0Z" fill="#08101B"/>
+  <path d="M560 0H1600V1080H560C782 850 906 668 942 520C998 296 836 110 560 0Z" fill="url(#beam)"/>
+
+  <g filter="url(#blurLarge)" opacity="0.8">
+    <circle cx="1170" cy="410" r="236" fill="url(#orb)"/>
+  </g>
+
+  <text x="698" y="930" fill="#7DD3FC" fill-opacity="0.08" font-family="'Open Sans', sans-serif" font-size="250" font-weight="700" letter-spacing="-0.08em">RENDER</text>
+  <text x="946" y="1022" fill="#BAE6FD" fill-opacity="0.12" font-family="'Open Sans', sans-serif" font-size="128" font-weight="700" letter-spacing="-0.05em">route → recover</text>
+
+  <path d="M806 208C894 208 946 246 1020 246H1280C1342 246 1392 296 1392 358V826" stroke="url(#flowPrimary)" stroke-width="4"/>
+  <path d="M848 314C906 314 946 354 1028 354H1242" stroke="#7DD3FC" stroke-opacity="0.94" stroke-width="3"/>
+  <path d="M848 520H1190C1248 520 1296 472 1296 414V292" stroke="url(#flowSecondary)" stroke-width="3"/>
+  <path d="M792 724H1042C1146 724 1230 640 1230 536V448" stroke="#E2E8F0" stroke-opacity="0.22" stroke-width="3"/>
+  <path d="M868 878H1208C1292 878 1360 810 1360 726V646" stroke="#38BDF8" stroke-opacity="0.46" stroke-width="2.5"/>
+
+  <path d="M784 206H860" stroke="#E2E8F0" stroke-opacity="0.12" stroke-width="2"/>
+  <path d="M784 520H838" stroke="#E2E8F0" stroke-opacity="0.12" stroke-width="2"/>
+  <path d="M738 724H780" stroke="#E2E8F0" stroke-opacity="0.12" stroke-width="2"/>
+  <path d="M806 878H854" stroke="#E2E8F0" stroke-opacity="0.12" stroke-width="2"/>
+
+  <circle cx="848" cy="314" r="8" fill="#7DD3FC"/>
+  <circle cx="848" cy="520" r="8" fill="#38BDF8"/>
+  <circle cx="792" cy="724" r="8" fill="#E2E8F0" fill-opacity="0.55"/>
+  <circle cx="868" cy="878" r="8" fill="#4ADE80"/>
+
+  <text x="1108" y="190" fill="#BAE6FD" fill-opacity="0.28" font-family="'Open Sans', sans-serif" font-size="26" font-weight="700" letter-spacing="0.18em">REQUEST FLOW</text>
+
+  <text x="902" y="322" fill="#F8FAFC" fill-opacity="0.94" font-family="'Open Sans', sans-serif" font-size="30" font-weight="700">GET /about</text>
+  <text x="902" y="360" fill="#CBD5E1" fill-opacity="0.84" font-family="'Open Sans', sans-serif" font-size="18">architecture, stack, migration notes</text>
+
+  <text x="902" y="528" fill="#F8FAFC" fill-opacity="0.94" font-family="'Open Sans', sans-serif" font-size="30" font-weight="700">SSR /ssr</text>
+  <text x="902" y="566" fill="#CBD5E1" fill-opacity="0.84" font-family="'Open Sans', sans-serif" font-size="18">request-time render, fresh server state</text>
+
+  <text x="844" y="732" fill="#F8FAFC" fill-opacity="0.94" font-family="'Open Sans', sans-serif" font-size="30" font-weight="700">RPC /hono-rpc</text>
+  <text x="844" y="770" fill="#CBD5E1" fill-opacity="0.84" font-family="'Open Sans', sans-serif" font-size="18">typed client and server messages</text>
+
+  <text x="920" y="886" fill="#F8FAFC" fill-opacity="0.94" font-family="'Open Sans', sans-serif" font-size="30" font-weight="700">ERROR /errors</text>
+  <text x="920" y="924" fill="#CBD5E1" fill-opacity="0.84" font-family="'Open Sans', sans-serif" font-size="18">boundaries, status routes, recovery</text>
+</svg>

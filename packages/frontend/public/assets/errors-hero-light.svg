@@ -1,0 +1,61 @@
+<svg width="1600" height="1080" viewBox="0 0 1600 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="144" y1="98" x2="1420" y2="1028" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFDF8"/>
+      <stop offset="0.48" stop-color="#FFF7ED"/>
+      <stop offset="1" stop-color="#FFEDD5"/>
+    </linearGradient>
+    <linearGradient id="beam" x1="736" y1="0" x2="1294" y2="1080" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" stop-opacity="0.82"/>
+      <stop offset="0.56" stop-color="#FCD34D" stop-opacity="0.24"/>
+      <stop offset="1" stop-color="#FDBA74" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="orb" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1160 412) rotate(90) scale(326)">
+      <stop stop-color="#FDE68A"/>
+      <stop offset="1" stop-color="#FDE68A" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="72" height="72" patternUnits="userSpaceOnUse">
+      <path d="M72 0H0V72" stroke="#F6C89F" stroke-opacity="0.42"/>
+    </pattern>
+    <filter id="blurLarge" x="796" y="52" width="760" height="792" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="68"/>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="1080" fill="url(#bg)"/>
+  <rect width="1600" height="1080" fill="url(#grid)"/>
+  <rect width="1600" height="1080" fill="url(#grid)" opacity="0.3" transform="translate(36 36)"/>
+  <path d="M0 0H760V1080H0V0Z" fill="url(#bg)"/>
+  <path d="M560 0H1600V1080H560C792 842 914 664 950 522C1000 304 846 112 560 0Z" fill="url(#beam)"/>
+
+  <g filter="url(#blurLarge)" opacity="0.82">
+    <circle cx="1160" cy="412" r="244" fill="url(#orb)"/>
+  </g>
+
+  <text x="670" y="938" fill="#EA580C" fill-opacity="0.06" font-family="'Open Sans', sans-serif" font-size="244" font-weight="700" letter-spacing="-0.08em">ERROR</text>
+  <text x="986" y="1018" fill="#7C2D12" fill-opacity="0.1" font-family="'Open Sans', sans-serif" font-size="122" font-weight="700" letter-spacing="-0.05em">routes and boundaries</text>
+
+  <path d="M808 228H1298" stroke="#F59E0B" stroke-opacity="0.32" stroke-width="3"/>
+  <path d="M808 418H1298" stroke="#D97706" stroke-opacity="0.26" stroke-width="3"/>
+  <path d="M808 608H1298" stroke="#DC2626" stroke-opacity="0.24" stroke-width="3"/>
+  <path d="M808 798H1298" stroke="#16A34A" stroke-opacity="0.24" stroke-width="3"/>
+
+  <circle cx="808" cy="228" r="8" fill="#F59E0B" fill-opacity="0.78"/>
+  <circle cx="808" cy="418" r="8" fill="#D97706" fill-opacity="0.78"/>
+  <circle cx="808" cy="608" r="8" fill="#DC2626" fill-opacity="0.72"/>
+  <circle cx="808" cy="798" r="8" fill="#16A34A" fill-opacity="0.7"/>
+
+  <text x="892" y="186" fill="#9A3412" fill-opacity="0.2" font-family="'Open Sans', sans-serif" font-size="26" font-weight="700" letter-spacing="0.18em">FAILURE PATHS</text>
+
+  <text x="892" y="236" fill="#7C2D12" fill-opacity="0.62" font-family="'Open Sans', sans-serif" font-size="28" font-weight="700">404 / 401 / 403</text>
+  <text x="892" y="272" fill="#7C2D12" fill-opacity="0.5" font-family="'Open Sans', sans-serif" font-size="18">client-facing response errors</text>
+
+  <text x="892" y="426" fill="#7C2D12" fill-opacity="0.62" font-family="'Open Sans', sans-serif" font-size="28" font-weight="700">500 / 502 / 503</text>
+  <text x="892" y="462" fill="#7C2D12" fill-opacity="0.5" font-family="'Open Sans', sans-serif" font-size="18">server and upstream failures</text>
+
+  <text x="892" y="616" fill="#7C2D12" fill-opacity="0.62" font-family="'Open Sans', sans-serif" font-size="28" font-weight="700">BOUNDARY</text>
+  <text x="892" y="652" fill="#7C2D12" fill-opacity="0.5" font-family="'Open Sans', sans-serif" font-size="18">loader throw -> route error surface</text>
+
+  <text x="892" y="806" fill="#7C2D12" fill-opacity="0.62" font-family="'Open Sans', sans-serif" font-size="28" font-weight="700">RUNTIME</text>
+  <text x="892" y="842" fill="#7C2D12" fill-opacity="0.5" font-family="'Open Sans', sans-serif" font-size="18">plain Error caught by the same boundary</text>
+</svg>

@@ -1,0 +1,28 @@
+{
+  "chat.tools.terminal.autoApprove": {
+    "env": true,
+    "git remote": true,
+    "printf": true
+  },
+  "deno.enable": true,
+  "editor.codeActionsOnSave": {
+    "source.addMissingImports.ts": "explicit",
+    "source.fixAll.biome": "explicit",
+    "source.organizeImports.biome": "explicit",
+    "source.removeUnused.ts": "explicit",
+    "source.removeUnusedImports": "explicit",
+    "source.sort.json": "always",
+    "source.useSortedAttributes.biome": "explicit",
+    "source.useSortedKeys.biome": "explicit",
+    "source.useSortedProperties.biome": "explicit"
+  },
+  "editor.defaultFormatter": "biomejs.biome",
+  "editor.formatOnSave": true,
+  "editor.tabSize": 2,
+  "js/ts.experimental.useTsgo": true,
+  "js/ts.preferences.importModuleSpecifier": "relative",
+  "js/ts.suggest.autoImports": true,
+  "js/ts.tsdk.path": "node_modules/typescript/lib",
+  "js/ts.tsserver.experimental.enableProjectDiagnostics": false,
+  "poirot.defaultLocale": "en-US"
+}

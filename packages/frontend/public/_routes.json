@@ -1,0 +1,9 @@
+{
+  "exclude": [
+    "/assets/*"
+  ],
+  "include": [
+    "/*"
+  ],
+  "version": 1
+}

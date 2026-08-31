@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "lib": [
+      "deno.ns",
+      "deno.unstable",
+      "esnext"
+    ],
+    "types": [
+      "@cloudflare/workers-types"
+    ]
+  },
+  "exports": {
+    ".": "./src/api.ts",
+    "./api": "./src/api.ts",
+    "./worker": "./src/worker.ts"
+  },
+  "name": "@motss-app/bff",
+  "tasks": {
+    "build": "deno run -A npm:vite build",
+    "build:canary": "deno run -A npm:vite build --mode canary",
+    "test": "echo \"No tests yet\"",
+    "typecheck": "deno check --unstable-tsgo src/api.ts src/worker.ts vite.config.ts"
+  },
+  "version": "0.1.0"
+}

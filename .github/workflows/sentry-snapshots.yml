@@ -1,0 +1,155 @@
+name: Sentry Snapshots
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+  # Bot-pushed commits (e.g. Route Bundle Size's baseline update) don't trigger
+  # the `push` event (GITHUB_TOKEN pushes never start new runs), so main would
+  # silently lose its snapshots baseline. Wake up after Route Bundle Size
+  # finishes on main and upload the baseline for the new tip instead.
+  workflow_run:
+    workflows: ["Route Bundle Size"]
+    types: [completed]
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+env:
+  SENTRY_CLI_VERSION: 3.6.0
+  PLAYWRIGHT_VERSION: 1.62.1
+  SENTRY_DSN: https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400
+
+jobs:
+  snapshots:
+    name: Visual snapshots
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+
+    steps:
+      # For workflow_run events, resolve the current main tip and skip if the
+      # triggering run didn't push a new commit (a human push is already covered
+      # by the `push` event and must not double-run).
+      - name: Resolve main tip (workflow_run)
+        if: github.event_name == 'workflow_run'
+        id: main-tip
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TIP_SHA=$(gh api repos/${{ github.repository }}/branches/main --jq '.commit.sha')
+          printf 'sha=%s\n' "$TIP_SHA" >> "$GITHUB_OUTPUT"
+          if [ "$TIP_SHA" = "${{ github.event.workflow_run.head_sha }}" ]; then
+            printf 'skip=true\n' >> "$GITHUB_OUTPUT"
+            printf 'No new commit pushed by the triggering run - skipping baseline upload\n'
+          else
+            printf 'skip=false\n' >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ steps.main-tip.outputs.sha || github.event.pull_request.head.sha || github.sha }}
+
+      - uses: ./.github/actions/setup-deno
+
+      # actions/cache v6.1.0
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        id: playwright-cache
+        with:
+          path: |
+            ~/.cache/ms-playwright
+            ~/.cache/puppeteer
+          key: playwright-${{ env.PLAYWRIGHT_VERSION }}-${{ runner.os }}
+
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true' && (github.event_name != 'workflow_run' || steps.main-tip.outputs.skip != 'true')
+        run: deno run -A npm:playwright install chromium --with-deps
+
+      - name: Build frontend
+        if: github.event_name != 'workflow_run' || steps.main-tip.outputs.skip != 'true'
+        run: deno task --cwd=packages/frontend build:react-router
+
+      - name: Visual tests
+        if: github.event_name != 'workflow_run' || steps.main-tip.outputs.skip != 'true'
+        run: |
+          set +e
+          cleanup() {
+            kill "$ssr_pid" "$gateway_pid" 2>/dev/null || true
+            wait "$ssr_pid" "$gateway_pid" 2>/dev/null || true
+          }
+          trap cleanup EXIT
+
+          echo "Starting production SSR..."
+          PORT=5173 deno run -A scripts/standalone-ssr.ts & ssr_pid=$!
+          echo "Starting gateway..."
+          deno task dev:gateway & gateway_pid=$!
+
+          # Phase 1: wait for gateway health endpoint (servers up)
+          echo "Waiting for gateway..."
+          for i in $(seq 1 30); do
+            if curl -sf --max-time 5 -o /dev/null http://localhost:8787/fe/healthz 2>/dev/null; then
+              echo "Gateway ready after ${i}s"
+              break
+            fi
+            sleep 2
+          done
+
+          # Phase 2: wait for SSR page to render
+          echo "Waiting for SSR..."
+          for i in $(seq 1 30); do
+            if curl -sfL --max-time 10 -o /dev/null http://localhost:8787/en-US 2>/dev/null; then
+              echo "SSR ready after ${i}s"
+              break
+            fi
+            sleep 2
+          done
+
+          set -e
+          echo "Running visual tests..."
+          deno task test:visual
+
+      - name: Compute merge base SHA
+        if: github.event_name == 'pull_request'
+        id: merge-base
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          MERGE_BASE=$(gh api repos/${{ github.repository }}/compare/${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }} --jq '.merge_base_commit.sha')
+          echo "sha=$MERGE_BASE" >> "$GITHUB_OUTPUT"
+
+      # actions/cache v6.1.0
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        id: sentry-cli-cache
+        with:
+          path: /usr/local/bin/sentry-cli
+          key: sentry-cli-${{ env.SENTRY_CLI_VERSION }}-${{ runner.os }}
+
+      - name: Install sentry-cli
+        if: steps.sentry-cli-cache.outputs.cache-hit != 'true'
+        env:
+          SENTRY_CLI_VERSION: ${{ env.SENTRY_CLI_VERSION }}
+        run: curl -sL https://sentry.io/get-cli/ | sh
+
+      # On main pushes: uploads snapshots tagged with git commit SHA (the baseline).
+      # On PRs: uploads head snapshots with --base-sha so Sentry can diff against
+      # the matching main commit. Requires SENTRY_RELEASE to be unset so sentry-cli
+      # auto-uses the commit SHA instead of a static release name.
+      - name: Upload snapshots to Sentry
+        if: github.event_name != 'workflow_run' || steps.main-tip.outputs.skip != 'true'
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_SNAPSHOTS_PAT }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
+          BASE_SHA: ${{ steps.merge-base.outputs.sha }}
+        run: |
+          sentry-cli \
+            --log-level=debug \
+            snapshots upload __screenshots__ \
+            --app-id sentry-snapshots \
+            --project "$SENTRY_PROJECT" \
+            ${BASE_SHA:+--base-sha "$BASE_SHA"} \
+            ${BASE_SHA:+--base-repo-name "${{ github.repository }}"}

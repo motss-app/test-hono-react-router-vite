@@ -1,0 +1,95 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "../../build/client",
+    "html_handling": "drop-trailing-slash"
+  },
+  "base_dir": "../../build",
+  "cache": {
+    "enabled": true
+  },
+  "compatibility_date": "2026-05-13",
+  "compatibility_flags": [
+    "enable_request_signal",
+    "nodejs_als",
+    "nodejs_compat",
+    "pedantic_wpt",
+    "request_signal_passthrough"
+  ],
+  "dev": {
+    "inspector_port": 9232
+  },
+  "env": {
+    "canary": {
+      "vars": {
+        "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400",
+        "VITE_POSTHOG_TOKEN": "phc_sRh8wzHjtA3vxHKideGmCopwCT7BzUg2XcaiHH4apBfY",
+        "VITE_POSTHOG_API_HOST": "https://us.i.posthog.com",
+        "VITE_SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
+      }
+    },
+    "dev": {
+      "main": "./worker.ts",
+      "vars": {
+        "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400",
+        "VITE_POSTHOG_TOKEN": "phc_sRh8wzHjtA3vxHKideGmCopwCT7BzUg2XcaiHH4apBfY",
+        "VITE_POSTHOG_API_HOST": "https://us.i.posthog.com",
+        "VITE_SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
+      }
+    },
+    "preview": {
+      "minify": false,
+      "no_bundle": false,
+      "vars": {
+        "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400",
+        "VITE_POSTHOG_TOKEN": "phc_sRh8wzHjtA3vxHKideGmCopwCT7BzUg2XcaiHH4apBfY",
+        "VITE_POSTHOG_API_HOST": "https://us.i.posthog.com",
+        "VITE_SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
+      }
+    },
+    "production": {
+      "vars": {
+        "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400",
+        "VITE_POSTHOG_TOKEN": "phc_sRh8wzHjtA3vxHKideGmCopwCT7BzUg2XcaiHH4apBfY",
+        "VITE_POSTHOG_API_HOST": "https://us.i.posthog.com",
+        "VITE_SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
+      }
+    }
+  },
+  "find_additional_modules": true,
+  "main": "../../build/worker.js",
+  "minify": false,
+  "name": "frontend-app",
+  "no_bundle": true,
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1.0,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1.0,
+      "invocation_logs": true,
+      "persist": true
+    },
+    "traces": {
+      "enabled": true,
+      "head_sampling_rate": 1.0,
+      "persist": true
+    }
+  },
+  "placement": {
+    "mode": "smart"
+  },
+  "preserve_file_names": true,
+  "preview_urls": false,
+  "rules": [
+    {
+      "globs": [
+        "assets/**/*.js"
+      ],
+      "type": "ESModule"
+    }
+  ],
+  "upload_source_maps": true,
+  "workers_dev": false
+}

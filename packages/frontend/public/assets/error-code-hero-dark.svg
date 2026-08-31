@@ -1,0 +1,61 @@
+<svg width="1600" height="1080" viewBox="0 0 1600 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="156" y1="98" x2="1420" y2="1022" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#12090C"/>
+      <stop offset="0.52" stop-color="#190B0F"/>
+      <stop offset="1" stop-color="#301015"/>
+    </linearGradient>
+    <linearGradient id="beam" x1="718" y1="0" x2="1288" y2="1080" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#B91C1C" stop-opacity="0.2"/>
+      <stop offset="0.56" stop-color="#EF4444" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#EF4444" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="orb" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1166 414) rotate(90) scale(326)">
+      <stop stop-color="#B91C1C" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#B91C1C" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="72" height="72" patternUnits="userSpaceOnUse">
+      <path d="M72 0H0V72" stroke="#5A2028" stroke-opacity="0.56"/>
+    </pattern>
+    <filter id="blurLarge" x="794" y="52" width="764" height="792" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="68"/>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="1080" fill="url(#bg)"/>
+  <rect width="1600" height="1080" fill="url(#grid)"/>
+  <rect width="1600" height="1080" fill="url(#grid)" opacity="0.28" transform="translate(36 36)"/>
+  <path d="M0 0H760V1080H0V0Z" fill="#12090C"/>
+  <path d="M566 0H1600V1080H566C794 842 918 664 954 522C1004 304 852 112 566 0Z" fill="url(#beam)"/>
+
+  <g filter="url(#blurLarge)" opacity="0.82">
+    <circle cx="1166" cy="414" r="244" fill="url(#orb)"/>
+  </g>
+
+  <text x="646" y="938" fill="#FCA5A5" fill-opacity="0.08" font-family="'Open Sans', sans-serif" font-size="244" font-weight="700" letter-spacing="-0.08em">INCIDENT</text>
+  <text x="938" y="1018" fill="#FECACA" fill-opacity="0.12" font-family="'Open Sans', sans-serif" font-size="122" font-weight="700" letter-spacing="-0.05em">boundary response</text>
+
+  <path d="M816 238H1304" stroke="#F87171" stroke-opacity="0.32" stroke-width="3"/>
+  <path d="M816 448H1304" stroke="#FCA5A5" stroke-opacity="0.28" stroke-width="3"/>
+  <path d="M816 658H1304" stroke="#CBD5E1" stroke-opacity="0.18" stroke-width="3"/>
+  <path d="M816 868H1304" stroke="#93C5FD" stroke-opacity="0.18" stroke-width="3"/>
+
+  <circle cx="816" cy="238" r="8" fill="#F87171"/>
+  <circle cx="816" cy="448" r="8" fill="#FCA5A5"/>
+  <circle cx="816" cy="658" r="8" fill="#CBD5E1" fill-opacity="0.54"/>
+  <circle cx="816" cy="868" r="8" fill="#93C5FD" fill-opacity="0.68"/>
+
+  <text x="900" y="196" fill="#FECACA" fill-opacity="0.28" font-family="'Open Sans', sans-serif" font-size="26" font-weight="700" letter-spacing="0.18em">INCIDENT FLOW</text>
+
+  <text x="900" y="246" fill="#FFF1F2" fill-opacity="0.94" font-family="'Open Sans', sans-serif" font-size="28" font-weight="700">LOADER THROW</text>
+  <text x="900" y="282" fill="#FECACA" fill-opacity="0.84" font-family="'Open Sans', sans-serif" font-size="18">Response or Error leaves the route</text>
+
+  <text x="900" y="456" fill="#FFF1F2" fill-opacity="0.94" font-family="'Open Sans', sans-serif" font-size="28" font-weight="700">BOUNDARY</text>
+  <text x="900" y="492" fill="#FECACA" fill-opacity="0.84" font-family="'Open Sans', sans-serif" font-size="18">ErrorBoundary shapes the final surface</text>
+
+  <text x="900" y="666" fill="#FFF1F2" fill-opacity="0.94" font-family="'Open Sans', sans-serif" font-size="28" font-weight="700">STATUS + MESSAGE</text>
+  <text x="900" y="702" fill="#FECACA" fill-opacity="0.84" font-family="'Open Sans', sans-serif" font-size="18">Readable incident details for inspection</text>
+
+  <text x="900" y="876" fill="#FFF1F2" fill-opacity="0.94" font-family="'Open Sans', sans-serif" font-size="28" font-weight="700">SERVER TIMING</text>
+  <text x="900" y="912" fill="#FECACA" fill-opacity="0.84" font-family="'Open Sans', sans-serif" font-size="18">Headers keep request timing visible</text>
+</svg>

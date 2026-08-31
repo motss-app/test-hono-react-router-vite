@@ -1,0 +1,113 @@
+name: Benchmark
+
+on:
+  pull_request:
+    paths:
+      - 'packages/**'
+      - 'vite-plugins/**'
+      - 'vite-utils/**'
+      - 'scripts/bench-all.ts'
+      - 'scripts/standalone-*.ts'
+      - 'deno.json'
+      - 'deno.lock'
+      - 'biome.jsonc'
+      - 'tsconfig.json'
+      - 'react-router.config.ts'
+  workflow_dispatch:
+
+env:
+  OHA_VERSION: v1.14.0
+  SENTRY_DSN: ${{ vars.SENTRY_DSN }}
+  SENTRY_RELEASE: local
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  benchmark:
+    name: Benchmark & Compare
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - uses: ./.github/actions/setup-deno
+
+      - name: Log system info
+        run: |
+          echo "**OS:** $(uname -srm)"
+          echo "**CPUs:** $(nproc) logical cores"
+          echo "**Memory:** $(free -h | awk '/^Mem:/ {print $2}') total"
+          echo "**Deno:** $(deno --version | head -1)"
+          echo "**Runner:** ${{ runner.name }} (${{ runner.os }})"
+
+      # actions/cache v6.1.0
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        id: oha-cache
+        with:
+          path: /usr/local/bin/oha
+          key: oha-${{ env.OHA_VERSION }}-${{ runner.os }}
+
+      - name: Install oha
+        if: steps.oha-cache.outputs.cache-hit != 'true'
+        run: |
+          curl -sL "https://github.com/hatoo/oha/releases/download/${OHA_VERSION}/oha-linux-amd64" -o /tmp/oha
+          chmod +x /tmp/oha
+          sudo mv /tmp/oha /usr/local/bin/oha
+
+      - name: Build
+        run: deno task build
+
+      - name: Run benchmark (direct servers only)
+        env:
+          OHA_BINARY: /usr/local/bin/oha
+          DIRECT_ONLY: 'true'
+          BENCH_DURATION: 30s
+        run: |
+          set -eo pipefail
+          deno run -A scripts/bench-all.ts 2>&1 | tee /tmp/bench-output.txt
+
+      - name: Fetch baseline from main (PR only)
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch origin main --depth=1
+          git show origin/main:docs/benchmark-baseline.md > /tmp/baseline.md 2>/dev/null || echo "## No baseline available" > /tmp/baseline.md
+
+      - name: Compare and generate comment (PR only)
+        id: compare
+        if: github.event_name == 'pull_request'
+        run: |
+          deno run -A scripts/update-baseline.ts /tmp/bench-output.txt --baseline /tmp/baseline.md --output /tmp/bench-comment.md
+          if grep -q "regression detected" /tmp/bench-comment.md; then
+            echo "regression=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upsert comparison comment (PR only)
+        uses: ./.github/actions/upsert-pr-comment
+        if: github.event_name == 'pull_request' && always()
+        with:
+          marker: '<!-- benchmark-comment -->'
+          body-file: /tmp/bench-comment.md
+
+      - name: Fail on regression (PR only)
+        if: github.event_name == 'pull_request' && steps.compare.outputs.regression == 'true'
+        run: |
+          echo "❌ Performance regression detected (>15% RPS drop or p99 increase)."
+          echo "Check the PR comment for details."
+          exit 1
+
+      - name: Update baseline on main
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        run: |
+          deno run -A scripts/update-baseline.ts /tmp/bench-output.txt
+          BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add docs/benchmark-baseline.md
+          if git diff --cached --quiet; then
+            echo "No baseline change to commit"
+          else
+            git commit -m "chore: update benchmark baseline"
+            git push origin "HEAD:${BRANCH}"
+          fi

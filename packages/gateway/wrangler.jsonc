@@ -1,0 +1,136 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "cache": {
+    "enabled": true
+  },
+  "compatibility_date": "2026-05-13",
+  "compatibility_flags": [
+    "enable_request_signal",
+    "nodejs_als",
+    "nodejs_compat",
+    "pedantic_wpt",
+    "request_signal_passthrough"
+  ],
+  "dev": {
+    "inspector_port": 9230
+  },
+  "env": {
+    "canary": {
+      "main": "./dist/edge_gateway/index.js",
+      "no_bundle": true,
+      "routes": [
+        {
+          "custom_domain": true,
+          "pattern": "hono-react-router-vite-canary.motss.fyi"
+        }
+      ],
+      "services": [
+        {
+          "binding": "FRONTEND",
+          "service": "frontend-app-canary"
+        },
+        {
+          "binding": "BFF",
+          "service": "bff-api-canary"
+        },
+        {
+          "binding": "HEALTHZ_RUST",
+          "service": "healthz-rust-canary"
+        }
+      ],
+      "vars": {
+        "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
+      }
+    },
+    "dev": {
+      "main": "./src/worker.ts",
+      "routes": [],
+      "services": [
+        {
+          "binding": "FRONTEND",
+          "service": "frontend-app-dev"
+        },
+        {
+          "binding": "BFF",
+          "service": "bff-api-dev"
+        },
+        {
+          "binding": "HEALTHZ_RUST",
+          "service": "healthz-rust-dev"
+        }
+      ],
+      "vars": {
+        "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
+      }
+    },
+    "production": {
+      "main": "./dist/edge_gateway/index.js",
+      "no_bundle": true,
+      "routes": [
+        {
+          "custom_domain": true,
+          "pattern": "hono-react-router-vite.motss.fyi"
+        }
+      ],
+      "services": [
+        {
+          "binding": "FRONTEND",
+          "service": "frontend-app-production"
+        },
+        {
+          "binding": "BFF",
+          "service": "bff-api-production"
+        },
+        {
+          "binding": "HEALTHZ_RUST",
+          "service": "healthz-rust-production"
+        }
+      ],
+      "vars": {
+        "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
+      }
+    }
+  },
+  "main": "./src/worker.ts",
+  "minify": false,
+  "name": "edge-gateway",
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1.0,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1.0,
+      "invocation_logs": true,
+      "persist": true
+    },
+    "traces": {
+      "enabled": true,
+      "head_sampling_rate": 1.0,
+      "persist": true
+    }
+  },
+  "placement": {
+    "mode": "smart"
+  },
+  "preserve_file_names": true,
+  "preview_urls": true,
+  "services": [
+    {
+      "binding": "FRONTEND",
+      "service": "frontend-app"
+    },
+    {
+      "binding": "BFF",
+      "service": "bff-api"
+    },
+    {
+      "binding": "HEALTHZ_RUST",
+      "service": "healthz-rust"
+    }
+  ],
+  "upload_source_maps": true,
+  "vars": {
+    "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
+  },
+  "workers_dev": true
+}
