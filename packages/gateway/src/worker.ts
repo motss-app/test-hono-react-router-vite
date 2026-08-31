@@ -89,6 +89,21 @@ function shouldUseLocalProxy(request: Request): boolean {
 
 app.get('/healthz', c => c.text('gateway ok'));
 
+app.get('/rust/healthz', async c => {
+  const healthzRust = c.env.HEALTHZ_RUST;
+  if (!healthzRust) {
+    return c.text('healthz-rust binding not configured', 503);
+  }
+  const resp = await healthzRust.fetch(new Request('http://healthz/healthz'));
+  return new Response(resp.body, {
+    headers: {
+      'x-worker': 'healthz-rust',
+      ...Object.fromEntries(resp.headers),
+    },
+    status: resp.status,
+  });
+});
+
 app.all(loaderIoTokenPath, c =>
   c.text(loaderIoToken, 200, {
     'Cache-Control': 'no-store',

@@ -56,7 +56,8 @@
   },
   "exclude": [
     ".wrangler",
-    "k6-load-test.mjs"
+    "k6-load-test.mjs",
+    "packages/healthz-rust"
   ],
   "imports": {
     "@sentry/browser": "npm:@sentry/browser@10.71.0",

@@ -76,6 +76,10 @@ const ROUTES: RouteDef[] = [
     path: '/api/healthz',
   },
   {
+    name: 'Health (Rust)',
+    path: '/rust/healthz',
+  },
+  {
     name: 'Home',
     path: '/',
   },
@@ -274,8 +278,12 @@ async function benchmarkRoute(
   };
 }
 
-function printSeparator(_length: number): void {
-  // Row printing is intentionally disabled; separators only.
+function writeLine(line: string): void {
+  Deno.stdout.writeSync(new TextEncoder().encode(`${line}\n`));
+}
+
+function printSeparator(length: number): void {
+  writeLine('-'.repeat(Math.max(length, 10)));
 }
 
 interface ColWidths {
@@ -290,7 +298,7 @@ interface ColWidths {
   success: number;
 }
 
-function printTable(results: BenchmarkResult[], _totalTime: number): void {
+function printTable(results: BenchmarkResult[], totalTime: number): void {
   const w: ColWidths = {
     avg: 12,
     bw: 10,
@@ -315,13 +323,34 @@ function printTable(results: BenchmarkResult[], _totalTime: number): void {
   ].join(' | ');
   const totalWidth = header.length;
   printSeparator(totalWidth);
+  writeLine(header);
   printSeparator(totalWidth);
+  for (const r of results) {
+    const row = [
+      r.route.padEnd(w.route),
+      String(Math.round(r.rps)).padStart(w.rps),
+      `${r.p75.toFixed(2)}ms`.padStart(w.p75),
+      `${r.p95.toFixed(2)}ms`.padStart(w.p95),
+      `${r.p99.toFixed(2)}ms`.padStart(w.p99),
+      `${r.avgLatency.toFixed(2)}ms`.padStart(w.avg),
+      String(r.totalRequests).padStart(w.reqs),
+      `${(r.successRate * 100).toFixed(1)}%`.padStart(w.success),
+      `${(r.bytesPerSec / 1024).toFixed(1)}KB/s`.padStart(w.bw),
+    ].join(' | ');
+    writeLine(row);
+  }
   printSeparator(totalWidth);
-  for (const _r of results) printSeparator(totalWidth);
+  writeLine(`Total bench time: ${totalTime.toFixed(1)}s`);
 }
 
 function printShortSummary(results: BenchmarkResult[]): void {
   if (results.length === 0) return;
+  const failures = results.filter(r => r.successRate < 0.95);
+  if (failures.length === 0) {
+    writeLine('All routes >= 95% success. No regressions detected in this run.');
+  } else {
+    writeLine(`Routes below 95% success: ${failures.map(f => f.route).join(', ')}`);
+  }
 }
 
 interface ManagedProcess {

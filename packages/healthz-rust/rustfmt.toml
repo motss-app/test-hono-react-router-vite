@@ -1,0 +1,2 @@
+# rustfmt config: 2-space indentation for all Rust code.
+tab_spaces = 2
