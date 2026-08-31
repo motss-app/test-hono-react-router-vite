@@ -1,5 +1,6 @@
 import type { JSX } from 'react';
 
+// Bundle-size baseline update trigger.
 import { Link } from '../components/Link.tsx';
 import { PageFooter } from '../components/page-footer.tsx';
 import { Text } from '../components/text.tsx';
