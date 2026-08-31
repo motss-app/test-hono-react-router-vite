@@ -5,6 +5,14 @@ on:
   push:
     branches: [main]
   pull_request:
+  # Bot-pushed commits (e.g. Route Bundle Size's baseline update) don't trigger
+  # the `push` event (GITHUB_TOKEN pushes never start new runs), so main would
+  # silently lose its snapshots baseline. Wake up after Route Bundle Size
+  # finishes on main and upload the baseline for the new tip instead.
+  workflow_run:
+    workflows: ["Route Bundle Size"]
+    types: [completed]
+    branches: [main]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
@@ -20,11 +28,31 @@ jobs:
     name: Visual snapshots
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
 
     steps:
+      # For workflow_run events, resolve the current main tip and skip if the
+      # triggering run didn't push a new commit (a human push is already covered
+      # by the `push` event and must not double-run).
+      - name: Resolve main tip (workflow_run)
+        if: github.event_name == 'workflow_run'
+        id: main-tip
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TIP_SHA=$(gh api repos/${{ github.repository }}/branches/main --jq '.commit.sha')
+          printf 'sha=%s\n' "$TIP_SHA" >> "$GITHUB_OUTPUT"
+          if [ "$TIP_SHA" = "${{ github.event.workflow_run.head_sha }}" ]; then
+            printf 'skip=true\n' >> "$GITHUB_OUTPUT"
+            printf 'No new commit pushed by the triggering run - skipping baseline upload\n'
+          else
+            printf 'skip=false\n' >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ steps.main-tip.outputs.sha || github.event.pull_request.head.sha || github.sha }}
 
       - uses: ./.github/actions/setup-deno
 
@@ -38,13 +66,15 @@ jobs:
           key: playwright-${{ env.PLAYWRIGHT_VERSION }}-${{ runner.os }}
 
       - name: Install Playwright browsers
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        if: steps.playwright-cache.outputs.cache-hit != 'true' && (github.event_name != 'workflow_run' || steps.main-tip.outputs.skip != 'true')
         run: deno run -A npm:playwright install chromium --with-deps
 
       - name: Build frontend
+        if: github.event_name != 'workflow_run' || steps.main-tip.outputs.skip != 'true'
         run: deno task --cwd=packages/frontend build:react-router
 
       - name: Visual tests
+        if: github.event_name != 'workflow_run' || steps.main-tip.outputs.skip != 'true'
         run: |
           set +e
           cleanup() {
@@ -109,6 +139,7 @@ jobs:
       # the matching main commit. Requires SENTRY_RELEASE to be unset so sentry-cli
       # auto-uses the commit SHA instead of a static release name.
       - name: Upload snapshots to Sentry
+        if: github.event_name != 'workflow_run' || steps.main-tip.outputs.skip != 'true'
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_SNAPSHOTS_PAT }}
           SENTRY_ORG: ${{ vars.SENTRY_ORG }}
