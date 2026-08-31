@@ -85,24 +85,23 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BRANCH: ${{ github.ref_name }}
+          BASELINE_FILE: route-bundle-size-baseline.json
         run: |
           set -euo pipefail
-          PATH='route-bundle-size-baseline.json'
           CURRENT=''
-          [ -f "$PATH" ] && CURRENT=$(cat "$PATH")
+          [ -f "$BASELINE_FILE" ] && CURRENT=$(cat "$BASELINE_FILE")
           NEXT=$(cat /tmp/current-bundle-size.json)
           if [ "$CURRENT" = "$NEXT" ]; then
             echo 'No baseline change; skipping commit.'
             exit 0
           fi
           CONTENT_B64=$(printf '%s' "$NEXT" | base64 | tr -d '\n')
-          REPO_FULL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
           HEAD_SHA=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$BRANCH" --jq '.object.sha')
           BLOB_SHA=$(gh api "repos/$GITHUB_REPOSITORY/git/blobs" \
             -f content="$CONTENT_B64" -f encoding=base64 --jq '.sha')
           TREE_SHA=$(gh api "repos/$GITHUB_REPOSITORY/git/trees" \
             -f base_tree="$HEAD_SHA" \
-            -f "tree[0][path]=$PATH" \
+            -f "tree[0][path]=$BASELINE_FILE" \
             -f "tree[0][mode]=100644" \
             -f "tree[0][type]=blob" \
             -f "tree[0][sha]=$BLOB_SHA" \
