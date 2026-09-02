@@ -3,6 +3,7 @@ const prerenderExcludedRoutes = [
   '/errors/:code',
   '/home',
   '/hono-rpc',
+  '/page-layout',
   '/ssr',
 ];
 const SUPPORTED_LOCALES = [
@@ -33,6 +34,11 @@ function discoverStaticRoutes(options?: { exclude?: string[]; rootDir?: string }
         // Recurse into subdirectory
         scan(`${currentDir}/${entry.name}`, `${urlPrefix}/${entry.name}`);
       } else if (entry.isFile) {
+        // CSS route modules are build dependencies, not document routes.
+        if (!EXTENSION_REGEX.test(entry.name) || entry.name.endsWith('.css.ts')) {
+          continue;
+        }
+
         // Convert filename to path: "about.tsx" -> "/about"
         const name = entry.name.replace(EXTENSION_REGEX, '');
 

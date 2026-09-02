@@ -140,6 +140,40 @@ async function processStaticRoute({
   );
 }
 
+async function gzipStaticRoute(clientDir: string, routePath: string): Promise<boolean> {
+  const htmlFile = htmlFilePathFromRoute(clientDir, routePath);
+
+  if (!fileExists(htmlFile)) {
+    return false;
+  }
+
+  const input = await Deno.readFile(htmlFile);
+  const command = new Deno.Command('gzip', {
+    args: [
+      '-n',
+      '-9',
+      '-c',
+    ],
+    stderr: 'piped',
+    stdin: 'piped',
+    stdout: 'piped',
+  });
+  const child = command.spawn();
+  const writer = child.stdin.getWriter();
+  await writer.write(input);
+  await writer.close();
+
+  const output = await child.output();
+
+  if (!output.success) {
+    const error = new TextDecoder().decode(output.stderr).trim();
+    throw new Error(`gzip failed for ${htmlFile}: ${error || `exit code ${output.code}`}`);
+  }
+
+  await Deno.writeFile(`${htmlFile}.gz`, output.stdout);
+  return true;
+}
+
 export function headersCopyPlugin(options: HeadersCopyPluginOptions): Plugin {
   const rootDir = options.rootDir ?? Deno.cwd();
   const headersDir = resolve(rootDir, options.headersDir);
@@ -193,6 +227,9 @@ export function headersCopyPlugin(options: HeadersCopyPluginOptions): Plugin {
         const staticRouteHeaders = staticRouteHeadersResults.filter(
           (header): header is string => header !== null
         );
+        const compressedRoutes = await Promise.all(
+          prerenderRoutes.map(routePath => gzipStaticRoute(clientDir, routePath))
+        );
 
         headersText = `${headersText.trimEnd()}\n\n${staticRouteHeaders.join('\n\n')}\n`;
 
@@ -200,6 +237,9 @@ export function headersCopyPlugin(options: HeadersCopyPluginOptions): Plugin {
 
         this.info(
           `Generated static CSP headers for ${staticRouteHeaders.length} prerendered route(s) at ${destPath}`
+        );
+        this.info(
+          `Generated gzip files for ${compressedRoutes.filter(Boolean).length} pre-rendered route(s)`
         );
       },
       order: 'post',

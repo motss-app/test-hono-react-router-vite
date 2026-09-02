@@ -77,8 +77,11 @@ For prerendered HTML:
 - `vite-plugins/copy-headers.ts` reads each prerendered HTML file
 - it hashes inline `<script>` and `<style>` blocks
 - it appends route-specific `Cache-Control` and CSP entries to `build/client/_headers`
-- generated SSG HTML uses `Cache-Control: no-transform` so Cloudflare does not inject
-  per-response JavaScript Detection snippets after the build has computed CSP hashes
+- the build emits deterministic `index.html.gz` files with `gzip -n -9` for each SSG page
+- the Worker maps the public SSG URL to its `.gz` asset before the SSR fallback and sets
+  `Content-Encoding: gzip`, compressed `Content-Length`, the gzip `ETag`, and `Vary: Accept-Encoding`
+- generated SSG HTML uses `Cache-Control: no-transform`, so Cloudflare preserves the already
+  compressed body and does not inject or rewrite HTML after CSP hashes are computed
 - Cloudflare Analytics reuses `cloudflareAnalyticsStyleHashes`, so the generated SSG policy matches the runtime SSR policy.
 - it also appends `Content-Security-Policy-Report-Only`, `Report-To`, and `Reporting-Endpoints` so Sentry can receive CSP security reports from prerendered pages
 - the Sentry report URI is built from `SENTRY_DSN` and carries `sentry_environment` and `sentry_release`, so canary and production reports stay attributable to the right build
@@ -89,6 +92,14 @@ This is used for both production and canary builds:
 - `headers/_headers.canary`
 
 Those files act as base templates. The build then appends the generated per-route SSG headers.
+
+The precompressed SSG representation is selected only for the allowlisted prerendered page
+routes. SSR routes remain request-time responses and do not use the build-time gzip files; their
+compression remains Cloudflare's responsibility.
+
+If a Cloudflare feature injects a resource that is not allowed by the page's CSP, the browser
+blocks that resource and continues enforcing the rest of the policy. The affected Cloudflare
+feature may not run, but the violation does not disable CSP protection for the page.
 
 ### Theme bootstrap script
 
@@ -129,6 +140,8 @@ The reporting URI is derived from the Sentry DSN and includes the current build 
 - Using a nonce for static SSG HTML
 - Assuming same-origin inline code is allowed without a nonce or hash
 - Expecting build-time CSP hashes to cover CDN-injected inline scripts
+- Assuming Cloudflare Assets automatically negotiates arbitrary `.gz` sibling files without a
+  Worker mapping
 - Treating `integrity` as a replacement for CSP
 - Forgetting to thread the nonce through React Router's component tree, causing hydration failures on SSR pages
 

@@ -141,6 +141,93 @@ function recordWorkerRequestError(
 // Redirect `/` to base locale `/en-US`.  URL is the source of truth;
 // cookie-based locale detection is not used for the root redirect.
 const [BASE_LOCALE] = locales;
+const staticSsgPaths = new Set(
+  locales.flatMap(locale => [
+    `/${locale}`,
+    `/${locale}/about`,
+    `/${locale}/holy-grail`,
+    `/${locale}/errors`,
+  ])
+);
+
+function createStaticAssetRequest(request: Request, url: URL): Request {
+  const headers = new Headers(request.headers);
+
+  headers.delete('Accept-Encoding');
+  headers.delete('If-Modified-Since');
+  headers.delete('If-None-Match');
+  headers.delete('Range');
+
+  return new Request(url, {
+    headers,
+    method: request.method,
+  });
+}
+
+async function serveStaticSsgPage({
+  env,
+  request,
+}: {
+  env: HonoEnv['Bindings'];
+  request: Request;
+}): Promise<Response | null> {
+  const pathname = new URL(request.url).pathname.replace(/\/$/, '') || '/';
+
+  if (request.method !== 'GET' && request.method !== 'HEAD') {
+    return null;
+  }
+
+  if (!staticSsgPaths.has(pathname)) {
+    return null;
+  }
+
+  const assetUrl = new URL(request.url);
+  assetUrl.pathname = `${pathname}/index.html.gz`;
+  const gzipResponse = await env.ASSETS.fetch(createStaticAssetRequest(request, assetUrl));
+
+  if (!gzipResponse.ok) {
+    return null;
+  }
+
+  const originalUrl = new URL(request.url);
+  originalUrl.pathname = `${pathname}/index.html`;
+  const originalResponse = await env.ASSETS.fetch(createStaticAssetRequest(request, originalUrl));
+  const headers = new Headers(originalResponse.headers);
+  const compressedLength = gzipResponse.headers.get('Content-Length');
+  const compressedEtag = gzipResponse.headers.get('ETag');
+  const vary = new Set(
+    (headers.get('Vary') ?? '')
+      .split(',')
+      .map(value => value.trim())
+      .filter(Boolean)
+  );
+
+  headers.set('Content-Type', 'text/html; charset=UTF-8');
+  headers.set('Content-Encoding', 'gzip');
+  vary.add('Accept-Encoding');
+  headers.set(
+    'Vary',
+    [
+      ...vary,
+    ].join(', ')
+  );
+
+  if (compressedLength) {
+    headers.set('Content-Length', compressedLength);
+  } else {
+    headers.delete('Content-Length');
+  }
+
+  if (compressedEtag) {
+    headers.set('ETag', compressedEtag);
+  }
+
+  return new Response(request.method === 'HEAD' ? null : gzipResponse.body, {
+    headers,
+    status: gzipResponse.status,
+    statusText: gzipResponse.statusText,
+  });
+}
 
 app.get('/', c => {
   const response = c.redirect(`/${BASE_LOCALE}`, 302);
@@ -218,13 +305,24 @@ export default withSentry<HonoEnv['Bindings']>(
       }
 
       try {
-        const response = await handleWorkerAppRequest({
-          appSessionId,
+        const staticSsgResponse = await serveStaticSsgPage({
           env,
-          executionContext,
           request,
-          shouldSetAppSessionCookie,
         });
+        const response = staticSsgResponse
+          ? attachAppSessionCookie(
+              request,
+              staticSsgResponse,
+              appSessionId,
+              shouldSetAppSessionCookie
+            )
+          : await handleWorkerAppRequest({
+              appSessionId,
+              env,
+              executionContext,
+              request,
+              shouldSetAppSessionCookie,
+            });
 
         // Skip metrics recording during load tests to reduce overhead
         if (!isLoadTestMode) {
