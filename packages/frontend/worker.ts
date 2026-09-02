@@ -210,6 +210,31 @@ function createStaticAssetRequest(request: Request, url: URL): Request {
   });
 }
 
+const ssgCacheControl =
+  'public, max-age=0, s-maxage=900, stale-while-revalidate=180, stale-if-error=86400, no-transform';
+
+function buildSsgHeaders(baseHeaders: Headers): Headers {
+  const headers = new Headers(baseHeaders);
+  const vary = new Set(
+    (headers.get('Vary') ?? '')
+      .split(',')
+      .map(value => value.trim())
+      .filter(Boolean)
+  );
+  vary.add('Accept-Encoding');
+
+  headers.set('Content-Type', 'text/html; charset=UTF-8');
+  headers.set('Cache-Control', ssgCacheControl);
+  headers.set(
+    'Vary',
+    [
+      ...vary,
+    ].join(', ')
+  );
+
+  return headers;
+}
+
 async function serveStaticSsgPage({
   env,
   request,
@@ -227,6 +252,31 @@ async function serveStaticSsgPage({
     return null;
   }
 
+  const acceptEncoding = request.headers.get('Accept-Encoding') ?? '';
+
+  // Serve the pre-compressed .gz file when the client supports gzip.
+  // The ASSETS fetch uses identity encoding (createStaticAssetRequest strips
+  // Accept-Encoding) so the runtime does not auto-decompress the bytes, and we
+  // pass the body stream through directly — never read it.
+  if (acceptEncoding.includes('gzip')) {
+    const gzUrl = new URL(request.url);
+    gzUrl.pathname = `/_ssg${pathname}/index.html.gz`;
+    const gzResponse = await env.ASSETS.fetch(createStaticAssetRequest(request, gzUrl));
+
+    if (gzResponse.ok) {
+      const headers = buildSsgHeaders(gzResponse.headers);
+      headers.set('Content-Encoding', 'gzip');
+      headers.delete('Content-Length');
+
+      return new Response(request.method === 'HEAD' ? null : gzResponse.body, {
+        headers,
+        status: gzResponse.status,
+        statusText: gzResponse.statusText,
+      });
+    }
+  }
+
+  // Fallback: serve the uncompressed HTML.
   const originalUrl = new URL(request.url);
   originalUrl.pathname = `/_ssg${pathname}/index.html`;
   const originalResponse = await env.ASSETS.fetch(createStaticAssetRequest(request, originalUrl));
@@ -235,31 +285,9 @@ async function serveStaticSsgPage({
     return null;
   }
 
-  const headers = new Headers(originalResponse.headers);
+  const headers = buildSsgHeaders(originalResponse.headers);
 
-  const vary = new Set(
-    (headers.get('Vary') ?? '')
-      .split(',')
-      .map(value => value.trim())
-      .filter(Boolean)
-  );
-  vary.add('Accept-Encoding');
-
-  headers.set('Content-Type', 'text/html; charset=UTF-8');
-  headers.set(
-    'Cache-Control',
-    'public, max-age=0, s-maxage=900, stale-while-revalidate=180, stale-if-error=86400, no-transform'
-  );
-  headers.set(
-    'Vary',
-    [
-      ...vary,
-    ].join(', ')
-  );
-
-  const body = request.method === 'HEAD' ? null : originalResponse.body;
-
-  return new Response(body, {
+  return new Response(request.method === 'HEAD' ? null : originalResponse.body, {
     headers,
     status: originalResponse.status,
     statusText: originalResponse.statusText,
