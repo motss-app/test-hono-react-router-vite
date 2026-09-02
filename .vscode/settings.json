@@ -1,4 +1,8 @@
 {
+  "[rust]": {
+    "editor.defaultFormatter": "rust-lang.rust-analyzer",
+    "editor.formatOnSave": true
+  },
   "chat.tools.terminal.autoApprove": {
     "env": true,
     "git remote": true,
@@ -24,5 +28,16 @@
   "js/ts.suggest.autoImports": true,
   "js/ts.tsdk.path": "node_modules/typescript/lib",
   "js/ts.tsserver.experimental.enableProjectDiagnostics": false,
-  "poirot.defaultLocale": "en-US"
+  "poirot.defaultLocale": "en-US",
+  "rust-analyzer.linkedProjects": [
+    "packages/healthz-rust/Cargo.toml"
+  ],
+  "rust-analyzer.procMacro.ignored": {
+    "worker-macros": [
+      "durable_object",
+      "event",
+      "send",
+      "consume"
+    ]
+  }
 }

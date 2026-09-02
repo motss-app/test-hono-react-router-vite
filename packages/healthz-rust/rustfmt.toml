@@ -1,2 +1,3 @@
 # rustfmt config: 2-space indentation for all Rust code.
+edition = "2021"
 tab_spaces = 2
