@@ -23,18 +23,20 @@
   "env": {
     "canary": {
       "vars": {
+        "CACHE_PURGE_SECRET": "cad4ffa1f25b17422a71316c97d1a8b68e7066cbdf39b38d",
         "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400",
-        "VITE_POSTHOG_TOKEN": "phc_sRh8wzHjtA3vxHKideGmCopwCT7BzUg2XcaiHH4apBfY",
         "VITE_POSTHOG_API_HOST": "https://us.i.posthog.com",
+        "VITE_POSTHOG_TOKEN": "phc_sRh8wzHjtA3vxHKideGmCopwCT7BzUg2XcaiHH4apBfY",
         "VITE_SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
       }
     },
     "dev": {
       "main": "./worker.ts",
       "vars": {
+        "CACHE_PURGE_SECRET": "cad4ffa1f25b17422a71316c97d1a8b68e7066cbdf39b38d",
         "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400",
-        "VITE_POSTHOG_TOKEN": "phc_sRh8wzHjtA3vxHKideGmCopwCT7BzUg2XcaiHH4apBfY",
         "VITE_POSTHOG_API_HOST": "https://us.i.posthog.com",
+        "VITE_POSTHOG_TOKEN": "phc_sRh8wzHjtA3vxHKideGmCopwCT7BzUg2XcaiHH4apBfY",
         "VITE_SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
       }
     },
@@ -42,17 +44,19 @@
       "minify": false,
       "no_bundle": false,
       "vars": {
+        "CACHE_PURGE_SECRET": "cad4ffa1f25b17422a71316c97d1a8b68e7066cbdf39b38d",
         "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400",
-        "VITE_POSTHOG_TOKEN": "phc_sRh8wzHjtA3vxHKideGmCopwCT7BzUg2XcaiHH4apBfY",
         "VITE_POSTHOG_API_HOST": "https://us.i.posthog.com",
+        "VITE_POSTHOG_TOKEN": "phc_sRh8wzHjtA3vxHKideGmCopwCT7BzUg2XcaiHH4apBfY",
         "VITE_SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
       }
     },
     "production": {
       "vars": {
+        "CACHE_PURGE_SECRET": "cad4ffa1f25b17422a71316c97d1a8b68e7066cbdf39b38d",
         "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400",
-        "VITE_POSTHOG_TOKEN": "phc_sRh8wzHjtA3vxHKideGmCopwCT7BzUg2XcaiHH4apBfY",
         "VITE_POSTHOG_API_HOST": "https://us.i.posthog.com",
+        "VITE_POSTHOG_TOKEN": "phc_sRh8wzHjtA3vxHKideGmCopwCT7BzUg2XcaiHH4apBfY",
         "VITE_SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
       }
     }

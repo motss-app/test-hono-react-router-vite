@@ -49,11 +49,52 @@ const app = new Hono<HonoEnv>()
       statusText: response.statusText,
     });
   })
-  .get('/healthz', c => c.text('frontend ok'));
+  .get('/healthz', c => c.text('frontend ok'))
+  .post('/__purge-cache', async c => {
+    const secret = c.env.CACHE_PURGE_SECRET;
+    const provided = c.req.header('x-purge-secret');
+
+    if (!secret || provided !== secret) {
+      return c.json(
+        {
+          error: 'unauthorized',
+        },
+        401
+      );
+    }
+
+    const ctx = c.executionCtx as unknown as ExecutionContext;
+
+    if (!ctx.cache) {
+      return c.json(
+        {
+          error: 'workers cache not enabled',
+        },
+        400
+      );
+    }
+
+    const result = await ctx.cache.purge({
+      purgeEverything: true,
+    });
+
+    if (!result.success) {
+      return c.json(
+        {
+          error: 'purge failed',
+          errors: result.errors,
+        },
+        500
+      );
+    }
+
+    return c.json({
+      purged: true,
+    });
+  });
 
 const isDevSentryMode = isDevelopmentSentryMode(import.meta.env.MODE);
 let hasLoggedWorkerEnvSnapshot = false;
-let hasPurgedWorkersCache = false;
 
 function getWorkerAppSessionState(request: Request) {
   const existingAppSessionId = getAppSessionIdFromCookieString(
@@ -207,7 +248,7 @@ async function serveStaticSsgPage({
   headers.set('Content-Type', 'text/html; charset=UTF-8');
   headers.set(
     'Cache-Control',
-    'public, max-age=0, s-maxage=3600, stale-while-revalidate=180, stale-if-error=86400, no-transform'
+    'public, max-age=0, s-maxage=900, stale-while-revalidate=180, stale-if-error=86400, no-transform'
   );
   headers.set(
     'Vary',
@@ -229,7 +270,7 @@ app.get('/', c => {
   const response = c.redirect(`/${BASE_LOCALE}`, 302);
   response.headers.set(
     'Cache-Control',
-    'public, max-age=0, s-maxage=3600, stale-while-revalidate=300, stale-if-error=86400'
+    'public, max-age=0, s-maxage=900, stale-while-revalidate=300, stale-if-error=86400'
   );
   return response;
 });
@@ -285,21 +326,6 @@ export default withSentry<HonoEnv['Bindings']>(
       const requestStartedAt = performance.now();
       const { appSessionId, shouldSetAppSessionCookie } = getWorkerAppSessionState(request);
       const posthog = createServerPostHog(env);
-
-      // Purge the Workers Cache once per Worker instance (i.e. after each
-      // deployment) so stale responses from a previous version are never served.
-      if (!hasPurgedWorkersCache && executionContext.cache) {
-        hasPurgedWorkersCache = true;
-        const purgeResult = await executionContext.cache.purge({
-          purgeEverything: true,
-        });
-
-        if (!purgeResult.success) {
-          logger.error('[packages/frontend/worker.ts] Workers Cache purge failed', {
-            errors: purgeResult.errors,
-          });
-        }
-      }
 
       if (posthog) {
         executionContext.waitUntil(

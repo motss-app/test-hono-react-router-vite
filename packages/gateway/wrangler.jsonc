@@ -39,6 +39,7 @@
         }
       ],
       "vars": {
+        "CACHE_PURGE_SECRET": "cad4ffa1f25b17422a71316c97d1a8b68e7066cbdf39b38d",
         "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
       }
     },
@@ -60,6 +61,7 @@
         }
       ],
       "vars": {
+        "CACHE_PURGE_SECRET": "cad4ffa1f25b17422a71316c97d1a8b68e7066cbdf39b38d",
         "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
       }
     },
@@ -87,6 +89,7 @@
         }
       ],
       "vars": {
+        "CACHE_PURGE_SECRET": "cad4ffa1f25b17422a71316c97d1a8b68e7066cbdf39b38d",
         "SENTRY_DSN": "https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400"
       }
     }

@@ -89,6 +89,86 @@ function shouldUseLocalProxy(request: Request): boolean {
 
 app.get('/healthz', c => c.text('gateway ok'));
 
+app.post('/__purge-cache', async c => {
+  const secret = c.env.CACHE_PURGE_SECRET;
+  const provided = c.req.header('x-purge-secret');
+
+  if (!secret || provided !== secret) {
+    return c.json(
+      {
+        error: 'unauthorized',
+      },
+      401
+    );
+  }
+
+  const ctx = c.executionCtx as unknown as ExecutionContext;
+  const results: {
+    gateway: string;
+    frontend: unknown;
+    bff: unknown;
+    healthzRust: unknown;
+  } = {
+    bff: {
+      purged: false,
+    },
+    frontend: {
+      purged: false,
+    },
+    gateway: 'not-enabled',
+    healthzRust: {
+      purged: false,
+    },
+  };
+
+  // Purge this worker's own cache.
+  if (ctx.cache) {
+    const own = await ctx.cache.purge({
+      purgeEverything: true,
+    });
+    results.gateway = own.success ? 'purged' : 'failed';
+  }
+
+  // Fan out to downstream workers via service bindings so each purges its own cache.
+  const purgeRequest = new Request('https://internal/__purge-cache', {
+    headers: {
+      'x-purge-secret': provided,
+    },
+    method: 'POST',
+  });
+
+  const [frontend, bff, rust] = await Promise.all([
+    c.env.FRONTEND.fetch(purgeRequest)
+      .then(response => response.json())
+      .catch(() => ({
+        purged: false,
+      })),
+    c.env.BFF.fetch(purgeRequest)
+      .then(response => response.json())
+      .catch(() => ({
+        purged: false,
+      })),
+    c.env.HEALTHZ_RUST
+      ? c.env.HEALTHZ_RUST.fetch(purgeRequest)
+          .then(response => response.json())
+          .catch(() => ({
+            purged: false,
+          }))
+      : Promise.resolve({
+          purged: false,
+        }),
+  ]);
+
+  results.frontend = frontend;
+  results.bff = bff;
+  results.healthzRust = rust;
+
+  return c.json({
+    purged: true,
+    workers: results,
+  });
+});
+
 app.get('/rust/healthz', async c => {
   const rust = c.env.HEALTHZ_RUST;
   if (!rust) {

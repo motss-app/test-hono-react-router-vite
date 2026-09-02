@@ -1,6 +1,6 @@
 # Static assets
 /**/*.html
-  Cache-Control: public, max-age=600, s-maxage=3600, stale-while-revalidate=180, stale-if-error=86400, no-transform
+  Cache-Control: public, max-age=600, s-maxage=900, stale-while-revalidate=180, stale-if-error=86400, no-transform
 
 /*.ico
   Cache-Control: public, max-age=1800, s-maxage=10800, stale-while-revalidate=300, stale-if-error=86400
