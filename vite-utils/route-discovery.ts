@@ -1,3 +1,5 @@
+import { locales } from '../packages/frontend/locales.ts';
+
 const EXTENSION_REGEX = /\.(tsx|ts|jsx|js)$/;
 const prerenderExcludedRoutes = [
   '/errors/:code',
@@ -6,10 +8,6 @@ const prerenderExcludedRoutes = [
   '/page-layout',
   '/ssr',
 ];
-const SUPPORTED_LOCALES = [
-  'en-US',
-  'ja-JP',
-] as const;
 
 function discoverStaticRoutes(options?: { exclude?: string[]; rootDir?: string }): string[] {
   const normalizedOptions = options ?? {};
@@ -96,7 +94,7 @@ export function discoverPrerenderRoutes(options?: { rootDir?: string }): string[
   // Generate locale-prefixed routes for SSG pages
   const localePrefixedRoutes: string[] = [];
   for (const route of baseRoutes) {
-    for (const locale of SUPPORTED_LOCALES) {
+    for (const locale of locales) {
       localePrefixedRoutes.push(`/${locale}${route === '/' ? '' : route}`);
     }
   }

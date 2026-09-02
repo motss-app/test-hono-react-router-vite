@@ -27,6 +27,7 @@ interface HeadersCopyPluginOptions {
 interface ProcessStaticRouteOptions {
   clientDir: string;
   includeCloudflareAnalyticsStyleHashes: boolean;
+  headerRoutePath: string;
   routePath: string;
   sentryDsn: string;
   sentryCspReportingConfig: ReturnType<typeof createSentryCspReportingConfig>;
@@ -59,6 +60,19 @@ function htmlFilePathFromRoute(clientDir: string, routePath: string): string {
   }
 
   return join(clientDir, routePath.slice(1), 'index.html');
+}
+
+function internalHtmlFilePathFromRoute(clientDir: string, routePath: string): string {
+  return join(
+    clientDir,
+    '_ssg',
+    routePath === '/' ? 'index.html' : routePath.slice(1),
+    'index.html'
+  );
+}
+
+function internalRoutePath(routePath: string): string {
+  return `/_ssg${routePath}`;
 }
 
 function createHeadersCopyPluginContext(mode: string): HeadersCopyPluginContext {
@@ -109,6 +123,7 @@ function buildStaticRouteHeaders(
 async function processStaticRoute({
   clientDir,
   includeCloudflareAnalyticsStyleHashes,
+  headerRoutePath,
   routePath,
   sentryDsn,
   sentryCspReportingConfig,
@@ -127,7 +142,7 @@ async function processStaticRoute({
   ]);
 
   return buildStaticRouteHeaders(
-    routePath,
+    headerRoutePath,
     csp.buildPolicy({
       connectSrc: getSentryConnectSrc(sentryDsn),
       scriptHashes,
@@ -142,13 +157,19 @@ async function processStaticRoute({
 
 async function gzipStaticRoute(clientDir: string, routePath: string): Promise<boolean> {
   const htmlFile = htmlFilePathFromRoute(clientDir, routePath);
+  const internalHtmlFile = internalHtmlFilePathFromRoute(clientDir, routePath);
 
   if (!fileExists(htmlFile)) {
     return false;
   }
 
-  const input = await Deno.readFile(htmlFile);
-  const command = new Deno.Command('gzip', {
+  Deno.mkdirSync(dirname(internalHtmlFile), {
+    recursive: true,
+  });
+  await Deno.rename(htmlFile, internalHtmlFile);
+
+  const input = await Deno.readFile(internalHtmlFile);
+  const command = new Deno.Command('/usr/bin/gzip', {
     args: [
       '-n',
       '-9',
@@ -167,10 +188,10 @@ async function gzipStaticRoute(clientDir: string, routePath: string): Promise<bo
 
   if (!output.success) {
     const error = new TextDecoder().decode(output.stderr).trim();
-    throw new Error(`gzip failed for ${htmlFile}: ${error || `exit code ${output.code}`}`);
+    throw new Error(`gzip failed for ${internalHtmlFile}: ${error || `exit code ${output.code}`}`);
   }
 
-  await Deno.writeFile(`${htmlFile}.gz`, output.stdout);
+  await Deno.writeFile(`${internalHtmlFile}.gz`, output.stdout);
   return true;
 }
 
@@ -217,6 +238,7 @@ export function headersCopyPlugin(options: HeadersCopyPluginOptions): Plugin {
           prerenderRoutes.map(routePath =>
             processStaticRoute({
               clientDir,
+              headerRoutePath: internalRoutePath(routePath),
               includeCloudflareAnalyticsStyleHashes,
               routePath,
               sentryCspReportingConfig,

@@ -36,6 +36,10 @@ const app = new Hono<HonoEnv>()
       enabled: () => !isLoadTestMode,
     })
   )
+  .use('*', async (c, next) => {
+    await next();
+    c.res.headers.delete('Server');
+  })
   .get('/assets/*', async c => {
     const response = await c.env.ASSETS.fetch(c.req.raw);
 
@@ -49,6 +53,7 @@ const app = new Hono<HonoEnv>()
 
 const isDevSentryMode = isDevelopmentSentryMode(import.meta.env.MODE);
 let hasLoggedWorkerEnvSnapshot = false;
+let hasPurgedWorkersCache = false;
 
 function getWorkerAppSessionState(request: Request) {
   const existingAppSessionId = getAppSessionIdFromCookieString(
@@ -181,30 +186,29 @@ async function serveStaticSsgPage({
     return null;
   }
 
-  const assetUrl = new URL(request.url);
-  assetUrl.pathname = `${pathname}/index.html.gz`;
-  const gzipResponse = await env.ASSETS.fetch(createStaticAssetRequest(request, assetUrl));
+  const originalUrl = new URL(request.url);
+  originalUrl.pathname = `/_ssg${pathname}/index.html`;
+  const originalResponse = await env.ASSETS.fetch(createStaticAssetRequest(request, originalUrl));
 
-  if (!gzipResponse.ok) {
+  if (!originalResponse.ok) {
     return null;
   }
 
-  const originalUrl = new URL(request.url);
-  originalUrl.pathname = `${pathname}/index.html`;
-  const originalResponse = await env.ASSETS.fetch(createStaticAssetRequest(request, originalUrl));
   const headers = new Headers(originalResponse.headers);
-  const compressedLength = gzipResponse.headers.get('Content-Length');
-  const compressedEtag = gzipResponse.headers.get('ETag');
+
   const vary = new Set(
     (headers.get('Vary') ?? '')
       .split(',')
       .map(value => value.trim())
       .filter(Boolean)
   );
+  vary.add('Accept-Encoding');
 
   headers.set('Content-Type', 'text/html; charset=UTF-8');
-  headers.set('Content-Encoding', 'gzip');
-  vary.add('Accept-Encoding');
+  headers.set(
+    'Cache-Control',
+    'public, max-age=0, s-maxage=3600, stale-while-revalidate=180, stale-if-error=86400, no-transform'
+  );
   headers.set(
     'Vary',
     [
@@ -212,20 +216,12 @@ async function serveStaticSsgPage({
     ].join(', ')
   );
 
-  if (compressedLength) {
-    headers.set('Content-Length', compressedLength);
-  } else {
-    headers.delete('Content-Length');
-  }
+  const body = request.method === 'HEAD' ? null : originalResponse.body;
 
-  if (compressedEtag) {
-    headers.set('ETag', compressedEtag);
-  }
-
-  return new Response(request.method === 'HEAD' ? null : gzipResponse.body, {
+  return new Response(body, {
     headers,
-    status: gzipResponse.status,
-    statusText: gzipResponse.statusText,
+    status: originalResponse.status,
+    statusText: originalResponse.statusText,
   });
 }
 
@@ -290,6 +286,21 @@ export default withSentry<HonoEnv['Bindings']>(
       const { appSessionId, shouldSetAppSessionCookie } = getWorkerAppSessionState(request);
       const posthog = createServerPostHog(env);
 
+      // Purge the Workers Cache once per Worker instance (i.e. after each
+      // deployment) so stale responses from a previous version are never served.
+      if (!hasPurgedWorkersCache && executionContext.cache) {
+        hasPurgedWorkersCache = true;
+        const purgeResult = await executionContext.cache.purge({
+          purgeEverything: true,
+        });
+
+        if (!purgeResult.success) {
+          logger.error('[packages/frontend/worker.ts] Workers Cache purge failed', {
+            errors: purgeResult.errors,
+          });
+        }
+      }
+
       if (posthog) {
         executionContext.waitUntil(
           posthog.captureImmediate({
@@ -309,20 +320,15 @@ export default withSentry<HonoEnv['Bindings']>(
           env,
           request,
         });
-        const response = staticSsgResponse
-          ? attachAppSessionCookie(
-              request,
-              staticSsgResponse,
-              appSessionId,
-              shouldSetAppSessionCookie
-            )
-          : await handleWorkerAppRequest({
-              appSessionId,
-              env,
-              executionContext,
-              request,
-              shouldSetAppSessionCookie,
-            });
+        const response =
+          staticSsgResponse ??
+          (await handleWorkerAppRequest({
+            appSessionId,
+            env,
+            executionContext,
+            request,
+            shouldSetAppSessionCookie,
+          }));
 
         // Skip metrics recording during load tests to reduce overhead
         if (!isLoadTestMode) {
