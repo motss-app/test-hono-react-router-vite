@@ -19,20 +19,11 @@ const rpcApp = new Hono<{
   });
 });
 
-const testApp = new Hono<{
-  Bindings: BffBindings;
-}>().get('/', c => {
-  return c.json({
-    message: 'Hello from /api/test endpoint!',
-  } as const);
-});
-
 export const apiApp = new Hono<{
   Bindings: BffBindings;
 }>()
   .get('/healthz', c => c.text('bff ok'))
   .route('/rpc', rpcApp)
-  .route('/test', testApp)
   // Keep browser and local Worker envelopes same-origin behind a single public path.
   // The tunnel forwards to Spotlight in local development and to Sentry ingest elsewhere.
   .route('/tunnel', sentryTunnelApp);

@@ -90,11 +90,26 @@ function shouldUseLocalProxy(request: Request): boolean {
 app.get('/healthz', c => c.text('gateway ok'));
 
 app.get('/rust/healthz', async c => {
-  const healthzRust = c.env.HEALTHZ_RUST;
-  if (!healthzRust) {
-    return c.text('healthz-rust binding not configured', 503);
+  const rust = c.env.HEALTHZ_RUST;
+  if (!rust) {
+    return c.text('HEALTHZ_RUST binding not configured', 503);
   }
-  const resp = await healthzRust.fetch(new Request('http://healthz/healthz'));
+  const resp = await rust.fetch(new Request('http://HEALTHZ_RUST/healthz'));
+  return new Response(resp.body, {
+    headers: {
+      'x-worker': 'healthz-rust',
+      ...Object.fromEntries(resp.headers),
+    },
+    status: resp.status,
+  });
+});
+
+app.get('/rust/hello', async c => {
+  const rust = c.env.HEALTHZ_RUST;
+  if (!rust) {
+    return c.text('HEALTHZ_RUST binding not configured', 503);
+  }
+  const resp = await rust.fetch(new Request('http://HEALTHZ_RUST/hello'));
   return new Response(resp.body, {
     headers: {
       'x-worker': 'healthz-rust',
