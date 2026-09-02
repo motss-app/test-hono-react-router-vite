@@ -16,10 +16,10 @@
       "route": "/$"
     },
     {
-      "gzipBytes": 280006,
-      "ownGzipBytes": 7516,
-      "ownRawBytes": 21488,
-      "rawBytes": 831958,
+      "gzipBytes": 280009,
+      "ownGzipBytes": 7519,
+      "ownRawBytes": 21490,
+      "rawBytes": 831960,
       "route": "/about"
     },
     {
