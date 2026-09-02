@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "@base-ui/react": "1.7.0",
-    "@cloudflare/vite-plugin": "1.54.2",
+    "@cloudflare/vite-plugin": "1.54.3",
     "@fontsource-variable/open-sans": "5.3.0",
     "@iconify-react/fa7-brands": "1.0.4",
     "@iconify-react/fa7-regular": "1.0.2",
@@ -11,9 +11,9 @@
     "@inlang/paraglide-js": "2.25.0",
     "@inlang/paraglide-js-react": "1.0.3",
     "@inlang/plugin-icu1": "1.1.0",
-    "@sentry/browser": "10.72.0",
-    "@sentry/cloudflare": "10.72.0",
-    "@sentry/react-router": "10.72.0",
+    "@sentry/browser": "10.73.0",
+    "@sentry/cloudflare": "10.73.0",
+    "@sentry/react-router": "10.73.0",
     "@vanilla-extract/dynamic": "2.1.5",
     "@vitest/browser-playwright": "4.1.11",
     "@vitest/browser-preview": "4.1.11",
@@ -39,7 +39,7 @@
     "typescript": "7.0.2",
     "vite": "8.2.2",
     "vite-plus": "0.3.0",
-    "wrangler": "4.127.1"
+    "wrangler": "4.128.0"
   },
   "name": "test-hono-react-router-vite",
   "private": true,
