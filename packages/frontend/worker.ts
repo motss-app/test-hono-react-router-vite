@@ -261,6 +261,9 @@ async function serveStaticSsgPage({
   }
 
   const headers = buildSsgHeaders(originalResponse.headers);
+  headers.set('X-Asset-Encoding', originalResponse.headers.get('Content-Encoding') ?? 'nil');
+  headers.set('X-Asset-Length', originalResponse.headers.get('Content-Length') ?? 'nil');
+  headers.set('X-Asset-Type', originalResponse.headers.get('Content-Type') ?? 'nil');
 
   return new Response(request.method === 'HEAD' ? null : originalResponse.body, {
     headers,
