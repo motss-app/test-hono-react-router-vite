@@ -207,10 +207,17 @@ function createStaticAssetRequest(request: Request, url: URL): Request {
   });
 }
 
-const ssgCacheControl =
-  'public, max-age=0, s-maxage=10, stale-while-revalidate=1, stale-if-error=86400, no-transform';
+const ssgCacheControlBase =
+  'public, max-age=0, s-maxage=10, stale-while-revalidate=1, stale-if-error=86400';
+const ssgCacheControlNoTransform = `${ssgCacheControlBase}, no-transform`;
 
-function buildSsgHeaders(baseHeaders: Headers): Headers {
+// Only /en-US opts into edge compression (no `no-transform`). All other SSG
+// locales keep `no-transform` so intermediaries must not modify the body.
+function getSsgCacheControl(pathname: string): string {
+  return pathname === '/en-US' ? ssgCacheControlBase : ssgCacheControlNoTransform;
+}
+
+function buildSsgHeaders(baseHeaders: Headers, pathname: string): Headers {
   const headers = new Headers(baseHeaders);
   const vary = new Set(
     (headers.get('Vary') ?? '')
@@ -221,7 +228,7 @@ function buildSsgHeaders(baseHeaders: Headers): Headers {
   vary.add('Accept-Encoding');
 
   headers.set('Content-Type', 'text/html; charset=UTF-8');
-  headers.set('Cache-Control', ssgCacheControl);
+  headers.set('Cache-Control', getSsgCacheControl(pathname));
   headers.set(
     'Vary',
     [
@@ -260,7 +267,7 @@ async function serveStaticSsgPage({
     return null;
   }
 
-  const headers = buildSsgHeaders(originalResponse.headers);
+  const headers = buildSsgHeaders(originalResponse.headers, pathname);
   headers.set('X-Asset-Encoding', originalResponse.headers.get('Content-Encoding') ?? 'nil');
   headers.set('X-Asset-Length', originalResponse.headers.get('Content-Length') ?? 'nil');
   headers.set('X-Asset-Type', originalResponse.headers.get('Content-Type') ?? 'nil');
