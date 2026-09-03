@@ -71,32 +71,9 @@ function cloneResponse(response: Response): Response {
   });
 }
 
-// The gateway is the outermost layer returning to the browser. For known SSG
-// HTML paths, compress the response with gzip so the browser receives it
-// pre-encoded. All other frontend responses pass through unchanged.
-function handleFrontendResponse(requestUrl: URL, response: Response): Response {
-  const pathname = requestUrl.pathname.replace(/\/$/, '') || '/';
-
-  // Only compress SSG locale paths: /{locale}, /{locale}/about, /{locale}/holy-grail, /{locale}/errors
-  if (!/^(?:\/(en-US|ja-JP|zh-HK|zh-TW))(?:\/(about|holy-grail|errors))?$/.test(pathname)) {
-    return response;
-  }
-
-  const contentType = response.headers.get('Content-Type') ?? '';
-  if (!contentType.includes('text/html') || response.status === 204 || response.status === 304) {
-    return response;
-  }
-
-  const headers = new Headers(response.headers);
-  headers.set('Content-Encoding', 'gzip');
-  headers.set('Vary', 'Accept-Encoding');
-  headers.delete('Content-Length');
-
-  return new Response(response.body?.pipeThrough(new CompressionStream('gzip')), {
-    headers,
-    status: response.status,
-    statusText: response.statusText,
-  });
+// All frontend responses pass through unchanged. Cloudflare handles compression.
+function handleFrontendResponse(_requestUrl: URL, response: Response): Response {
+  return response;
 }
 
 function proxyRequest(request: Request, origin: string): Request {
