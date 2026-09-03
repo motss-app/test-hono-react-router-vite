@@ -72,8 +72,10 @@ function cloneResponse(response: Response): Response {
 }
 
 // For /en-US only, compress the HTML response with gzip at the outermost
-// layer (gateway). All other frontend responses pass through unchanged.
-function handleFrontendResponse(requestUrl: URL, response: Response): Response {
+// layer (gateway) when the client supports it. All other frontend responses
+// pass through unchanged.
+function handleFrontendResponse(request: Request, response: Response): Response {
+  const requestUrl = new URL(request.url);
   const pathname = requestUrl.pathname.replace(/\/$/, '') || '/';
 
   if (pathname !== '/en-US') {
@@ -82,6 +84,23 @@ function handleFrontendResponse(requestUrl: URL, response: Response): Response {
 
   const contentType = response.headers.get('Content-Type') ?? '';
   if (!contentType.includes('text/html') || response.status === 204 || response.status === 304) {
+    return response;
+  }
+
+  // Only compress when the client advertises gzip support. Cloudflare rewrites
+  // Accept-Encoding before the Worker runs, so check the client's real value.
+  const clientAcceptEncoding =
+    (
+      request.cf as
+        | {
+            clientAcceptEncoding?: string;
+          }
+        | undefined
+    )?.clientAcceptEncoding ??
+    request.headers.get('Accept-Encoding') ??
+    '';
+
+  if (!clientAcceptEncoding.includes('gzip')) {
     return response;
   }
 
@@ -251,7 +270,7 @@ app.all('/fe/:path', async c => {
   );
 
   return handleFrontendResponse(
-    new URL(c.req.url),
+    c.req.raw,
     cloneResponse(
       await wrapTime(
         c,
@@ -267,7 +286,7 @@ app.all('/fe/:path', async c => {
 
 app.all('*', async c =>
   handleFrontendResponse(
-    new URL(c.req.url),
+    c.req.raw,
     cloneResponse(
       await wrapTime(
         c,
