@@ -88,7 +88,8 @@ function handleFrontendResponse(requestUrl: URL, response: Response): Response {
   const headers = new Headers(response.headers);
   headers.set('Content-Encoding', 'gzip');
   headers.set('Vary', 'Accept-Encoding');
-  headers.set('X-Content-Type', contentType.split(';')[0]?.trim() ?? '');
+  headers.set('X-Content-Type', contentType.split(';')[0]?.trim() ?? 'nil');
+  headers.set('X-Content-Length', response.headers.get('Content-Length') ?? 'nil');
   headers.delete('Content-Length');
 
   return new Response(response.body?.pipeThrough(new CompressionStream('gzip')), {
