@@ -71,6 +71,38 @@ function cloneResponse(response: Response): Response {
   });
 }
 
+// The gateway is the outermost layer returning to the browser, so it owns the
+// final Content-Encoding. The frontend serves pre-compressed .gz bytes as
+// application/gzip and signals via X-Precompressed; here we restore the HTML
+// content type and declare the encoding so the edge skips recompression.
+// Only transform responses for known SSG HTML paths where the frontend sends
+// pre-compressed gzip via X-Precompressed. All other frontend responses pass through unchanged.
+function handleFrontendResponse(requestUrl: URL, response: Response): Response {
+  const pathname = requestUrl.pathname.replace(/\/$/, '') || '/';
+
+  // Only apply to SSG locale paths: /{locale}, /{locale}/about, /{locale}/holy-grail, /{locale}/errors
+  if (!/^(?:\/(en-US|ja-JP|zh-HK|zh-TW))(?:\/(about|holy-grail|errors))?$/.test(pathname)) {
+    return response;
+  }
+
+  if (response.headers.get('X-Precompressed') !== 'gzip') {
+    return response;
+  }
+
+  const headers = new Headers(response.headers);
+  headers.delete('X-Precompressed');
+  headers.set('Content-Type', 'text/html; charset=UTF-8');
+  headers.set('Content-Encoding', 'gzip');
+  headers.set('Vary', 'Accept-Encoding');
+  headers.delete('Content-Length');
+
+  return new Response(response.body, {
+    headers,
+    status: response.status,
+    statusText: response.statusText,
+  });
+}
+
 function proxyRequest(request: Request, origin: string): Request {
   const targetUrl = new URL(request.url);
   const localOrigin = new URL(origin);
@@ -222,27 +254,33 @@ app.all('/fe/:path', async c => {
     c.req.raw
   );
 
-  return cloneResponse(
-    await wrapTime(
-      c,
-      'frontend',
-      shouldUseLocalProxy(c.req.raw)
-        ? fetch(frontendRequest)
-        : c.env.FRONTEND.fetch(frontendRequest),
-      'Frontend route'
+  return handleFrontendResponse(
+    new URL(c.req.url),
+    cloneResponse(
+      await wrapTime(
+        c,
+        'frontend',
+        shouldUseLocalProxy(c.req.raw)
+          ? fetch(frontendRequest)
+          : c.env.FRONTEND.fetch(frontendRequest),
+        'Frontend route'
+      )
     )
   );
 });
 
 app.all('*', async c =>
-  cloneResponse(
-    await wrapTime(
-      c,
-      'frontend',
-      shouldUseLocalProxy(c.req.raw)
-        ? fetch(proxyRequest(c.req.raw, LOCAL_FRONTEND_ORIGIN))
-        : c.env.FRONTEND.fetch(c.req.raw),
-      shouldUseLocalProxy(c.req.raw) ? 'Frontend local fetch' : 'Frontend service binding'
+  handleFrontendResponse(
+    new URL(c.req.url),
+    cloneResponse(
+      await wrapTime(
+        c,
+        'frontend',
+        shouldUseLocalProxy(c.req.raw)
+          ? fetch(proxyRequest(c.req.raw, LOCAL_FRONTEND_ORIGIN))
+          : c.env.FRONTEND.fetch(c.req.raw),
+        shouldUseLocalProxy(c.req.raw) ? 'Frontend local fetch' : 'Frontend service binding'
+      )
     )
   )
 );

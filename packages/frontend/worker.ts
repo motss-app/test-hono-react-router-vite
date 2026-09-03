@@ -197,12 +197,9 @@ const staticSsgPaths = new Set(
 );
 
 function createStaticAssetRequest(request: Request, url: URL): Request {
-  const headers = new Headers(request.headers);
-
-  headers.delete('Accept-Encoding');
-  headers.delete('If-Modified-Since');
-  headers.delete('If-None-Match');
-  headers.delete('Range');
+  const headers = new Headers();
+  // Prevent the ASSETS binding from transforming/compressing the fetched file.
+  headers.set('Cache-Control', 'no-transform');
 
   return new Request(url, {
     headers,
@@ -252,20 +249,36 @@ async function serveStaticSsgPage({
     return null;
   }
 
-  const acceptEncoding = request.headers.get('Accept-Encoding') ?? '';
+  // Cloudflare rewrites Accept-Encoding before the Worker runs, so the client's
+  // real preference is exposed via request.cf.clientAcceptEncoding.
+  const clientAcceptEncoding =
+    (
+      request.cf as
+        | {
+            clientAcceptEncoding?: string;
+          }
+        | undefined
+    )?.clientAcceptEncoding ?? '';
 
   // Serve the pre-compressed .gz file when the client supports gzip.
-  // The ASSETS fetch uses identity encoding (createStaticAssetRequest strips
+  // The ASSETS fetch uses identity encoding (createStaticAssetRequest sends no
   // Accept-Encoding) so the runtime does not auto-decompress the bytes, and we
   // pass the body stream through directly — never read it.
-  if (acceptEncoding.includes('gzip')) {
+  //
+  // Do NOT set Content-Encoding here: the service binding to the gateway
+  // auto-decompresses the body when Content-Encoding is set. Instead we serve
+  // the raw bytes as application/gzip and signal the gateway via
+  // X-Precompressed so it can set the final Content-Encoding for the browser.
+  if (clientAcceptEncoding.includes('gzip')) {
     const gzUrl = new URL(request.url);
     gzUrl.pathname = `/_ssg${pathname}/index.html.gz`;
     const gzResponse = await env.ASSETS.fetch(createStaticAssetRequest(request, gzUrl));
 
     if (gzResponse.ok) {
-      const headers = buildSsgHeaders(gzResponse.headers);
-      headers.set('Content-Encoding', 'gzip');
+      const headers = new Headers(gzResponse.headers);
+      headers.set('Content-Type', 'application/gzip');
+      headers.set('X-Precompressed', 'gzip');
+      headers.set('Cache-Control', ssgCacheControl);
       headers.delete('Content-Length');
 
       return new Response(request.method === 'HEAD' ? null : gzResponse.body, {
