@@ -208,7 +208,7 @@ function createStaticAssetRequest(request: Request, url: URL): Request {
 }
 
 const ssgCacheControl =
-  'public, max-age=0, s-maxage=10, stale-while-revalidate=180, stale-if-error=86400, no-transform';
+  'public, max-age=0, s-maxage=10, stale-while-revalidate=1, stale-if-error=86400, no-transform';
 
 function buildSsgHeaders(baseHeaders: Headers): Headers {
   const headers = new Headers(baseHeaders);
