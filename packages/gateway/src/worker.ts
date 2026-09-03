@@ -71,9 +71,31 @@ function cloneResponse(response: Response): Response {
   });
 }
 
-// All frontend responses pass through unchanged. Cloudflare handles compression.
-function handleFrontendResponse(_requestUrl: URL, response: Response): Response {
-  return response;
+// For /en-US and equivalent SSG locale pages, compress HTML with gzip at the
+// outermost layer (gateway) so the CDN caches a pre-encoded response.
+// All other frontend responses pass through unchanged.
+function handleFrontendResponse(requestUrl: URL, response: Response): Response {
+  const pathname = requestUrl.pathname.replace(/\/$/, '') || '/';
+
+  if (!/^\/en-US(\/(about|holy-grail|errors))?$/.test(pathname)) {
+    return response;
+  }
+
+  const contentType = response.headers.get('Content-Type') ?? '';
+  if (!contentType.includes('text/html') || response.status === 204 || response.status === 304) {
+    return response;
+  }
+
+  const headers = new Headers(response.headers);
+  headers.set('Content-Encoding', 'gzip');
+  headers.set('Vary', 'Accept-Encoding');
+  headers.delete('Content-Length');
+
+  return new Response(response.body?.pipeThrough(new CompressionStream('gzip')), {
+    headers,
+    status: response.status,
+    statusText: response.statusText,
+  });
 }
 
 function proxyRequest(request: Request, origin: string): Request {
