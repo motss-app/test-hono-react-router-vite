@@ -71,8 +71,8 @@ function cloneResponse(response: Response): Response {
   });
 }
 
-// For /en-US only, declare the response as gzip-encoded. All other frontend
-// responses pass through unchanged.
+// For /en-US only, compress the HTML response with gzip at the outermost
+// layer (gateway). All other frontend responses pass through unchanged.
 function handleFrontendResponse(requestUrl: URL, response: Response): Response {
   const pathname = requestUrl.pathname.replace(/\/$/, '') || '/';
 
@@ -80,11 +80,18 @@ function handleFrontendResponse(requestUrl: URL, response: Response): Response {
     return response;
   }
 
+  const contentType = response.headers.get('Content-Type') ?? '';
+  if (!contentType.includes('text/html') || response.status === 204 || response.status === 304) {
+    return response;
+  }
+
   const headers = new Headers(response.headers);
   headers.set('Content-Encoding', 'gzip');
   headers.set('Vary', 'Accept-Encoding');
+  headers.set('X-Content-Type', 'html');
+  headers.delete('Content-Length');
 
-  return new Response(response.body, {
+  return new Response(response.body?.pipeThrough(new CompressionStream('gzip')), {
     headers,
     status: response.status,
     statusText: response.statusText,
