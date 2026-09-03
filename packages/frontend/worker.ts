@@ -249,7 +249,7 @@ async function serveStaticSsgPage({
     return null;
   }
 
-  // Serve uncompressed HTML. The gateway (outermost layer) compresses it.
+  // Serve uncompressed HTML and let the Cloudflare edge handle compression.
   // Do NOT serve the .gz file here — the service binding auto-decompresses
   // the body even with Content-Type: application/gzip, causing double-encoding.
   const originalUrl = new URL(request.url);

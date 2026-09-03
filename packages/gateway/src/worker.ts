@@ -71,53 +71,6 @@ function cloneResponse(response: Response): Response {
   });
 }
 
-// For /en-US only, compress the HTML response with gzip at the outermost
-// layer (gateway) when the client supports it. All other frontend responses
-// pass through unchanged.
-function handleFrontendResponse(request: Request, response: Response): Response {
-  const requestUrl = new URL(request.url);
-  const pathname = requestUrl.pathname.replace(/\/$/, '') || '/';
-
-  if (pathname !== '/en-US') {
-    return response;
-  }
-
-  const contentType = response.headers.get('Content-Type') ?? '';
-  if (!contentType.includes('text/html') || response.status === 204 || response.status === 304) {
-    return response;
-  }
-
-  // Only compress when the client advertises gzip support. Cloudflare rewrites
-  // Accept-Encoding before the Worker runs, so check the client's real value.
-  const clientAcceptEncoding =
-    (
-      request.cf as
-        | {
-            clientAcceptEncoding?: string;
-          }
-        | undefined
-    )?.clientAcceptEncoding ??
-    request.headers.get('Accept-Encoding') ??
-    '';
-
-  if (!clientAcceptEncoding.includes('gzip')) {
-    return response;
-  }
-
-  const headers = new Headers(response.headers);
-  headers.set('Content-Encoding', 'gzip');
-  headers.set('Vary', 'Accept-Encoding');
-  headers.set('X-Content-Type', contentType.split(';')[0]?.trim() ?? 'nil');
-  headers.set('X-Content-Length', response.headers.get('Content-Length') ?? 'nil');
-  headers.delete('Content-Length');
-
-  return new Response(response.body?.pipeThrough(new CompressionStream('gzip')), {
-    headers,
-    status: response.status,
-    statusText: response.statusText,
-  });
-}
-
 function proxyRequest(request: Request, origin: string): Request {
   const targetUrl = new URL(request.url);
   const localOrigin = new URL(origin);
@@ -269,33 +222,30 @@ app.all('/fe/:path', async c => {
     c.req.raw
   );
 
-  return handleFrontendResponse(
-    c.req.raw,
-    cloneResponse(
-      await wrapTime(
-        c,
-        'frontend',
-        shouldUseLocalProxy(c.req.raw)
-          ? fetch(frontendRequest)
-          : c.env.FRONTEND.fetch(frontendRequest),
-        'Frontend route'
-      )
+  // Pass through unchanged — Cloudflare handles compression at the edge.
+  // Manual gzip here poisoned cache variants (gzip body without
+  // Content-Encoding on HIT when the edge normalizes Accept-Encoding).
+  return cloneResponse(
+    await wrapTime(
+      c,
+      'frontend',
+      shouldUseLocalProxy(c.req.raw)
+        ? fetch(frontendRequest)
+        : c.env.FRONTEND.fetch(frontendRequest),
+      'Frontend route'
     )
   );
 });
 
 app.all('*', async c =>
-  handleFrontendResponse(
-    c.req.raw,
-    cloneResponse(
-      await wrapTime(
-        c,
-        'frontend',
-        shouldUseLocalProxy(c.req.raw)
-          ? fetch(proxyRequest(c.req.raw, LOCAL_FRONTEND_ORIGIN))
-          : c.env.FRONTEND.fetch(c.req.raw),
-        shouldUseLocalProxy(c.req.raw) ? 'Frontend local fetch' : 'Frontend service binding'
-      )
+  cloneResponse(
+    await wrapTime(
+      c,
+      'frontend',
+      shouldUseLocalProxy(c.req.raw)
+        ? fetch(proxyRequest(c.req.raw, LOCAL_FRONTEND_ORIGIN))
+        : c.env.FRONTEND.fetch(c.req.raw),
+      shouldUseLocalProxy(c.req.raw) ? 'Frontend local fetch' : 'Frontend service binding'
     )
   )
 );
