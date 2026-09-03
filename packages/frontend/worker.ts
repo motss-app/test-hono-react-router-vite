@@ -249,47 +249,9 @@ async function serveStaticSsgPage({
     return null;
   }
 
-  // Cloudflare rewrites Accept-Encoding before the Worker runs, so the client's
-  // real preference is exposed via request.cf.clientAcceptEncoding.
-  const clientAcceptEncoding =
-    (
-      request.cf as
-        | {
-            clientAcceptEncoding?: string;
-          }
-        | undefined
-    )?.clientAcceptEncoding ?? '';
-
-  // Serve the pre-compressed .gz file when the client supports gzip.
-  // The ASSETS fetch uses identity encoding (createStaticAssetRequest sends no
-  // Accept-Encoding) so the runtime does not auto-decompress the bytes, and we
-  // pass the body stream through directly — never read it.
-  //
-  // Do NOT set Content-Encoding here: the service binding to the gateway
-  // auto-decompresses the body when Content-Encoding is set. Instead we serve
-  // the raw bytes as application/gzip and signal the gateway via
-  // X-Precompressed so it can set the final Content-Encoding for the browser.
-  if (clientAcceptEncoding.includes('gzip')) {
-    const gzUrl = new URL(request.url);
-    gzUrl.pathname = `/_ssg${pathname}/index.html.gz`;
-    const gzResponse = await env.ASSETS.fetch(createStaticAssetRequest(request, gzUrl));
-
-    if (gzResponse.ok) {
-      const headers = new Headers(gzResponse.headers);
-      headers.set('Content-Type', 'application/gzip');
-      headers.set('X-Precompressed', 'gzip');
-      headers.set('Cache-Control', ssgCacheControl);
-      headers.delete('Content-Length');
-
-      return new Response(request.method === 'HEAD' ? null : gzResponse.body, {
-        headers,
-        status: gzResponse.status,
-        statusText: gzResponse.statusText,
-      });
-    }
-  }
-
-  // Fallback: serve the uncompressed HTML.
+  // Serve uncompressed HTML. The gateway (outermost layer) compresses it.
+  // Do NOT serve the .gz file here — the service binding auto-decompresses
+  // the body even with Content-Type: application/gzip, causing double-encoding.
   const originalUrl = new URL(request.url);
   originalUrl.pathname = `/_ssg${pathname}/index.html`;
   const originalResponse = await env.ASSETS.fetch(createStaticAssetRequest(request, originalUrl));

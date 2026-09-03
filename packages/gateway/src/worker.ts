@@ -71,32 +71,28 @@ function cloneResponse(response: Response): Response {
   });
 }
 
-// The gateway is the outermost layer returning to the browser, so it owns the
-// final Content-Encoding. The frontend serves pre-compressed .gz bytes as
-// application/gzip and signals via X-Precompressed; here we restore the HTML
-// content type and declare the encoding so the edge skips recompression.
-// Only transform responses for known SSG HTML paths where the frontend sends
-// pre-compressed gzip via X-Precompressed. All other frontend responses pass through unchanged.
+// The gateway is the outermost layer returning to the browser. For known SSG
+// HTML paths, compress the response with gzip so the browser receives it
+// pre-encoded. All other frontend responses pass through unchanged.
 function handleFrontendResponse(requestUrl: URL, response: Response): Response {
   const pathname = requestUrl.pathname.replace(/\/$/, '') || '/';
 
-  // Only apply to SSG locale paths: /{locale}, /{locale}/about, /{locale}/holy-grail, /{locale}/errors
+  // Only compress SSG locale paths: /{locale}, /{locale}/about, /{locale}/holy-grail, /{locale}/errors
   if (!/^(?:\/(en-US|ja-JP|zh-HK|zh-TW))(?:\/(about|holy-grail|errors))?$/.test(pathname)) {
     return response;
   }
 
-  if (response.headers.get('X-Precompressed') !== 'gzip') {
+  const contentType = response.headers.get('Content-Type') ?? '';
+  if (!contentType.includes('text/html') || response.status === 204 || response.status === 304) {
     return response;
   }
 
   const headers = new Headers(response.headers);
-  headers.delete('X-Precompressed');
-  headers.set('Content-Type', 'text/html; charset=UTF-8');
   headers.set('Content-Encoding', 'gzip');
   headers.set('Vary', 'Accept-Encoding');
   headers.delete('Content-Length');
 
-  return new Response(response.body, {
+  return new Response(response.body?.pipeThrough(new CompressionStream('gzip')), {
     headers,
     status: response.status,
     statusText: response.statusText,
