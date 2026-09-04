@@ -48,10 +48,18 @@ async function screenshot(context: BrowserContext, viewportName: string, theme: 
   await page.goto(BASE_URL, {
     waitUntil: 'networkidle',
   });
+
+  // Wait for web fonts so text rendering is deterministic.
+  await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(1000);
 
   const path = `${OUTPUT_DIR}/homepage-${viewportName}-${theme}.png`;
   await page.screenshot({
+    // Fast-forwards finite animations to their final state and cancels
+    // infinite ones (e.g. the homepage `artworkDrift` hero animation) back
+    // to their initial state. Without this, every run captures a different
+    // animation frame and VRT reports false diffs.
+    animations: 'disabled',
     fullPage: true,
     path,
   });

@@ -19,7 +19,7 @@ two recent fixes (`c80400a`, `61aaa75`) that the dev/prod split depends on.
   integration depends on).
 - The dev server **deliberately** does not send any CSP or Document-Policy
   headers. The SSR handler short-circuits in dev so Vite's HMR runtime and
-  dev-only modules are not blocked, and Sentry's CSP-Report-Only endpoint
+  dev-only modules are not blocked, and Sentry's CSP reporting endpoint
   does not get a flood of false violations. The Sentry browser-profiling
   integration is therefore gated on `!isDevSentryMode` so dev doesn't load
   an integration that would immediately fail to instantiate.
@@ -101,8 +101,7 @@ For a prerendered route, `build/client/_headers` ends up with (paraphrased):
 ```text
 /
   Cache-Control: public, max-age=600, s-maxage=3600, …
-  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' https://static.cloudflareinsights.com 'sha384-…' 'sha384-…' …; style-src 'self' 'sha384-…' 'sha256-yA3qHWL4K3kukdLY/T+1vlN/z6FrxQQRjp6/L8l7snM='; font-src 'self'; img-src 'self' data:; frame-src 'self'; connect-src 'self' https://cloudflareinsights.com https://o237444.ingest.us.sentry.io
-  Content-Security-Policy-Report-Only: <same>; report-uri https://o237444.ingest.us.sentry.io/api/4511078663782400/security/?…; report-to csp-endpoint
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' https://static.cloudflareinsights.com 'sha384-…' 'sha384-…' …; style-src 'self' 'sha384-…' 'sha256-yA3qHWL4K3kukdLY/T+1vlN/z6FrxQQRjp6/L8l7snM='; font-src 'self'; img-src 'self' data:; frame-src 'self'; connect-src 'self' https://cloudflareinsights.com https://o237444.ingest.us.sentry.io; report-uri https://o237444.ingest.us.sentry.io/api/4511078663782400/security/?…; report-to csp-endpoint
   Report-To: {"endpoints":[…], "group":"csp-endpoint", …}
   Reporting-Endpoints: csp-endpoint="https://…"
 ```
@@ -115,9 +114,8 @@ For a prerendered route, `build/client/_headers` ends up with (paraphrased):
 - `connect-src 'self' https://cloudflareinsights.com https://…ingest.us.sentry.io` —
   own-origin + the two external hosts the browser actually `fetch()`s
   against (analytics beacons and Sentry tunnel).
-- `Content-Security-Policy-Report-Only` mirrors the directive but adds
-  `report-uri` / `report-to` so violations land in Sentry without blocking
-  the page.
+- The enforced `Content-Security-Policy` appends `report-uri` / `report-to`
+  so violations land in Sentry.
 - The hashes are stable per route; they're computed at build time from the
   actual content of the SSR boot script and analytics inline style.
 
@@ -192,8 +190,8 @@ This is deliberate:
 - The dev render path is structurally different from prod: Vite injects an
   HMR runtime and dev-only modules that the production `script-src` would
   block.
-- The `Content-Security-Policy-Report-Only` mirror would otherwise
-  forward a flood of false-positive violation reports to Sentry for those
+- The enforced CSP's `report-uri` / `report-to` reporting would otherwise
+  send a flood of false-positive violation reports to Sentry for those
   HMR scripts.
 - `cspNonce` is `null` in dev (the render path doesn't stamp matching
   nonces onto emitted tags), so a nonce-based CSP would block every
@@ -270,7 +268,7 @@ for current user session`.
   allowlisted. If you need a new inline script, add its hash instead.
 - **Don't remove the `import.meta.env.PROD` gate in
   `applySsrResponseHeaders`.** It's load-bearing for HMR in dev, for the
-  Sentry CSP-Report-Only rate in dev, for the `cspNonce` story, and for
+  Sentry CSP report rate in dev, for the `cspNonce` story, and for
   the `SENTRY_RELEASE` requirement. If you need additional headers in
   dev, add a separate hook or a different gate — don't remove this one.
 - **Don't re-enable the browser-profiling integration unconditionally in

@@ -16,7 +16,7 @@ export const handle = {
 };
 
 export function headers({ parentHeaders }: Route.HeadersArgs): Headers {
-  parentHeaders.set('Cache-Control', 'public, s-maxage=3600, max-age=0');
+  parentHeaders.set('Cache-Control', 'public, max-age=900, s-maxage=3600');
   return parentHeaders;
 }
 

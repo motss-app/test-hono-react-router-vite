@@ -55,6 +55,7 @@
     "verbatimModuleSyntax": true
   },
   "exclude": [
+    ".worktrees",
     ".wrangler",
     "k6-load-test.mjs",
     "packages/healthz-rust"

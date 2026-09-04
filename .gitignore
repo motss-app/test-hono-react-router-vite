@@ -20,6 +20,9 @@ node_modules/
 __screenshots__
 .vitest-attachments
 
+# Git worktrees (e.g. created by AI agents via `git worktree add`)
+.worktrees/
+
 # Vite temp files
 *.timestamp-*.mjs
 coverage/
