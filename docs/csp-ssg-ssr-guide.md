@@ -77,11 +77,21 @@ For prerendered HTML:
 - `vite-plugins/copy-headers.ts` reads each prerendered HTML file
 - it hashes inline `<script>` and `<style>` blocks
 - it appends route-specific `Cache-Control` and CSP entries to `build/client/_headers`
-- the build emits deterministic `index.html.gz` files with `gzip -n -9` for each SSG page
-- the Worker maps the public SSG URL to its `.gz` asset before the SSR fallback and sets
-  `Content-Encoding: gzip`, compressed `Content-Length`, the gzip `ETag`, and `Vary: Accept-Encoding`
-- generated SSG HTML uses `Cache-Control: no-transform`, so Cloudflare preserves the already
-  compressed body and does not inject or rewrite HTML after CSP hashes are computed
+- the build emits deterministic `index.html.gz` files with `gzip -n -9` for each SSG page,
+  but the Worker does not serve them: the ASSETS service binding auto-decompresses `.gz`
+  bodies even with `Content-Type: application/gzip`, which would double-encode the response
+- the Worker fetches the plain `/_ssg/<route>/index.html` asset before the SSR fallback and
+  compresses it at request time with `CompressionStream('gzip')`, then sets
+  `Content-Encoding: gzip`, the compressed `Content-Length`, and `Vary: Accept-Encoding`
+- the compressed response is constructed with `encodeBody: 'manual'`. This is required: the
+  Workers platform treats a response with `Content-Encoding` as a request to compress, and
+  without `encodeBody: 'manual'` it wraps the already-compressed body in a second gzip layer
+  (verified on canary — browsers decoded one layer and rendered raw gzip bytes).
+  `Cache-Control: no-transform` does not suppress this; only `encodeBody: 'manual'` does.
+  See the Workers `Response` docs ("The `encodeBody` option") and the accepted Cloudflare
+  staff answer in community topic 117536
+- generated SSG HTML uses `Cache-Control: no-transform`, so intermediaries must not inject
+  or rewrite HTML after CSP hashes are computed
 - Cloudflare Analytics reuses `cloudflareAnalyticsStyleHashes`, so the generated SSG policy matches the runtime SSR policy.
 - it also adds `report-uri` / `report-to csp-endpoint` to the enforced `Content-Security-Policy`
   and emits `Report-To` and `Reporting-Endpoints` so Sentry can receive CSP security reports from prerendered pages
@@ -94,9 +104,9 @@ This is used for both production and canary builds:
 
 Those files act as base templates. The build then appends the generated per-route SSG headers.
 
-The precompressed SSG representation is selected only for the allowlisted prerendered page
-routes. SSR routes remain request-time responses and do not use the build-time gzip files; their
-compression remains Cloudflare's responsibility.
+Runtime gzip is applied only to the allowlisted prerendered page routes. SSR routes remain
+request-time responses and are not compressed by the Worker; their compression remains
+Cloudflare's responsibility.
 
 If a Cloudflare feature injects a resource that is not allowed by the page's CSP, the browser
 blocks that resource and continues enforcing the rest of the policy. The affected Cloudflare
@@ -144,6 +154,8 @@ The reporting URI is derived from the Sentry DSN and includes the current build 
 - Expecting build-time CSP hashes to cover CDN-injected inline scripts
 - Assuming Cloudflare Assets automatically negotiates arbitrary `.gz` sibling files without a
   Worker mapping
+- Serving a Worker-compressed body with `Content-Encoding` set but without
+  `encodeBody: 'manual'` — the platform adds a second gzip layer (double compression)
 - Treating `integrity` as a replacement for CSP
 - Forgetting to thread the nonce through React Router's component tree, causing hydration failures on SSR pages
 

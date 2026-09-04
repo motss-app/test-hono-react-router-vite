@@ -27,9 +27,15 @@ mode: primary
 
 ## Browser Interaction Rules
 
+- **Always use the VS Code integrated browser for any frontend verification.**
+  Never write custom scripts (Puppeteer/Playwright/`node` one-offs) or spawn a
+  standalone/headless browser instance to verify the frontend. If no browser
+  page is shared yet, open one with the browser tools (the user may need to
+  grant permission to share it).
 - **Never use `run_playwright_code`** when VS Code Copilot Chat browser tools (`click_element`, `screenshot_page`, `navigate_page`, `read_page`, `type_in_page`, `hover_element`, etc.) are available.
 - Prefer VS Code browser tools for all browser interactions (clicking, screenshots, navigation, reading page state).
-- Only fall back to `run_playwright_code` as a last resort when no equivalent browser tool exists for the needed action.
+- Browser MCP tools (`playwright/*`, `io.github.chromedevtools/chrome-devtools-mcp/*`) may be used when the integrated browser tools lack a needed capability (e.g. deep console/network inspection or performance tracing); reuse the already-open page instead of launching a new browser.
+- Only fall back to `run_playwright_code` as a last resort when no equivalent browser or MCP tool exists for the needed action.
 
 ## Project Structure
 

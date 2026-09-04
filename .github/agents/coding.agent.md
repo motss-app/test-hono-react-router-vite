@@ -20,6 +20,25 @@ For the complete set of instructions, workflows, and rules, refer to:
 3. **Run Biome check/fix** for linting and formatting
 4. **Run benchmark** after concluded changes to guard against regressions
 5. **Probe dev URLs** after verification passes
+6. **Verify UI in the VS Code integrated browser** — see Frontend Verification below
+
+## Frontend Verification (Integrated Browser)
+
+- **Always use the VS Code integrated browser for any frontend verification**
+  (visual checks, navigation, screenshots, page state). Sharing the integrated
+  browser may require user permission — ask the user to share it or open a page
+  with the browser tools; never work around it by spawning another browser.
+- **Never write custom scripts** (Puppeteer/Playwright/`node` one-offs) or spawn
+  a standalone/headless browser instance to verify the frontend.
+- Prefer browser tools in this order:
+  1. VS Code integrated browser tools (`open_browser_page`, `navigate_page`,
+     `read_page`, `click_element`, `screenshot_page`, `type_in_page`,
+     `hover_element`, `handle_dialog`, ...).
+  2. Browser MCP tools (`playwright/*`, `io.github.chromedevtools/chrome-devtools-mcp/*`)
+     when the integrated browser tools lack a needed capability — reuse the
+     already-open page instead of launching a new browser.
+- `run_playwright_code` is a last resort only when no integrated browser or MCP
+  tool covers the needed action; explain why before using it.
 
 ## Code Comment Style
 
