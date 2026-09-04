@@ -207,11 +207,13 @@ function createStaticAssetRequest(request: Request, url: URL): Request {
   });
 }
 
-// `no-transform` on all SSG pages (including /en-US) so intermediaries —
-// including the Cloudflare edge — must not modify or compress the body. Since
-// edge compression is disabled, the worker owns compression instead: the
-// prerendered HTML is gzipped with `CompressionStream` when the client
-// accepts it (see `serveStaticSsgPage`).
+/**
+ * `no-transform` on all SSG pages (including /en-US) so intermediaries —
+ * including the Cloudflare edge — must not modify or compress the body. Since
+ * edge compression is disabled, the worker owns compression instead: the
+ * prerendered HTML is gzipped with `CompressionStream` when the client
+ * accepts it (see `serveStaticSsgPage`).
+ */
 const ssgCacheControl =
   'public, max-age=0, s-maxage=10, stale-while-revalidate=1, stale-if-error=86400, no-transform';
 
@@ -264,9 +266,11 @@ async function serveStaticSsgPage({
     return null;
   }
 
-  // Do NOT serve a .gz asset directly — the service binding auto-decompresses
-  // the body even with Content-Type: application/gzip, causing double-encoding.
-  // The plain HTML is fetched and compressed in the worker instead.
+  /**
+   * Do NOT serve a .gz asset directly — the service binding auto-decompresses
+   * the body even with Content-Type: application/gzip, causing double-encoding.
+   * The plain HTML is fetched and compressed in the worker instead.
+   */
   const originalUrl = new URL(request.url);
   originalUrl.pathname = `/_ssg${pathname}/index.html`;
   const originalResponse = await env.ASSETS.fetch(createStaticAssetRequest(request, originalUrl));
@@ -280,10 +284,12 @@ async function serveStaticSsgPage({
   headers.set('X-Asset-Length', originalResponse.headers.get('Content-Length') ?? 'nil');
   headers.set('X-Asset-Type', originalResponse.headers.get('Content-Type') ?? 'nil');
 
-  // Gzip in the worker with `CompressionStream` — the edge must not re-compress
-  // or otherwise modify the body (`no-transform` above). Skip when the asset is
-  // already encoded, and only when the client actually accepts gzip; the HTML is
-  // buffered once (~20KB) to report the exact compressed `Content-Length`.
+  /**
+   * Gzip in the worker with `CompressionStream` — the edge must not re-compress
+   * or otherwise modify the body (`no-transform` above). Skip when the asset is
+   * already encoded, and only when the client actually accepts gzip; the HTML is
+   * buffered once (~20KB) to report the exact compressed `Content-Length`.
+   */
   const assetBody = originalResponse.body;
   if (
     assetBody !== null &&
@@ -298,6 +304,15 @@ async function serveStaticSsgPage({
     headers.set('Content-Length', String(compressed.byteLength));
 
     return new Response(request.method === 'HEAD' ? null : compressed, {
+      /**
+       * `Content-Encoding` here marks an ALREADY-compressed body. Without
+       * `encodeBody: 'manual'` the Workers platform treats the header as a
+       * request to compress and wraps the body in a second gzip layer — the
+       * double-compression seen on canary. `no-transform` does not suppress
+       * this; only `encodeBody: 'manual'` does (see Workers `Response` docs,
+       * "The `encodeBody` option").
+       */
+      encodeBody: 'manual',
       headers,
       status: originalResponse.status,
       statusText: originalResponse.statusText,
