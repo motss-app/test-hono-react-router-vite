@@ -208,10 +208,22 @@ function createStaticAssetRequest(request: Request, url: URL): Request {
 }
 
 // `no-transform` on all SSG pages (including /en-US) so intermediaries —
-// including the Cloudflare edge — must not modify the body. The prerendered
-// HTML is served as-is; edge compression is intentionally disabled.
+// including the Cloudflare edge — must not modify or compress the body. Since
+// edge compression is disabled, the worker owns compression instead: the
+// prerendered HTML is gzipped with `CompressionStream` when the client
+// accepts it (see `serveStaticSsgPage`).
 const ssgCacheControl =
   'public, max-age=0, s-maxage=10, stale-while-revalidate=1, stale-if-error=86400, no-transform';
+
+function acceptsGzipEncoding(request: Request): boolean {
+  return /\bgzip\b/i.test(request.headers.get('accept-encoding') ?? '');
+}
+
+function assetEncodingIsIdentity(response: Response): boolean {
+  const encoding = response.headers.get('content-encoding');
+
+  return encoding === null || encoding === 'identity';
+}
 
 function buildSsgHeaders(baseHeaders: Headers): Headers {
   const headers = new Headers(baseHeaders);
@@ -252,10 +264,9 @@ async function serveStaticSsgPage({
     return null;
   }
 
-  // Serve uncompressed HTML as-is — `no-transform` forbids the edge from
-  // compressing or otherwise modifying the body. Do NOT serve the .gz file
-  // here — the service binding auto-decompresses the body even with
-  // Content-Type: application/gzip, causing double-encoding.
+  // Do NOT serve a .gz asset directly — the service binding auto-decompresses
+  // the body even with Content-Type: application/gzip, causing double-encoding.
+  // The plain HTML is fetched and compressed in the worker instead.
   const originalUrl = new URL(request.url);
   originalUrl.pathname = `/_ssg${pathname}/index.html`;
   const originalResponse = await env.ASSETS.fetch(createStaticAssetRequest(request, originalUrl));
@@ -269,7 +280,31 @@ async function serveStaticSsgPage({
   headers.set('X-Asset-Length', originalResponse.headers.get('Content-Length') ?? 'nil');
   headers.set('X-Asset-Type', originalResponse.headers.get('Content-Type') ?? 'nil');
 
-  return new Response(request.method === 'HEAD' ? null : originalResponse.body, {
+  // Gzip in the worker with `CompressionStream` — the edge must not re-compress
+  // or otherwise modify the body (`no-transform` above). Skip when the asset is
+  // already encoded, and only when the client actually accepts gzip; the HTML is
+  // buffered once (~20KB) to report the exact compressed `Content-Length`.
+  const assetBody = originalResponse.body;
+  if (
+    assetBody !== null &&
+    assetEncodingIsIdentity(originalResponse) &&
+    acceptsGzipEncoding(request)
+  ) {
+    const compressed = await new Response(
+      assetBody.pipeThrough(new CompressionStream('gzip'))
+    ).arrayBuffer();
+
+    headers.set('Content-Encoding', 'gzip');
+    headers.set('Content-Length', String(compressed.byteLength));
+
+    return new Response(request.method === 'HEAD' ? null : compressed, {
+      headers,
+      status: originalResponse.status,
+      statusText: originalResponse.statusText,
+    });
+  }
+
+  return new Response(request.method === 'HEAD' ? null : assetBody, {
     headers,
     status: originalResponse.status,
     statusText: originalResponse.statusText,

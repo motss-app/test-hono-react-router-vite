@@ -64,8 +64,14 @@ function cloneResponse(response: Response): Response {
     return response;
   }
 
+  const headers = new Headers(response.headers);
+  // workerd ignores `Transfer-Encoding` set by user code (it derives framing
+  // from the body source), so strip it explicitly instead of forwarding a
+  // value the runtime will drop anyway.
+  headers.delete('Transfer-Encoding');
+
   return new Response(response.body, {
-    headers: response.headers,
+    headers,
     status: response.status,
     statusText: response.statusText,
   });
@@ -175,11 +181,13 @@ app.get('/rust/healthz', async c => {
     return c.text('HEALTHZ_RUST binding not configured', 503);
   }
   const resp = await rust.fetch(new Request('http://HEALTHZ_RUST/healthz'));
+  const headers = new Headers(resp.headers);
+  // workerd ignores `Transfer-Encoding` set by user code — strip it so a
+  // stale value from the downstream fetch is never forwarded.
+  headers.delete('Transfer-Encoding');
+  headers.set('x-worker', 'healthz-rust');
   return new Response(resp.body, {
-    headers: {
-      'x-worker': 'healthz-rust',
-      ...Object.fromEntries(resp.headers),
-    },
+    headers,
     status: resp.status,
   });
 });
@@ -190,11 +198,13 @@ app.get('/rust/hello', async c => {
     return c.text('HEALTHZ_RUST binding not configured', 503);
   }
   const resp = await rust.fetch(new Request('http://HEALTHZ_RUST/hello'));
+  const headers = new Headers(resp.headers);
+  // workerd ignores `Transfer-Encoding` set by user code — strip it so a
+  // stale value from the downstream fetch is never forwarded.
+  headers.delete('Transfer-Encoding');
+  headers.set('x-worker', 'healthz-rust');
   return new Response(resp.body, {
-    headers: {
-      'x-worker': 'healthz-rust',
-      ...Object.fromEntries(resp.headers),
-    },
+    headers,
     status: resp.status,
   });
 });

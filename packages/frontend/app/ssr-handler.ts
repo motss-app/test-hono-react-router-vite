@@ -150,9 +150,8 @@ function applySsrResponseHeaders(
     release: sentryRelease,
   });
 
-  responseHeaders.set('Content-Security-Policy', cspPolicy);
   responseHeaders.set(
-    'Content-Security-Policy-Report-Only',
+    'Content-Security-Policy',
     `${cspPolicy}; report-uri ${sentryCspReportingConfig.reportUri}; report-to csp-endpoint`
   );
   responseHeaders.set('Report-To', sentryCspReportingConfig.reportTo);

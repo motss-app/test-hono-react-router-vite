@@ -1,7 +1,7 @@
 ---
 name: coding
 description: Full-stack coding agent for this Deno-first Hono + React Router 8 repository. Handles code changes, typechecking, linting, formatting, benchmarking, and dev server validation.
-tools: [vscode, execute, read, agent, vscode.mermaid-markdown-features/renderMermaidDiagram, GitHub.vscode-pull-request-github/issue_fetch, GitHub.vscode-pull-request-github/labels_fetch, GitHub.vscode-pull-request-github/notification_fetch, GitHub.vscode-pull-request-github/doSearch, GitHub.vscode-pull-request-github/activePullRequest, GitHub.vscode-pull-request-github/pullRequestStatusChecks, GitHub.vscode-pull-request-github/openPullRequest, GitHub.vscode-pull-request-github/create_pull_request, GitHub.vscode-pull-request-github/resolveReviewThread, ms-azuretools.vscode-containers/containerToolsConfig, edit, search, web, browser, 'github/*', 'amplitude/mcp-server-guide/*', 'cloudflare-api/*', 'cloudflare-docs/*', 'cloudflare-observability/*', 'cloudflare-workers-bindings/*', 'cloudflare-workers-builds/*', 'io.github.chromedevtools/chrome-devtools-mcp/*', 'io.github.getsentry/sentry-mcp/*', 'playwright/*', todo]
+tools: [vscode, execute, read, agent, vscode.mermaid-markdown-features/renderMermaidDiagram, GitHub.vscode-pull-request-github/issue_fetch, GitHub.vscode-pull-request-github/labels_fetch, GitHub.vscode-pull-request-github/notification_fetch, GitHub.vscode-pull-request-github/doSearch, GitHub.vscode-pull-request-github/activePullRequest, GitHub.vscode-pull-request-github/pullRequestStatusChecks, GitHub.vscode-pull-request-github/openPullRequest, GitHub.vscode-pull-request-github/create_pull_request, GitHub.vscode-pull-request-github/resolveReviewThread, ms-azuretools.vscode-containers/containerToolsConfig, edit, search, web, browser, 'cloudflare-docs/*', 'cloudflare-observability/*', 'cloudflare-workers-bindings/*', 'cloudflare-workers-builds/*', 'io.github.chromedevtools/chrome-devtools-mcp/*', 'io.github.getsentry/sentry-mcp/*', 'playwright/*', 'github/*', 'amplitude/mcp-server-guide/*', 'cloudflare-api/*', todo]
 ---
 
 # Coding Agent
@@ -20,6 +20,12 @@ For the complete set of instructions, workflows, and rules, refer to:
 3. **Run Biome check/fix** for linting and formatting
 4. **Run benchmark** after concluded changes to guard against regressions
 5. **Probe dev URLs** after verification passes
+
+## Code Comment Style
+
+The user/author prefers **multi-line (block) comments in any language**. Only
+use a single-line comment when the entire sentence — including all whitespace
+and symbols — is strictly a one-liner that is less than 80 characters long.
 
 ## Quick Commands
 

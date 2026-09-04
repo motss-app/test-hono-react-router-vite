@@ -83,7 +83,8 @@ For prerendered HTML:
 - generated SSG HTML uses `Cache-Control: no-transform`, so Cloudflare preserves the already
   compressed body and does not inject or rewrite HTML after CSP hashes are computed
 - Cloudflare Analytics reuses `cloudflareAnalyticsStyleHashes`, so the generated SSG policy matches the runtime SSR policy.
-- it also appends `Content-Security-Policy-Report-Only`, `Report-To`, and `Reporting-Endpoints` so Sentry can receive CSP security reports from prerendered pages
+- it also adds `report-uri` / `report-to csp-endpoint` to the enforced `Content-Security-Policy`
+  and emits `Report-To` and `Reporting-Endpoints` so Sentry can receive CSP security reports from prerendered pages
 - the Sentry report URI is built from `SENTRY_DSN` and carries `sentry_environment` and `sentry_release`, so canary and production reports stay attributable to the right build
 
 This is used for both production and canary builds:
@@ -117,11 +118,12 @@ So:
 
 ### CSP reporting
 
-The repo emits a report-only CSP alongside the enforced policy so Sentry can collect browser-side CSP violations without blocking the request:
+The enforced policy itself carries the reporting directives so Sentry can collect browser-side CSP violations from the same policy that blocks them:
 
-- `Content-Security-Policy` remains the enforced policy for the page
-- `Content-Security-Policy-Report-Only` mirrors that policy and appends `report-uri` / `report-to csp-endpoint`
+- `Content-Security-Policy` is the enforced policy for the page and appends `report-uri` / `report-to csp-endpoint`
 - `Report-To` and `Reporting-Endpoints` both point at the Sentry security endpoint
+
+There is no separate `Content-Security-Policy-Report-Only` header: it would only mirror the enforced policy, duplicating the same directives (and header bytes) on every response without adding coverage.
 
 The reporting URI is derived from the Sentry DSN and includes the current build environment and release in the query string.
 
