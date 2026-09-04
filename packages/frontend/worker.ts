@@ -207,17 +207,13 @@ function createStaticAssetRequest(request: Request, url: URL): Request {
   });
 }
 
-const ssgCacheControlBase =
-  'public, max-age=0, s-maxage=10, stale-while-revalidate=1, stale-if-error=86400';
-const ssgCacheControlNoTransform = `${ssgCacheControlBase}, no-transform`;
+// `no-transform` on all SSG pages (including /en-US) so intermediaries —
+// including the Cloudflare edge — must not modify the body. The prerendered
+// HTML is served as-is; edge compression is intentionally disabled.
+const ssgCacheControl =
+  'public, max-age=0, s-maxage=10, stale-while-revalidate=1, stale-if-error=86400, no-transform';
 
-// Only /en-US opts into edge compression (no `no-transform`). All other SSG
-// locales keep `no-transform` so intermediaries must not modify the body.
-function getSsgCacheControl(pathname: string): string {
-  return pathname === '/en-US' ? ssgCacheControlBase : ssgCacheControlNoTransform;
-}
-
-function buildSsgHeaders(baseHeaders: Headers, pathname: string): Headers {
+function buildSsgHeaders(baseHeaders: Headers): Headers {
   const headers = new Headers(baseHeaders);
   const vary = new Set(
     (headers.get('Vary') ?? '')
@@ -228,7 +224,7 @@ function buildSsgHeaders(baseHeaders: Headers, pathname: string): Headers {
   vary.add('Accept-Encoding');
 
   headers.set('Content-Type', 'text/html; charset=UTF-8');
-  headers.set('Cache-Control', getSsgCacheControl(pathname));
+  headers.set('Cache-Control', ssgCacheControl);
   headers.set(
     'Vary',
     [
@@ -256,9 +252,10 @@ async function serveStaticSsgPage({
     return null;
   }
 
-  // Serve uncompressed HTML and let the Cloudflare edge handle compression.
-  // Do NOT serve the .gz file here — the service binding auto-decompresses
-  // the body even with Content-Type: application/gzip, causing double-encoding.
+  // Serve uncompressed HTML as-is — `no-transform` forbids the edge from
+  // compressing or otherwise modifying the body. Do NOT serve the .gz file
+  // here — the service binding auto-decompresses the body even with
+  // Content-Type: application/gzip, causing double-encoding.
   const originalUrl = new URL(request.url);
   originalUrl.pathname = `/_ssg${pathname}/index.html`;
   const originalResponse = await env.ASSETS.fetch(createStaticAssetRequest(request, originalUrl));
@@ -267,7 +264,7 @@ async function serveStaticSsgPage({
     return null;
   }
 
-  const headers = buildSsgHeaders(originalResponse.headers, pathname);
+  const headers = buildSsgHeaders(originalResponse.headers);
   headers.set('X-Asset-Encoding', originalResponse.headers.get('Content-Encoding') ?? 'nil');
   headers.set('X-Asset-Length', originalResponse.headers.get('Content-Length') ?? 'nil');
   headers.set('X-Asset-Type', originalResponse.headers.get('Content-Type') ?? 'nil');
