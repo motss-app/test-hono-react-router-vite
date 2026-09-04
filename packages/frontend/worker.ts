@@ -145,150 +145,12 @@ function recordWorkerRequestError(
 // Redirect `/` to base locale `/en-US`.  URL is the source of truth;
 // cookie-based locale detection is not used for the root redirect.
 const [BASE_LOCALE] = locales;
-const staticSsgPaths = new Set(
-  locales.flatMap(locale => [
-    `/${locale}`,
-    `/${locale}/about`,
-    `/${locale}/holy-grail`,
-    `/${locale}/errors`,
-  ])
-);
-
-function createStaticAssetRequest(request: Request, url: URL): Request {
-  const headers = new Headers();
-  // Prevent the ASSETS binding from transforming/compressing the fetched file.
-  headers.set('Cache-Control', 'no-transform');
-
-  return new Request(url, {
-    headers,
-    method: request.method,
-  });
-}
-
-/**
- * `no-transform` on all SSG pages (including /en-US) so intermediaries —
- * including the Cloudflare edge — must not modify or compress the body. Since
- * edge compression is disabled, the worker owns compression instead: the
- * prerendered HTML is gzipped with `CompressionStream` when the client
- * accepts it (see `serveStaticSsgPage`).
- */
-const ssgCacheControl =
-  'public, max-age=0, s-maxage=900, stale-while-revalidate=180, stale-if-error=86400, no-transform';
-
-function acceptsGzipEncoding(request: Request): boolean {
-  return /\bgzip\b/i.test(request.headers.get('accept-encoding') ?? '');
-}
-
-function assetEncodingIsIdentity(response: Response): boolean {
-  const encoding = response.headers.get('content-encoding');
-
-  return encoding === null || encoding === 'identity';
-}
-
-function buildSsgHeaders(baseHeaders: Headers): Headers {
-  const headers = new Headers(baseHeaders);
-  const vary = new Set(
-    (headers.get('Vary') ?? '')
-      .split(',')
-      .map(value => value.trim())
-      .filter(Boolean)
-  );
-  vary.add('Accept-Encoding');
-
-  headers.set('Content-Type', 'text/html; charset=UTF-8');
-  headers.set('Cache-Control', ssgCacheControl);
-  headers.set(
-    'Vary',
-    [
-      ...vary,
-    ].join(', ')
-  );
-
-  return headers;
-}
-
-async function serveStaticSsgPage({
-  env,
-  request,
-}: {
-  env: HonoEnv['Bindings'];
-  request: Request;
-}): Promise<Response | null> {
-  const pathname = new URL(request.url).pathname.replace(/\/$/, '') || '/';
-
-  if (request.method !== 'GET' && request.method !== 'HEAD') {
-    return null;
-  }
-
-  if (!staticSsgPaths.has(pathname)) {
-    return null;
-  }
-
-  /**
-   * Do NOT serve a .gz asset directly — the service binding auto-decompresses
-   * the body even with Content-Type: application/gzip, causing double-encoding.
-   * The plain HTML is fetched and compressed in the worker instead.
-   */
-  const originalUrl = new URL(request.url);
-  originalUrl.pathname = `/_ssg${pathname}/index.html`;
-  const originalResponse = await env.ASSETS.fetch(createStaticAssetRequest(request, originalUrl));
-
-  if (!originalResponse.ok) {
-    return null;
-  }
-
-  const headers = buildSsgHeaders(originalResponse.headers);
-  headers.set('X-Asset-Encoding', originalResponse.headers.get('Content-Encoding') ?? 'nil');
-  headers.set('X-Asset-Length', originalResponse.headers.get('Content-Length') ?? 'nil');
-  headers.set('X-Asset-Type', originalResponse.headers.get('Content-Type') ?? 'nil');
-
-  /**
-   * Gzip in the worker with `CompressionStream` — the edge must not re-compress
-   * or otherwise modify the body (`no-transform` above). Skip when the asset is
-   * already encoded, and only when the client actually accepts gzip; the HTML is
-   * buffered once (~20KB) to report the exact compressed `Content-Length`.
-   */
-  const assetBody = originalResponse.body;
-  if (
-    assetBody !== null &&
-    assetEncodingIsIdentity(originalResponse) &&
-    acceptsGzipEncoding(request)
-  ) {
-    const compressed = await new Response(
-      assetBody.pipeThrough(new CompressionStream('gzip'))
-    ).arrayBuffer();
-
-    headers.set('Content-Encoding', 'gzip');
-    headers.set('Content-Length', String(compressed.byteLength));
-
-    return new Response(request.method === 'HEAD' ? null : compressed, {
-      /**
-       * `Content-Encoding` here marks an ALREADY-compressed body. Without
-       * `encodeBody: 'manual'` the Workers platform treats the header as a
-       * request to compress and wraps the body in a second gzip layer — the
-       * double-compression seen on canary. `no-transform` does not suppress
-       * this; only `encodeBody: 'manual'` does (see Workers `Response` docs,
-       * "The `encodeBody` option").
-       */
-      encodeBody: 'manual',
-      headers,
-      status: originalResponse.status,
-      statusText: originalResponse.statusText,
-    });
-  }
-
-  return new Response(request.method === 'HEAD' ? null : assetBody, {
-    headers,
-    status: originalResponse.status,
-    statusText: originalResponse.statusText,
-  });
-}
 
 app.get('/', c => {
   const response = c.redirect(`/${BASE_LOCALE}`, 302);
   response.headers.set(
     'Cache-Control',
-    'public, max-age=0, s-maxage=900, stale-while-revalidate=300, stale-if-error=86400'
+    'public, max-age=900, s-maxage=3600, stale-while-revalidate=300, stale-if-error=86400'
   );
   return response;
 });
@@ -360,19 +222,13 @@ export default withSentry<HonoEnv['Bindings']>(
       }
 
       try {
-        const staticSsgResponse = await serveStaticSsgPage({
+        const response = await handleWorkerAppRequest({
+          appSessionId,
           env,
+          executionContext,
           request,
+          shouldSetAppSessionCookie,
         });
-        const response =
-          staticSsgResponse ??
-          (await handleWorkerAppRequest({
-            appSessionId,
-            env,
-            executionContext,
-            request,
-            shouldSetAppSessionCookie,
-          }));
 
         // Skip metrics recording during load tests to reduce overhead
         if (!isLoadTestMode) {
