@@ -22,20 +22,29 @@ mode: primary
 3. **Always fix errors whenever possible.** When lint, typecheck, or other verification tools report issues, fix them before proceeding.
 4. Follow repository rules in this file even when a skill is loaded, unless the skill gives a more specific instruction for the same area.
 5. After code changes, run `deno task check` unless the task is documentation-only or the user says not to.
-6. After verification passes, probe every URL in `docs/dev-urls.md` to ensure all return 200. Run these against the gateway at `localhost:8787` (and `localhost:5173` for direct frontend URLs). If the dev servers are not running, skip this step.
-7. Report what changed, what was verified, the URL probe results, and any remaining risks or blockers.
+6. Run Biome check/fix for linting and formatting after code changes.
+7. Run the benchmark after concluded changes to guard against regressions.
+8. Verify UI changes in the VS Code integrated browser (see Browser Interaction Rules).
+9. After verification passes, probe every URL in `docs/dev-urls.md` to ensure all return 200. Run these against the gateway at `localhost:8787` (and `localhost:5173` for direct frontend URLs). If the dev servers are not running, skip this step.
+10. Report what changed, what was verified, the URL probe results, and any remaining risks or blockers.
 
 ## Browser Interaction Rules
 
-- **Always use the VS Code integrated browser for any frontend verification.**
-  Never write custom scripts (Puppeteer/Playwright/`node` one-offs) or spawn a
-  standalone/headless browser instance to verify the frontend. If no browser
-  page is shared yet, open one with the browser tools (the user may need to
-  grant permission to share it).
-- **Never use `run_playwright_code`** when VS Code Copilot Chat browser tools (`click_element`, `screenshot_page`, `navigate_page`, `read_page`, `type_in_page`, `hover_element`, etc.) are available.
-- Prefer VS Code browser tools for all browser interactions (clicking, screenshots, navigation, reading page state).
-- Browser MCP tools (`playwright/*`, `io.github.chromedevtools/chrome-devtools-mcp/*`) may be used when the integrated browser tools lack a needed capability (e.g. deep console/network inspection or performance tracing); reuse the already-open page instead of launching a new browser.
-- Only fall back to `run_playwright_code` as a last resort when no equivalent browser or MCP tool exists for the needed action.
+- **Always use the VS Code integrated browser for any frontend verification**
+  (visual checks, navigation, screenshots, page state). Sharing the integrated
+  browser may require user permission — ask the user to share it or open a page
+  with the browser tools; never work around it by spawning another browser.
+- **Never write custom scripts** (Puppeteer/Playwright/`node` one-offs) or spawn
+  a standalone/headless browser instance to verify the frontend.
+- Prefer browser tools in this order:
+  1. VS Code integrated browser tools (`open_browser_page`, `navigate_page`,
+     `read_page`, `click_element`, `screenshot_page`, `type_in_page`,
+     `hover_element`, `handle_dialog`, ...).
+  2. Browser MCP tools (`playwright/*`, `io.github.chromedevtools/chrome-devtools-mcp/*`)
+     when the integrated browser tools lack a needed capability — reuse the
+     already-open page instead of launching a new browser.
+- `run_playwright_code` is a last resort only when no integrated browser or MCP
+  tool covers the needed action; explain why before using it.
 
 ## Project Structure
 
@@ -57,6 +66,12 @@ mode: primary
 - Prefer exporting at declaration sites instead of trailing `export { ... }` blocks.
 - Use `import.meta.env` for environment variables.
 - Use `//` for single-line comments and `/** */` for multi-line comments/JSDoc.
+
+## Code Comment Style
+
+The user/author prefers **multi-line (block) comments in any language**. Only
+use a single-line comment when the entire sentence — including all whitespace
+and symbols — is strictly a one-liner that is less than 80 characters long.
 
 ## Hono + React Router Integration
 
@@ -80,13 +95,34 @@ mode: primary
 - **JSX rendering**: Never use `&&` for conditional rendering — falsy-but-renderable values (e.g. `""`, `0`) slip through and render unintended text. Use `{condition ? <A /> : null}` or `{condition ? <A /> : <B />}` instead.
 - **Temporary files**: Never write to `/tmp/` or any directory outside the workspace root. Use `/var/folders/5p/x6m44h3n36v4w5pdttg8vtrw0000gn/T/opencode` if temp space is needed — it is pre-approved for external directory access.
 
+## Quick Commands
+
+| Command | Description |
+|---------|-------------|
+| `deno task check` | Typecheck the project |
+| `deno run -P=lint npm:@biomejs/biome check .` | Lint check |
+| `deno run -P=lint npm:@biomejs/biome check --write .` | Lint fix |
+| `deno run -P=format npm:@biomejs/biome format --write .` | Format |
+| `BENCH_DURATION=20s deno task bench:all` | Full benchmark |
+| `deno task dev` | Start all dev servers |
+
 ## Related Instruction Files
 
+- `AGENTS.md`: root-level agent instructions (single source of truth for repository rules).
 - `.github/copilot-instructions.md`: repository-specific GitHub Copilot instructions (delegates to this file).
 - `.github/LLMS.md`: external LLM reference material used by this repo.
 - `docs/dev-urls.md`: all health check, SSR, and API URLs to probe after changes.
+- `docs/setup.md`: project setup guide.
+- `docs/build-setup.md`: build configuration.
+- `docs/gateway-architecture.md`: gateway architecture overview.
+- `docs/rendering-modes.md`: SSR vs prerendering modes.
+- `docs/error-handling.md`: error handling patterns.
+- `docs/sentry-cloudflare-workers-vs-nodejs.md`: Sentry CF Workers vs Node.js.
+- `docs/benchmark-baseline.md`: benchmark baseline data.
+- `docs/testing.md`: testing guide.
 
 ## Maintenance
 
 - When the user asks to "add instructions", update this file immediately.
 - Keep `.github/copilot-instructions.md` as a thin pointer to this file — do not duplicate rules there.
+- Keep `.github/agents/coding.agent.md` as a thin pointer to this file (frontmatter plus pointer only) — do not duplicate rules there.

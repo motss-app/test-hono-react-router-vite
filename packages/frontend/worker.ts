@@ -49,49 +49,7 @@ const app = new Hono<HonoEnv>()
       statusText: response.statusText,
     });
   })
-  .get('/healthz', c => c.text('frontend ok'))
-  .post('/__purge-cache', async c => {
-    const secret = c.env.CACHE_PURGE_SECRET;
-    const provided = c.req.header('x-purge-secret');
-
-    if (!secret || provided !== secret) {
-      return c.json(
-        {
-          error: 'unauthorized',
-        },
-        401
-      );
-    }
-
-    const ctx = c.executionCtx as unknown as ExecutionContext;
-
-    if (!ctx.cache) {
-      return c.json(
-        {
-          error: 'workers cache not enabled',
-        },
-        400
-      );
-    }
-
-    const result = await ctx.cache.purge({
-      purgeEverything: true,
-    });
-
-    if (!result.success) {
-      return c.json(
-        {
-          error: 'purge failed',
-          errors: result.errors,
-        },
-        500
-      );
-    }
-
-    return c.json({
-      purged: true,
-    });
-  });
+  .get('/healthz', c => c.text('frontend ok'));
 
 const isDevSentryMode = isDevelopmentSentryMode(import.meta.env.MODE);
 let hasLoggedWorkerEnvSnapshot = false;
@@ -215,7 +173,7 @@ function createStaticAssetRequest(request: Request, url: URL): Request {
  * accepts it (see `serveStaticSsgPage`).
  */
 const ssgCacheControl =
-  'public, max-age=0, s-maxage=10, stale-while-revalidate=1, stale-if-error=86400, no-transform';
+  'public, max-age=0, s-maxage=900, stale-while-revalidate=180, stale-if-error=86400, no-transform';
 
 function acceptsGzipEncoding(request: Request): boolean {
   return /\bgzip\b/i.test(request.headers.get('accept-encoding') ?? '');

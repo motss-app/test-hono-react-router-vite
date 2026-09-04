@@ -3,7 +3,6 @@ export interface WorkerFetcher {
 }
 
 export interface GatewayBindings {
-  CACHE_PURGE_SECRET?: string;
   FRONTEND: WorkerFetcher;
   BFF: WorkerFetcher;
   HEALTHZ_RUST?: WorkerFetcher;

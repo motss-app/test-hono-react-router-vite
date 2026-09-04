@@ -97,7 +97,8 @@
       "**/*.jsx",
       "**/*.ts",
       "**/*.tsx",
-      "**/*.json"
+      "**/*.json",
+      "!.worktrees"
     ]
   },
   "formatter": {
