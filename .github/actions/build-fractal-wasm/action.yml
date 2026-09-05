@@ -18,6 +18,10 @@ runs:
       shell: bash
       run: cargo install wasm-bindgen-cli --version 0.2.127 --locked
 
+    - name: Install binaryen (wasm-opt)
+      shell: bash
+      run: sudo apt-get update && sudo apt-get install -y binaryen
+
     - name: Build WASM module
       shell: bash
       run: deno task build:fractal-wasm

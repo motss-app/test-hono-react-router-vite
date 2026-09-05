@@ -18,7 +18,12 @@ import {
   type FractalView,
   renderMandelbrotJs,
 } from '../utils/fractal-render.ts';
-import { type FractalWasmModule, loadFractalWasm } from '../utils/fractal-wasm.ts';
+import {
+  FRACTAL_PALETTE_IDS,
+  type FractalWasmModule,
+  loadFractalWasm,
+  wasmFrameView,
+} from '../utils/fractal-wasm.ts';
 import { createFractalWebglRenderer, type FractalWebglRenderer } from '../utils/fractal-webgl.ts';
 import type { Route } from './+types/labs-mandelbrot.ts';
 import * as c from './labs-mandelbrot.css.ts';
@@ -449,15 +454,30 @@ function useRace(
     const jsMs = performance.now() - jsStarted;
 
     const wasmStarted = performance.now();
-    mod.render(
-      CANVAS_WIDTH,
-      CANVAS_HEIGHT,
-      view.centerX,
-      view.centerY,
-      view.scale,
-      view.maxIter,
-      view.palette
-    );
+    if (typeof mod.render_fast === 'function' && typeof mod.wasm_memory === 'function') {
+      // Zero-copy path: compute lands in the module's persistent buffer, so
+      // this times the same work JS does (compute + writes) with no per-frame
+      // allocation and no boundary copy.
+      mod.render_fast(
+        CANVAS_WIDTH,
+        CANVAS_HEIGHT,
+        view.centerX,
+        view.centerY,
+        view.scale,
+        view.maxIter,
+        FRACTAL_PALETTE_IDS[view.palette]
+      );
+    } else {
+      mod.render(
+        CANVAS_WIDTH,
+        CANVAS_HEIGHT,
+        view.centerX,
+        view.centerY,
+        view.scale,
+        view.maxIter,
+        view.palette
+      );
+    }
     const wasmDuration = performance.now() - wasmStarted;
 
     const glRenderer = glRendererRef.current;
@@ -621,6 +641,60 @@ function CanvasPanel({
 }
 
 /**
+ * Paints one CPU frame (`js` or `wasm` engine) into the 2D context. Owns the
+ * WASM fast-path wiring (persistent-buffer render plus zero-copy view) with a
+ * legacy-`render` fallback for older cached glue. Split out so
+ * `useFractalCanvas` stays under the line-count lint; pure paint, no timing.
+ */
+function paintCpuFrame(
+  context: CanvasRenderingContext2D,
+  engine: 'js' | 'wasm',
+  mod: FractalWasmModule | null,
+  view: FractalView
+): void {
+  if (engine === 'js') {
+    const buffer = new Uint8ClampedArray(CANVAS_WIDTH * CANVAS_HEIGHT * 4);
+    renderMandelbrotJs(buffer, CANVAS_WIDTH, CANVAS_HEIGHT, view);
+    context.putImageData(new ImageData(buffer, CANVAS_WIDTH, CANVAS_HEIGHT), 0, 0);
+  } else if (mod) {
+    const byteLength = CANVAS_WIDTH * CANVAS_HEIGHT * 4;
+    if (typeof mod.render_fast === 'function' && typeof mod.wasm_memory === 'function') {
+      // Zero-copy path: one view over WASM memory straight into `ImageData`,
+      // replacing the legacy `render` round-trip of a 2MB `.slice()` copy
+      // plus a second `Uint8ClampedArray` copy. `wasmFrameView` aliases WASM
+      // memory, so it must be consumed synchronously before the next render
+      // reuses the buffer.
+      const ptr = mod.render_fast(
+        CANVAS_WIDTH,
+        CANVAS_HEIGHT,
+        view.centerX,
+        view.centerY,
+        view.scale,
+        view.maxIter,
+        FRACTAL_PALETTE_IDS[view.palette]
+      );
+      const frame = wasmFrameView(mod, ptr, byteLength);
+      context.putImageData(new ImageData(frame, CANVAS_WIDTH, CANVAS_HEIGHT), 0, 0);
+    } else {
+      const rgba = mod.render(
+        CANVAS_WIDTH,
+        CANVAS_HEIGHT,
+        view.centerX,
+        view.centerY,
+        view.scale,
+        view.maxIter,
+        view.palette
+      );
+      context.putImageData(
+        new ImageData(new Uint8ClampedArray(rgba), CANVAS_WIDTH, CANVAS_HEIGHT),
+        0,
+        0
+      );
+    }
+  }
+}
+
+/**
  * Owns the interactive canvases: rendering engine selection, WASM module
  * loading, viewport state, and the pointer/wheel interaction handlers. Keeps
  * the page component presentational.
@@ -742,26 +816,7 @@ function useFractalCanvas(): {
         if (!context) {
           return;
         }
-        if (engine === 'js') {
-          const buffer = new Uint8ClampedArray(CANVAS_WIDTH * CANVAS_HEIGHT * 4);
-          renderMandelbrotJs(buffer, CANVAS_WIDTH, CANVAS_HEIGHT, view);
-          context.putImageData(new ImageData(buffer, CANVAS_WIDTH, CANVAS_HEIGHT), 0, 0);
-        } else if (mod) {
-          const rgba = mod.render(
-            CANVAS_WIDTH,
-            CANVAS_HEIGHT,
-            view.centerX,
-            view.centerY,
-            view.scale,
-            view.maxIter,
-            view.palette
-          );
-          context.putImageData(
-            new ImageData(new Uint8ClampedArray(rgba), CANVAS_WIDTH, CANVAS_HEIGHT),
-            0,
-            0
-          );
-        }
+        paintCpuFrame(context, engine, mod, view);
       }
 
       setRenderMs(performance.now() - started);
