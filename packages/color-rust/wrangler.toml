@@ -1,0 +1,36 @@
+name = "color-rust"
+main = "build/index.js"
+compatibility_date = "2026-05-13"
+workers_dev = true
+preview_urls = true
+upload_source_maps = true
+
+[cache]
+enabled = true
+
+[placement]
+mode = "smart"
+
+[observability]
+enabled = true
+head_sampling_rate = 1.0
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1.0
+invocation_logs = true
+persist = true
+
+[observability.traces]
+enabled = true
+head_sampling_rate = 1.0
+persist = true
+
+[env.canary]
+name = "color-rust-canary"
+
+[env.dev]
+name = "color-rust-dev"
+
+[env.production]
+name = "color-rust-production"

@@ -36,6 +36,14 @@
         {
           "binding": "HEALTHZ_RUST",
           "service": "healthz-rust-canary"
+        },
+        {
+          "binding": "FRACTAL_RUST",
+          "service": "fractal-rust-canary"
+        },
+        {
+          "binding": "COLOR_RUST",
+          "service": "color-rust-canary"
         }
       ],
       "vars": {
@@ -57,6 +65,14 @@
         {
           "binding": "HEALTHZ_RUST",
           "service": "healthz-rust-dev"
+        },
+        {
+          "binding": "FRACTAL_RUST",
+          "service": "fractal-rust-dev"
+        },
+        {
+          "binding": "COLOR_RUST",
+          "service": "color-rust-dev"
         }
       ],
       "vars": {
@@ -84,6 +100,14 @@
         {
           "binding": "HEALTHZ_RUST",
           "service": "healthz-rust-production"
+        },
+        {
+          "binding": "FRACTAL_RUST",
+          "service": "fractal-rust-production"
+        },
+        {
+          "binding": "COLOR_RUST",
+          "service": "color-rust-production"
         }
       ],
       "vars": {
@@ -118,6 +142,14 @@
     {
       "binding": "FRONTEND",
       "service": "frontend-app"
+    },
+    {
+      "binding": "FRACTAL_RUST",
+      "service": "fractal-rust"
+    },
+    {
+      "binding": "COLOR_RUST",
+      "service": "color-rust"
     },
     {
       "binding": "BFF",

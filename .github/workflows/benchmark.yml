@@ -56,6 +56,9 @@ jobs:
           chmod +x /tmp/oha
           sudo mv /tmp/oha /usr/local/bin/oha
 
+      - name: Build fractal WASM
+        uses: ./.github/actions/build-fractal-wasm
+
       - name: Build
         run: deno task build
 

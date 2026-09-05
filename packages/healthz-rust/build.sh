@@ -17,9 +17,9 @@ wasm-bindgen \
 WASM_FILE="build/index_bg.wasm"
 BEFORE_SIZE=$(wc -c < "$WASM_FILE")
 
-echo "==> Running wasm-opt -Oz..."
+echo "==> Running wasm-opt -O3..."
 if command -v wasm-opt &>/dev/null; then
-  wasm-opt -Oz "$WASM_FILE" -o "$WASM_FILE"
+  wasm-opt -O3 "$WASM_FILE" -o "$WASM_FILE"
   AFTER_SIZE=$(wc -c < "$WASM_FILE")
   SAVED=$(( BEFORE_SIZE - AFTER_SIZE ))
   echo "    Before: $BEFORE_SIZE bytes"

@@ -1,0 +1,24 @@
+[package]
+name = "fractal-rust"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+worker = "0.8.5"
+serde = { version = "1", features = ["derive"] }
+js-sys = "0.3"
+# Shared Mandelbrot kernel also compiled into the browser-facing WASM module.
+fractal-wasm = { path = "../fractal-wasm" }
+png = "0.18.1"
+
+[profile.release]
+# `strip = true` breaks wasm-bindgen ("externref table required for catch
+# wrappers", workers-rs #1014) — do not enable it. This Worker is comfortably
+# below the Cloudflare code-size limit, so favor runtime speed over -Oz.
+lto = true
+codegen-units = 1
+opt-level = 3
+panic = "abort"

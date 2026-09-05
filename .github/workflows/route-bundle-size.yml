@@ -27,6 +27,9 @@ jobs:
 
       - uses: ./.github/actions/setup-deno
 
+      - name: Build fractal WASM
+        uses: ./.github/actions/build-fractal-wasm
+
       - name: Build
         run: deno task build
 

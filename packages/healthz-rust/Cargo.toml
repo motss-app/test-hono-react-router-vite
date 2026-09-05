@@ -15,5 +15,5 @@ js-sys = "0.3"
 [profile.release]
 lto = true
 codegen-units = 1
-opt-level = "z"
+opt-level = 3
 panic = "abort"
