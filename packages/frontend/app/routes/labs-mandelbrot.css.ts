@@ -281,6 +281,14 @@ export const canvas = style({
   width: '100%',
 });
 
+/*
+ * The page keeps one canvas per context type (2D for the CPU engines,
+ * WebGL2 for the GPU) and shows only the active one.
+ */
+export const canvasHidden = style({
+  display: 'none',
+});
+
 export const canvasOverlay = style({
   alignItems: 'center',
   backgroundColor: 'rgba(11, 10, 24, 0.72)',

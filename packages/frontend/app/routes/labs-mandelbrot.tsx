@@ -58,9 +58,21 @@ const PALETTE_LABELS: Record<FractalPaletteName, () => string> = {
   viridis: m.labs_mandelbrot_palette_viridis,
 };
 
+const ENGINE_LABELS: Record<FractalEngine, () => string> = {
+  js: m.labs_mandelbrot_engine_javascript,
+  wasm: m.labs_mandelbrot_engine_wasm,
+  webgl2: m.labs_mandelbrot_engine_webgl2,
+};
+
+const ENGINES: readonly FractalEngine[] = [
+  'js',
+  'wasm',
+  'webgl2',
+];
+
 type WasmStatus = 'loading' | 'ready' | 'error';
 type EdgeStatus = 'idle' | 'loading' | 'ready' | 'error';
-type FractalBackend = 'webgl2' | 'wasm';
+type FractalEngine = 'js' | 'wasm' | 'webgl2';
 
 interface EdgeResult {
   bytes: number;
@@ -98,31 +110,67 @@ function formatBytes(bytes: number): string {
 }
 
 interface ViewControlsProps {
+  engine: FractalEngine | null;
   maxIter: number;
+  onEngineChange: (event: ReactChangeEvent<HTMLSelectElement>) => void;
   onIterationsChange: (event: ReactChangeEvent<HTMLInputElement>) => void;
   onPaletteChange: (event: ReactChangeEvent<HTMLSelectElement>) => void;
   onReset: () => void;
   onZoomIn: () => void;
   onZoomOut: () => void;
   palette: FractalPaletteName;
+  webgl2Available: boolean;
 }
 
 function ViewControls({
+  engine,
   maxIter,
+  onEngineChange,
   onIterationsChange,
   onPaletteChange,
   onReset,
   onZoomIn,
   onZoomOut,
   palette,
+  webgl2Available,
 }: ViewControlsProps): JSX.Element {
   // Static, page-scoped ids: useId() produces different values between the
   // dev SSR pass and the client bundle, which breaks hydration.
+  const engineId = 'labs-mandelbrot-engine';
   const iterationsId = 'labs-mandelbrot-iterations';
   const paletteId = 'labs-mandelbrot-palette';
 
   return (
     <div className={c.controlsRow}>
+      {/* Rendered only once the client picked the default engine, so SSR and
+          hydration always agree. */}
+      {engine === null ? null : (
+        <div className={c.controlGroup}>
+          <label
+            className={c.controlLabel}
+            htmlFor={engineId}
+          >
+            {m.labs_mandelbrot_label_engine()}
+          </label>
+          <select
+            className={c.selectInput}
+            id={engineId}
+            onChange={onEngineChange}
+            value={engine}
+          >
+            {ENGINES.map(name => (
+              <option
+                disabled={name === 'webgl2' && !webgl2Available}
+                key={name}
+                value={name}
+              >
+                {ENGINE_LABELS[name]()}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
       <div className={c.controlGroup}>
         <label
           className={c.controlLabel}
@@ -195,17 +243,17 @@ function ViewControls({
 }
 
 interface ViewStatusBarProps {
-  backend: FractalBackend | null;
   centerX: number;
   centerY: number;
+  engine: FractalEngine | null;
   renderMs: number | null;
   scale: number;
 }
 
 function ViewStatusBar({
-  backend,
   centerX,
   centerY,
+  engine,
   renderMs,
   scale,
 }: ViewStatusBarProps): JSX.Element {
@@ -213,19 +261,13 @@ function ViewStatusBar({
     <div className={c.statusBar}>
       <div className={c.statusItem}>
         <p className={c.statusLabel}>
-          {backend === 'webgl2'
+          {engine === 'webgl2'
             ? m.labs_mandelbrot_label_render_ms_gpu()
-            : m.labs_mandelbrot_label_render_ms()}
+            : engine === 'js'
+              ? m.labs_mandelbrot_label_render_ms_js()
+              : m.labs_mandelbrot_label_render_ms()}
         </p>
         <p className={c.statusValue}>{renderMs === null ? '—' : formatMs(renderMs)}</p>
-      </div>
-      <div className={c.statusItem}>
-        <p className={c.statusLabel}>{m.labs_mandelbrot_label_backend()}</p>
-        <p className={c.statusValue}>
-          {backend === 'webgl2'
-            ? m.labs_mandelbrot_backend_webgl2()
-            : m.labs_mandelbrot_backend_wasm()}
-        </p>
       </div>
       <div className={c.statusItem}>
         <p className={c.statusLabel}>{m.labs_mandelbrot_label_resolution()}</p>
@@ -382,323 +424,18 @@ function SectionHeading({ intro, title }: { intro: string; title: string }): JSX
 }
 
 /**
- * Owns the interactive canvas: rendering backend selection, WASM module
- * loading, viewport state, and the pointer/wheel interaction handlers. Keeps
- * the page component presentational.
+ * Runs the three engines back to back on the current viewport and keeps the
+ * latest timings.
  */
-function useFractalCanvas(): {
-  backend: FractalBackend | null;
-  canvasRef: React.RefObject<HTMLCanvasElement | null>;
-  glRendererRef: React.RefObject<FractalWebglRenderer | null>;
-  handlePointerDown: (event: ReactPointerEvent<HTMLCanvasElement>) => void;
-  handlePointerMove: (event: ReactPointerEvent<HTMLCanvasElement>) => void;
-  handlePointerUp: (event: ReactPointerEvent<HTMLCanvasElement>) => void;
-  renderMs: number | null;
-  resetView: () => void;
-  setView: React.Dispatch<React.SetStateAction<FractalView>>;
-  view: FractalView;
-  wasmModuleRef: React.RefObject<FractalWasmModule | null>;
-  wasmStatus: WasmStatus;
+function useRace(
+  glRendererRef: React.RefObject<FractalWebglRenderer | null>,
+  view: FractalView,
+  wasmModuleRef: React.RefObject<FractalWasmModule | null>
+): {
+  race: RaceResult | null;
+  runRace: () => void;
 } {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const wasmModuleRef = useRef<FractalWasmModule | null>(null);
-  const glRendererRef = useRef<FractalWebglRenderer | null>(null);
-  const context2dRef = useRef<CanvasRenderingContext2D | null>(null);
-  const dragRef = useRef<{
-    pointerId: number;
-    x: number;
-    y: number;
-  } | null>(null);
-
-  const [wasmStatus, setWasmStatus] = useState<WasmStatus>('loading');
-  const [wasmModule, setWasmModule] = useState<FractalWasmModule | null>(null);
-  const [backend, setBackend] = useState<FractalBackend | null>(null);
-  const [view, setView] = useState<FractalView>(DEFAULT_VIEW);
-  const [renderMs, setRenderMs] = useState<number | null>(null);
-  const lastScheduledRef = useRef<FractalView>(DEFAULT_VIEW);
-
-  // Load the Rust WASM module once, on the client only.
-  useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const mod = await loadFractalWasm();
-        if (cancelled) {
-          return;
-        }
-        wasmModuleRef.current = mod;
-        setWasmModule(mod);
-        setWasmStatus('ready');
-      } catch {
-        if (!cancelled) {
-          setWasmStatus('error');
-        }
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  // Pick the rendering backend once. A canvas supports only one context
-  // type, so this must run before any 2D usage: WebGL2 wins when available,
-  // and the 2D context for the WASM path is created only as a fallback.
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) {
-      return;
-    }
-
-    const glRenderer = createFractalWebglRenderer(canvas);
-    if (glRenderer) {
-      glRendererRef.current = glRenderer;
-      setBackend('webgl2');
-      return;
-    }
-
-    context2dRef.current = canvas.getContext('2d');
-    setBackend(context2dRef.current ? 'wasm' : null);
-  }, []);
-
-  // Render the current viewport whenever it changes. The GPU backend draws
-  // in ~1-2ms, so it renders immediately; the CPU WASM path blocks the main
-  // thread for ~100ms, so iteration-slider drags are debounced while pan,
-  // zoom, and palette changes stay immediate.
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!wasmModule || !canvas || backend === null) {
-      return;
-    }
-
-    const previous = lastScheduledRef.current;
-    lastScheduledRef.current = view;
-    const onlyIterationsChanged =
-      previous.centerX === view.centerX &&
-      previous.centerY === view.centerY &&
-      previous.scale === view.scale &&
-      previous.palette === view.palette &&
-      previous.maxIter !== view.maxIter;
-    const delay = backend === 'webgl2' || !onlyIterationsChanged ? 0 : RENDER_DEBOUNCE_MS;
-
-    const timer = setTimeout(() => {
-      const started = performance.now();
-
-      if (backend === 'webgl2') {
-        const renderer = glRendererRef.current;
-        if (!renderer) {
-          return;
-        }
-        renderer.render(view);
-        renderer.finish();
-      } else {
-        const context = context2dRef.current;
-        if (!context) {
-          return;
-        }
-        const rgba = wasmModule.render(
-          CANVAS_WIDTH,
-          CANVAS_HEIGHT,
-          view.centerX,
-          view.centerY,
-          view.scale,
-          view.maxIter,
-          view.palette
-        );
-        context.putImageData(
-          new ImageData(new Uint8ClampedArray(rgba), CANVAS_WIDTH, CANVAS_HEIGHT),
-          0,
-          0
-        );
-      }
-
-      setRenderMs(performance.now() - started);
-    }, delay);
-
-    return () => clearTimeout(timer);
-  }, [
-    backend,
-    wasmModule,
-    view,
-  ]);
-
-  // Zoom with the wheel, but only while Ctrl (or Cmd) is held — plain scroll
-  // must keep scrolling the page (a11y). A native non-passive listener is
-  // required so `preventDefault` can block the browser's own ctrl+wheel
-  // page zoom while zooming the fractal.
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) {
-      return;
-    }
-
-    const handleWheel = (event: WheelEvent): void => {
-      if (!event.ctrlKey && !event.metaKey) {
-        return;
-      }
-      event.preventDefault();
-      const rect = canvas.getBoundingClientRect();
-      const pointX = (event.clientX - rect.left) / rect.width;
-      const pointY = (event.clientY - rect.top) / rect.height;
-      const factor = event.deltaY > 0 ? 1.25 : 0.8;
-
-      setView(prev => {
-        const nextScale = Math.min(Math.max(prev.scale * factor, 1e-6), 4);
-        const zoomRatio = nextScale / prev.scale;
-        const halfW = prev.scale * (CANVAS_WIDTH / CANVAS_HEIGHT);
-        const pointCx = prev.centerX - halfW + pointX * 2 * halfW;
-        const pointCy = prev.centerY - prev.scale + pointY * 2 * prev.scale;
-
-        return {
-          ...prev,
-          centerX: pointCx + (prev.centerX - pointCx) * zoomRatio,
-          centerY: pointCy + (prev.centerY - pointCy) * zoomRatio,
-          scale: nextScale,
-        };
-      });
-    };
-
-    canvas.addEventListener('wheel', handleWheel, {
-      passive: false,
-    });
-    return () => canvas.removeEventListener('wheel', handleWheel);
-  }, []);
-
-  const handlePointerDown = useCallback((event: ReactPointerEvent<HTMLCanvasElement>) => {
-    dragRef.current = {
-      pointerId: event.pointerId,
-      x: event.clientX,
-      y: event.clientY,
-    };
-    event.currentTarget.setPointerCapture(event.pointerId);
-  }, []);
-
-  const handlePointerMove = useCallback((event: ReactPointerEvent<HTMLCanvasElement>) => {
-    const drag = dragRef.current;
-    if (!drag || drag.pointerId !== event.pointerId) {
-      return;
-    }
-
-    const rect = event.currentTarget.getBoundingClientRect();
-    const deltaX = (event.clientX - drag.x) / rect.width;
-    const deltaY = (event.clientY - drag.y) / rect.height;
-    drag.x = event.clientX;
-    drag.y = event.clientY;
-
-    setView(prev => {
-      const halfW = prev.scale * (CANVAS_WIDTH / CANVAS_HEIGHT);
-      return {
-        ...prev,
-        centerX: prev.centerX - deltaX * 2 * halfW,
-        centerY: prev.centerY - deltaY * 2 * prev.scale,
-      };
-    });
-  }, []);
-
-  const handlePointerUp = useCallback((event: ReactPointerEvent<HTMLCanvasElement>) => {
-    if (dragRef.current?.pointerId === event.pointerId) {
-      dragRef.current = null;
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
-  }, []);
-
-  const resetView = useCallback(() => {
-    setView(DEFAULT_VIEW);
-  }, []);
-
-  return {
-    backend,
-    canvasRef,
-    glRendererRef,
-    handlePointerDown,
-    handlePointerMove,
-    handlePointerUp,
-    renderMs,
-    resetView,
-    setView,
-    view,
-    wasmModuleRef,
-    wasmStatus,
-  };
-}
-
-export default function RustLab(): JSX.Element {
-  const {
-    backend,
-    canvasRef,
-    glRendererRef,
-    handlePointerDown,
-    handlePointerMove,
-    handlePointerUp,
-    renderMs,
-    setView,
-    view,
-    wasmModuleRef,
-    wasmStatus,
-  } = useFractalCanvas();
-
   const [race, setRace] = useState<RaceResult | null>(null);
-  const [edgeStatus, setEdgeStatus] = useState<EdgeStatus>('idle');
-  const [edgeError, setEdgeError] = useState<string | null>(null);
-  const [edge, setEdge] = useState<EdgeResult | null>(null);
-
-  const zoomCanvas = useCallback(
-    (factor: number) => {
-      setView(prev => ({
-        ...prev,
-        scale: Math.min(Math.max(prev.scale * factor, 1e-6), 4),
-      }));
-    },
-    [
-      setView,
-    ]
-  );
-
-  const resetView = useCallback(() => {
-    setView(DEFAULT_VIEW);
-    setRace(null);
-  }, [
-    setView,
-  ]);
-
-  const handleIterationsChange = useCallback(
-    (event: ReactChangeEvent<HTMLInputElement>) => {
-      const maxIter = Number(event.target.value);
-      setView(prev => ({
-        ...prev,
-        maxIter,
-      }));
-    },
-    [
-      setView,
-    ]
-  );
-
-  const handlePaletteChange = useCallback(
-    (event: ReactChangeEvent<HTMLSelectElement>) => {
-      const palette = event.target.value as FractalPaletteName;
-      setView(prev => ({
-        ...prev,
-        palette,
-      }));
-    },
-    [
-      setView,
-    ]
-  );
-
-  const zoomIn = useCallback(() => {
-    zoomCanvas(0.8);
-  }, [
-    zoomCanvas,
-  ]);
-
-  const zoomOut = useCallback(() => {
-    zoomCanvas(1.25);
-  }, [
-    zoomCanvas,
-  ]);
 
   const runRace = useCallback(() => {
     const mod = wasmModuleRef.current;
@@ -743,6 +480,26 @@ export default function RustLab(): JSX.Element {
     glRendererRef,
     wasmModuleRef,
   ]);
+
+  return {
+    race,
+    runRace,
+  };
+}
+
+/**
+ * Renders the current viewport on the fractal-rust worker at 1920×1080 and
+ * keeps the returned PNG (as a blob URL) plus its timing.
+ */
+function useEdgeRender(view: FractalView): {
+  edge: EdgeResult | null;
+  edgeError: string | null;
+  edgeStatus: EdgeStatus;
+  renderOnEdge: () => Promise<void>;
+} {
+  const [edgeStatus, setEdgeStatus] = useState<EdgeStatus>('idle');
+  const [edgeError, setEdgeError] = useState<string | null>(null);
+  const [edge, setEdge] = useState<EdgeResult | null>(null);
 
   const renderOnEdge = useCallback(async () => {
     setEdgeStatus('loading');
@@ -798,6 +555,417 @@ export default function RustLab(): JSX.Element {
     };
   }, []);
 
+  return {
+    edge,
+    edgeError,
+    edgeStatus,
+    renderOnEdge,
+  };
+}
+
+interface CanvasPanelProps {
+  canvas2dRef: React.RefObject<HTMLCanvasElement | null>;
+  canvasGlRef: React.RefObject<HTMLCanvasElement | null>;
+  engine: FractalEngine | null;
+  handlePointerDown: (event: ReactPointerEvent<HTMLCanvasElement>) => void;
+  handlePointerMove: (event: ReactPointerEvent<HTMLCanvasElement>) => void;
+  handlePointerUp: (event: ReactPointerEvent<HTMLCanvasElement>) => void;
+  shellRef: React.RefObject<HTMLDivElement | null>;
+  wasmStatus: WasmStatus;
+}
+
+function CanvasPanel({
+  canvas2dRef,
+  canvasGlRef,
+  engine,
+  handlePointerDown,
+  handlePointerMove,
+  handlePointerUp,
+  shellRef,
+  wasmStatus,
+}: CanvasPanelProps): JSX.Element {
+  return (
+    <div
+      className={c.canvasShell}
+      ref={shellRef}
+    >
+      {/* One canvas per context type — a canvas cannot host both 2D and
+          WebGL2 — showing only the active engine's canvas. */}
+      <canvas
+        className={`${c.canvas} ${engine === 'webgl2' ? c.canvasHidden : ''}`.trim()}
+        height={CANVAS_HEIGHT}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        ref={canvas2dRef}
+        width={CANVAS_WIDTH}
+      />
+      <canvas
+        className={`${c.canvas} ${engine === 'webgl2' ? '' : c.canvasHidden}`.trim()}
+        height={CANVAS_HEIGHT}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        ref={canvasGlRef}
+        width={CANVAS_WIDTH}
+      />
+      {engine === 'wasm' && wasmStatus !== 'ready' ? (
+        <div className={c.canvasOverlay}>
+          {wasmStatus === 'loading'
+            ? m.labs_mandelbrot_status_loading()
+            : m.labs_mandelbrot_status_error()}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * Owns the interactive canvases: rendering engine selection, WASM module
+ * loading, viewport state, and the pointer/wheel interaction handlers. Keeps
+ * the page component presentational.
+ */
+function useFractalCanvas(): {
+  canvas2dRef: React.RefObject<HTMLCanvasElement | null>;
+  canvasGlRef: React.RefObject<HTMLCanvasElement | null>;
+  engine: FractalEngine | null;
+  glRendererRef: React.RefObject<FractalWebglRenderer | null>;
+  handlePointerDown: (event: ReactPointerEvent<HTMLCanvasElement>) => void;
+  handlePointerMove: (event: ReactPointerEvent<HTMLCanvasElement>) => void;
+  handlePointerUp: (event: ReactPointerEvent<HTMLCanvasElement>) => void;
+  renderMs: number | null;
+  resetView: () => void;
+  setEngine: React.Dispatch<React.SetStateAction<FractalEngine | null>>;
+  setView: React.Dispatch<React.SetStateAction<FractalView>>;
+  shellRef: React.RefObject<HTMLDivElement | null>;
+  view: FractalView;
+  wasmModuleRef: React.RefObject<FractalWasmModule | null>;
+  wasmStatus: WasmStatus;
+  webgl2Available: boolean;
+} {
+  const canvas2dRef = useRef<HTMLCanvasElement>(null);
+  const canvasGlRef = useRef<HTMLCanvasElement>(null);
+  const shellRef = useRef<HTMLDivElement>(null);
+  const wasmModuleRef = useRef<FractalWasmModule | null>(null);
+  const glRendererRef = useRef<FractalWebglRenderer | null>(null);
+  const context2dRef = useRef<CanvasRenderingContext2D | null>(null);
+  const dragRef = useRef<{
+    pointerId: number;
+    x: number;
+    y: number;
+  } | null>(null);
+
+  const [wasmStatus, setWasmStatus] = useState<WasmStatus>('loading');
+  const [wasmModule, setWasmModule] = useState<FractalWasmModule | null>(null);
+  const [engine, setEngine] = useState<FractalEngine | null>(null);
+  const [webgl2Available, setWebgl2Available] = useState(false);
+  const [view, setView] = useState<FractalView>(DEFAULT_VIEW);
+  const [renderMs, setRenderMs] = useState<number | null>(null);
+  const lastScheduledRef = useRef<FractalView>(DEFAULT_VIEW);
+
+  // Load the Rust WASM module once, on the client only.
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const mod = await loadFractalWasm();
+        if (cancelled) {
+          return;
+        }
+        wasmModuleRef.current = mod;
+        setWasmModule(mod);
+        setWasmStatus('ready');
+      } catch {
+        if (!cancelled) {
+          setWasmStatus('error');
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Set up both rendering contexts once, on the client only. The canvases
+  // are separate because a canvas supports only one context type: the 2D
+  // canvas serves the CPU engines (JavaScript and WASM), the WebGL2 canvas
+  // serves the GPU.
+  useEffect(() => {
+    const canvas2d = canvas2dRef.current;
+    const canvasGl = canvasGlRef.current;
+    if (!canvas2d || !canvasGl) {
+      return;
+    }
+
+    context2dRef.current = canvas2d.getContext('2d');
+    const glRenderer = createFractalWebglRenderer(canvasGl);
+    glRendererRef.current = glRenderer;
+    setWebgl2Available(glRenderer !== null);
+    // Default to the fastest available engine.
+    setEngine(glRenderer ? 'webgl2' : 'wasm');
+  }, []);
+
+  // Render the current viewport whenever the engine or view changes. The GPU
+  // engine draws in ~1-2ms, so it renders immediately; the CPU engines block
+  // the main thread for ~100-160ms, so iteration-slider drags are debounced
+  // while pan, zoom, and palette changes stay immediate.
+  useEffect(() => {
+    const mod = wasmModule;
+    if (engine === null || (engine === 'wasm' && !mod)) {
+      return;
+    }
+
+    const previous = lastScheduledRef.current;
+    lastScheduledRef.current = view;
+    const onlyIterationsChanged =
+      previous.centerX === view.centerX &&
+      previous.centerY === view.centerY &&
+      previous.scale === view.scale &&
+      previous.palette === view.palette &&
+      previous.maxIter !== view.maxIter;
+    const delay = engine === 'webgl2' || !onlyIterationsChanged ? 0 : RENDER_DEBOUNCE_MS;
+
+    const timer = setTimeout(() => {
+      const started = performance.now();
+
+      if (engine === 'webgl2') {
+        const renderer = glRendererRef.current;
+        if (!renderer) {
+          return;
+        }
+        renderer.render(view);
+        renderer.finish();
+      } else {
+        const context = context2dRef.current;
+        if (!context) {
+          return;
+        }
+        if (engine === 'js') {
+          const buffer = new Uint8ClampedArray(CANVAS_WIDTH * CANVAS_HEIGHT * 4);
+          renderMandelbrotJs(buffer, CANVAS_WIDTH, CANVAS_HEIGHT, view);
+          context.putImageData(new ImageData(buffer, CANVAS_WIDTH, CANVAS_HEIGHT), 0, 0);
+        } else if (mod) {
+          const rgba = mod.render(
+            CANVAS_WIDTH,
+            CANVAS_HEIGHT,
+            view.centerX,
+            view.centerY,
+            view.scale,
+            view.maxIter,
+            view.palette
+          );
+          context.putImageData(
+            new ImageData(new Uint8ClampedArray(rgba), CANVAS_WIDTH, CANVAS_HEIGHT),
+            0,
+            0
+          );
+        }
+      }
+
+      setRenderMs(performance.now() - started);
+    }, delay);
+
+    return () => clearTimeout(timer);
+  }, [
+    engine,
+    wasmModule,
+    view,
+  ]);
+
+  // Zoom with the wheel, but only while Ctrl (or Cmd) is held — plain scroll
+  // must keep scrolling the page (a11y). The listener lives on the shell so
+  // it keeps working no matter which canvas is active. A native non-passive
+  // listener is required so `preventDefault` can block the browser's own
+  // ctrl+wheel page zoom while zooming the fractal.
+  useEffect(() => {
+    const shell = shellRef.current;
+    if (!shell) {
+      return;
+    }
+
+    const handleWheel = (event: WheelEvent): void => {
+      if (!event.ctrlKey && !event.metaKey) {
+        return;
+      }
+      event.preventDefault();
+      const rect = shell.getBoundingClientRect();
+      const pointX = (event.clientX - rect.left) / rect.width;
+      const pointY = (event.clientY - rect.top) / rect.height;
+      const factor = event.deltaY > 0 ? 1.25 : 0.8;
+
+      setView(prev => {
+        const nextScale = Math.min(Math.max(prev.scale * factor, 1e-6), 4);
+        const zoomRatio = nextScale / prev.scale;
+        const halfW = prev.scale * (CANVAS_WIDTH / CANVAS_HEIGHT);
+        const pointCx = prev.centerX - halfW + pointX * 2 * halfW;
+        const pointCy = prev.centerY - prev.scale + pointY * 2 * prev.scale;
+
+        return {
+          ...prev,
+          centerX: pointCx + (prev.centerX - pointCx) * zoomRatio,
+          centerY: pointCy + (prev.centerY - pointCy) * zoomRatio,
+          scale: nextScale,
+        };
+      });
+    };
+
+    shell.addEventListener('wheel', handleWheel, {
+      passive: false,
+    });
+    return () => shell.removeEventListener('wheel', handleWheel);
+  }, []);
+
+  const handlePointerDown = useCallback((event: ReactPointerEvent<HTMLCanvasElement>) => {
+    dragRef.current = {
+      pointerId: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+    };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }, []);
+
+  const handlePointerMove = useCallback((event: ReactPointerEvent<HTMLCanvasElement>) => {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) {
+      return;
+    }
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    const deltaX = (event.clientX - drag.x) / rect.width;
+    const deltaY = (event.clientY - drag.y) / rect.height;
+    drag.x = event.clientX;
+    drag.y = event.clientY;
+
+    setView(prev => {
+      const halfW = prev.scale * (CANVAS_WIDTH / CANVAS_HEIGHT);
+      return {
+        ...prev,
+        centerX: prev.centerX - deltaX * 2 * halfW,
+        centerY: prev.centerY - deltaY * 2 * prev.scale,
+      };
+    });
+  }, []);
+
+  const handlePointerUp = useCallback((event: ReactPointerEvent<HTMLCanvasElement>) => {
+    if (dragRef.current?.pointerId === event.pointerId) {
+      dragRef.current = null;
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  }, []);
+
+  const resetView = useCallback(() => {
+    setView(DEFAULT_VIEW);
+  }, []);
+
+  return {
+    canvas2dRef,
+    canvasGlRef,
+    engine,
+    glRendererRef,
+    handlePointerDown,
+    handlePointerMove,
+    handlePointerUp,
+    renderMs,
+    resetView,
+    setEngine,
+    setView,
+    shellRef,
+    view,
+    wasmModuleRef,
+    wasmStatus,
+    webgl2Available,
+  };
+}
+
+export default function RustLab(): JSX.Element {
+  const {
+    canvas2dRef,
+    canvasGlRef,
+    engine,
+    glRendererRef,
+    handlePointerDown,
+    handlePointerMove,
+    handlePointerUp,
+    renderMs,
+    setEngine,
+    setView,
+    shellRef,
+    view,
+    wasmModuleRef,
+    wasmStatus,
+    webgl2Available,
+  } = useFractalCanvas();
+
+  const { race, runRace } = useRace(glRendererRef, view, wasmModuleRef);
+  const { edge, edgeError, edgeStatus, renderOnEdge } = useEdgeRender(view);
+
+  const zoomCanvas = useCallback(
+    (factor: number) => {
+      setView(prev => ({
+        ...prev,
+        scale: Math.min(Math.max(prev.scale * factor, 1e-6), 4),
+      }));
+    },
+    [
+      setView,
+    ]
+  );
+
+  const resetView = useCallback(() => {
+    setView(DEFAULT_VIEW);
+  }, [
+    setView,
+  ]);
+
+  const handleIterationsChange = useCallback(
+    (event: ReactChangeEvent<HTMLInputElement>) => {
+      const maxIter = Number(event.target.value);
+      setView(prev => ({
+        ...prev,
+        maxIter,
+      }));
+    },
+    [
+      setView,
+    ]
+  );
+
+  const handlePaletteChange = useCallback(
+    (event: ReactChangeEvent<HTMLSelectElement>) => {
+      const palette = event.target.value as FractalPaletteName;
+      setView(prev => ({
+        ...prev,
+        palette,
+      }));
+    },
+    [
+      setView,
+    ]
+  );
+
+  const handleEngineChange = useCallback(
+    (event: ReactChangeEvent<HTMLSelectElement>) => {
+      setEngine(event.target.value as FractalEngine);
+    },
+    [
+      setEngine,
+    ]
+  );
+
+  const zoomIn = useCallback(() => {
+    zoomCanvas(0.8);
+  }, [
+    zoomCanvas,
+  ]);
+
+  const zoomOut = useCallback(() => {
+    zoomCanvas(1.25);
+  }, [
+    zoomCanvas,
+  ]);
+
   return (
     <main className={c.page}>
       <RustLabHero />
@@ -810,44 +978,39 @@ export default function RustLab(): JSX.Element {
           />
 
           <div className={c.panel}>
-            <div className={c.canvasShell}>
-              <canvas
-                className={c.canvas}
-                height={CANVAS_HEIGHT}
-                onPointerDown={handlePointerDown}
-                onPointerMove={handlePointerMove}
-                onPointerUp={handlePointerUp}
-                ref={canvasRef}
-                width={CANVAS_WIDTH}
-              />
-              {backend !== 'webgl2' && wasmStatus !== 'ready' ? (
-                <div className={c.canvasOverlay}>
-                  {wasmStatus === 'loading'
-                    ? m.labs_mandelbrot_status_loading()
-                    : m.labs_mandelbrot_status_error()}
-                </div>
-              ) : null}
-            </div>
+            <CanvasPanel
+              canvas2dRef={canvas2dRef}
+              canvasGlRef={canvasGlRef}
+              engine={engine}
+              handlePointerDown={handlePointerDown}
+              handlePointerMove={handlePointerMove}
+              handlePointerUp={handlePointerUp}
+              shellRef={shellRef}
+              wasmStatus={wasmStatus}
+            />
 
             <ViewControls
+              engine={engine}
               maxIter={view.maxIter}
+              onEngineChange={handleEngineChange}
               onIterationsChange={handleIterationsChange}
               onPaletteChange={handlePaletteChange}
               onReset={resetView}
               onZoomIn={zoomIn}
               onZoomOut={zoomOut}
               palette={view.palette}
+              webgl2Available={webgl2Available}
             />
 
             <ViewStatusBar
-              backend={backend}
               centerX={view.centerX}
               centerY={view.centerY}
+              engine={engine}
               renderMs={renderMs}
               scale={view.scale}
             />
 
-            {backend === 'webgl2' ? (
+            {engine === 'webgl2' ? (
               <p className={c.gpuNote}>{m.labs_mandelbrot_gpu_note()}</p>
             ) : null}
           </div>

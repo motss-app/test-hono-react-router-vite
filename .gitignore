@@ -32,3 +32,4 @@ coverage/
 packages/*/target/
 **/build/
 packages/frontend/app/labs-wasm/
+.playwright-mcp/
