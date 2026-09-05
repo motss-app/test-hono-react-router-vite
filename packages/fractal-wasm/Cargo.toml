@@ -4,13 +4,13 @@ version = "0.1.0"
 edition = "2021"
 
 [lib]
-# `cdylib` builds the browser-facing WASM module; `rlib` lets the healthz-rust
+# `cdylib` builds the browser-facing WASM module; `rlib` lets the fractal-rust
 # Cloudflare Worker link the same render kernel for server-side rendering.
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 # Must match the installed wasm-bindgen CLI version exactly.
-wasm-bindgen = "=0.2.127"
+wasm-bindgen = "=0.2.128"
 
 [profile.release]
 lto = true

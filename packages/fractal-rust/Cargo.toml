@@ -16,8 +16,9 @@ png = "0.18.1"
 
 [profile.release]
 # `strip = true` breaks wasm-bindgen ("externref table required for catch
-# wrappers", workers-rs #1014) — do not enable it.
+# wrappers", workers-rs #1014) — do not enable it. This Worker is comfortably
+# below the Cloudflare code-size limit, so favor runtime speed over -Oz.
 lto = true
 codegen-units = 1
-opt-level = "z"
+opt-level = 3
 panic = "abort"

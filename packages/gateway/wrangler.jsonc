@@ -40,6 +40,10 @@
         {
           "binding": "FRACTAL_RUST",
           "service": "fractal-rust-canary"
+        },
+        {
+          "binding": "COLOR_RUST",
+          "service": "color-rust-canary"
         }
       ],
       "vars": {
@@ -65,6 +69,10 @@
         {
           "binding": "FRACTAL_RUST",
           "service": "fractal-rust-dev"
+        },
+        {
+          "binding": "COLOR_RUST",
+          "service": "color-rust-dev"
         }
       ],
       "vars": {
@@ -96,6 +104,10 @@
         {
           "binding": "FRACTAL_RUST",
           "service": "fractal-rust-production"
+        },
+        {
+          "binding": "COLOR_RUST",
+          "service": "color-rust-production"
         }
       ],
       "vars": {
@@ -134,6 +146,10 @@
     {
       "binding": "FRACTAL_RUST",
       "service": "fractal-rust"
+    },
+    {
+      "binding": "COLOR_RUST",
+      "service": "color-rust"
     },
     {
       "binding": "BFF",

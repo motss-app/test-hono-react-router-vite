@@ -228,6 +228,26 @@ app.all(loadtestVerifyTokenPath, c =>
 );
 
 /**
+ * Proxies dominant-color work to its dedicated Rust Worker. Registered before
+ * the general fractal route so decoder dependencies stay isolated from the
+ * fractal render bundle.
+ */
+app.all('/api/rust/color/*', async c => {
+  const rust = c.env.COLOR_RUST;
+  if (!rust) {
+    return c.text('COLOR_RUST binding not configured', 503);
+  }
+
+  const url = new URL(c.req.url);
+  const targetPath = url.pathname.replace(/^\/api\/rust/, '') || '/';
+  const target = new Request(`http://COLOR_RUST${targetPath}${url.search}`, c.req.raw);
+
+  return cloneResponse(
+    await wrapTime(c, 'color-rust', rust.fetch(target), 'Color Rust worker service binding')
+  );
+});
+
+/**
  * Proxies `/api/rust/*` to the fractal Rust WASM worker through the
  * FRACTAL_RUST service binding. The `/api/rust` prefix is stripped so the
  * worker sees `/fractal/...` style paths. Registered before the `/api/*` BFF

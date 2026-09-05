@@ -16,7 +16,7 @@ runs:
 
     - name: Install wasm-bindgen CLI
       shell: bash
-      run: cargo install wasm-bindgen-cli --version 0.2.127 --locked
+      run: cargo install wasm-bindgen-cli --version 0.2.128 --locked
 
     - name: Install binaryen (wasm-opt)
       shell: bash

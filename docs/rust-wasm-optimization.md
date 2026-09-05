@@ -1,37 +1,97 @@
-# Rust WASM Optimization — healthz-rust
+# Rust WASM Release Optimization
 
 ## Overview
 
-The `healthz-rust` package is a Cloudflare Worker compiled to WASM via
-`wasm-bindgen`. This document records the optimization strategies applied and
-their measured impact.
+The Rust packages in this repository compile to `wasm32-unknown-unknown` for
+Cloudflare Workers or the browser. The default release policy is speed first,
+because the current Worker artifacts are comfortably below Cloudflare's 64 MiB
+code limit. Use the size-balanced profile only when a build approaches the
+limit or transfer/cold-start measurements show that size matters more than
+compute time.
 
-## Cargo.toml profile
+## Recommended speed-first profile
 
 ```toml
 [profile.release]
-lto = true              # Link-Time Optimization across crates
-codegen-units = 1       # Single codegen unit = better optimization passes
-opt-level = "z"         # Smallest binary (most aggressive size setting)
-panic = "abort"         # No unwinding tables = smaller binary
+lto = true              # Fat LTO across the dependency graph
+codegen-units = 1       # Better whole-program optimization
+opt-level = 3           # Maximum runtime optimization
+panic = "abort"         # No unwinding path
 ```
 
-These are the **maximum size optimizations** Rust supports at the compiler
-level. There is no `opt-level = "zz"` — `"z"` is the floor.
+`lto = true` is equivalent to fat LTO. `codegen-units = 1` improves cross-crate
+optimization at the cost of longer release builds. `panic = "abort"` is useful
+for WASM because the endpoint does not need stack unwinding.
 
-## Post-build: `wasm-opt -Oz`
+For `fractal-rust` and `color-rust`, keep `strip = false`: the repository has verified that
+`strip = true` can break `wasm-bindgen` Worker builds. Stripping affects symbols
+and debug information, not hot-path runtime speed.
 
-The [Binaryen](https://github.com/aspect-build/aspect-build) `wasm-opt` tool
+## Size-balanced fallback
+
+Use this only if the speed-first build becomes materially larger or the Worker
+approaches the 64 MiB limit:
+
+```toml
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = "s"         # Size-oriented while retaining loop vectorization
+panic = "abort"
+```
+
+Use `opt-level = "z"` only when the smallest transfer is the priority. It also
+turns off loop vectorization, so it is generally a worse choice for image or
+fractal processing than `"s"` or `3`.
+
+## Post-build: Binaryen `wasm-opt`
+
+The [Binaryen](https://github.com/WebAssembly/binaryen) `wasm-opt` tool
 performs additional dead-code elimination, constant folding, and instruction
 combining on the compiled WASM binary.
 
-### Measured impact
+Use `-O3` for the speed-first profile:
+
+```bash
+wasm-opt -O3 build/index_bg.wasm -o build/index_bg.wasm
+```
+
+Use `-Os` or `-Oz` only for the size-balanced fallback. The `-Oz` pipeline is
+not the default for CPU-bound Workers.
+
+## WASM SIMD
+
+Enable `simd128` selectively for compute-heavy Workers, not globally:
+
+```toml
+[target.wasm32-unknown-unknown]
+rustflags = ["-C", "target-feature=+simd128"]
+```
+
+`packages/color-rust/.cargo/config.toml` enables it for image decoding,
+pixel conversion, and dominant-color analysis. `fractal-rust` retains SIMD for
+server-side fractal rendering. Do not enable it for `healthz-rust`: that Worker
+has no meaningful numeric hot path, so SIMD would add compatibility and build
+complexity without useful work.
+
+Measured locally with the same 1204x800 AVIF over 20 sequential requests:
+
+| Build | p50 | p75 | WASM size |
+|---|---:|---:|---:|
+| Scalar | 102.8 ms | 105.9 ms | 4,675,273 bytes |
+| `simd128` | 91.9 ms | 103.6 ms | 4,930,655 bytes |
+
+The SIMD build improved median latency by about 10.5% and increased the module
+by 255,382 bytes (about 5.5%). Keep it enabled while Cloudflare Workers supports
+WASM SIMD and production latency confirms the local result.
+
+### Measured speed-first pipeline: `healthz-rust`
 
 | Stage | Size |
 |---|---|
-| After `cargo build --release` | 343 KB |
-| After `wasm-opt -Oz` | 250 KB |
-| **Reduction** | **93 KB (27%)** |
+| After `cargo build --release` | 416,709 bytes |
+| After `wasm-opt -O3` | 316,894 bytes |
+| **Reduction** | **99,815 bytes (23%)** |
 
 ### Usage
 
@@ -39,14 +99,16 @@ combining on the compiled WASM binary.
 # Install Binaryen (macOS)
 brew install binaryen
 
-# Optimize a WASM file in-place
-wasm-opt -Oz build/index_bg.wasm -o build/index_bg.wasm
+# Optimize a WASM file in-place for runtime speed
+wasm-opt -O3 build/index_bg.wasm -o build/index_bg.wasm
 ```
 
-The `build.sh` script in `packages/healthz-rust/` automates the full pipeline:
+The build scripts automate the full pipeline:
 
 ```
-cargo build → wasm-bindgen → wasm-opt -Oz
+Speed first: `cargo build → wasm-bindgen → wasm-opt -O3`
+
+Size fallback: `cargo build → wasm-bindgen → wasm-opt -Os` or `-Oz`
 ```
 
 ## What does NOT help
@@ -71,9 +133,15 @@ dependency. Direct removal saves zero bytes.
 
 ### `opt-level = 3` (speed)
 
-`opt-level = 3` produces the **fastest** code but the **largest** binary. For a
-BFF with trivial routing, the JIT compilation speed difference is negligible.
-Use `"z"` unless you have CPU-bound hot paths.
+`opt-level = 3` generally produces the fastest code but can produce a larger
+binary. It is the right default for image decoding, dominant-color analysis,
+and fractal rendering while the resulting Worker remains well under 64 MiB.
+
+### `opt-level = "s"` or `"z"` (size fallback)
+
+`"s"` is the preferred size fallback because it retains more speed-oriented
+optimizations. `"z"` is the smallest compiler-level profile, but disables loop
+vectorization and should be reserved for size-critical, non-CPU-bound Workers.
 
 ## Dependency size breakdown
 
@@ -98,7 +166,7 @@ On Cloudflare Workers, cold start has two components:
    JIT-compiled
 
 For a small BFF like this, the **total cold start is dominated by network I/O**
-to upstream services, not WASM size. The 93 KB saved from `wasm-opt` shaves
+to upstream services, not WASM size. The roughly 100 KB saved by `wasm-opt` shaves
 roughly microseconds off cold start — not milliseconds.
 
 Rust WASM cold start advantages are real but apply to:

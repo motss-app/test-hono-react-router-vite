@@ -10,6 +10,7 @@ export default [
       route('/hono-rpc', './routes/hono-rpc.tsx'),
       route('/labs', './routes/labs.tsx'),
       route('/labs/mandelbrot', './routes/labs-mandelbrot.tsx'),
+      route('/labs/dominant-color', './routes/labs-dominant-color.tsx'),
       route('/errors', './routes/errors.tsx'),
       route('/errors/:code', './routes/errors.$code.tsx'), // Dynamic error code routes
     ]),

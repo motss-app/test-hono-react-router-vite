@@ -6,6 +6,7 @@ export interface GatewayBindings {
   FRONTEND: WorkerFetcher;
   BFF: WorkerFetcher;
   HEALTHZ_RUST?: WorkerFetcher;
+  COLOR_RUST?: WorkerFetcher;
   FRACTAL_RUST?: WorkerFetcher;
   SENTRY_DSN?: string;
 }

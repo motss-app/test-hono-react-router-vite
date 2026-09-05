@@ -2,7 +2,7 @@
 //!
 //! Serves `/fractal/render`, which renders the Mandelbrot set server-side via
 //! the shared kernel in `packages/fractal-wasm` and returns a PNG. The Rust
-//! Lab page calls it through the gateway's `/api/rust/*` proxy.
+//! Lab page calls it through the gateway's `/api/rust/fractal/*` proxy.
 
 use fractal_wasm::{render_into, FractalParams, Palette};
 use serde::Deserialize;
@@ -62,7 +62,6 @@ const MAX_ITER: u32 = 1000;
 #[event(fetch)]
 pub async fn main(req: Request, _env: Env, _ctx: Context) -> Result<Response> {
   match req.path().as_str() {
-    "/healthz" => Response::ok("fractal rust ok"),
     "/fractal/render" => handle_fractal_render(req),
     _ => Response::error("Not Found", 404),
   }
@@ -117,7 +116,11 @@ fn handle_fractal_render(req: Request) -> Result<Response> {
   let resp = Response::from_bytes(png_bytes)?;
   resp.headers().set("content-type", "image/png")?;
   // Deterministic render for a given viewport: safe to cache at the edge.
-  resp.headers().set("cache-control", "public, max-age=86400")?;
-  resp.headers().set("x-render-time-ms", &format!("{elapsed_ms:.1}"))?;
+  resp
+    .headers()
+    .set("cache-control", "public, max-age=86400")?;
+  resp
+    .headers()
+    .set("x-render-time-ms", &format!("{elapsed_ms:.1}"))?;
   Ok(resp)
 }

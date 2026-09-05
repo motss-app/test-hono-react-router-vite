@@ -3,7 +3,7 @@
 //! One render implementation powers two runtimes:
 //! - The browser: compiled to a WASM module (`build.sh` → `--target web`) and
 //!   called from `packages/frontend` for interactive canvas rendering.
-//! - The edge: linked into the `healthz-rust` Cloudflare Worker, which renders
+//! - The edge: linked into the `fractal-rust` Cloudflare Worker, which renders
 //!   high-resolution PNGs server-side via the `/fractal/render` endpoint.
 
 use std::sync::Mutex;
