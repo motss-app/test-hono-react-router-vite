@@ -164,10 +164,18 @@ pub struct FractalParams {
 
 /// Renders the Mandelbrot set into `buf` as packed RGBA8 bytes
 /// (`buf.len() == width * height * 4`).
+#[inline]
+fn frame_len(width: u32, height: u32) -> usize {
+  (width as usize)
+    .checked_mul(height as usize)
+    .and_then(|pixels| pixels.checked_mul(4))
+    .expect("fractal frame dimensions exceed addressable memory")
+}
+
 pub fn render_into(buf: &mut [u8], params: &FractalParams) {
   let width = params.width as usize;
   let height = params.height as usize;
-  debug_assert_eq!(buf.len(), width * height * 4);
+  assert_eq!(buf.len(), frame_len(params.width, params.height));
 
   let half_h = params.scale;
   let half_w = half_h * (params.width as f64 / params.height as f64);
@@ -258,7 +266,7 @@ pub fn render(
   max_iter: u32,
   palette: &str,
 ) -> Vec<u8> {
-  let mut buf = vec![0_u8; width as usize * height as usize * 4];
+  let mut buf = vec![0_u8; frame_len(width, height)];
   render_into(
     &mut buf,
     &FractalParams {
@@ -309,7 +317,7 @@ pub fn render_fast(
   max_iter: u32,
   palette: u8,
 ) -> *const u8 {
-  let len = width as usize * height as usize * 4;
+  let len = frame_len(width, height);
   let mut out = OUTPUT.lock().unwrap();
   // `resize` only zeroes fresh tail bytes on growth; the kernel overwrites
   // every byte below, so steady-state frames allocate nothing.

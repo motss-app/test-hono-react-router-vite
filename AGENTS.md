@@ -1,12 +1,13 @@
 # Agent Instructions
 
-This file is the single source of truth for repository rules. It is read by
-`.github/copilot-instructions.md` and must be kept in sync with the system-level
-Agent Instructions.
+**This file delegates to [`.opencode/agents/AGENTS.md`](.opencode/agents/AGENTS.md) as the single source of truth for repository rules.** Agents that auto-load this file (Codex, Copilot, and others) must follow the pointer — no `@`-mention needed.
 
-## Package version rule
+Always read and follow `.opencode/agents/AGENTS.md` before starting any task. That file contains:
 
-When adding a new npm dependency, always check the npm registry for the latest
-available version before pinning. Do not guess or hardcode a version without
-verifying it is the latest stable release. Run `npm view <package> version` to
-find the current latest version.
+- Default workflow (inspect → edit → verify → probe)
+- Project structure, entry points, and configuration
+- Coding conventions and Hono + React Router integration patterns
+- Repository rules (package management, styling, CLI tools, verification)
+- Quick commands and related instruction files
+
+Do not duplicate rules here. If you need to know how this repo works, read `.opencode/agents/AGENTS.md` first.

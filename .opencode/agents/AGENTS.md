@@ -85,6 +85,7 @@ and symbols — is strictly a one-liner that is less than 80 characters long.
 ## Repository Rules
 
 - **Package management**: Use `deno install` for dependencies. Do not use `npm install`. Always pin dependency versions — never install without a version specifier (e.g. `deno install npm:package@1.2.3`, not `deno install npm:package`).
+- **Dependency versions**: When adding a new npm dependency, always check the npm registry for the latest available version before pinning. Do not guess or hardcode a version without verifying it is the latest stable release. Run `npm view <package> version` to find the current latest version.
 - **Task execution**: Prefer `deno task [script-name]` for project scripts. Do not use `npm run` or `pnpm run` for repo tasks.
 - **One-off CLIs**: If a one-off external CLI is needed, use `pnpm dlx` instead of `npx`.
 - **CLI tools**: Prefer Rust-based CLI tools when available (e.g. `rg` over `grep`, `bat` over `cat`, `fd` over `find`, `sd` over `sed`).
@@ -108,7 +109,7 @@ and symbols — is strictly a one-liner that is less than 80 characters long.
 
 ## Related Instruction Files
 
-- `AGENTS.md`: root-level agent instructions (single source of truth for repository rules).
+- `AGENTS.md`: thin pointer at the repo root (what Codex/Copilot auto-load) delegating to this file — do not duplicate rules there.
 - `.github/copilot-instructions.md`: repository-specific GitHub Copilot instructions (delegates to this file).
 - `.github/LLMS.md`: external LLM reference material used by this repo.
 - `docs/dev-urls.md`: all health check, SSR, and API URLs to probe after changes.
