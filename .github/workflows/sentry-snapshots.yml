@@ -69,6 +69,10 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit != 'true' && (github.event_name != 'workflow_run' || steps.main-tip.outputs.skip != 'true')
         run: deno run -A npm:playwright install chromium --with-deps
 
+      - name: Build fractal WASM
+        if: github.event_name != 'workflow_run' || steps.main-tip.outputs.skip != 'true'
+        uses: ./.github/actions/build-fractal-wasm
+
       - name: Build frontend
         if: github.event_name != 'workflow_run' || steps.main-tip.outputs.skip != 'true'
         run: deno task --cwd=packages/frontend build:react-router

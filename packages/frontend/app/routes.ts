@@ -8,6 +8,8 @@ export default [
       route('/about', './routes/about.tsx'),
       route('/ssr', './routes/ssr.tsx'),
       route('/hono-rpc', './routes/hono-rpc.tsx'),
+      route('/labs', './routes/labs.tsx'),
+      route('/labs/mandelbrot', './routes/labs-mandelbrot.tsx'),
       route('/errors', './routes/errors.tsx'),
       route('/errors/:code', './routes/errors.$code.tsx'), // Dynamic error code routes
     ]),

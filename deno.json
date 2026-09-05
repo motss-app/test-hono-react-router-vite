@@ -58,8 +58,15 @@
     ".worktrees",
     ".wrangler",
     "k6-load-test.mjs",
-    "packages/healthz-rust"
+    "packages/healthz-rust",
+    "packages/fractal-wasm",
+    "packages/fractal-rust"
   ],
+  "fmt": {
+    "exclude": [
+      "packages/frontend/app/labs-wasm"
+    ]
+  },
   "imports": {
     "@sentry/browser": "npm:@sentry/browser@10.73.0",
     "@std/path": "jsr:@std/path@1.1.6",
@@ -69,6 +76,9 @@
     "react-dom/server": "npm:react-dom@19.2.8/server.edge"
   },
   "lint": {
+    "exclude": [
+      "packages/frontend/app/labs-wasm"
+    ],
     "rules": {
       "exclude": [
         "no-slow-types"
@@ -109,6 +119,7 @@
     "bench:all": "ulimit -n 9998999 && deno run -A scripts/bench-all.ts",
     "build": "deno task build:frontend && deno task build:gateway",
     "build:bff": "deno task --cwd=packages/bff typecheck",
+    "build:fractal-wasm": "bash packages/fractal-wasm/build.sh",
     "build:frontend": "deno task --cwd=packages/frontend build",
     "build:gateway": "deno task --cwd=packages/gateway build",
     "build:gateway:canary": "deno task --cwd=packages/gateway build:canary",

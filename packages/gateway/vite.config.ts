@@ -13,6 +13,14 @@ function isHealthzRustBuilt(): boolean {
   }
 }
 
+function isFractalRustBuilt(): boolean {
+  try {
+    return Deno.statSync(new URL('../fractal-rust/build/worker/shim.mjs', import.meta.url)).isFile;
+  } catch {
+    return false;
+  }
+}
+
 export default defineConfig(({ command }) => {
   const isDev = command === 'serve';
   const isDeploymentBuild = Deno.env.get('DEPLOYMENT_BUILD') === 'true';
@@ -38,6 +46,14 @@ export default defineConfig(({ command }) => {
                   ? [
                       {
                         configPath: '../healthz-rust/wrangler.toml',
+                      },
+                    ]
+                  : []),
+                // Fractal Rust worker only once built (requires Rust toolchain).
+                ...(isFractalRustBuilt()
+                  ? [
+                      {
+                        configPath: '../fractal-rust/wrangler.toml',
                       },
                     ]
                   : []),

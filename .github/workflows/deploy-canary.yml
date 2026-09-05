@@ -22,12 +22,16 @@ jobs:
   frontend_canary:
     name: Frontend Canary
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - name: Check out repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Set up Deno environment
         uses: ./.github/actions/setup-deno
+      # The frontend build imports the generated glue (gitignored), so the
+      # wasm must be built first, right here.
+      - name: Build client WASM
+        uses: ./.github/actions/build-fractal-wasm
       - name: Deploy Frontend Canary
         uses: ./.github/actions/deploy-frontend-canary
 
@@ -45,7 +49,8 @@ jobs:
 
   gateway_canary:
     name: Gateway Canary
-    needs: healthz_rust_canary
+    # Waits for the worker deploys so the service bindings resolve.
+    needs: rust_workers_canary
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -56,14 +61,23 @@ jobs:
       - name: Deploy Gateway Canary
         uses: ./.github/actions/deploy-gateway-canary
 
-  healthz_rust_canary:
-    name: Healthz Rust Canary
+  # Deploys every Rust worker in parallel — one runner per matrix leg.
+  # To add a new Rust worker: create `.github/actions/deploy-<package>-canary/`
+  # and add the package name to the matrix below.
+  rust_workers_canary:
+    name: Rust Worker Canary (${{ matrix.package }})
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - healthz-rust
+          - fractal-rust
     steps:
       - name: Check out repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Set up Deno environment
         uses: ./.github/actions/setup-deno
-      - name: Deploy Healthz Rust Canary
-        uses: ./.github/actions/deploy-healthz-rust-canary
+      - name: Deploy ${{ matrix.package }} Canary
+        uses: ./.github/actions/deploy-${{ matrix.package }}-canary

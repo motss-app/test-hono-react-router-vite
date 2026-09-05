@@ -42,8 +42,15 @@ function getRoutes() {
       to: '/hono-rpc',
     },
     {
-      description: m.route_errors_description(),
+      description: m.route_labs_description(),
       number: '05',
+      path: '/labs',
+      title: m.route_labs_title(),
+      to: '/labs',
+    },
+    {
+      description: m.route_errors_description(),
+      number: '06',
       path: '/errors',
       title: m.route_errors_title(),
       to: '/errors',

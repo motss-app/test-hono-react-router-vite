@@ -227,6 +227,27 @@ app.all(loadtestVerifyTokenPath, c =>
   })
 );
 
+/**
+ * Proxies `/api/rust/*` to the fractal Rust WASM worker through the
+ * FRACTAL_RUST service binding. The `/api/rust` prefix is stripped so the
+ * worker sees `/fractal/...` style paths. Registered before the `/api/*` BFF
+ * catch-all so Rust routes are never swallowed by the BFF proxy.
+ */
+app.all('/api/rust/*', async c => {
+  const rust = c.env.FRACTAL_RUST;
+  if (!rust) {
+    return c.text('FRACTAL_RUST binding not configured', 503);
+  }
+
+  const url = new URL(c.req.url);
+  const targetPath = url.pathname.replace(/^\/api\/rust/, '') || '/';
+  const target = new Request(`http://FRACTAL_RUST${targetPath}${url.search}`, c.req.raw);
+
+  return cloneResponse(
+    await wrapTime(c, 'fractal-rust', rust.fetch(target), 'Rust worker service binding')
+  );
+});
+
 app.all('/api/*', async c => {
   return cloneResponse(await wrapTime(c, 'bff', c.env.BFF.fetch(c.req.raw), 'BFF service binding'));
 });

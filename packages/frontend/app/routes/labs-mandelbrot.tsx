@@ -1,0 +1,811 @@
+import type { JSX } from 'react';
+import {
+  type ChangeEvent as ReactChangeEvent,
+  type PointerEvent as ReactPointerEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+
+import { Link } from '../components/Link.tsx';
+import { Text } from '../components/text.tsx';
+import { IconArrowLeft } from '../icons.ts';
+import * as m from '../paraglide/messages.js';
+import { iconStyles } from '../styles/icon.css.ts';
+import {
+  type FractalPaletteName,
+  type FractalView,
+  renderMandelbrotJs,
+} from '../utils/fractal-render.ts';
+import { type FractalWasmModule, loadFractalWasm } from '../utils/fractal-wasm.ts';
+import type { Route } from './+types/labs-mandelbrot.ts';
+import * as c from './labs-mandelbrot.css.ts';
+
+const CANVAS_WIDTH = 960;
+const CANVAS_HEIGHT = 540;
+const EDGE_WIDTH = 1920;
+const EDGE_HEIGHT = 1080;
+
+const DEFAULT_VIEW: FractalView = {
+  centerX: -0.7,
+  centerY: 0,
+  maxIter: 200,
+  palette: 'fire',
+  scale: 1.35,
+};
+
+const PALETTES: readonly FractalPaletteName[] = [
+  'fire',
+  'ice',
+  'mono',
+  'viridis',
+];
+const BASE_SCALE = DEFAULT_VIEW.scale;
+
+/**
+ * Quiet period before an iteration-slider change triggers a render. A full
+ * render blocks the main thread for ~100ms, so slider drags must not render
+ * per tick.
+ */
+const RENDER_DEBOUNCE_MS = 150;
+
+const PALETTE_LABELS: Record<FractalPaletteName, () => string> = {
+  fire: m.labs_mandelbrot_palette_fire,
+  ice: m.labs_mandelbrot_palette_ice,
+  mono: m.labs_mandelbrot_palette_mono,
+  viridis: m.labs_mandelbrot_palette_viridis,
+};
+
+type WasmStatus = 'loading' | 'ready' | 'error';
+type EdgeStatus = 'idle' | 'loading' | 'ready' | 'error';
+
+interface EdgeResult {
+  bytes: number;
+  ms: number;
+  url: string;
+}
+
+interface RaceResult {
+  jsMs: number;
+  wasmMs: number;
+}
+
+export function meta(): Route.MetaDescriptors {
+  return [
+    {
+      title: m.meta_labs_mandelbrot_title(),
+    },
+    {
+      content: m.meta_labs_mandelbrot_desc(),
+      name: 'description',
+    },
+  ];
+}
+
+function formatMs(ms: number): string {
+  return `${ms.toFixed(1)} ms`;
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes >= 1024 * 1024) {
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  }
+  return `${(bytes / 1024).toFixed(1)} KB`;
+}
+
+interface ViewControlsProps {
+  maxIter: number;
+  onIterationsChange: (event: ReactChangeEvent<HTMLInputElement>) => void;
+  onPaletteChange: (event: ReactChangeEvent<HTMLSelectElement>) => void;
+  onReset: () => void;
+  onZoomIn: () => void;
+  onZoomOut: () => void;
+  palette: FractalPaletteName;
+}
+
+function ViewControls({
+  maxIter,
+  onIterationsChange,
+  onPaletteChange,
+  onReset,
+  onZoomIn,
+  onZoomOut,
+  palette,
+}: ViewControlsProps): JSX.Element {
+  // Static, page-scoped ids: useId() produces different values between the
+  // dev SSR pass and the client bundle, which breaks hydration.
+  const iterationsId = 'labs-mandelbrot-iterations';
+  const paletteId = 'labs-mandelbrot-palette';
+
+  return (
+    <div className={c.controlsRow}>
+      <div className={c.controlGroup}>
+        <label
+          className={c.controlLabel}
+          htmlFor={iterationsId}
+        >
+          {m.labs_mandelbrot_label_iterations()}
+        </label>
+        <input
+          className={c.rangeInput}
+          id={iterationsId}
+          max={1000}
+          min={50}
+          onChange={onIterationsChange}
+          step={10}
+          type="range"
+          value={maxIter}
+        />
+        <span className={c.raceValue}>{maxIter}</span>
+      </div>
+
+      <div className={c.controlGroup}>
+        <label
+          className={c.controlLabel}
+          htmlFor={paletteId}
+        >
+          {m.labs_mandelbrot_label_palette()}
+        </label>
+        <select
+          className={c.selectInput}
+          id={paletteId}
+          onChange={onPaletteChange}
+          value={palette}
+        >
+          {PALETTES.map(name => (
+            <option
+              key={name}
+              value={name}
+            >
+              {PALETTE_LABELS[name]()}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className={c.controlGroup}>
+        <button
+          className={c.zoomButton}
+          onClick={onZoomIn}
+          type="button"
+        >
+          {m.labs_mandelbrot_action_zoom_in()}
+        </button>
+        <button
+          className={c.zoomButton}
+          onClick={onZoomOut}
+          type="button"
+        >
+          {m.labs_mandelbrot_action_zoom_out()}
+        </button>
+        <button
+          className={c.zoomButton}
+          onClick={onReset}
+          type="button"
+        >
+          {m.labs_mandelbrot_action_reset()}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+interface ViewStatusBarProps {
+  centerX: number;
+  centerY: number;
+  scale: number;
+  wasmMs: number | null;
+}
+
+function ViewStatusBar({ centerX, centerY, scale, wasmMs }: ViewStatusBarProps): JSX.Element {
+  return (
+    <div className={c.statusBar}>
+      <div className={c.statusItem}>
+        <p className={c.statusLabel}>{m.labs_mandelbrot_label_render_ms()}</p>
+        <p className={c.statusValue}>{wasmMs === null ? '—' : formatMs(wasmMs)}</p>
+      </div>
+      <div className={c.statusItem}>
+        <p className={c.statusLabel}>{m.labs_mandelbrot_label_resolution()}</p>
+        <p className={c.statusValue}>
+          {CANVAS_WIDTH}×{CANVAS_HEIGHT}
+        </p>
+      </div>
+      <div className={c.statusItem}>
+        <p className={c.statusLabel}>{m.labs_mandelbrot_label_center()}</p>
+        <p className={c.statusValue}>
+          {centerX.toFixed(6)}, {centerY.toFixed(6)}i
+        </p>
+      </div>
+      <div className={c.statusItem}>
+        <p className={c.statusLabel}>{m.labs_mandelbrot_label_zoom()}</p>
+        <p className={c.statusValue}>{(BASE_SCALE / scale).toFixed(1)}×</p>
+      </div>
+    </div>
+  );
+}
+
+function RaceResults({ race }: { race: RaceResult }): JSX.Element {
+  const slowest = Math.max(race.jsMs, race.wasmMs);
+  const speedup = race.wasmMs > 0 ? race.jsMs / race.wasmMs : 0;
+
+  return (
+    <div>
+      <div className={c.raceRow}>
+        <span className={c.raceName}>{m.labs_mandelbrot_label_javascript()}</span>
+        <div className={c.raceTrack}>
+          <div
+            className={`${c.raceFill} ${c.raceFillJs}`}
+            style={{
+              width: `${(race.jsMs / slowest) * 100}%`,
+            }}
+          />
+        </div>
+        <span className={c.raceValue}>{formatMs(race.jsMs)}</span>
+      </div>
+      <div className={c.raceRow}>
+        <span className={c.raceName}>{m.labs_mandelbrot_label_wasm()}</span>
+        <div className={c.raceTrack}>
+          <div
+            className={`${c.raceFill} ${c.raceFillWasm}`}
+            style={{
+              width: `${(race.wasmMs / slowest) * 100}%`,
+            }}
+          />
+        </div>
+        <span className={c.raceValue}>{formatMs(race.wasmMs)}</span>
+      </div>
+      <p className={c.raceSpeedup}>
+        {m.labs_mandelbrot_label_speedup()}: {speedup.toFixed(1)}×
+      </p>
+    </div>
+  );
+}
+
+function EdgeResultView({ edge }: { edge: EdgeResult }): JSX.Element {
+  return (
+    <div className={c.edgeResult}>
+      <img
+        alt={m.labs_mandelbrot_edge_title()}
+        className={c.edgeImage}
+        src={edge.url}
+      />
+      <div className={c.edgeMeta}>
+        <div className={c.statusItem}>
+          <p className={c.statusLabel}>{m.labs_mandelbrot_label_edge_time()}</p>
+          <p className={c.statusValue}>{formatMs(edge.ms)}</p>
+        </div>
+        <div className={c.statusItem}>
+          <p className={c.statusLabel}>{m.labs_mandelbrot_label_file_size()}</p>
+          <p className={c.statusValue}>{formatBytes(edge.bytes)}</p>
+        </div>
+        <a
+          className={c.edgeDownload}
+          download="mandelbrot-edge.png"
+          href={edge.url}
+        >
+          {m.labs_mandelbrot_action_download()}
+        </a>
+      </div>
+    </div>
+  );
+}
+
+function RustLabHero(): JSX.Element {
+  return (
+    <section className={c.hero}>
+      <div className={c.heroInner}>
+        <div className={c.heroCopy}>
+          <Text
+            as="h1"
+            className={c.title}
+          >
+            {m.labs_mandelbrot_title()}
+            <span className={c.titleAccent}>{m.labs_mandelbrot_title_accent()}</span>
+          </Text>
+
+          <Text
+            as="p"
+            className={c.heroLead}
+          >
+            {m.labs_mandelbrot_hero_lead()}
+          </Text>
+
+          <p className={c.heroBody}>{m.labs_mandelbrot_hero_body()}</p>
+
+          <div className={c.heroActions}>
+            <Link
+              className={c.ctaSecondary}
+              to="/labs"
+            >
+              <IconArrowLeft className={iconStyles.base} />
+              <span>{m.labs_mandelbrot_cta_back_home()}</span>
+            </Link>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function SectionHeading({ intro, title }: { intro: string; title: string }): JSX.Element {
+  return (
+    <>
+      <Text
+        as="h2"
+        className={c.sectionTitle}
+      >
+        {title}
+      </Text>
+      <p className={c.sectionIntro}>{intro}</p>
+    </>
+  );
+}
+
+/**
+ * Owns the interactive canvas: WASM module loading, viewport state, and the
+ * pointer/wheel interaction handlers. Keeps the page component presentational.
+ */
+function useFractalCanvas(): {
+  canvasRef: React.RefObject<HTMLCanvasElement | null>;
+  handlePointerDown: (event: ReactPointerEvent<HTMLCanvasElement>) => void;
+  handlePointerMove: (event: ReactPointerEvent<HTMLCanvasElement>) => void;
+  handlePointerUp: (event: ReactPointerEvent<HTMLCanvasElement>) => void;
+  resetView: () => void;
+  setView: React.Dispatch<React.SetStateAction<FractalView>>;
+  view: FractalView;
+  wasmModuleRef: React.RefObject<FractalWasmModule | null>;
+  wasmMs: number | null;
+  wasmStatus: WasmStatus;
+} {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const wasmModuleRef = useRef<FractalWasmModule | null>(null);
+  const dragRef = useRef<{
+    pointerId: number;
+    x: number;
+    y: number;
+  } | null>(null);
+
+  const [wasmStatus, setWasmStatus] = useState<WasmStatus>('loading');
+  const [wasmModule, setWasmModule] = useState<FractalWasmModule | null>(null);
+  const [view, setView] = useState<FractalView>(DEFAULT_VIEW);
+  const [wasmMs, setWasmMs] = useState<number | null>(null);
+  const lastScheduledRef = useRef<FractalView>(DEFAULT_VIEW);
+
+  // Load the Rust WASM module once, on the client only.
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const mod = await loadFractalWasm();
+        if (cancelled) {
+          return;
+        }
+        wasmModuleRef.current = mod;
+        setWasmModule(mod);
+        setWasmStatus('ready');
+      } catch {
+        if (!cancelled) {
+          setWasmStatus('error');
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Render the current viewport through the WASM kernel whenever it changes.
+  // A full render blocks the main thread for ~100ms, so iteration-slider
+  // drags (which change `max_iter` continuously) are debounced; pan, zoom,
+  // and palette changes render immediately for live feedback.
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!wasmModule || !canvas) {
+      return;
+    }
+    const context = canvas.getContext('2d');
+    if (!context) {
+      return;
+    }
+
+    const previous = lastScheduledRef.current;
+    lastScheduledRef.current = view;
+    const onlyIterationsChanged =
+      previous.centerX === view.centerX &&
+      previous.centerY === view.centerY &&
+      previous.scale === view.scale &&
+      previous.palette === view.palette &&
+      previous.maxIter !== view.maxIter;
+    const delay = onlyIterationsChanged ? RENDER_DEBOUNCE_MS : 0;
+
+    const timer = setTimeout(() => {
+      const started = performance.now();
+      const rgba = wasmModule.render(
+        CANVAS_WIDTH,
+        CANVAS_HEIGHT,
+        view.centerX,
+        view.centerY,
+        view.scale,
+        view.maxIter,
+        view.palette
+      );
+      context.putImageData(
+        new ImageData(new Uint8ClampedArray(rgba), CANVAS_WIDTH, CANVAS_HEIGHT),
+        0,
+        0
+      );
+      setWasmMs(performance.now() - started);
+    }, delay);
+
+    return () => clearTimeout(timer);
+  }, [
+    wasmModule,
+    view,
+  ]);
+
+  // Zoom with the wheel, but only while Ctrl (or Cmd) is held — plain scroll
+  // must keep scrolling the page (a11y). A native non-passive listener is
+  // required so `preventDefault` can block the browser's own ctrl+wheel
+  // page zoom while zooming the fractal.
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) {
+      return;
+    }
+
+    const handleWheel = (event: WheelEvent): void => {
+      if (!event.ctrlKey && !event.metaKey) {
+        return;
+      }
+      event.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const pointX = (event.clientX - rect.left) / rect.width;
+      const pointY = (event.clientY - rect.top) / rect.height;
+      const factor = event.deltaY > 0 ? 1.25 : 0.8;
+
+      setView(prev => {
+        const nextScale = Math.min(Math.max(prev.scale * factor, 1e-6), 4);
+        const zoomRatio = nextScale / prev.scale;
+        const halfW = prev.scale * (CANVAS_WIDTH / CANVAS_HEIGHT);
+        const pointCx = prev.centerX - halfW + pointX * 2 * halfW;
+        const pointCy = prev.centerY - prev.scale + pointY * 2 * prev.scale;
+
+        return {
+          ...prev,
+          centerX: pointCx + (prev.centerX - pointCx) * zoomRatio,
+          centerY: pointCy + (prev.centerY - pointCy) * zoomRatio,
+          scale: nextScale,
+        };
+      });
+    };
+
+    canvas.addEventListener('wheel', handleWheel, {
+      passive: false,
+    });
+    return () => canvas.removeEventListener('wheel', handleWheel);
+  }, []);
+
+  const handlePointerDown = useCallback((event: ReactPointerEvent<HTMLCanvasElement>) => {
+    dragRef.current = {
+      pointerId: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+    };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }, []);
+
+  const handlePointerMove = useCallback((event: ReactPointerEvent<HTMLCanvasElement>) => {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) {
+      return;
+    }
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    const deltaX = (event.clientX - drag.x) / rect.width;
+    const deltaY = (event.clientY - drag.y) / rect.height;
+    drag.x = event.clientX;
+    drag.y = event.clientY;
+
+    setView(prev => {
+      const halfW = prev.scale * (CANVAS_WIDTH / CANVAS_HEIGHT);
+      return {
+        ...prev,
+        centerX: prev.centerX - deltaX * 2 * halfW,
+        centerY: prev.centerY - deltaY * 2 * prev.scale,
+      };
+    });
+  }, []);
+
+  const handlePointerUp = useCallback((event: ReactPointerEvent<HTMLCanvasElement>) => {
+    if (dragRef.current?.pointerId === event.pointerId) {
+      dragRef.current = null;
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  }, []);
+
+  const resetView = useCallback(() => {
+    setView(DEFAULT_VIEW);
+  }, []);
+
+  return {
+    canvasRef,
+    handlePointerDown,
+    handlePointerMove,
+    handlePointerUp,
+    resetView,
+    setView,
+    view,
+    wasmModuleRef,
+    wasmMs,
+    wasmStatus,
+  };
+}
+
+export default function RustLab(): JSX.Element {
+  const {
+    canvasRef,
+    handlePointerDown,
+    handlePointerMove,
+    handlePointerUp,
+    setView,
+    view,
+    wasmModuleRef,
+    wasmMs,
+    wasmStatus,
+  } = useFractalCanvas();
+
+  const [race, setRace] = useState<RaceResult | null>(null);
+  const [edgeStatus, setEdgeStatus] = useState<EdgeStatus>('idle');
+  const [edgeError, setEdgeError] = useState<string | null>(null);
+  const [edge, setEdge] = useState<EdgeResult | null>(null);
+
+  const zoomCanvas = useCallback(
+    (factor: number) => {
+      setView(prev => ({
+        ...prev,
+        scale: Math.min(Math.max(prev.scale * factor, 1e-6), 4),
+      }));
+    },
+    [
+      setView,
+    ]
+  );
+
+  const resetView = useCallback(() => {
+    setView(DEFAULT_VIEW);
+    setRace(null);
+  }, [
+    setView,
+  ]);
+
+  const handleIterationsChange = useCallback(
+    (event: ReactChangeEvent<HTMLInputElement>) => {
+      const maxIter = Number(event.target.value);
+      setView(prev => ({
+        ...prev,
+        maxIter,
+      }));
+    },
+    [
+      setView,
+    ]
+  );
+
+  const handlePaletteChange = useCallback(
+    (event: ReactChangeEvent<HTMLSelectElement>) => {
+      const palette = event.target.value as FractalPaletteName;
+      setView(prev => ({
+        ...prev,
+        palette,
+      }));
+    },
+    [
+      setView,
+    ]
+  );
+
+  const zoomIn = useCallback(() => {
+    zoomCanvas(0.8);
+  }, [
+    zoomCanvas,
+  ]);
+
+  const zoomOut = useCallback(() => {
+    zoomCanvas(1.25);
+  }, [
+    zoomCanvas,
+  ]);
+
+  const runRace = useCallback(() => {
+    const mod = wasmModuleRef.current;
+    if (!mod) {
+      return;
+    }
+
+    const jsBuffer = new Uint8ClampedArray(CANVAS_WIDTH * CANVAS_HEIGHT * 4);
+    const jsStarted = performance.now();
+    renderMandelbrotJs(jsBuffer, CANVAS_WIDTH, CANVAS_HEIGHT, view);
+    const jsMs = performance.now() - jsStarted;
+
+    const wasmStarted = performance.now();
+    mod.render(
+      CANVAS_WIDTH,
+      CANVAS_HEIGHT,
+      view.centerX,
+      view.centerY,
+      view.scale,
+      view.maxIter,
+      view.palette
+    );
+    const wasmDuration = performance.now() - wasmStarted;
+
+    setRace({
+      jsMs,
+      wasmMs: wasmDuration,
+    });
+  }, [
+    view,
+    // The ref object is stable; listed to satisfy useExhaustiveDependencies.
+    wasmModuleRef,
+  ]);
+
+  const renderOnEdge = useCallback(async () => {
+    setEdgeStatus('loading');
+    setEdgeError(null);
+
+    try {
+      const params = new URLSearchParams({
+        cx: String(view.centerX),
+        cy: String(view.centerY),
+        height: String(EDGE_HEIGHT),
+        max_iter: String(view.maxIter),
+        palette: view.palette,
+        scale: String(view.scale),
+        width: String(EDGE_WIDTH),
+      });
+      const response = await fetch(`/api/rust/fractal/render?${params.toString()}`);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const ms = Number(response.headers.get('x-render-time-ms') ?? '0');
+
+      setEdge(prev => {
+        if (prev) {
+          URL.revokeObjectURL(prev.url);
+        }
+        return {
+          bytes: blob.size,
+          ms,
+          url,
+        };
+      });
+      setEdgeStatus('ready');
+    } catch (error) {
+      setEdgeError(error instanceof Error ? error.message : String(error));
+      setEdgeStatus('error');
+    }
+  }, [
+    view,
+  ]);
+
+  // Revoke the object URL when the page unloads.
+  useEffect(() => {
+    return () => {
+      setEdge(prev => {
+        if (prev) {
+          URL.revokeObjectURL(prev.url);
+        }
+        return null;
+      });
+    };
+  }, []);
+
+  return (
+    <main className={c.page}>
+      <RustLabHero />
+
+      <section>
+        <div className={c.labInner}>
+          <SectionHeading
+            intro={m.labs_mandelbrot_canvas_desc()}
+            title={m.labs_mandelbrot_canvas_title()}
+          />
+
+          <div className={c.panel}>
+            <div className={c.canvasShell}>
+              <canvas
+                className={c.canvas}
+                height={CANVAS_HEIGHT}
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                ref={canvasRef}
+                width={CANVAS_WIDTH}
+              />
+              {wasmStatus !== 'ready' ? (
+                <div className={c.canvasOverlay}>
+                  {wasmStatus === 'loading'
+                    ? m.labs_mandelbrot_status_loading()
+                    : m.labs_mandelbrot_status_error()}
+                </div>
+              ) : null}
+            </div>
+
+            <ViewControls
+              maxIter={view.maxIter}
+              onIterationsChange={handleIterationsChange}
+              onPaletteChange={handlePaletteChange}
+              onReset={resetView}
+              onZoomIn={zoomIn}
+              onZoomOut={zoomOut}
+              palette={view.palette}
+            />
+
+            <ViewStatusBar
+              centerX={view.centerX}
+              centerY={view.centerY}
+              scale={view.scale}
+              wasmMs={wasmMs}
+            />
+          </div>
+
+          <SectionHeading
+            intro={m.labs_mandelbrot_race_desc()}
+            title={m.labs_mandelbrot_race_title()}
+          />
+
+          <div className={c.panel}>
+            <div className={c.edgeActions}>
+              <button
+                className={`${c.actionButton} ${wasmStatus !== 'ready' ? c.actionButtonLoading : ''}`.trim()}
+                disabled={wasmStatus !== 'ready'}
+                onClick={runRace}
+                type="button"
+              >
+                {m.labs_mandelbrot_action_run_race()}
+              </button>
+            </div>
+
+            {race ? <RaceResults race={race} /> : null}
+          </div>
+
+          <SectionHeading
+            intro={m.labs_mandelbrot_edge_desc()}
+            title={m.labs_mandelbrot_edge_title()}
+          />
+
+          <div className={c.panel}>
+            <div className={c.edgeActions}>
+              <button
+                className={`${c.actionButton} ${edgeStatus === 'loading' ? c.actionButtonLoading : ''}`.trim()}
+                disabled={edgeStatus === 'loading'}
+                onClick={renderOnEdge}
+                type="button"
+              >
+                {m.labs_mandelbrot_action_render_edge()}
+              </button>
+            </div>
+
+            {edgeError ? <div className={c.errorBox}>{edgeError}</div> : null}
+
+            {edge ? <EdgeResultView edge={edge} /> : null}
+          </div>
+
+          <p className={c.footerNote}>
+            {m.labs_mandelbrot_footer_note_1()}{' '}
+            <span className={c.codeInline}>packages/fractal-wasm</span>
+            {m.labs_mandelbrot_footer_note_2()}{' '}
+            <span className={c.codeInline}>packages/fractal-rust</span>
+            {m.labs_mandelbrot_footer_note_3()}
+          </p>
+        </div>
+      </section>
+    </main>
+  );
+}
