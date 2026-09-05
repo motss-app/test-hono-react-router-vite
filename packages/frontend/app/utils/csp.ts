@@ -247,7 +247,9 @@ function buildPolicy(options: ContentSecurityPolicyOptions): string {
     `style-src-elem ${styleSources.join(' ')}`,
     `style-src-attr 'unsafe-inline'`,
     `font-src 'self'`,
-    `img-src 'self' data:`,
+    // blob: covers images loaded from Blob object URLs, e.g. the edge-render
+    // PNG downloaded via URL.createObjectURL on the Labs page.
+    `img-src 'self' data: blob:`,
     `frame-src ${uniqueSources(resolvedFrameSrc).join(' ')}`,
     `connect-src ${uniqueSources(resolvedConnectSrc).join(' ')}`,
     `worker-src 'self' blob: data:`,
