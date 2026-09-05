@@ -9,7 +9,6 @@ crate-type = ["cdylib"]
 [dependencies]
 worker = "0.8.5"
 serde = { version = "1", features = ["derive"] }
-serde_json = "1"
 js-sys = "0.3"
 # Shared Mandelbrot kernel also compiled into the browser-facing WASM module.
 fractal-wasm = { path = "../fractal-wasm" }

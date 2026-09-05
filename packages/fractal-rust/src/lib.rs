@@ -8,12 +8,6 @@ use fractal_wasm::{render_into, FractalParams, Palette};
 use serde::Deserialize;
 use worker::*;
 
-fn json_response(body: &serde_json::Value) -> Result<Response> {
-  let resp = Response::from_json(body)?;
-  resp.headers().set("cache-control", "no-store")?;
-  Ok(resp)
-}
-
 /// Query parameters for `/fractal/render`. Every field has a default so a
 /// bare request renders the full set; out-of-range values are clamped below.
 #[derive(Deserialize)]

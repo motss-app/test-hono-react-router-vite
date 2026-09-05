@@ -462,7 +462,7 @@ export const actionButtonLoading = style({
 export const raceRow = style({
   '@media': {
     '(min-width: 768px)': {
-      gridTemplateColumns: '9rem minmax(0, 1fr) 6rem',
+      gridTemplateColumns: '9rem minmax(0, 1fr) 8rem',
     },
   },
   alignItems: 'center',
@@ -516,6 +516,15 @@ export const raceFillWasm = style({
   },
 });
 
+export const raceFillGpu = style({
+  backgroundColor: colorTokens.purple,
+  selectors: {
+    ':root[data-theme="dark"] &': {
+      backgroundColor: '#c4b5fd',
+    },
+  },
+});
+
 export const raceValue = style({
   color: colorTokens.slate900,
   fontSize: '0.95rem',
@@ -528,14 +537,14 @@ export const raceValue = style({
   textAlign: 'end',
 });
 
-export const raceSpeedup = style({
-  color: colorTokens.purple,
-  fontSize: '1.05rem',
-  fontWeight: 700,
-  marginBlockStart: '0.5rem',
+export const gpuNote = style({
+  color: colorTokens.slate600,
+  fontSize: '0.85rem',
+  lineHeight: 1.6,
+  marginBlockStart: '0.75rem',
   selectors: {
     ':root[data-theme="dark"] &': {
-      color: '#c4b5fd',
+      color: colorTokens.slate400,
     },
   },
 });

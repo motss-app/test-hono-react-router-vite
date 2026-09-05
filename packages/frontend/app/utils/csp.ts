@@ -60,6 +60,8 @@ const defaultScriptSrc = [
   "'self'",
   'https://static.cloudflareinsights.com',
   'https://*.posthog.com',
+  // WebAssembly compilation (Labs WASM modules) needs this in production.
+  "'wasm-unsafe-eval'",
 ];
 export const cloudflareAnalyticsStyleHashes = [
   "'sha256-yA3qHWL4K3kukdLY/T+1vlN/z6FrxQQRjp6/L8l7snM='",

@@ -19,6 +19,7 @@ import {
   renderMandelbrotJs,
 } from '../utils/fractal-render.ts';
 import { type FractalWasmModule, loadFractalWasm } from '../utils/fractal-wasm.ts';
+import { createFractalWebglRenderer, type FractalWebglRenderer } from '../utils/fractal-webgl.ts';
 import type { Route } from './+types/labs-mandelbrot.ts';
 import * as c from './labs-mandelbrot.css.ts';
 
@@ -59,6 +60,7 @@ const PALETTE_LABELS: Record<FractalPaletteName, () => string> = {
 
 type WasmStatus = 'loading' | 'ready' | 'error';
 type EdgeStatus = 'idle' | 'loading' | 'ready' | 'error';
+type FractalBackend = 'webgl2' | 'wasm';
 
 interface EdgeResult {
   bytes: number;
@@ -67,6 +69,7 @@ interface EdgeResult {
 }
 
 interface RaceResult {
+  gpuMs: number | null;
   jsMs: number;
   wasmMs: number;
 }
@@ -192,18 +195,37 @@ function ViewControls({
 }
 
 interface ViewStatusBarProps {
+  backend: FractalBackend | null;
   centerX: number;
   centerY: number;
+  renderMs: number | null;
   scale: number;
-  wasmMs: number | null;
 }
 
-function ViewStatusBar({ centerX, centerY, scale, wasmMs }: ViewStatusBarProps): JSX.Element {
+function ViewStatusBar({
+  backend,
+  centerX,
+  centerY,
+  renderMs,
+  scale,
+}: ViewStatusBarProps): JSX.Element {
   return (
     <div className={c.statusBar}>
       <div className={c.statusItem}>
-        <p className={c.statusLabel}>{m.labs_mandelbrot_label_render_ms()}</p>
-        <p className={c.statusValue}>{wasmMs === null ? '—' : formatMs(wasmMs)}</p>
+        <p className={c.statusLabel}>
+          {backend === 'webgl2'
+            ? m.labs_mandelbrot_label_render_ms_gpu()
+            : m.labs_mandelbrot_label_render_ms()}
+        </p>
+        <p className={c.statusValue}>{renderMs === null ? '—' : formatMs(renderMs)}</p>
+      </div>
+      <div className={c.statusItem}>
+        <p className={c.statusLabel}>{m.labs_mandelbrot_label_backend()}</p>
+        <p className={c.statusValue}>
+          {backend === 'webgl2'
+            ? m.labs_mandelbrot_backend_webgl2()
+            : m.labs_mandelbrot_backend_wasm()}
+        </p>
       </div>
       <div className={c.statusItem}>
         <p className={c.statusLabel}>{m.labs_mandelbrot_label_resolution()}</p>
@@ -226,8 +248,8 @@ function ViewStatusBar({ centerX, centerY, scale, wasmMs }: ViewStatusBarProps):
 }
 
 function RaceResults({ race }: { race: RaceResult }): JSX.Element {
-  const slowest = Math.max(race.jsMs, race.wasmMs);
-  const speedup = race.wasmMs > 0 ? race.jsMs / race.wasmMs : 0;
+  const slowest = Math.max(race.jsMs, race.wasmMs, race.gpuMs ?? 0);
+  const speedupOf = (ms: number): string => (ms > 0 ? ` (${(race.jsMs / ms).toFixed(1)}×)` : '');
 
   return (
     <div>
@@ -253,11 +275,28 @@ function RaceResults({ race }: { race: RaceResult }): JSX.Element {
             }}
           />
         </div>
-        <span className={c.raceValue}>{formatMs(race.wasmMs)}</span>
+        <span className={c.raceValue}>
+          {formatMs(race.wasmMs)}
+          {speedupOf(race.wasmMs)}
+        </span>
       </div>
-      <p className={c.raceSpeedup}>
-        {m.labs_mandelbrot_label_speedup()}: {speedup.toFixed(1)}×
-      </p>
+      {race.gpuMs === null ? null : (
+        <div className={c.raceRow}>
+          <span className={c.raceName}>{m.labs_mandelbrot_label_webgl()}</span>
+          <div className={c.raceTrack}>
+            <div
+              className={`${c.raceFill} ${c.raceFillGpu}`}
+              style={{
+                width: `${(race.gpuMs / slowest) * 100}%`,
+              }}
+            />
+          </div>
+          <span className={c.raceValue}>
+            {formatMs(race.gpuMs)}
+            {speedupOf(race.gpuMs)}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
@@ -343,23 +382,28 @@ function SectionHeading({ intro, title }: { intro: string; title: string }): JSX
 }
 
 /**
- * Owns the interactive canvas: WASM module loading, viewport state, and the
- * pointer/wheel interaction handlers. Keeps the page component presentational.
+ * Owns the interactive canvas: rendering backend selection, WASM module
+ * loading, viewport state, and the pointer/wheel interaction handlers. Keeps
+ * the page component presentational.
  */
 function useFractalCanvas(): {
+  backend: FractalBackend | null;
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
+  glRendererRef: React.RefObject<FractalWebglRenderer | null>;
   handlePointerDown: (event: ReactPointerEvent<HTMLCanvasElement>) => void;
   handlePointerMove: (event: ReactPointerEvent<HTMLCanvasElement>) => void;
   handlePointerUp: (event: ReactPointerEvent<HTMLCanvasElement>) => void;
+  renderMs: number | null;
   resetView: () => void;
   setView: React.Dispatch<React.SetStateAction<FractalView>>;
   view: FractalView;
   wasmModuleRef: React.RefObject<FractalWasmModule | null>;
-  wasmMs: number | null;
   wasmStatus: WasmStatus;
 } {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wasmModuleRef = useRef<FractalWasmModule | null>(null);
+  const glRendererRef = useRef<FractalWebglRenderer | null>(null);
+  const context2dRef = useRef<CanvasRenderingContext2D | null>(null);
   const dragRef = useRef<{
     pointerId: number;
     x: number;
@@ -368,8 +412,9 @@ function useFractalCanvas(): {
 
   const [wasmStatus, setWasmStatus] = useState<WasmStatus>('loading');
   const [wasmModule, setWasmModule] = useState<FractalWasmModule | null>(null);
+  const [backend, setBackend] = useState<FractalBackend | null>(null);
   const [view, setView] = useState<FractalView>(DEFAULT_VIEW);
-  const [wasmMs, setWasmMs] = useState<number | null>(null);
+  const [renderMs, setRenderMs] = useState<number | null>(null);
   const lastScheduledRef = useRef<FractalView>(DEFAULT_VIEW);
 
   // Load the Rust WASM module once, on the client only.
@@ -397,17 +442,33 @@ function useFractalCanvas(): {
     };
   }, []);
 
-  // Render the current viewport through the WASM kernel whenever it changes.
-  // A full render blocks the main thread for ~100ms, so iteration-slider
-  // drags (which change `max_iter` continuously) are debounced; pan, zoom,
-  // and palette changes render immediately for live feedback.
+  // Pick the rendering backend once. A canvas supports only one context
+  // type, so this must run before any 2D usage: WebGL2 wins when available,
+  // and the 2D context for the WASM path is created only as a fallback.
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!wasmModule || !canvas) {
+    if (!canvas) {
       return;
     }
-    const context = canvas.getContext('2d');
-    if (!context) {
+
+    const glRenderer = createFractalWebglRenderer(canvas);
+    if (glRenderer) {
+      glRendererRef.current = glRenderer;
+      setBackend('webgl2');
+      return;
+    }
+
+    context2dRef.current = canvas.getContext('2d');
+    setBackend(context2dRef.current ? 'wasm' : null);
+  }, []);
+
+  // Render the current viewport whenever it changes. The GPU backend draws
+  // in ~1-2ms, so it renders immediately; the CPU WASM path blocks the main
+  // thread for ~100ms, so iteration-slider drags are debounced while pan,
+  // zoom, and palette changes stay immediate.
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!wasmModule || !canvas || backend === null) {
       return;
     }
 
@@ -419,29 +480,45 @@ function useFractalCanvas(): {
       previous.scale === view.scale &&
       previous.palette === view.palette &&
       previous.maxIter !== view.maxIter;
-    const delay = onlyIterationsChanged ? RENDER_DEBOUNCE_MS : 0;
+    const delay = backend === 'webgl2' || !onlyIterationsChanged ? 0 : RENDER_DEBOUNCE_MS;
 
     const timer = setTimeout(() => {
       const started = performance.now();
-      const rgba = wasmModule.render(
-        CANVAS_WIDTH,
-        CANVAS_HEIGHT,
-        view.centerX,
-        view.centerY,
-        view.scale,
-        view.maxIter,
-        view.palette
-      );
-      context.putImageData(
-        new ImageData(new Uint8ClampedArray(rgba), CANVAS_WIDTH, CANVAS_HEIGHT),
-        0,
-        0
-      );
-      setWasmMs(performance.now() - started);
+
+      if (backend === 'webgl2') {
+        const renderer = glRendererRef.current;
+        if (!renderer) {
+          return;
+        }
+        renderer.render(view);
+        renderer.finish();
+      } else {
+        const context = context2dRef.current;
+        if (!context) {
+          return;
+        }
+        const rgba = wasmModule.render(
+          CANVAS_WIDTH,
+          CANVAS_HEIGHT,
+          view.centerX,
+          view.centerY,
+          view.scale,
+          view.maxIter,
+          view.palette
+        );
+        context.putImageData(
+          new ImageData(new Uint8ClampedArray(rgba), CANVAS_WIDTH, CANVAS_HEIGHT),
+          0,
+          0
+        );
+      }
+
+      setRenderMs(performance.now() - started);
     }, delay);
 
     return () => clearTimeout(timer);
   }, [
+    backend,
     wasmModule,
     view,
   ]);
@@ -531,29 +608,33 @@ function useFractalCanvas(): {
   }, []);
 
   return {
+    backend,
     canvasRef,
+    glRendererRef,
     handlePointerDown,
     handlePointerMove,
     handlePointerUp,
+    renderMs,
     resetView,
     setView,
     view,
     wasmModuleRef,
-    wasmMs,
     wasmStatus,
   };
 }
 
 export default function RustLab(): JSX.Element {
   const {
+    backend,
     canvasRef,
+    glRendererRef,
     handlePointerDown,
     handlePointerMove,
     handlePointerUp,
+    renderMs,
     setView,
     view,
     wasmModuleRef,
-    wasmMs,
     wasmStatus,
   } = useFractalCanvas();
 
@@ -642,13 +723,24 @@ export default function RustLab(): JSX.Element {
     );
     const wasmDuration = performance.now() - wasmStarted;
 
+    const glRenderer = glRendererRef.current;
+    let gpuMs: number | null = null;
+    if (glRenderer) {
+      const gpuStarted = performance.now();
+      glRenderer.render(view);
+      glRenderer.finish();
+      gpuMs = performance.now() - gpuStarted;
+    }
+
     setRace({
+      gpuMs,
       jsMs,
       wasmMs: wasmDuration,
     });
   }, [
     view,
-    // The ref object is stable; listed to satisfy useExhaustiveDependencies.
+    // The ref objects are stable; listed to satisfy useExhaustiveDependencies.
+    glRendererRef,
     wasmModuleRef,
   ]);
 
@@ -728,7 +820,7 @@ export default function RustLab(): JSX.Element {
                 ref={canvasRef}
                 width={CANVAS_WIDTH}
               />
-              {wasmStatus !== 'ready' ? (
+              {backend !== 'webgl2' && wasmStatus !== 'ready' ? (
                 <div className={c.canvasOverlay}>
                   {wasmStatus === 'loading'
                     ? m.labs_mandelbrot_status_loading()
@@ -748,11 +840,16 @@ export default function RustLab(): JSX.Element {
             />
 
             <ViewStatusBar
+              backend={backend}
               centerX={view.centerX}
               centerY={view.centerY}
+              renderMs={renderMs}
               scale={view.scale}
-              wasmMs={wasmMs}
             />
+
+            {backend === 'webgl2' ? (
+              <p className={c.gpuNote}>{m.labs_mandelbrot_gpu_note()}</p>
+            ) : null}
           </div>
 
           <SectionHeading

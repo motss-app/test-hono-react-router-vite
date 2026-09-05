@@ -117,7 +117,6 @@ dependencies = [
  "js-sys",
  "png",
  "serde",
- "serde_json",
  "worker",
 ]
 
