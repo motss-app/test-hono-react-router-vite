@@ -6,13 +6,13 @@ tools: [vscode, execute, read, agent, vscode.mermaid-markdown-features/renderMer
 
 # Coding Agent
 
-This agent follows the repository conventions defined in `.opencode/agents/AGENTS.md`.
+This agent follows the repository conventions defined in `AGENTS.md` at the repo root.
 
 ## Primary Instructions
 
-**Read `.opencode/agents/AGENTS.md` before starting any task and follow it** —
-it is the canonical source for all workflows, browser interaction rules, coding
+**Read `AGENTS.md` before starting any task and follow it**. It is the
+canonical source for all workflows, browser interaction rules, coding
 conventions, quick commands, and repository rules in this repository.
 
 This file only grants the VS Code-specific toolset (see `tools` in the
-frontmatter); all behavior rules live in `.opencode/agents/AGENTS.md`.
+frontmatter); all behavior rules live in `AGENTS.md`.

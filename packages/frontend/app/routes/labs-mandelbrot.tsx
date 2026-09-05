@@ -9,6 +9,7 @@ import {
 } from 'react';
 
 import { Link } from '../components/Link.tsx';
+import { PageFooter } from '../components/page-footer.tsx';
 import { Text } from '../components/text.tsx';
 import { IconArrowLeft } from '../icons.ts';
 import * as m from '../paraglide/messages.js';
@@ -272,7 +273,7 @@ function ViewStatusBar({
               ? m.labs_mandelbrot_label_render_ms_js()
               : m.labs_mandelbrot_label_render_ms()}
         </p>
-        <p className={c.statusValue}>{renderMs === null ? '—' : formatMs(renderMs)}</p>
+        <p className={c.statusValue}>{renderMs === null ? '-' : formatMs(renderMs)}</p>
       </div>
       <div className={c.statusItem}>
         <p className={c.statusLabel}>{m.labs_mandelbrot_label_resolution()}</p>
@@ -496,7 +497,8 @@ function useRace(
     });
   }, [
     view,
-    // The ref objects are stable; listed to satisfy useExhaustiveDependencies.
+    // The ref objects are stable. They are listed to satisfy
+    // useExhaustiveDependencies.
     glRendererRef,
     wasmModuleRef,
   ]);
@@ -609,8 +611,8 @@ function CanvasPanel({
       className={c.canvasShell}
       ref={shellRef}
     >
-      {/* One canvas per context type — a canvas cannot host both 2D and
-          WebGL2 — showing only the active engine's canvas. */}
+      {/* One canvas per context type because a canvas cannot host both 2D and
+          WebGL2. Only the active engine's canvas is shown. */}
       <canvas
         className={`${c.canvas} ${engine === 'webgl2' ? c.canvasHidden : ''}`.trim()}
         height={CANVAS_HEIGHT}
@@ -644,7 +646,7 @@ function CanvasPanel({
  * Paints one CPU frame (`js` or `wasm` engine) into the 2D context. Owns the
  * WASM fast-path wiring (persistent-buffer render plus zero-copy view) with a
  * legacy-`render` fallback for older cached glue. Split out so
- * `useFractalCanvas` stays under the line-count lint; pure paint, no timing.
+ * `useFractalCanvas` stays under the line-count lint. Pure paint with no timing.
  */
 function paintCpuFrame(
   context: CanvasRenderingContext2D,
@@ -782,7 +784,7 @@ function useFractalCanvas(): {
   }, []);
 
   // Render the current viewport whenever the engine or view changes. The GPU
-  // engine draws in ~1-2ms, so it renders immediately; the CPU engines block
+  // engine draws in ~1-2ms, so it renders immediately. The CPU engines block
   // the main thread for ~100-160ms, so iteration-slider drags are debounced
   // while pan, zoom, and palette changes stay immediate.
   useEffect(() => {
@@ -829,7 +831,7 @@ function useFractalCanvas(): {
     view,
   ]);
 
-  // Zoom with the wheel, but only while Ctrl (or Cmd) is held — plain scroll
+  // Zoom with the wheel, but only while Ctrl (or Cmd) is held. Plain scroll
   // must keep scrolling the page (a11y). The listener lives on the shell so
   // it keeps working no matter which canvas is active. A native non-passive
   // listener is required so `preventDefault` can block the browser's own
@@ -1121,6 +1123,8 @@ export default function RustLab(): JSX.Element {
           </p>
         </div>
       </section>
+
+      <PageFooter />
     </main>
   );
 }

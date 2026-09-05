@@ -1,6 +1,7 @@
 import type { JSX } from 'react';
 
 import { Link } from '../components/Link.tsx';
+import { PageFooter } from '../components/page-footer.tsx';
 import { Text } from '../components/text.tsx';
 import { IconArrowLeft } from '../icons.ts';
 import * as m from '../paraglide/messages.js';
@@ -15,7 +16,7 @@ interface LabTool {
   to: string;
 }
 
-// Must be a function — m.*() calls resolve locale at call time, so they
+// Must be a function because m.*() calls resolve locale at call time, so they
 // cannot live at module scope where Paraglide locale isn't set yet.
 function getTools(): LabTool[] {
   return [
@@ -128,6 +129,8 @@ export default function Labs(): JSX.Element {
           <p className={c.footerNote}>{m.labs_more_note()}</p>
         </div>
       </section>
+
+      <PageFooter />
     </main>
   );
 }

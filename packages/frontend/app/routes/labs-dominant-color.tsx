@@ -2,6 +2,7 @@ import type { JSX, ChangeEvent as ReactChangeEvent, DragEvent as ReactDragEvent 
 import { useCallback, useEffect, useState } from 'react';
 
 import { Link } from '../components/Link.tsx';
+import { PageFooter } from '../components/page-footer.tsx';
 import type { Route } from './+types/labs-dominant-color.ts';
 import * as c from './labs-dominant-color.css.ts';
 
@@ -247,6 +248,8 @@ export default function DominantColorLab(): JSX.Element {
           alpha-weighted pixel histogram.
         </p>
       </section>
+
+      <PageFooter />
     </main>
   );
 }

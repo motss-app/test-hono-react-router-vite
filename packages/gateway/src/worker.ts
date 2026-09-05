@@ -5,7 +5,6 @@ import { problemDetailsHandler } from 'hono-problem-details';
 
 import { isLoadTestMode } from '../../frontend/app/constants.ts';
 import { createCloudflareSentryOptions } from '../../frontend/app/monitoring/sentry.ts';
-import { locales } from '../../frontend/locales.ts';
 import type { GatewayBindings } from './bindings.ts';
 
 const LOCAL_FRONTEND_ORIGIN = 'http://localhost:5173';
@@ -79,48 +78,88 @@ function cloneResponse(response: Response): Response {
 }
 
 /**
- * SSG HTML paths served by the frontend worker: one entry per locale for the
- * root page plus the static sub-routes. Derived from the Inlang settings so a
- * new locale is picked up without touching this file.
+ * Skip in-worker gzip above this input size. HTML pages are expected to
+ * stay well under it.
  */
-const ssgPathSuffixes = [
-  '',
-  '/about',
-  '/errors',
-  '/holy-grail',
-] as const;
-const ssgHtmlPaths = new Set(
-  locales.flatMap(locale => ssgPathSuffixes.map(suffix => `/${locale}${suffix}`))
-);
+const MAX_GZIP_BYTES = 500 * 1024;
 
 function acceptsGzipEncoding(request: Request): boolean {
   return /\bgzip\b/i.test(request.headers.get('accept-encoding') ?? '');
 }
 
 /**
- * The gateway is the outermost layer returning to the browser. For SSG HTML
- * paths, compress the body with `CompressionStream` so EVERY prerendered page
- * — all locales and routes, not just the base locale — ships gzipped. All
- * other frontend responses pass through unchanged; Cloudflare compresses
- * those at the edge.
+ * Prerendered HTML carries `Cache-Control: ... no-transform` (see
+ * `headers/_headers.*` and `vite-plugins/copy-headers.ts`, which stamps every
+ * prerendered route). That directive tells Cloudflare's edge to leave the
+ * bytes alone, so the gateway is the only layer that can gzip SSG pages.
+ * Live SSR HTML is `no-store` without `no-transform`, so it passes through
+ * and the edge compresses it.
+ *
+ * Matching on response headers instead of a path allowlist keeps compression
+ * in sync automatically: adding a new SSG page needs no gateway edit.
  */
-async function handleFrontendResponse(request: Request, response: Response): Promise<Response> {
-  const pathname = new URL(request.url).pathname.replace(/\/$/, '') || '/';
+function isGzipEligibleSsgHtml(request: Request, response: Response): boolean {
+  if (request.method !== 'GET' || request.headers.has('range')) {
+    return false;
+  }
 
-  if (!ssgHtmlPaths.has(pathname)) {
-    return response;
+  if (response.status < 200 || response.status > 299 || response.status === 204) {
+    return false;
+  }
+
+  if (response.body === null || !acceptsGzipEncoding(request)) {
+    return false;
   }
 
   const contentType = response.headers.get('Content-Type') ?? '';
-  if (!contentType.includes('text/html') || response.status === 204 || response.status === 304) {
-    return response;
+  if (!contentType.includes('text/html')) {
+    return false;
   }
 
-  if (!acceptsGzipEncoding(request) || response.body === null) {
+  /** Never double-encode a body the frontend already encoded. */
+  if (response.headers.has('Content-Encoding')) {
+    return false;
+  }
+
+  const cacheControl = (response.headers.get('Cache-Control') ?? '').toLowerCase();
+  if (!cacheControl.includes('no-transform') || !cacheControl.includes('public')) {
+    return false;
+  }
+
+  if (cacheControl.includes('no-store')) {
+    return false;
+  }
+
+  /**
+   * Compression buffers the whole body in memory (`encodeBody: 'manual'`
+   * needs an exact Content-Length), so skip known-huge bodies instead of
+   * risking worker OOM. HTML pages are expected to stay well under 500KB,
+   * so this cap never trips normally.
+   */
+  const contentLength = Number(response.headers.get('Content-Length') ?? '');
+  if (Number.isFinite(contentLength) && contentLength > MAX_GZIP_BYTES) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * The gateway is the outermost layer returning to the browser. Prerendered
+ * HTML is gzipped here with `CompressionStream` because its `no-transform`
+ * cache directive opts it out of edge compression. All other frontend
+ * responses pass through unchanged. Cloudflare compresses those at the edge.
+ */
+async function handleFrontendResponse(request: Request, response: Response): Promise<Response> {
+  if (!isGzipEligibleSsgHtml(request, response)) {
     return response;
   }
 
   const body = response.body;
+  if (body === null) {
+    return response;
+  }
+
   const headers = new Headers(response.headers);
   const vary = new Set(
     (headers.get('Vary') ?? '')
@@ -188,8 +227,8 @@ app.get('/rust/healthz', async c => {
   }
   const resp = await rust.fetch(new Request('http://HEALTHZ_RUST/healthz'));
   const headers = new Headers(resp.headers);
-  // workerd ignores `Transfer-Encoding` set by user code — strip it so a
-  // stale value from the downstream fetch is never forwarded.
+  // workerd ignores `Transfer-Encoding` set by user code, so strip it to
+  // avoid forwarding a stale value from the downstream fetch.
   headers.delete('Transfer-Encoding');
   headers.set('x-worker', 'healthz-rust');
   return new Response(resp.body, {
@@ -205,8 +244,8 @@ app.get('/rust/hello', async c => {
   }
   const resp = await rust.fetch(new Request('http://HEALTHZ_RUST/hello'));
   const headers = new Headers(resp.headers);
-  // workerd ignores `Transfer-Encoding` set by user code — strip it so a
-  // stale value from the downstream fetch is never forwarded.
+  // workerd ignores `Transfer-Encoding` set by user code, so strip it to
+  // avoid forwarding a stale value from the downstream fetch.
   headers.delete('Transfer-Encoding');
   headers.set('x-worker', 'healthz-rust');
   return new Response(resp.body, {
