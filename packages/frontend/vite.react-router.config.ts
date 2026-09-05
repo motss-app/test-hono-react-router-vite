@@ -11,9 +11,9 @@ import { readRequiredEnv } from '../../vite-utils/get-required-env.ts';
 import { createImportMetaEnvDefine } from '../../vite-utils/import-meta-env.ts';
 import { loadConfigEnvironment } from '../../vite-utils/load-env.ts';
 import { readEnv } from '../../vite-utils/read-env.ts';
-import { getEnv, writeStderr } from '../../vite-utils/runtime-env.ts';
+import { getEnv } from '../../vite-utils/runtime-env.ts';
 import { createSentryVitePluginOptions } from '../../vite-utils/sentry-build.ts';
-import { createBuildSentryEnvSnapshot } from '../../vite-utils/sentry-build-env-log.ts';
+import { logBuildSentryEnvSnapshot } from '../../vite-utils/sentry-build-env-log.ts';
 import {
   sentryBrowserProfilingCodeSplittingGroup,
   sentryCodeSplittingGroup,
@@ -41,9 +41,7 @@ const frontendResolveAlias = [
 ];
 
 function logReactRouterSentryEnvSnapshot(mode: string): void {
-  writeStderr(
-    `[packages/frontend/vite.react-router.config.ts] Sentry env snapshot ${JSON.stringify(createBuildSentryEnvSnapshot('packages/frontend/vite.react-router.config.ts', mode))}\n`
-  );
+  logBuildSentryEnvSnapshot('packages/frontend/vite.react-router.config.ts', mode);
 }
 
 const reactRouterBuildConfig = {

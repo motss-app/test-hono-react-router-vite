@@ -9,9 +9,8 @@ import { defineConfig, type UserConfig } from 'vite';
 import { themeBuildPlugin } from '../../vite-plugins/theme-bootstrap/plugin.ts';
 import { veCssTextPlugin } from '../../vite-plugins/ve-css-text/plugin.ts';
 import { loadConfigEnvironment } from '../../vite-utils/load-env.ts';
-import { writeStderr } from '../../vite-utils/runtime-env.ts';
 import { createSentryBuildOptions } from '../../vite-utils/sentry-build.ts';
-import { createBuildSentryEnvSnapshot } from '../../vite-utils/sentry-build-env-log.ts';
+import { logBuildSentryEnvSnapshot } from '../../vite-utils/sentry-build-env-log.ts';
 
 const repoRootPath = new URL('../../', import.meta.url).pathname;
 const publicDirPath = new URL('./public', import.meta.url).pathname;
@@ -59,9 +58,7 @@ export default defineConfig(async config => {
   const isDev = mode === 'development';
 
   loadConfigEnvironment(mode, repoRootPath);
-  writeStderr(
-    `[packages/frontend/vite.config.ts] Sentry env snapshot ${JSON.stringify(createBuildSentryEnvSnapshot('packages/frontend/vite.config.ts', mode))}\n`
-  );
+  logBuildSentryEnvSnapshot('packages/frontend/vite.config.ts', mode);
 
   const sentryBuildOptions = createSentryBuildOptions(mode, 'react-router-dev') ?? undefined;
   const sentryPlugins = await sentryReactRouter(sentryBuildOptions, config);

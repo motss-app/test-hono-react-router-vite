@@ -1,4 +1,4 @@
-import { getEnv } from './runtime-env.ts';
+import { getEnv, writeStderr } from './runtime-env.ts';
 import { logSentryEnvSnapshot } from './sentry-env-log.ts';
 
 export function createBuildSentryEnvSnapshot(
@@ -24,4 +24,16 @@ export function createBuildSentryEnvSnapshot(
       viteSentryDsn,
     },
   });
+}
+
+/*
+ * Emits the snapshot to stderr only when SENTRY_ENV_LOG=1, so routine dev
+ * and build output stays clean while the diagnostic stays available.
+ */
+export function logBuildSentryEnvSnapshot(source: string, mode: string): void {
+  if (getEnv('SENTRY_ENV_LOG') !== '1') return;
+
+  writeStderr(
+    `[${source}] Sentry env snapshot ${JSON.stringify(createBuildSentryEnvSnapshot(source, mode))}\n`
+  );
 }

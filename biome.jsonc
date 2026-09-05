@@ -294,9 +294,7 @@
     },
     {
       "includes": [
-        "scripts/convert-fa-pro.ts",
-        "scripts/check-route-bundle-size.ts",
-        "scripts/route-bundle-size.ts"
+        "scripts/**/*.ts"
       ],
       "linter": {
         "rules": {
@@ -307,16 +305,7 @@
             "noDefaultExport": "off"
           },
           "suspicious": {
-            "noConsole": {
-              "level": "error",
-              "options": {
-                "allow": [
-                  "error",
-                  "info",
-                  "warn"
-                ]
-              }
-            }
+            "noConsole": "off"
           }
         }
       }
