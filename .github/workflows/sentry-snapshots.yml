@@ -19,9 +19,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  SENTRY_CLI_VERSION: 3.6.0
-  PLAYWRIGHT_VERSION: 1.62.1
-  SENTRY_DSN: https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400
+  SENTRY_DSN: ${{ vars.SENTRY_DSN }}
 
 jobs:
   snapshots:
@@ -56,6 +54,14 @@ jobs:
 
       - uses: ./.github/actions/setup-deno
 
+      - name: Resolve Sentry CLI version
+        id: sentry-cli-version
+        uses: ./.github/actions/resolve-sentry-cli-version
+
+      - name: Resolve Playwright version
+        id: playwright-version
+        uses: ./.github/actions/resolve-playwright-version
+
       - name: Install CJK fonts
         run: sudo apt-get update && sudo apt-get install -y fonts-noto-cjk
 
@@ -66,18 +72,18 @@ jobs:
           path: |
             ~/.cache/ms-playwright
             ~/.cache/puppeteer
-          key: playwright-${{ env.PLAYWRIGHT_VERSION }}-${{ runner.os }}
+          key: playwright-${{ steps.playwright-version.outputs.version }}-${{ runner.os }}
 
       - name: Verify Playwright Chromium
         id: playwright-browser
         continue-on-error: true
         if: github.event_name != 'workflow_run' || steps.main-tip.outputs.skip != 'true'
         run: |
-          deno eval -A "import { chromium } from 'npm:playwright'; const browser = await chromium.launch({ headless: true }); await browser.close();"
+          deno eval -A "import { chromium } from 'npm:playwright@${{ steps.playwright-version.outputs.version }}'; const browser = await chromium.launch({ headless: true }); await browser.close();"
 
       - name: Install Playwright browsers
         if: steps.playwright-browser.outcome == 'failure' && (github.event_name != 'workflow_run' || steps.main-tip.outputs.skip != 'true')
-        run: deno run -A npm:playwright install chromium --with-deps
+        run: deno run -A npm:playwright@${{ steps.playwright-version.outputs.version }} install chromium --with-deps
 
       - name: Build fractal WASM
         if: github.event_name != 'workflow_run' || steps.main-tip.outputs.skip != 'true'
@@ -140,12 +146,12 @@ jobs:
         id: sentry-cli-cache
         with:
           path: /usr/local/bin/sentry-cli
-          key: sentry-cli-${{ env.SENTRY_CLI_VERSION }}-${{ runner.os }}
+          key: sentry-cli-${{ steps.sentry-cli-version.outputs.version }}-${{ runner.os }}
 
       - name: Install sentry-cli
         if: steps.sentry-cli-cache.outputs.cache-hit != 'true'
         env:
-          SENTRY_CLI_VERSION: ${{ env.SENTRY_CLI_VERSION }}
+          SENTRY_CLI_VERSION: ${{ steps.sentry-cli-version.outputs.version }}
         run: curl -sL https://sentry.io/get-cli/ | sh
 
       # On main pushes: uploads snapshots tagged with git commit SHA (the baseline).

@@ -1,0 +1,17 @@
+name: Resolve Playwright version
+description: Resolve the pinned Playwright version from deno.json
+
+outputs:
+  version:
+    description: The resolved Playwright version
+    value: ${{ steps.resolve.outputs.version }}
+
+runs:
+  using: composite
+  steps:
+    - name: Read Playwright version from deno.json
+      id: resolve
+      shell: bash
+      run: |
+        PLAYWRIGHT_VERSION=$(deno eval --quiet 'const config = JSON.parse(await Deno.readTextFile("deno.json")); const spec = config.imports?.playwright; const version = typeof spec === "string" ? spec.match(/^npm:playwright@(.+)$/)?.[1] : undefined; if (!version) throw new Error("deno.json imports.playwright must be npm:playwright@<version>"); console.log(version);')
+        printf 'version=%s\n' "$PLAYWRIGHT_VERSION" >> "$GITHUB_OUTPUT"
