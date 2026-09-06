@@ -1,6 +1,6 @@
 {
   "entry": {
-    "gzipBytes": 256234,
+    "gzipBytes": 256235,
     "rawBytes": 767425
   },
   "rootLayout": {
@@ -9,84 +9,84 @@
   },
   "routes": [
     {
-      "gzipBytes": 277477,
+      "gzipBytes": 277478,
       "ownGzipBytes": 555,
       "ownRawBytes": 1006,
       "rawBytes": 823977,
       "route": "/$"
     },
     {
-      "gzipBytes": 284705,
+      "gzipBytes": 284706,
       "ownGzipBytes": 7783,
       "ownRawBytes": 21712,
       "rawBytes": 844683,
       "route": "/about"
     },
     {
-      "gzipBytes": 287222,
+      "gzipBytes": 287223,
       "ownGzipBytes": 10300,
       "ownRawBytes": 27831,
       "rawBytes": 850802,
       "route": "/errors"
     },
     {
-      "gzipBytes": 288109,
+      "gzipBytes": 288110,
       "ownGzipBytes": 11187,
       "ownRawBytes": 33152,
       "rawBytes": 856123,
       "route": "/errors.$code"
     },
     {
-      "gzipBytes": 283512,
+      "gzipBytes": 283513,
       "ownGzipBytes": 6590,
       "ownRawBytes": 18695,
       "rawBytes": 841666,
       "route": "/holy-grail"
     },
     {
-      "gzipBytes": 282659,
+      "gzipBytes": 282660,
       "ownGzipBytes": 5737,
       "ownRawBytes": 14113,
       "rawBytes": 837084,
       "route": "/home"
     },
     {
-      "gzipBytes": 286525,
+      "gzipBytes": 286526,
       "ownGzipBytes": 9603,
       "ownRawBytes": 26264,
       "rawBytes": 849235,
       "route": "/hono-rpc"
     },
     {
-      "gzipBytes": 281220,
+      "gzipBytes": 281221,
       "ownGzipBytes": 4298,
       "ownRawBytes": 9551,
       "rawBytes": 832522,
       "route": "/labs"
     },
     {
-      "gzipBytes": 280133,
+      "gzipBytes": 280134,
       "ownGzipBytes": 3211,
       "ownRawBytes": 6906,
       "rawBytes": 829877,
       "route": "/labs-dominant-color"
     },
     {
-      "gzipBytes": 288992,
+      "gzipBytes": 288993,
       "ownGzipBytes": 12070,
       "ownRawBytes": 34426,
       "rawBytes": 857397,
       "route": "/labs-mandelbrot"
     },
     {
-      "gzipBytes": 277102,
+      "gzipBytes": 277103,
       "ownGzipBytes": 180,
       "ownRawBytes": 197,
       "rawBytes": 823168,
       "route": "/page-layout"
     },
     {
-      "gzipBytes": 282957,
+      "gzipBytes": 282958,
       "ownGzipBytes": 6035,
       "ownRawBytes": 16437,
       "rawBytes": 839408,
