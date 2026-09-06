@@ -138,8 +138,8 @@ posthog.init(import.meta.env.VITE_POSTHOG_TOKEN as string, {
   autocapture: true,
   // Autocapture unhandled exceptions and unhandled promise rejections
   capture_exceptions: true,
-  // Enable web vitals autocapture (FCP, LCP, INP, CLS)
-  capture_performance: true,
+  // Cloudflare Web Analytics is the browser-side RUM provider for these metrics.
+  capture_performance: false,
   // Use 2026-05-30 defaults for modern behavior:
   // capture_pageview → 'history_change' (SPA auto-detection),
   // persistence_save_debounce_ms → 250, split_storage → true
