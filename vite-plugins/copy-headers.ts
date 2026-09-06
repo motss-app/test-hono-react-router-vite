@@ -131,10 +131,10 @@ function extractPreloadLinks(html: string): string[] {
     const as = attributes.get('as')?.toLowerCase();
     const href = attributes.get('href');
 
-    if (rel?.includes('preload') && href?.startsWith('/') && !href.startsWith('//')) {
-      if (as === 'style') {
+    if (href?.startsWith('/') && !href.startsWith('//')) {
+      if (rel?.includes('stylesheet')) {
         preloadLinks.push(`<${href}>; rel=preload; as=style`);
-      } else if (as === 'font') {
+      } else if (rel?.includes('preload') && as === 'font') {
         const type = attributes.get('type');
         const crossOrigin = attributes.has('crossorigin');
         const typeParameter = type ? `; type="${type}"` : '';
