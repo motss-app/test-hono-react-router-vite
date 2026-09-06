@@ -1,8 +1,14 @@
 # Agent Instructions
 
+- Always read this workspace `AGENTS.md` before acting.
+- Always read the global `MEMORY.md` when available.
+- Always read the relevant lockfile to determine the package manager and languages in use.
+
 **This file is the single source of truth for repository rules.** Agents that auto-load this file (Codex, Copilot, and others) must follow it directly with no `@`-mention needed.
 
 **Always work inside this directory (`/Users/rongsen/motss/test-hono-react-router-vite`).** Do not navigate outside it, and never request to access files or folders outside this directory. If a task requires something outside, stop and ask the user how to proceed.
+
+Before editing, verify the repository root is the main checkout and the current branch is `main`. If running in a worktree or another branch, stop and ask the user to reopen the task in the Local environment. Do not create or use worktrees.
 
 ## Skill Selection
 
