@@ -92,17 +92,50 @@ function createHeadersCopyPluginContext(mode: string): HeadersCopyPluginContext 
 function buildStaticRouteHeaders(
   routePath: string,
   cspDirective: string,
+  stylesheetPreloadLinks: readonly string[],
   sentryCspReportingConfig: ReturnType<typeof createSentryCspReportingConfig>
 ): string {
   return [
     routePath,
     '  ! Cache-Control',
     `  Cache-Control: ${staticPageCacheControl}`,
+    ...stylesheetPreloadLinks.map(link => `  Link: ${link}`),
     `  Content-Security-Policy: ${cspDirective}; report-uri ${sentryCspReportingConfig.reportUri}; report-to csp-endpoint`,
     `  Report-To: ${sentryCspReportingConfig.reportTo}`,
     `  Reporting-Endpoints: ${sentryCspReportingConfig.reportingEndpoints}`,
     `  Document-Policy: ${csp.buildDocumentPolicy()}`,
   ].join('\n');
+}
+
+function extractStylesheetPreloadLinks(html: string): string[] {
+  const stylesheetPreloadLinks: string[] = [];
+  const linkTagPattern = /<link\b[^>]*>/gi;
+  const attributePattern = /([\w:-]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+)))?/g;
+
+  for (const linkTag of html.matchAll(linkTagPattern)) {
+    const attributes = new Map<string, string>();
+
+    for (const attribute of linkTag[0].matchAll(attributePattern)) {
+      const name = attribute[1]?.toLowerCase();
+      const value = attribute[2] ?? attribute[3] ?? attribute[4] ?? '';
+
+      if (name) {
+        attributes.set(name, value);
+      }
+    }
+
+    const rel = attributes
+      .get('rel')
+      ?.split(/\s+/)
+      .map(value => value.toLowerCase());
+    const href = attributes.get('href');
+
+    if (rel?.includes('stylesheet') && href?.startsWith('/') && !href.startsWith('//')) {
+      stylesheetPreloadLinks.push(`<${href}>; rel=preload; as=style`);
+    }
+  }
+
+  return stylesheetPreloadLinks;
 }
 
 async function processStaticRoute({
@@ -120,6 +153,7 @@ async function processStaticRoute({
   }
 
   const html = await Deno.readTextFile(htmlFile);
+  const stylesheetPreloadLinks = extractStylesheetPreloadLinks(html);
   const [scriptHashes, styleHashes] = await Promise.all([
     collectInlineHashes(html, inlineScriptPattern),
     collectInlineHashes(html, inlineStylePattern),
@@ -135,6 +169,7 @@ async function processStaticRoute({
         ...(includeCloudflareAnalyticsStyleHashes ? cloudflareAnalyticsStyleHashes : []),
       ],
     }),
+    stylesheetPreloadLinks,
     sentryCspReportingConfig
   );
 }

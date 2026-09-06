@@ -32,6 +32,24 @@ import { csp } from './utils/csp.ts';
 const HTTP_STATUS_INTERNAL_SERVER_ERROR = 500;
 const runtimeDemoErrorPrefix = 'Runtime error for code:';
 
+function appendStylesheetPreloadLinks(responseHeaders: Headers, routerContext: EntryContext): void {
+  const stylesheetHrefs = new Set<string>();
+
+  for (const match of routerContext.staticHandlerContext.matches) {
+    const route = routerContext.manifest.routes[match.route.id];
+
+    for (const href of route?.css ?? []) {
+      if (href.startsWith('/') && !href.startsWith('//')) {
+        stylesheetHrefs.add(href);
+      }
+    }
+  }
+
+  for (const href of stylesheetHrefs) {
+    responseHeaders.append('Link', `<${href}>; rel=preload; as=style`);
+  }
+}
+
 function getCurrentAppSessionId(): string | undefined {
   return getIsolationScope().getScopeData().tags[appSessionIdTagName] as string | undefined;
 }
@@ -107,6 +125,7 @@ export default wrapSentryHandleRequest(async function handleRequest(
   }
 
   responseHeaders.set('Content-Type', 'text/html');
+  appendStylesheetPreloadLinks(responseHeaders, routerContext);
 
   return new Response(injectTraceMetaTags(body), {
     headers: responseHeaders,

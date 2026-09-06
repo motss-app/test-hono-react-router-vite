@@ -10,7 +10,6 @@ env:
     test: update visual regression screenshots
 
     Co-authored-by: ${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com>
-  PLAYWRIGHT_VERSION: 1.62.1
 
 jobs:
   update-screenshots:
@@ -38,6 +37,10 @@ jobs:
 
       - uses: ./.github/actions/setup-deno
 
+      - name: Resolve Playwright version
+        id: playwright-version
+        uses: ./.github/actions/resolve-playwright-version
+
       - name: Install CJK fonts
         run: sudo apt-get update && sudo apt-get install -y fonts-noto-cjk
 
@@ -51,11 +54,11 @@ jobs:
           path: |
             ~/.cache/ms-playwright
             ~/.cache/puppeteer
-          key: playwright-${{ env.PLAYWRIGHT_VERSION }}-${{ runner.os }}
+          key: playwright-${{ steps.playwright-version.outputs.version }}-${{ runner.os }}
 
       - name: Install Playwright browsers
         if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: deno run -A npm:playwright install chromium --with-deps
+        run: deno run -A npm:playwright@${{ steps.playwright-version.outputs.version }} install chromium --with-deps
 
       - name: Generate screenshots
         run: deno task test:visual
