@@ -72,10 +72,10 @@
       "route": "/labs-dominant-color"
     },
     {
-      "gzipBytes": 284526,
-      "ownGzipBytes": 12032,
-      "ownRawBytes": 34338,
-      "rawBytes": 844808,
+      "gzipBytes": 284563,
+      "ownGzipBytes": 12069,
+      "ownRawBytes": 34426,
+      "rawBytes": 844896,
       "route": "/labs-mandelbrot"
     },
     {
@@ -95,7 +95,7 @@
   ],
   "summary": {
     "maxRoute": "/labs-mandelbrot",
-    "maxRouteRawBytes": 844808,
+    "maxRouteRawBytes": 844896,
     "minRoute": "/page-layout",
     "minRouteRawBytes": 810667
   }
