@@ -77,12 +77,17 @@ async function screenshot(
 ) {
   const playwrightPage = await context.newPage();
   await playwrightPage.goto(`${BASE_URL}${page.path}`, {
-    waitUntil: 'domcontentloaded',
+    waitUntil: 'networkidle',
   });
 
   // Wait for web fonts so text rendering is deterministic.
   await playwrightPage.evaluate(() => document.fonts.ready);
-  await playwrightPage.waitForTimeout(1000);
+
+  if (page.path.endsWith('/labs/mandelbrot')) {
+    await playwrightPage.locator('[data-vrt-ready="true"]').waitFor({
+      state: 'attached',
+    });
+  }
 
   const path = `${OUTPUT_DIR}/${page.name}-${viewportName}-${theme}.png`;
   await playwrightPage.screenshot({
