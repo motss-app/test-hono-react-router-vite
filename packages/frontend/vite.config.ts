@@ -56,6 +56,7 @@ function vanillaExtractSsrFixPlugin() {
 export default defineConfig(async config => {
   const { mode } = config;
   const isDev = mode === 'development';
+  const isVrt = Deno.env.get('VRT') === 'true';
 
   loadConfigEnvironment(mode, repoRootPath);
   logBuildSentryEnvSnapshot('packages/frontend/vite.config.ts', mode);
@@ -72,6 +73,11 @@ export default defineConfig(async config => {
         ? [
             cloudflare({
               configPath: './packages/frontend/wrangler.jsonc',
+              ...(isVrt
+                ? {
+                    inspectorPort: false,
+                  }
+                : {}),
               viteEnvironment: {
                 name: 'ssr',
               },

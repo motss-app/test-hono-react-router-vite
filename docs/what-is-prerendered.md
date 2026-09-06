@@ -7,7 +7,7 @@ Current prerendering status and what gets built.
 ```typescript
 // react-router.config.ts
 prerender() {
-  return ['/', '/about', '/errors'];
+  return discoverPrerenderRoutes();
 }
 ```
 
@@ -18,6 +18,10 @@ prerender() {
 | `/` | ✅ SSG | `build/client/index.html` |
 | `/about` | ✅ SSG | `build/client/about/index.html` |
 | `/errors` | ✅ SSG | `build/client/errors/index.html` + `errors.data` |
+| `/holy-grail` | ✅ SSG | `build/client/holy-grail/index.html` |
+| `/labs` | ✅ SSG | `build/client/labs/index.html` |
+| `/labs/mandelbrot` | ✅ SSG | `build/client/labs/mandelbrot/index.html` |
+| `/labs/dominant-color` | ✅ SSG | `build/client/labs/dominant-color/index.html` |
 
 ## What Gets Built
 

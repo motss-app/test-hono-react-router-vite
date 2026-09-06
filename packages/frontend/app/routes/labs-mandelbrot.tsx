@@ -592,6 +592,7 @@ interface CanvasPanelProps {
   handlePointerDown: (event: ReactPointerEvent<HTMLCanvasElement>) => void;
   handlePointerMove: (event: ReactPointerEvent<HTMLCanvasElement>) => void;
   handlePointerUp: (event: ReactPointerEvent<HTMLCanvasElement>) => void;
+  renderMs: number | null;
   shellRef: React.RefObject<HTMLDivElement | null>;
   wasmStatus: WasmStatus;
 }
@@ -603,12 +604,16 @@ function CanvasPanel({
   handlePointerDown,
   handlePointerMove,
   handlePointerUp,
+  renderMs,
   shellRef,
   wasmStatus,
 }: CanvasPanelProps): JSX.Element {
   return (
     <div
       className={c.canvasShell}
+      data-vrt-ready={
+        renderMs !== null || (engine === 'wasm' && wasmStatus === 'error') ? 'true' : 'false'
+      }
       ref={shellRef}
     >
       {/* One canvas per context type because a canvas cannot host both 2D and
@@ -1042,6 +1047,7 @@ export default function RustLab(): JSX.Element {
               handlePointerDown={handlePointerDown}
               handlePointerMove={handlePointerMove}
               handlePointerUp={handlePointerUp}
+              renderMs={renderMs}
               shellRef={shellRef}
               wasmStatus={wasmStatus}
             />

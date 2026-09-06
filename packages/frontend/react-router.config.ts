@@ -17,9 +17,7 @@ export default {
     unstable_optimizeDeps: true,
   },
   prerender(): string[] {
-    return discoverPrerenderRoutes({
-      rootDir: repoRootPath,
-    });
+    return discoverPrerenderRoutes();
   },
   routeDiscovery: {
     mode: 'lazy',

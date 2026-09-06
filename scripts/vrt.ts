@@ -3,34 +3,35 @@
 /**
  * Visual regression screenshot generator for Sentry Snapshots.
  *
- * Takes screenshots of the homepage at mobile, tablet, and desktop viewports
- * in both light and dark themes. Output goes to __screenshots__/ for upload
- * to Sentry Snapshots.
+ * Takes screenshots of every prerendered SSG page at mobile and desktop
+ * viewports in both light and dark themes. Output goes to
+ * __screenshots__/ for upload to Sentry Snapshots.
  *
  * If nothing is serving on :8787, the script starts the dev stack (frontend
- * on :5173 + gateway on :8787 — the homepage needs both, see startDevStack)
- * and stops it when done (also on SIGINT / SIGTERM). A server that is
- * already serving on :8787 is reused as-is.
+ * on :5173 plus gateway on :8787, as the homepage needs both, see
+ * startDevStack) and stops it when done (also on SIGINT / SIGTERM). A server
+ * that is already serving on :8787 is reused as-is.
  *
  * Usage:
  *   deno run -A scripts/vrt.ts
  */
 
-import { type BrowserContext, chromium } from 'playwright';
+import { type Browser, type BrowserContext, chromium } from 'playwright';
 
+import { discoverPrerenderRoutes } from '../vite-utils/route-discovery.ts';
 import { clearPorts } from './dev-ports.ts';
 
 const BASE_URL = 'http://localhost:8787';
 const FRONTEND_DIR = new URL('../packages/frontend', import.meta.url).pathname;
 const GATEWAY_DIR = new URL('../packages/gateway', import.meta.url).pathname;
 const OUTPUT_DIR = new URL('../__screenshots__/', import.meta.url).pathname;
+const BROWSER_COUNT = 4;
 
 /**
  * Viewport definitions based on real-world devices.
  *
- * - mobile:  iPhone 14 Pro — 375×812 logical pixels (CSS), 3× DPR
- * - tablet:  iPad Mini — 768×1024 logical pixels (CSS), 2× DPR
- * - desktop: Common laptop — 1280×720 logical pixels (CSS)
+ * - mobile:  iPhone 14 Pro at 375x812 logical pixels (CSS) with 3x DPR
+ * - desktop: Common laptop at 1280x720 logical pixels (CSS)
  */
 const VIEWPORTS = {
   desktop: {
@@ -41,10 +42,6 @@ const VIEWPORTS = {
     height: 812,
     width: 375,
   },
-  tablet: {
-    height: 1024,
-    width: 768,
-  },
 } as const;
 
 const THEMES = [
@@ -52,20 +49,50 @@ const THEMES = [
   'dark',
 ] as const;
 
-async function screenshot(context: BrowserContext, viewportName: string, theme: string) {
-  const page = await context.newPage();
-  await page.goto(BASE_URL, {
-    waitUntil: 'networkidle',
+interface Page {
+  name: string;
+  path: string;
+}
+
+function pageName(path: string): string {
+  return path === '/'
+    ? 'homepage'
+    : path.replace(/^\//, '').replaceAll('/', '-').replaceAll('_', '-');
+}
+
+function discoverPages(): Page[] {
+  return discoverPrerenderRoutes().map(path => ({
+    name: pageName(path),
+    path,
+  }));
+}
+
+const PAGES = discoverPages();
+
+async function screenshot(
+  context: BrowserContext,
+  page: (typeof PAGES)[number],
+  viewportName: string,
+  theme: string
+) {
+  const playwrightPage = await context.newPage();
+  await playwrightPage.goto(`${BASE_URL}${page.path}`, {
+    waitUntil: 'domcontentloaded',
   });
 
   // Wait for web fonts so text rendering is deterministic.
-  await page.evaluate(() => document.fonts.ready);
-  await page.waitForTimeout(1000);
+  await playwrightPage.evaluate(() => document.fonts.ready);
 
-  const path = `${OUTPUT_DIR}/homepage-${viewportName}-${theme}.png`;
-  await page.screenshot({
+  if (page.path.endsWith('/labs/mandelbrot')) {
+    await playwrightPage.locator('[data-vrt-ready="true"]').waitFor({
+      state: 'attached',
+    });
+  }
+
+  const path = `${OUTPUT_DIR}/${page.name}-${viewportName}-${theme}.png`;
+  await playwrightPage.screenshot({
     // Fast-forwards finite animations to their final state and cancels
-    // infinite ones (e.g. the homepage `artworkDrift` hero animation) back
+    // infinite ones (such as the homepage artworkDrift hero animation) back
     // to their initial state. Without this, every run captures a different
     // animation frame and VRT reports false diffs.
     animations: 'disabled',
@@ -73,7 +100,23 @@ async function screenshot(context: BrowserContext, viewportName: string, theme: 
     path,
   });
 
-  await page.close();
+  await playwrightPage.close();
+}
+
+async function capturePages(browser: Browser, pages: readonly Page[]): Promise<void> {
+  for (const page of pages) {
+    for (const [viewportName, viewport] of Object.entries(VIEWPORTS)) {
+      for (const theme of THEMES) {
+        const context = await browser.newContext({
+          colorScheme: theme,
+          viewport,
+        });
+
+        await screenshot(context, page, viewportName, theme);
+        await context.close();
+      }
+    }
+  }
 }
 
 interface ManagedProcess {
@@ -113,6 +156,7 @@ function spawnDevWorker(name: string, cwd: string): void {
     env: {
       ...Deno.env.toObject(),
       CLOUDFLARE_ENV: 'dev',
+      VRT: 'true',
     },
     stderr: 'inherit',
     stdout: 'inherit',
@@ -152,7 +196,7 @@ function stopManagedProcesses(): void {
     try {
       child.kill('SIGTERM');
     } catch {
-      // Process already exited — nothing left to stop.
+      // Process already exited, so nothing is left to stop.
     }
     console.log(`Stopped ${name}.`);
   }
@@ -190,22 +234,26 @@ async function main() {
     console.log(`Reusing server already running at ${BASE_URL}.`);
   }
 
-  const browser = await chromium.launch();
+  const browsers = await Promise.all(
+    Array.from(
+      {
+        length: Math.min(BROWSER_COUNT, PAGES.length),
+      },
+      () => chromium.launch()
+    )
+  );
 
   try {
-    for (const [viewportName, viewport] of Object.entries(VIEWPORTS)) {
-      for (const theme of THEMES) {
-        const context = await browser.newContext({
-          colorScheme: theme,
-          viewport,
-        });
-
-        await screenshot(context, viewportName, theme);
-        await context.close();
-      }
-    }
+    await Promise.all(
+      browsers.map((browser, browserIndex) =>
+        capturePages(
+          browser,
+          PAGES.filter((_, pageIndex) => pageIndex % browsers.length === browserIndex)
+        )
+      )
+    );
   } finally {
-    await browser.close();
+    await Promise.all(browsers.map(browser => browser.close()));
     if (managedStack) {
       stopManagedProcesses();
     }
