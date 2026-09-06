@@ -16,46 +16,67 @@
       "route": "/$"
     },
     {
-      "gzipBytes": 280012,
-      "ownGzipBytes": 7518,
-      "ownRawBytes": 21490,
-      "rawBytes": 831960,
+      "gzipBytes": 280275,
+      "ownGzipBytes": 7781,
+      "ownRawBytes": 21712,
+      "rawBytes": 832182,
       "route": "/about"
     },
     {
-      "gzipBytes": 282524,
-      "ownGzipBytes": 10030,
-      "ownRawBytes": 27609,
-      "rawBytes": 838079,
+      "gzipBytes": 282794,
+      "ownGzipBytes": 10300,
+      "ownRawBytes": 27831,
+      "rawBytes": 838301,
       "route": "/errors"
     },
     {
-      "gzipBytes": 283409,
-      "ownGzipBytes": 10915,
-      "ownRawBytes": 32930,
-      "rawBytes": 843400,
+      "gzipBytes": 283681,
+      "ownGzipBytes": 11187,
+      "ownRawBytes": 33152,
+      "rawBytes": 843622,
       "route": "/errors.$code"
     },
     {
-      "gzipBytes": 278886,
-      "ownGzipBytes": 6392,
-      "ownRawBytes": 18536,
-      "rawBytes": 829006,
+      "gzipBytes": 279083,
+      "ownGzipBytes": 6589,
+      "ownRawBytes": 18695,
+      "rawBytes": 829165,
       "route": "/holy-grail"
     },
     {
-      "gzipBytes": 277650,
-      "ownGzipBytes": 5156,
-      "ownRawBytes": 13229,
-      "rawBytes": 823699,
+      "gzipBytes": 278232,
+      "ownGzipBytes": 5738,
+      "ownRawBytes": 14113,
+      "rawBytes": 824583,
       "route": "/home"
     },
     {
-      "gzipBytes": 281823,
-      "ownGzipBytes": 9329,
-      "ownRawBytes": 26039,
-      "rawBytes": 836509,
+      "gzipBytes": 282092,
+      "ownGzipBytes": 9598,
+      "ownRawBytes": 26261,
+      "rawBytes": 836731,
       "route": "/hono-rpc"
+    },
+    {
+      "gzipBytes": 276791,
+      "ownGzipBytes": 4297,
+      "ownRawBytes": 9551,
+      "rawBytes": 820021,
+      "route": "/labs"
+    },
+    {
+      "gzipBytes": 275703,
+      "ownGzipBytes": 3209,
+      "ownRawBytes": 6906,
+      "rawBytes": 817376,
+      "route": "/labs-dominant-color"
+    },
+    {
+      "gzipBytes": 284563,
+      "ownGzipBytes": 12069,
+      "ownRawBytes": 34426,
+      "rawBytes": 844896,
+      "route": "/labs-mandelbrot"
     },
     {
       "gzipBytes": 272674,
@@ -65,16 +86,16 @@
       "route": "/page-layout"
     },
     {
-      "gzipBytes": 278258,
-      "ownGzipBytes": 5764,
-      "ownRawBytes": 16215,
-      "rawBytes": 826685,
+      "gzipBytes": 278528,
+      "ownGzipBytes": 6034,
+      "ownRawBytes": 16437,
+      "rawBytes": 826907,
       "route": "/ssr"
     }
   ],
   "summary": {
-    "maxRoute": "/errors.$code",
-    "maxRouteRawBytes": 843400,
+    "maxRoute": "/labs-mandelbrot",
+    "maxRouteRawBytes": 844896,
     "minRoute": "/page-layout",
     "minRouteRawBytes": 810667
   }
