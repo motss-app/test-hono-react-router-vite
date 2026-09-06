@@ -11,9 +11,7 @@ await withLogGroup(`🚀 Warming up Canary: ${canaryUrl}`, async () => {
   await warmRoutes(
     canaryUrl,
     [
-      ...discoverPrerenderRoutes({
-        rootDir: Deno.cwd(),
-      }),
+      ...discoverPrerenderRoutes(),
       '/ssr',
       '/hono-rpc',
       ...errorScenarios.map(({ code }) => `/errors/${code}`),

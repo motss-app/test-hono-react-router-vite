@@ -4,7 +4,8 @@ React Router v7 supports three rendering modes:
 
 ## SSG (Static Site Generation) ⚡
 
-**Routes:** `/`, `/about`, `/errors`
+**Routes:** `/`, `/about`, `/holy-grail`, `/labs`, `/labs/mandelbrot`,
+`/labs/dominant-color`, `/errors`
 
 **How it works:**
 - Pre-rendered at build time
@@ -69,6 +70,10 @@ Routes with loaders not in prerender array.
 |-------|------|---------|
 | `/` | SSG | Home page |
 | `/about` | SSG | About page |
+| `/holy-grail` | SSG | Holy Grail layout page |
+| `/labs` | SSG | Labs index |
+| `/labs/mandelbrot` | SSG | Mandelbrot lab |
+| `/labs/dominant-color` | SSG | Dominant color lab |
 | `/errors` | SSG | Error demos |
 | `/ssr` | SSR | SSR demo |
 | `/errors/:code` | SSR | Dynamic error demo |

@@ -1,18 +1,21 @@
 name: Benchmark
 
+# PR-triggered runs are intentionally disabled to conserve GitHub Actions
+# minutes. Uncomment this block when automatic PR benchmarks should be enabled
+# again.
 on:
-  pull_request:
-    paths:
-      - 'packages/**'
-      - 'vite-plugins/**'
-      - 'vite-utils/**'
-      - 'scripts/bench-all.ts'
-      - 'scripts/standalone-*.ts'
-      - 'deno.json'
-      - 'deno.lock'
-      - 'biome.jsonc'
-      - 'tsconfig.json'
-      - 'react-router.config.ts'
+  # pull_request:
+  #   paths:
+  #     - 'packages/**'
+  #     - 'vite-plugins/**'
+  #     - 'vite-utils/**'
+  #     - 'scripts/bench-all.ts'
+  #     - 'scripts/standalone-*.ts'
+  #     - 'deno.json'
+  #     - 'deno.lock'
+  #     - 'biome.jsonc'
+  #     - 'tsconfig.json'
+  #     - 'react-router.config.ts'
   workflow_dispatch:
 
 env:
@@ -27,6 +30,7 @@ concurrency:
 jobs:
   benchmark:
     name: Benchmark & Compare
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:

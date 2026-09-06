@@ -175,9 +175,7 @@ export function headersCopyPlugin(options: HeadersCopyPluginOptions): Plugin {
         });
 
         let headersText = await Deno.readTextFile(src);
-        const prerenderRoutes = discoverPrerenderRoutes({
-          rootDir,
-        });
+        const prerenderRoutes = discoverPrerenderRoutes();
         const staticRouteHeadersResults = await Promise.all(
           prerenderRoutes.map(routePath =>
             processStaticRoute({

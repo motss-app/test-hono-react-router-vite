@@ -31,6 +31,7 @@ function isColorRustBuilt(): boolean {
 
 export default defineConfig(({ command }) => {
   const isDev = command === 'serve';
+  const isVrt = Deno.env.get('VRT') === 'true';
   const isDeploymentBuild = Deno.env.get('DEPLOYMENT_BUILD') === 'true';
 
   return {
@@ -43,6 +44,11 @@ export default defineConfig(({ command }) => {
     }),
     plugins: [
       cloudflare({
+        ...(isVrt
+          ? {
+              inspectorPort: false,
+            }
+          : {}),
         ...(isDev
           ? {
               auxiliaryWorkers: [

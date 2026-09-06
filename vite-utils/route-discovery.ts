@@ -1,103 +1,51 @@
-import { locales } from '../packages/frontend/locales.ts';
+import appRoutes from '../packages/frontend/app/routes.ts';
 
-const EXTENSION_REGEX = /\.(tsx|ts|jsx|js)$/;
-const prerenderExcludedRoutes = [
-  '/errors/:code',
-  '/home',
+const ssrOnlyPaths = new Set([
   '/hono-rpc',
-  '/page-layout',
   '/ssr',
-];
+]);
 
-function discoverStaticRoutes(options?: { exclude?: string[]; rootDir?: string }): string[] {
-  const normalizedOptions = options ?? {};
-  const rootDir = normalizedOptions.rootDir ?? Deno.cwd();
-  const routesDir = `${rootDir}/packages/frontend/app/routes`;
-  const routes: string[] = [];
-  const { exclude = [] } = normalizedOptions;
-
-  function scan(currentDir: string, urlPrefix: string): void {
-    for (const entry of Deno.readDirSync(currentDir)) {
-      // Skip hidden files/dirs
-      if (entry.name.startsWith('_') || entry.name.startsWith('.')) {
-        continue;
-      }
-
-      // Skip dynamic routes (containing '$' or '['). These are SSR-only and should not be pre-rendered.
-      if (entry.name.includes('$') || entry.name.includes('[')) {
-        continue;
-      }
-
-      if (entry.isDirectory) {
-        // Recurse into subdirectory
-        scan(`${currentDir}/${entry.name}`, `${urlPrefix}/${entry.name}`);
-      } else if (entry.isFile) {
-        // CSS route modules are build dependencies, not document routes.
-        if (!EXTENSION_REGEX.test(entry.name) || entry.name.endsWith('.css.ts')) {
-          continue;
-        }
-
-        // Convert filename to path: "about.tsx" -> "/about"
-        const name = entry.name.replace(EXTENSION_REGEX, '');
-
-        // Construct the route path
-        let path = urlPrefix;
-        if (name !== 'index') {
-          path = `${urlPrefix}/${name}`;
-        }
-
-        // Ensure root path is "/" instead of empty string
-        if (path === '') {
-          path = '/';
-        }
-
-        // Exclude specific routes based on options
-        if (!exclude.includes(path)) {
-          routes.push(path);
-        }
-      }
-    }
-  }
-
-  /**
-   * Note: Deno.readDirSync is synchronous and should only be used during build time (prerendering).
-   * Do not use this in runtime request handlers to avoid blocking the event loop.
-   */
-  try {
-    scan(routesDir, '');
-  } catch (error) {
-    // biome-ignore lint/suspicious/noConsole: Build script logging
-    console.error(`Error: Failed to scan routes directory: ${routesDir}`);
-    throw error;
-  }
-
-  return routes;
+interface RouteNode {
+  children?: readonly RouteNode[];
+  path?: string;
 }
 
-export function discoverPrerenderRoutes(options?: { rootDir?: string }): string[] {
-  const { rootDir } = options ?? {};
-  const baseRoutes = discoverStaticRoutes({
-    exclude: prerenderExcludedRoutes,
-    ...(rootDir === undefined
-      ? {}
-      : {
-          rootDir,
-        }),
-  });
+function toUrlPath(path: string): string {
+  return path === '' ? '/' : `/${path.replace(/^\//, '')}`;
+}
 
-  // Explicitly add the index route since discoverStaticRoutes relies on file names
-  // and doesn't know that home.tsx is mapped to /
-  if (!baseRoutes.includes('/')) {
-    baseRoutes.push('/');
-  }
+function removeOptionalLocale(path: string | undefined): string | undefined {
+  return path?.replace(/^:locale\?/, '');
+}
 
-  // Generate locale-prefixed routes for SSG pages
-  const localePrefixedRoutes: string[] = [];
-  for (const route of baseRoutes) {
-    for (const locale of locales) {
-      localePrefixedRoutes.push(`/${locale}${route === '/' ? '' : route}`);
-    }
-  }
+function isDynamicRoutePath(path: string): boolean {
+  return path.includes(':') || path.includes('*');
+}
 
-  return localePrefixedRoutes;
+function getStaticPaths(routes: readonly RouteNode[]): string[] {
+  return [
+    ...new Set(
+      routes.flatMap(route => {
+        const childPaths = getStaticPaths(route.children ?? []);
+        const routePath = removeOptionalLocale(route.path);
+
+        if (routePath === undefined || isDynamicRoutePath(routePath)) {
+          return childPaths;
+        }
+
+        const staticPath = toUrlPath(routePath);
+
+        return !ssrOnlyPaths.has(staticPath)
+          ? [
+              staticPath,
+              ...childPaths,
+            ]
+          : childPaths;
+      })
+    ),
+  ];
+}
+
+export function discoverPrerenderRoutes(): string[] {
+  return getStaticPaths(appRoutes as readonly RouteNode[]);
 }
