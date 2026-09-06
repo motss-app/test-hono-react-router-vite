@@ -68,8 +68,15 @@ jobs:
             ~/.cache/puppeteer
           key: playwright-${{ env.PLAYWRIGHT_VERSION }}-${{ runner.os }}
 
+      - name: Verify Playwright Chromium
+        id: playwright-browser
+        continue-on-error: true
+        if: github.event_name != 'workflow_run' || steps.main-tip.outputs.skip != 'true'
+        run: |
+          deno eval -A "import { chromium } from 'npm:playwright'; const browser = await chromium.launch({ headless: true }); await browser.close();"
+
       - name: Install Playwright browsers
-        if: steps.playwright-cache.outputs.cache-hit != 'true' && (github.event_name != 'workflow_run' || steps.main-tip.outputs.skip != 'true')
+        if: steps.playwright-browser.outcome == 'failure' && (github.event_name != 'workflow_run' || steps.main-tip.outputs.skip != 'true')
         run: deno run -A npm:playwright install chromium --with-deps
 
       - name: Build fractal WASM
