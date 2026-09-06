@@ -77,7 +77,7 @@ async function screenshot(
 ) {
   const playwrightPage = await context.newPage();
   await playwrightPage.goto(`${BASE_URL}${page.path}`, {
-    waitUntil: 'networkidle',
+    waitUntil: 'domcontentloaded',
   });
 
   // Wait for web fonts so text rendering is deterministic.
