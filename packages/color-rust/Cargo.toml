@@ -14,7 +14,7 @@ color-wasm = { path = "../color-wasm" }
 image = { version = "0.25.10", default-features = false, features = ["bmp", "gif", "jpeg", "png", "tiff", "webp"] }
 jxl-oxide = { version = "0.12.6", default-features = false, features = ["image"] }
 zenavif = "0.1.6"
-zenpixels-convert = { version = "0.2.13", features = ["rgb"] }
+zenpixels-convert = { version = "0.2.16", features = ["rgb"] }
 
 [profile.release]
 # `strip = true` breaks wasm-bindgen Worker builds. This Worker remains well

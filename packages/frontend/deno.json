@@ -34,8 +34,8 @@
     "./worker": "./worker.ts"
   },
   "imports": {
-    "posthog-js": "npm:posthog-js@1.422.5",
-    "posthog-node": "npm:posthog-node@5.51.4"
+    "posthog-js": "npm:posthog-js@1.427.2",
+    "posthog-node": "npm:posthog-node@5.51.6"
   },
   "name": "@motss-app/frontend",
   "tasks": {
