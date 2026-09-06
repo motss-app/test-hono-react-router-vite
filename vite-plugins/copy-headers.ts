@@ -92,14 +92,14 @@ function createHeadersCopyPluginContext(mode: string): HeadersCopyPluginContext 
 function buildStaticRouteHeaders(
   routePath: string,
   cspDirective: string,
-  stylesheetPreloadLinks: readonly string[],
+  preloadLinks: readonly string[],
   sentryCspReportingConfig: ReturnType<typeof createSentryCspReportingConfig>
 ): string {
   return [
     routePath,
     '  ! Cache-Control',
     `  Cache-Control: ${staticPageCacheControl}`,
-    ...stylesheetPreloadLinks.map(link => `  Link: ${link}`),
+    ...preloadLinks.map(link => `  Link: ${link}`),
     `  Content-Security-Policy: ${cspDirective}; report-uri ${sentryCspReportingConfig.reportUri}; report-to csp-endpoint`,
     `  Report-To: ${sentryCspReportingConfig.reportTo}`,
     `  Reporting-Endpoints: ${sentryCspReportingConfig.reportingEndpoints}`,
@@ -107,8 +107,8 @@ function buildStaticRouteHeaders(
   ].join('\n');
 }
 
-function extractStylesheetPreloadLinks(html: string): string[] {
-  const stylesheetPreloadLinks: string[] = [];
+function extractPreloadLinks(html: string): string[] {
+  const preloadLinks: string[] = [];
   const linkTagPattern = /<link\b[^>]*>/gi;
   const attributePattern = /([\w:-]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+)))?/g;
 
@@ -128,14 +128,24 @@ function extractStylesheetPreloadLinks(html: string): string[] {
       .get('rel')
       ?.split(/\s+/)
       .map(value => value.toLowerCase());
+    const as = attributes.get('as')?.toLowerCase();
     const href = attributes.get('href');
 
-    if (rel?.includes('stylesheet') && href?.startsWith('/') && !href.startsWith('//')) {
-      stylesheetPreloadLinks.push(`<${href}>; rel=preload; as=style`);
+    if (rel?.includes('preload') && href?.startsWith('/') && !href.startsWith('//')) {
+      if (as === 'style') {
+        preloadLinks.push(`<${href}>; rel=preload; as=style`);
+      } else if (as === 'font') {
+        const type = attributes.get('type');
+        const crossOrigin = attributes.has('crossorigin');
+        const typeParameter = type ? `; type="${type}"` : '';
+        const crossOriginParameter = crossOrigin ? '; crossorigin="anonymous"' : '';
+
+        preloadLinks.push(`<${href}>; rel=preload; as=font${typeParameter}${crossOriginParameter}`);
+      }
     }
   }
 
-  return stylesheetPreloadLinks;
+  return preloadLinks;
 }
 
 async function processStaticRoute({
@@ -153,7 +163,7 @@ async function processStaticRoute({
   }
 
   const html = await Deno.readTextFile(htmlFile);
-  const stylesheetPreloadLinks = extractStylesheetPreloadLinks(html);
+  const preloadLinks = extractPreloadLinks(html);
   const [scriptHashes, styleHashes] = await Promise.all([
     collectInlineHashes(html, inlineScriptPattern),
     collectInlineHashes(html, inlineStylePattern),
@@ -169,7 +179,7 @@ async function processStaticRoute({
         ...(includeCloudflareAnalyticsStyleHashes ? cloudflareAnalyticsStyleHashes : []),
       ],
     }),
-    stylesheetPreloadLinks,
+    preloadLinks,
     sentryCspReportingConfig
   );
 }

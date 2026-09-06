@@ -14,6 +14,7 @@
  * 3. SEO & Performance: It handles bot detection (isbot) to ensure crawlers see the
  *    full content immediately.
  */
+
 import { getIsolationScope, logger } from '@sentry/cloudflare/nodejs_compat';
 import {
   captureException,
@@ -25,6 +26,7 @@ import { renderToReadableStream } from 'react-dom/server';
 import type { EntryContext, HandleErrorFunction } from 'react-router';
 import { ServerRouter } from 'react-router';
 
+import { openSansFontPreloadHrefs } from './font-preloads.ts';
 import { appSessionIdTagName } from './monitoring/app-session.ts';
 import { isDevelopmentSentryMode } from './monitoring/sentry.ts';
 import { csp } from './utils/csp.ts';
@@ -47,6 +49,15 @@ function appendStylesheetPreloadLinks(responseHeaders: Headers, routerContext: E
 
   for (const href of stylesheetHrefs) {
     responseHeaders.append('Link', `<${href}>; rel=preload; as=style`);
+  }
+}
+
+function appendFontPreloadLinks(responseHeaders: Headers): void {
+  for (const href of openSansFontPreloadHrefs) {
+    responseHeaders.append(
+      'Link',
+      `<${href}>; rel=preload; as=font; type="font/woff2"; crossorigin="anonymous"`
+    );
   }
 }
 
@@ -126,6 +137,7 @@ export default wrapSentryHandleRequest(async function handleRequest(
 
   responseHeaders.set('Content-Type', 'text/html');
   appendStylesheetPreloadLinks(responseHeaders, routerContext);
+  appendFontPreloadLinks(responseHeaders);
 
   return new Response(injectTraceMetaTags(body), {
     headers: responseHeaders,
