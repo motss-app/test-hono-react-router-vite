@@ -1,6 +1,4 @@
-import { errorScenarios } from '@motss-app/frontend/utils/error-scenarios';
-
-import { discoverPrerenderRoutes } from '../../../vite-utils/route-discovery.ts';
+import { discoverPrerenderRoutes, discoverSsrRoutes } from '../../../vite-utils/route-discovery.ts';
 import { withLogGroup, writeLine } from '../lib/deploy.ts';
 
 const TRAILING_SLASHES_RE = /\/+$/;
@@ -12,9 +10,7 @@ await withLogGroup(`🚀 Warming up Canary: ${canaryUrl}`, async () => {
     canaryUrl,
     [
       ...discoverPrerenderRoutes(),
-      '/ssr',
-      '/hono-rpc',
-      ...errorScenarios.map(({ code }) => `/errors/${code}`),
+      ...discoverSsrRoutes(),
     ].filter((path, index, paths) => paths.indexOf(path) === index)
   );
 });
