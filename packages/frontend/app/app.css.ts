@@ -227,8 +227,24 @@ globalStyle('.locale-switcher-icon', {
   display: 'block',
 });
 
-// Locale Switcher Suspense Fallback (replaces inline style on Suspense fallback span)
-globalStyle('.locale-switcher-fallback', {
-  fontSize: '0.875rem',
-  opacity: 0.6,
+globalStyle('.locale-switcher-skeleton', {
+  cursor: 'default',
+  pointerEvents: 'none',
+  userSelect: 'none',
+});
+
+globalStyle('.locale-switcher-skeleton-label', {
+  backgroundColor: 'rgba(148, 163, 184, 0.35)',
+  borderRadius: radiusTokens.radiusSm,
+  color: 'transparent',
+  display: 'inline-block',
+});
+
+globalStyle('.locale-switcher-skeleton-icon', {
+  backgroundColor: 'rgba(148, 163, 184, 0.35)',
+  borderRadius: radiusTokens.radiusSm,
+  display: 'block',
+  flexShrink: 0,
+  height: '16px',
+  width: '16px',
 });

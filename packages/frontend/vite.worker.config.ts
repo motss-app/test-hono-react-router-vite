@@ -21,6 +21,7 @@ function getSentrySourceMapsGlobPatterns() {
 
 export default defineConfig(({ mode }) => {
   const isDeploymentBuild = getEnv('DEPLOYMENT_BUILD') === 'true';
+  const isVrt = Deno.env.get('VRT') === 'true';
   loadConfigEnvironment(mode, repoRootPath);
   logBuildSentryEnvSnapshot('packages/frontend/vite.worker.config.ts', mode);
 
@@ -59,15 +60,18 @@ export default defineConfig(({ mode }) => {
       sourcemap: 'hidden',
       ssr: true,
     },
-    define: createImportMetaEnvDefine({
-      SENTRY_DSN: readEnv('SENTRY_DSN'),
-      SENTRY_RELEASE: isDeploymentBuild
-        ? readRequiredEnv('SENTRY_RELEASE', {
-            source: 'packages/frontend/vite.worker.config.ts',
-          })
-        : readEnv('SENTRY_RELEASE'),
-      VITE_LOAD_TEST: readEnv('VITE_LOAD_TEST'),
-    }),
+    define: {
+      'import.meta.env.VRT': JSON.stringify(isVrt),
+      ...createImportMetaEnvDefine({
+        SENTRY_DSN: readEnv('SENTRY_DSN'),
+        SENTRY_RELEASE: isDeploymentBuild
+          ? readRequiredEnv('SENTRY_RELEASE', {
+              source: 'packages/frontend/vite.worker.config.ts',
+            })
+          : readEnv('SENTRY_RELEASE'),
+        VITE_LOAD_TEST: readEnv('VITE_LOAD_TEST'),
+      }),
+    },
     plugins: sentryVitePluginOptions ? sentryVitePlugin(sentryVitePluginOptions) : [],
     publicDir: false,
     resolve: {

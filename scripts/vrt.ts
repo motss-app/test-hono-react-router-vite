@@ -83,6 +83,17 @@ async function screenshot(
   // Wait for web fonts so text rendering is deterministic.
   await playwrightPage.evaluate(() => document.fonts.ready);
 
+  /*
+   * lazyWithPreload registers every VRT eager preload on the page. Await the
+   * registry before capturing so all lazy components have settled.
+   */
+  await playwrightPage.evaluate(async () => {
+    const vrtWindow = window as Window & {
+      __vrtLazyPreloads__?: Promise<unknown>[];
+    };
+    await Promise.all(vrtWindow.__vrtLazyPreloads__ ?? []);
+  });
+
   if (page.path.endsWith('/labs/mandelbrot')) {
     await playwrightPage.locator('[data-vrt-ready="true"]').waitFor({
       state: 'attached',

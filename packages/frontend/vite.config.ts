@@ -65,6 +65,9 @@ export default defineConfig(async config => {
   const sentryPlugins = await sentryReactRouter(sentryBuildOptions, config);
 
   return {
+    define: {
+      'import.meta.env.VRT': JSON.stringify(isVrt),
+    },
     optimizeDeps: {
       include: optimizeDepsInclude,
     },

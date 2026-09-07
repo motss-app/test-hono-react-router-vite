@@ -14,6 +14,10 @@ type Factory<T> = () => Promise<{
   default: T;
 }>;
 
+type VrtGlobal = typeof globalThis & {
+  __vrtLazyPreloads__?: Promise<unknown>[];
+};
+
 type LazyWithPreloadProps<T extends ComponentType<any>> = React.ComponentProps<T> & {
   ref?: Ref<T>;
 };
@@ -98,6 +102,24 @@ export function lazyWithPreload<T extends ComponentType<any>>(
     }
     return factoryPromise;
   };
+
+  /*
+   * Vite replaces import.meta.env.VRT at build time. Production builds
+   * therefore erase this test-only registry, while VRT builds eagerly settle
+   * every preload.
+   */
+  if (import.meta.env.VRT) {
+    const vrtGlobal = globalThis as VrtGlobal;
+    const preloadPromise = preload();
+
+    if (vrtGlobal.__vrtLazyPreloads__) {
+      vrtGlobal.__vrtLazyPreloads__.push(preloadPromise);
+    } else {
+      vrtGlobal.__vrtLazyPreloads__ = [
+        preloadPromise,
+      ];
+    }
+  }
 
   return Object.assign(LazyWithPreload, {
     preload,

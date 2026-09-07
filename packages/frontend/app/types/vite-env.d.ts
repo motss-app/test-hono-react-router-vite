@@ -1,6 +1,7 @@
 interface ImportMetaEnv {
   PORT: string;
   SENTRY_RELEASE?: string;
+  VRT: boolean;
   VITE_LOAD_TEST?: string;
   VITE_POSTHOG_TOKEN?: string;
   VITE_POSTHOG_API_HOST?: string;
