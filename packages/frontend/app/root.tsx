@@ -1,9 +1,6 @@
 import '@fontsource-variable/open-sans/wght.css';
 
 import { CSPProvider } from '@base-ui/react/csp-provider';
-import openSansLatinWghtNormalWoff2 from '@fontsource-variable/open-sans/files/open-sans-latin-wght-normal.woff2';
-import openSansMathWghtNormalWoff2 from '@fontsource-variable/open-sans/files/open-sans-math-wght-normal.woff2';
-import openSansSymbolsWghtNormalWoff2 from '@fontsource-variable/open-sans/files/open-sans-symbols-wght-normal.woff2';
 import { captureException } from '@sentry/react-router/cloudflare';
 import type { JSX, PropsWithChildren } from 'react';
 import type { MiddlewareFunction } from 'react-router';
@@ -15,34 +12,20 @@ import { RootDocumentHead } from './components/root-document-head.tsx';
 import { RootDocumentScripts } from './components/root-document-scripts.tsx';
 import { ScrollToTopButtonShell } from './components/scroll-to-top-button-shell.tsx';
 import { ThemeSync } from './components/theme-sync.tsx';
+import { openSansFontPreloadHrefs } from './font-preloads.ts';
 import { IconArrowLeft, IconBug, IconExclamationTriangle } from './icons.ts';
 import { getLocale } from './paraglide/runtime.js';
 import { paraglideMiddleware } from './paraglide/server.js';
 import { csp } from './utils/csp.ts';
 
-export const links: Route.LinksFunction = () => [
-  {
-    as: 'font',
-    crossOrigin: 'anonymous',
-    href: openSansLatinWghtNormalWoff2,
-    rel: 'preload',
-    type: 'font/woff2',
-  },
-  {
-    as: 'font',
-    crossOrigin: 'anonymous',
-    href: openSansSymbolsWghtNormalWoff2,
-    rel: 'preload',
-    type: 'font/woff2',
-  },
-  {
-    as: 'font',
-    crossOrigin: 'anonymous',
-    href: openSansMathWghtNormalWoff2,
-    rel: 'preload',
-    type: 'font/woff2',
-  },
-];
+export const links: Route.LinksFunction = () =>
+  openSansFontPreloadHrefs.map(href => ({
+    as: 'font' as const,
+    crossOrigin: 'anonymous' as const,
+    href,
+    rel: 'preload' as const,
+    type: 'font/woff2' as const,
+  }));
 
 export function loader({ request }: Route.LoaderArgs) {
   return {
