@@ -147,11 +147,8 @@ function recordWorkerRequestError(
 const [BASE_LOCALE] = locales;
 
 app.get('/', c => {
-  const response = c.redirect(`/${BASE_LOCALE}`, 302);
-  response.headers.set(
-    'Cache-Control',
-    'public, max-age=900, s-maxage=3600, stale-while-revalidate=300, stale-if-error=86400'
-  );
+  const response = c.redirect(`/${BASE_LOCALE}`, 307);
+  response.headers.set('Cache-Control', 'no-store');
   return response;
 });
 
