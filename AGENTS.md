@@ -94,6 +94,7 @@ unaffected by this rule.
 
 - **Package management**: Use `deno install` for dependencies. Do not use `npm install`. Always pin dependency versions. Never install without a version specifier (e.g. `deno install npm:package@1.2.3`, not `deno install npm:package`).
 - **Dependency versions**: When adding a new npm dependency, always check the npm registry for the latest available version before pinning. Do not guess or hardcode a version without verifying it is the latest stable release. Run `npm view <package> version` to find the current latest version.
+- **Commit descriptions**: Non-trivial fix commits must include a body explaining the problem, evidence, rationale, scope, and verification. A title alone is insufficient. For example, `fix(vrt): reduce browser concurrency` must explain the timeout, why concurrency was suspected, why the new value was chosen, and how it was verified.
 - **Task execution**: Prefer `deno task [script-name]` for project scripts. Do not use `npm run` or `pnpm run` for repo tasks.
 - **One-off CLIs**: If a one-off external CLI is needed, use `pnpm dlx` instead of `npx`.
 - **CLI tools**: Prefer Rust-based CLI tools when available (e.g. `rg` over `grep`, `bat` over `cat`, `fd` over `find`, `sd` over `sed`).

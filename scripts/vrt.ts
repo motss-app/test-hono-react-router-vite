@@ -25,7 +25,7 @@ const BASE_URL = 'http://localhost:8787';
 const FRONTEND_DIR = new URL('../packages/frontend', import.meta.url).pathname;
 const GATEWAY_DIR = new URL('../packages/gateway', import.meta.url).pathname;
 const OUTPUT_DIR = new URL('../__screenshots__/', import.meta.url).pathname;
-const BROWSER_COUNT = 4;
+const BROWSER_COUNT = 2;
 
 /**
  * Viewport definitions based on real-world devices.
