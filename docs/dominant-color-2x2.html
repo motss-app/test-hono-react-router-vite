@@ -1,0 +1,669 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>How four pixels choose one color</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #f2f4ec;
+      --muted: #94a098;
+      --quiet: #607068;
+      --line: rgba(229, 239, 231, 0.14);
+      --surface: #111a16;
+      --surface-soft: #17221c;
+      --background: #0b100e;
+      --lime: #d9f56d;
+      --orange: #ff9e6d;
+      --cyan: #79d7cb;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html { min-width: 320px; background: var(--background); }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 50% -15%, rgba(217, 245, 109, 0.1), transparent 34rem),
+        var(--background);
+      font-family: var(--sans);
+    }
+
+    button { font: inherit; }
+
+    .page {
+      width: min(920px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 30px 0 42px;
+    }
+
+    .eyebrow {
+      color: var(--lime);
+      font: 11px var(--mono);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 520px;
+      margin: 13px 0 8px;
+      font-size: clamp(30px, 4.5vw, 50px);
+      font-weight: 560;
+      letter-spacing: -0.065em;
+      line-height: 0.98;
+    }
+
+    .lede {
+      max-width: 530px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .grid-controls { display: flex; align-items: center; gap: 10px; margin-top: 18px; color: var(--muted); font: 11px var(--mono); }
+    .grid-label { color: var(--quiet); }
+    .grid-buttons { display: flex; gap: 5px; }
+    .grid-button { padding: 7px 9px; border: 1px solid var(--line); border-radius: 7px; color: var(--muted); background: transparent; cursor: pointer; font: 11px var(--mono); }
+    .grid-button:hover { border-color: var(--lime); color: var(--ink); }
+    .grid-button.active { border-color: var(--lime); color: #11170e; background: var(--lime); }
+    .randomize-button { margin-left: auto; padding: 8px 11px; border: 1px solid var(--line); border-radius: 7px; color: var(--ink); background: transparent; cursor: pointer; font: 11px var(--mono); }
+    .randomize-button:hover { border-color: var(--orange); color: var(--orange); }
+
+    .lesson {
+      margin-top: 24px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: rgba(17, 26, 22, 0.86);
+      box-shadow: 0 28px 80px rgba(0, 0, 0, 0.28);
+      overflow: hidden;
+    }
+
+    .lesson-top {
+      display: flex;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(23, 34, 28, 0.8);
+    }
+
+    .step-count {
+      min-width: 76px;
+      color: var(--muted);
+      font: 11px var(--mono);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .step-count strong { display: block; margin-top: 4px; color: var(--ink); font-size: 13px; letter-spacing: 0; text-transform: none; }
+
+    .progress {
+      display: flex;
+      flex: 1;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .progress-dot {
+      flex: 1;
+      height: 4px;
+      border: 0;
+      border-radius: 4px;
+      background: rgba(229, 239, 231, 0.14);
+      cursor: pointer;
+    }
+
+    .progress-dot.done { background: var(--lime); }
+    .progress-dot.current { background: var(--orange); }
+
+    .scene {
+      display: grid;
+      place-items: center;
+      min-height: 360px;
+      padding: 36px 28px 24px;
+    }
+
+    .scene-inner { width: min(640px, 100%); animation: scene-in 220ms ease-out; }
+
+    @keyframes scene-in {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .scene-label {
+      margin-bottom: 20px;
+      color: var(--quiet);
+      font: 10px var(--mono);
+      letter-spacing: 0.12em;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .pixel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); justify-content: center; gap: 8px; width: min(var(--grid-width, 280px), 100%); margin: 0 auto; }
+
+    .pixel {
+      aspect-ratio: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 13px;
+      border: 1px solid var(--pixel-outline);
+      border-radius: 14px;
+      color: var(--pixel-foreground);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+    }
+
+    .pixel-id { font: 700 13px var(--mono); }
+    .pixel-hex { font: 17px var(--mono); }
+    .pixel-rgb { opacity: 0.78; font: 11px var(--mono); }
+
+    .address-list,
+    .drawer-list,
+    .marker-list,
+    .match-list { display: grid; gap: 9px; max-width: 560px; margin: 0 auto; }
+
+    .address-row,
+    .drawer-row,
+    .marker-row,
+    .match-row {
+      display: grid;
+      grid-template-columns: 14px 1fr auto;
+      align-items: center;
+      gap: 11px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.025);
+    }
+
+    .color-dot { width: 12px; height: 12px; border-radius: 4px; background: var(--color); }
+    .row-main { min-width: 0; }
+    .row-title { color: var(--ink); font: 13px var(--mono); }
+    .row-note { margin-top: 4px; color: var(--muted); font: 11px var(--mono); }
+    .row-value { color: var(--orange); font: 12px var(--mono); text-align: right; }
+
+    .address-explain { max-width: 560px; margin: 14px auto 0; padding: 12px 14px; border: 1px solid rgba(217, 245, 109, 0.28); border-radius: 10px; color: var(--muted); background: rgba(217, 245, 109, 0.05); font: 11px/1.6 var(--mono); text-align: center; }
+    .address-explain strong { color: var(--lime); font-weight: 500; }
+
+    .accumulator {
+      max-width: 470px;
+      margin: 0 auto;
+      padding: 18px;
+      border: 1px solid rgba(217, 245, 109, 0.35);
+      border-radius: 14px;
+      background: rgba(217, 245, 109, 0.045);
+    }
+
+    .accumulator-title { color: var(--lime); font: 14px var(--mono); }
+    .accumulator-subtitle { margin-top: 5px; color: var(--muted); font: 11px var(--mono); }
+    .accumulator-flow { display: grid; gap: 7px; margin-top: 15px; }
+    .accumulator-line { display: flex; justify-content: space-between; gap: 12px; padding: 9px 10px; border-radius: 8px; background: rgba(255, 255, 255, 0.05); font: 11px var(--mono); }
+    .accumulator-line span { color: var(--muted); }
+    .accumulator-line strong { color: var(--ink); font-weight: 500; text-align: right; }
+    .accumulator-line.incoming { background: rgba(255, 158, 109, 0.1); }
+    .accumulator-line.incoming strong { color: var(--orange); }
+    .accumulator-total { margin-top: 8px; padding: 11px 10px; border-radius: 8px; background: rgba(217, 245, 109, 0.1); font: 11px/1.6 var(--mono); }
+    .accumulator-total span { color: var(--muted); }
+    .accumulator-total strong { color: var(--lime); font-weight: 500; }
+
+    .marker-row { grid-template-columns: 34px 1fr auto; }
+    .marker-swatch { width: 30px; height: 30px; border-radius: 8px; background: var(--color); }
+    .match-row { grid-template-columns: 42px 1fr auto; }
+    .match-pixel { color: var(--ink); font: 700 12px var(--mono); }
+    .match-arrow { color: var(--quiet); font: 15px var(--mono); }
+
+    .transform-list { display: grid; gap: 9px; max-width: 600px; margin: 0 auto; }
+    .transform-row { display: grid; grid-template-columns: 1fr 28px 1fr; align-items: center; gap: 10px; padding: 11px 13px; border: 1px solid var(--line); border-radius: 10px; background: rgba(255, 255, 255, 0.025); }
+    .transform-source, .transform-target { min-width: 0; }
+    .transform-kicker { color: var(--quiet); font: 10px var(--mono); text-transform: uppercase; }
+    .transform-name { margin-top: 4px; color: var(--ink); font: 12px var(--mono); }
+    .transform-value { margin-top: 4px; color: var(--muted); font: 10px var(--mono); }
+    .transform-arrow { color: var(--orange); font-size: 19px; text-align: center; }
+    .transform-target { display: grid; grid-template-columns: 28px 1fr; align-items: center; gap: 8px; }
+    .transform-target .marker-swatch { width: 26px; height: 26px; }
+
+    .match-key { display: flex; justify-content: center; gap: 8px; margin-bottom: 12px; }
+    .match-key-item { display: flex; align-items: center; gap: 5px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 7px; color: var(--muted); font: 10px var(--mono); }
+    .match-key-item .marker-swatch { width: 13px; height: 13px; border-radius: 4px; }
+
+    .distance-worked { max-width: 560px; margin: 0 auto; padding: 14px; border: 1px solid rgba(255, 158, 109, 0.35); border-radius: 10px; background: rgba(255, 158, 109, 0.06); }
+    .distance-title { color: var(--orange); font: 12px var(--mono); }
+    .distance-formula { margin-top: 7px; color: var(--muted); font: 10px/1.6 var(--mono); }
+    .distance-formula strong { color: var(--ink); font-weight: 500; }
+    .distance-results { display: grid; gap: 6px; margin-top: 11px; }
+    .distance-result { display: flex; justify-content: space-between; gap: 10px; padding: 7px 9px; border-radius: 6px; background: rgba(255, 255, 255, 0.05); color: var(--muted); font: 10px var(--mono); }
+    .distance-result strong { color: var(--ink); font-weight: 500; }
+
+    .repeat-list { display: grid; gap: 8px; max-width: 560px; margin: 0 auto; }
+    .repeat-intro { max-width: 560px; margin: 0 auto 11px; padding: 11px 13px; border: 1px solid rgba(118, 216, 204, 0.28); border-radius: 9px; color: var(--muted); background: rgba(118, 216, 204, 0.05); font: 11px/1.6 var(--mono); }
+    .repeat-intro strong { color: var(--cyan); font-weight: 500; }
+    .repeat-row { display: grid; grid-template-columns: 70px 1fr 24px 1fr 42px; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 9px; background: rgba(255, 255, 255, 0.025); }
+    .repeat-label { color: var(--ink); font: 11px var(--mono); }
+    .repeat-value { color: var(--muted); font: 10px var(--mono); }
+    .repeat-arrow { color: var(--orange); text-align: center; }
+    .repeat-state { color: var(--lime); font: 10px var(--mono); text-align: right; }
+
+    .group-list { display: grid; gap: 13px; max-width: 520px; margin: 0 auto; }
+    .group-row { display: grid; grid-template-columns: 75px 1fr 50px; align-items: center; gap: 10px; }
+    .group-label, .group-count { color: var(--muted); font: 11px var(--mono); }
+    .group-count { color: var(--ink); text-align: right; }
+    .group-track { height: 16px; border-radius: 5px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+    .group-bar { height: 100%; width: var(--width); border-radius: inherit; background: var(--color); }
+    .winner-hint { margin-top: 18px; color: var(--lime); font: 12px var(--mono); text-align: center; }
+
+    .loop {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      align-items: center;
+      max-width: 600px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .loop-step { padding: 25px 12px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255, 255, 255, 0.03); }
+    .loop-step strong { display: block; margin-bottom: 8px; color: var(--lime); font-size: 16px; font-weight: 520; }
+    .loop-step span { color: var(--muted); font: 11px var(--mono); }
+    .loop-arrow { color: var(--orange); font-size: 22px; }
+    .stable-note { max-width: 470px; margin: 17px auto 0; color: var(--muted); font: 11px var(--mono); text-align: center; }
+
+    .winner {
+      display: grid;
+      justify-items: center;
+      gap: 14px;
+      text-align: center;
+    }
+
+    .winner-swatch { width: min(260px, 70vw); aspect-ratio: 1.65; border-radius: 18px; background: var(--color); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.24), 0 20px 50px rgba(0, 0, 0, 0.2); }
+    .winner-hex { font: 27px var(--mono); letter-spacing: -0.04em; }
+    .winner-note { color: var(--muted); font: 12px var(--mono); }
+
+    .final-math { max-width: 520px; margin: 0 auto 18px; padding: 12px 14px; border: 1px solid rgba(217, 245, 109, 0.28); border-radius: 9px; color: var(--muted); background: rgba(217, 245, 109, 0.05); font: 11px/1.7 var(--mono); text-align: center; }
+    .final-math strong { color: var(--lime); font-weight: 500; }
+
+    .lesson-copy {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 0 28px 28px;
+      text-align: center;
+    }
+
+    .lesson-copy h2 { margin: 0; font-size: clamp(24px, 4vw, 34px); font-weight: 520; letter-spacing: -0.05em; }
+    .lesson-copy p { max-width: 590px; margin: 11px auto 0; color: var(--muted); font-size: 15px; line-height: 1.55; }
+    .lesson-copy code { color: var(--lime); font: 12px var(--mono); }
+
+    .lesson-controls {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(23, 34, 28, 0.7);
+      backdrop-filter: blur(12px);
+    }
+
+    .lesson-controls .progress { max-width: 430px; }
+    .lesson-actions { display: flex; gap: 8px; }
+
+    .control { padding: 10px 15px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); background: transparent; cursor: pointer; font: 12px var(--mono); }
+    .control:hover:not(:disabled) { border-color: var(--lime); background: rgba(217, 245, 109, 0.08); }
+    .control:disabled { color: var(--quiet); cursor: not-allowed; }
+    .control.primary { border-color: var(--lime); color: #11170e; background: var(--lime); }
+    .control.primary:hover:not(:disabled) { border-color: #e8ff92; color: #11170e; background: #e8ff92; }
+
+    @media (max-width: 600px) {
+      .page { width: min(100% - 22px, 920px); padding-top: 22px; }
+      .grid-controls { flex-wrap: wrap; }
+      .randomize-button { margin-left: 0; }
+      .lesson-controls { justify-content: center; }
+      .lesson-controls .progress { order: 2; flex-basis: 100%; max-width: none; }
+      .lesson-actions { order: 1; }
+      .scene { min-height: 330px; padding-inline: 16px; }
+      .lesson-copy { padding-inline: 16px; }
+      .loop { grid-template-columns: 1fr; gap: 7px; }
+      .loop-arrow { transform: rotate(90deg); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="eyebrow">learn by example</div>
+    <h1 id="pageTitle">How four pixels<br>choose one color.</h1>
+    <p class="lede">One visual scene. One idea at a time. Step through a tiny image and see how the algorithm builds its answer.</p>
+    <div class="grid-controls" aria-label="Grid controls">
+      <span class="grid-label">Pixels</span>
+      <div class="grid-buttons" id="gridButtons"></div>
+      <button class="randomize-button" id="randomizeButton" type="button">Randomize colors</button>
+    </div>
+
+    <section class="lesson" aria-label="Beginner lesson about dominant color calculation">
+      <div class="lesson-top">
+        <div class="step-count">Lesson <strong id="stepLabel">1 / 9 · Start</strong></div>
+      </div>
+
+      <div class="lesson-controls">
+        <div class="progress" id="progress" aria-label="Lesson steps"></div>
+        <div class="lesson-actions">
+          <button class="control" id="backButton" type="button">Back</button>
+          <button class="control primary" id="nextButton" type="button">Next</button>
+          <button class="control" id="resetButton" type="button">Reset</button>
+        </div>
+      </div>
+
+      <div class="scene" id="scene" aria-live="polite"></div>
+
+      <div class="lesson-copy">
+        <h2 id="lessonTitle">A pixel is four numbers</h2>
+        <p id="lessonText"></p>
+      </div>
+
+    </section>
+  </main>
+
+  <script>
+    const starterPixels = [
+      { id: "P1", r: 232, g: 76, b: 58, a: 255 },
+      { id: "P2", r: 239, g: 79, b: 63, a: 255 },
+      { id: "P3", r: 44, g: 182, b: 164, a: 255 },
+      { id: "P4", r: 242, g: 193, b: 78, a: 255 }
+    ];
+
+    const starterFamilies = [
+      [
+        { r: 232, g: 76, b: 58 },
+        { r: 239, g: 79, b: 63 },
+        { r: 235, g: 74, b: 60 },
+        { r: 237, g: 78, b: 62 }
+      ],
+      [
+        { r: 44, g: 182, b: 164 },
+        { r: 47, g: 180, b: 165 }
+      ],
+      [
+        { r: 242, g: 193, b: 78 },
+        { r: 245, g: 194, b: 77 }
+      ]
+    ];
+
+    const steps = [
+      { label: "Start", title: "A pixel is four numbers", text: "Each square is one pixel. Its color is described by red, green, blue, and opacity. We have four pixels to summarize." },
+      { label: "Address", title: "Give each pixel a drawer", text: "Imagine many labeled drawers. Each pixel gets a drawer address based on its color. This is what the code calls a bin index." },
+      { label: "Collect", title: "Put pixels in their drawers", text: "An address only tells us where to look. We open that drawer, start at zero, and add each pixel's color into it." },
+      { label: "Count", title: "Find the busiest drawer", text: "The drawer with the most pixels represents the largest color group. Here, P1 and P2 share one drawer." },
+      { label: "Markers", title: "Make starting color markers", text: "Turn each drawer into one visible color marker. Now the algorithm has three colors to compare against." },
+      { label: "Match", title: "Match pixels to markers", text: "Compare each pixel with the three markers. Each pixel joins the marker that looks most like it." },
+      { label: "Repeat", title: "Repeat until stable", text: "Use each matched group to recalculate its marker. Compare old and new markers. Because they are identical here, the next four passes repeat the same answer." },
+      { label: "Winner", title: "Choose the biggest group", text: "Count how many pixels chose each marker. The marker with the longest bar wins." },
+      { label: "Done", title: "Return one color", text: "The algorithm returns the winning marker as a normal RGB color and a HEX color." }
+    ];
+
+    const binFor = (pixel) => ({ r: pixel.r >> 3, g: pixel.g >> 3, b: pixel.b >> 3 });
+    const binIndex = (bin) => bin.r * 1024 + bin.g * 32 + bin.b;
+
+    let pixelCount = 4;
+    let pixels = starterPixels.map((pixel) => ({ ...pixel }));
+
+    function makeStarterPixels(count) {
+      const total = count;
+      const familySizes = [Math.ceil(total / 2), Math.ceil((total - Math.ceil(total / 2)) / 2), 0];
+      familySizes[2] = total - familySizes[0] - familySizes[1];
+      return familySizes.flatMap((size, familyIndex) => starterFamilies[familyIndex].slice(0, size)).map((pixel, index) => ({ ...pixel, a: 255, id: `P${index + 1}` }));
+    }
+
+    function makeRandomPixels(count) {
+      const total = count;
+      const familySizes = [Math.ceil(total / 2), Math.ceil((total - Math.ceil(total / 2)) / 2), 0];
+      familySizes[2] = total - familySizes[0] - familySizes[1];
+      const families = [
+        { r: 210 + Math.floor(Math.random() * 40), g: 35 + Math.floor(Math.random() * 65), b: 30 + Math.floor(Math.random() * 70) },
+        { r: 20 + Math.floor(Math.random() * 75), g: 140 + Math.floor(Math.random() * 75), b: 135 + Math.floor(Math.random() * 90) },
+        { r: 200 + Math.floor(Math.random() * 55), g: 145 + Math.floor(Math.random() * 80), b: 35 + Math.floor(Math.random() * 90) }
+      ];
+      return familySizes.flatMap((size, familyIndex) => Array.from({ length: size }, () => ({ ...families[familyIndex], a: 255 }))).map((pixel, index) => ({ ...pixel, id: `P${index + 1}` }));
+    }
+
+    function buildBins(sourcePixels) {
+      return sourcePixels.reduce((map, pixel) => {
+        const bin = binFor(pixel);
+        const index = binIndex(bin);
+        const entry = map.get(index) || { ...bin, samples: 0, count: 0, sumR: 0, sumG: 0, sumB: 0, alphaSum: 0, pixels: [] };
+        entry.samples += 1;
+        entry.count += pixel.a;
+        entry.sumR += pixel.r * pixel.a;
+        entry.sumG += pixel.g * pixel.a;
+        entry.sumB += pixel.b * pixel.a;
+        entry.alphaSum += pixel.a;
+        entry.pixels.push(pixel.id);
+        map.set(index, entry);
+        return map;
+      }, new Map());
+    }
+
+    let bins = new Map();
+    let sortedBins = [];
+    let seeds = [];
+
+    function distance(left, right) {
+      return ((left[0] - right.r) ** 2) + ((left[1] - right.g) ** 2) + ((left[2] - right.b) ** 2);
+    }
+
+    function clusterPass(centroids) {
+      const assignments = pixels.map((pixel) => {
+        let best = 0;
+        let bestDistance = Number.POSITIVE_INFINITY;
+        centroids.forEach((centroid, index) => {
+          const nextDistance = distance(centroid, pixel);
+          if (nextDistance < bestDistance) {
+            best = index;
+            bestDistance = nextDistance;
+          }
+        });
+        return best;
+      });
+      const sums = centroids.map(() => ({ r: 0, g: 0, b: 0, weight: 0, count: 0, pixels: [] }));
+      assignments.forEach((cluster, index) => {
+        const pixel = pixels[index];
+        const sum = sums[cluster];
+        sum.r += pixel.r * pixel.a;
+        sum.g += pixel.g * pixel.a;
+        sum.b += pixel.b * pixel.a;
+        sum.weight += pixel.a;
+        sum.count += 1;
+        sum.pixels.push(pixel.id);
+      });
+      const nextCentroids = centroids.map((centroid, index) => {
+        const sum = sums[index];
+        return sum.weight > 0 ? [sum.r / sum.weight, sum.g / sum.weight, sum.b / sum.weight] : centroid;
+      });
+      return { assignments, centroids: nextCentroids, counts: sums.map((sum) => sum.count), groups: sums };
+    }
+
+    let iterations = [];
+    let finalPass = { assignments: [], centroids: [], counts: [], groups: [] };
+    let dominantIndex = 0;
+    let dominantRgb = [];
+
+    function recalculate() {
+      bins = buildBins(pixels);
+      sortedBins = [...bins.values()].sort((left, right) => right.count - left.count);
+      seeds = sortedBins.map((bin) => [bin.sumR / bin.alphaSum, bin.sumG / bin.alphaSum, bin.sumB / bin.alphaSum]);
+      iterations = [];
+      let centroids = seeds.map((seed) => [...seed]);
+      for (let iteration = 0; iteration < 5; iteration += 1) {
+        const result = clusterPass(centroids);
+        iterations.push(result);
+        centroids = result.centroids;
+      }
+      finalPass = iterations[iterations.length - 1];
+      dominantIndex = finalPass.counts.reduce((best, count, index) => count > finalPass.counts[best] ? index : best, 0);
+      dominantRgb = finalPass.centroids[dominantIndex].map((channel) => Math.round(Math.max(0, Math.min(255, channel))));
+    }
+
+    recalculate();
+
+    function rgbHex(rgb) {
+      return `#${rgb.map((channel) => channel.toString(16).padStart(2, "0")).join("").toUpperCase()}`;
+    }
+
+    const scene = document.getElementById("scene");
+    const pageTitle = document.getElementById("pageTitle");
+    const gridButtons = document.getElementById("gridButtons");
+    const randomizeButton = document.getElementById("randomizeButton");
+    const progress = document.getElementById("progress");
+    const stepLabel = document.getElementById("stepLabel");
+    const lessonTitle = document.getElementById("lessonTitle");
+    const lessonText = document.getElementById("lessonText");
+    const backButton = document.getElementById("backButton");
+    const nextButton = document.getElementById("nextButton");
+    const resetButton = document.getElementById("resetButton");
+    let currentStep = 0;
+
+    function pixelForeground(pixel) {
+      const brightness = (pixel.r * 299 + pixel.g * 587 + pixel.b * 114) / 1000;
+      return brightness > 145 ? "#142018" : "#ffffff";
+    }
+
+    function pixelOutline(pixel) {
+      const brightness = (pixel.r * 299 + pixel.g * 587 + pixel.b * 114) / 1000;
+      return brightness > 145 ? "rgba(20, 32, 24, 0.28)" : "rgba(255, 255, 255, 0.28)";
+    }
+
+    function pixelTiles(showNumbers = true) {
+      return `<div class="pixel-grid" style="--grid-width: ${Math.min(560, Math.max(280, pixelCount * 70))}px">${pixels.map((pixel) => `<div class="pixel" style="--pixel-foreground: ${pixelForeground(pixel)}; --pixel-outline: ${pixelOutline(pixel)}; background: rgb(${pixel.r} ${pixel.g} ${pixel.b})"><span class="pixel-id">${pixel.id}</span><span class="pixel-hex">${rgbHex([pixel.r, pixel.g, pixel.b])}</span><span class="pixel-rgb">${showNumbers ? `${pixel.r}, ${pixel.g}, ${pixel.b} · opacity ${pixel.a}` : "one pixel"}</span></div>`).join("")}</div>`;
+    }
+
+    function addressRows() {
+      const firstBin = binFor(pixels[0]);
+      return `<div class="address-list">${pixels.map((pixel) => {
+        const bin = binFor(pixel);
+        return `<div class="address-row"><span class="color-dot" style="--color: rgb(${pixel.r} ${pixel.g} ${pixel.b})"></span><div class="row-main"><div class="row-title">${pixel.id} gets drawer (${bin.r}, ${bin.g}, ${bin.b})</div><div class="row-note">divide each color number by 8 and round down</div></div><span class="row-value">address ${binIndex(bin)}</span></div>`;
+      }).join("")}</div><div class="address-explain">three coordinates → one array address<br><strong>${firstBin.r} × 1024 + ${firstBin.g} × 32 + ${firstBin.b} = ${binIndex(firstBin)}</strong><br>red picks a block, green picks a row, blue picks a spot</div>`;
+    }
+
+    function accumulatorScene() {
+      const bin = sortedBins[0];
+      const members = bin.pixels.map((id) => pixels.find((pixel) => pixel.id === id));
+      const contributions = members.map((pixel) => `<div class="accumulator-line incoming"><span>${pixel.id} adds</span><strong>(${pixel.r}, ${pixel.g}, ${pixel.b}) × ${pixel.a}<br>= (${pixel.r * pixel.a}, ${pixel.g * pixel.a}, ${pixel.b * pixel.a})</strong></div>`).join("");
+      return `<div class="accumulator"><div class="accumulator-title">drawer ${binIndex(bin)}</div><div class="accumulator-subtitle">the code calls this slot bins[${binIndex(bin)}]</div><div class="accumulator-flow"><div class="accumulator-line"><span>starts empty</span><strong>RGB (0, 0, 0)</strong></div>${contributions}</div><div class="accumulator-total"><span>drawer now holds </span><strong>RGB (${bin.sumR}, ${bin.sumG}, ${bin.sumB})</strong><br><span>${bin.samples} pixel${bin.samples === 1 ? "" : "s"} · alpha weight ${bin.count}</span></div></div>`;
+    }
+
+    function drawerRows() {
+      return `<div class="drawer-list">${sortedBins.map((bin) => `<div class="drawer-row"><span class="color-dot" style="--color: rgb(${bin.sumR / bin.alphaSum} ${bin.sumG / bin.alphaSum} ${bin.sumB / bin.alphaSum})"></span><div class="row-main"><div class="row-title">drawer ${binIndex(bin)}</div><div class="row-note">${bin.pixels.join(" + ")} are here</div></div><span class="row-value">${bin.samples} pixel${bin.samples === 1 ? "" : "s"}</span></div>`).join("")}</div>`;
+    }
+
+    function markerRows() {
+      return `<div class="transform-list">${sortedBins.map((bin, index) => `<div class="transform-row"><div class="transform-source"><div class="transform-kicker">drawer ${binIndex(bin)}</div><div class="transform-name">${bin.pixels.join(" + ")} are here</div><div class="transform-value">weighted RGB sum<br>(${bin.sumR}, ${bin.sumG}, ${bin.sumB})</div></div><div class="transform-arrow">→</div><div class="transform-target"><span class="marker-swatch" style="--color: rgb(${seeds[index].join(" ")})"></span><div><div class="transform-name">marker ${index + 1}</div><div class="transform-value">(${bin.sumR}, ${bin.sumG}, ${bin.sumB}) ÷ ${bin.count}<br>= (${seeds[index].map((value) => value.toFixed(1)).join(", ")})</div></div></div></div>`).join("")}</div>`;
+    }
+
+    function matchRows() {
+      return `<div class="match-key">${seeds.map((centroid, index) => `<div class="match-key-item"><span class="marker-swatch" style="--color: rgb(${centroid.join(" ")})"></span>marker ${index + 1}</div>`).join("")}</div><div class="match-list">${pixels.map((pixel, index) => `<div class="match-row"><span class="match-pixel">${pixel.id}</span><span class="match-arrow">looks closest to</span><span class="row-value">marker ${finalPass.assignments[index] + 1}</span></div>`).join("")}</div>`;
+    }
+
+    function distanceWork() {
+      const pixel = pixels[0];
+      const values = seeds.map((centroid) => distance(centroid, pixel));
+      const marker = seeds[0];
+      const differences = marker.map((value, index) => value - [pixel.r, pixel.g, pixel.b][index]);
+      const squared = differences.map((value) => value ** 2);
+      return `<div class="distance-worked"><div class="distance-title">Worked example: why ${pixel.id} chooses marker 1</div><div class="distance-formula">d = (marker R − pixel R)² + (marker G − pixel G)² + (marker B − pixel B)²<br><strong>d(${pixel.id}, marker 1)</strong><br>= (${marker[0].toFixed(1)} − ${pixel.r})² + (${marker[1].toFixed(1)} − ${pixel.g})² + (${marker[2].toFixed(1)} − ${pixel.b})²<br>= ${differences.map((value) => value.toFixed(1)).join("² + ")}²<br>= ${squared.map((value) => value.toFixed(2)).join(" + ")}<br>= <strong>${values[0].toFixed(2)}</strong></div><div class="distance-results">${values.map((value, index) => `<div class="distance-result"><span>distance to marker ${index + 1}</span><strong>${value.toFixed(2)}${index === 0 ? " · smallest" : ""}</strong></div>`).join("")}</div></div><div class="match-list" style="margin-top: 10px">${pixels.map((pixel, index) => `<div class="match-row"><span class="match-pixel">${pixel.id}</span><span class="match-arrow">smallest distance →</span><span class="row-value">marker ${finalPass.assignments[index] + 1}</span></div>`).join("")}</div>`;
+    }
+
+    function repeatRows() {
+      return `<div class="repeat-intro"><strong>Iteration 1</strong><br>1. Keep the matches: P1 + P2 → marker 1, P3 → marker 2, P4 → marker 3.<br>2. Recalculate each marker from only the pixels that chose it.<br>3. Compare the new marker with the old marker.</div><div class="repeat-list">${finalPass.centroids.map((centroid, index) => `<div class="repeat-row"><span class="repeat-label">marker ${index + 1}<br>${sortedBins[index].pixels.join(" + ")}</span><span class="repeat-value">RGB sum<br>(${sortedBins[index].sumR}, ${sortedBins[index].sumG}, ${sortedBins[index].sumB})</span><span class="repeat-arrow">÷</span><span class="repeat-value">alpha weight ${sortedBins[index].count}<br>= (${centroid.map((value) => value.toFixed(1)).join(", ")})</span><span class="repeat-state">same</span></div>`).join("")}</div><div class="stable-note">new markers = old markers, so iterations 2, 3, 4, and 5 repeat the same assignments</div>`;
+    }
+
+    function groupRows() {
+      const maxCount = Math.max(...finalPass.counts);
+      return `<div class="group-list">${finalPass.counts.map((count, index) => `<div class="group-row"><span class="group-label">marker ${index + 1}</span><div class="group-track"><div class="group-bar" style="--width: ${(count / maxCount) * 100}%; --color: ${index === dominantIndex ? "var(--lime)" : "var(--cyan)"}"></div></div><span class="group-count">${count} pixel${count === 1 ? "" : "s"}</span></div>`).join("")}</div><div class="winner-hint">the longest bar wins</div>`;
+    }
+
+    function finalScene() {
+      const raw = finalPass.centroids[dominantIndex];
+      return `<div class="scene-inner"><div class="scene-label">the answer</div><div class="final-math"><span>winning marker average</span><br>${raw.map((value) => value.toFixed(1)).join(", ")}<br><span>round each channel</span><br><strong>${raw.map((value) => Math.round(value)).join(", ")} → ${rgbHex(dominantRgb)}</strong></div><div class="winner"><div class="winner-swatch" style="--color: ${rgbHex(dominantRgb)}"></div><div class="winner-hex">${rgbHex(dominantRgb)}</div><div class="winner-note">winning cluster: ${finalPass.counts[dominantIndex]} of ${pixels.length} pixels</div></div></div>`;
+    }
+
+    function describeStep() {
+      const focus = sortedBins[0];
+      if (currentStep === 0) return `Each square is one pixel. Its color is described by red, green, blue, and opacity. This lesson is using ${pixels.length} pixels.`;
+      if (currentStep === 1) return "Imagine many labeled drawers. Each pixel gets a drawer address based on its color. This is what the code calls a bin index.";
+      if (currentStep === 2) return `An address only tells us where to look. We open the busiest drawer, start at zero, and add its ${focus.samples} matching pixel${focus.samples === 1 ? "" : "s"}.`;
+      if (currentStep === 3) return `The busiest drawer contains ${focus.samples} of the ${pixels.length} pixels in this example. That makes it the largest color group so far.`;
+      if (currentStep === 4) return `Turn each of the ${sortedBins.length} non-empty drawers into one visible color marker. Now the algorithm has colors to compare against.`;
+      if (currentStep === 5) return `Compare each pixel with all ${seeds.length} markers. Each pixel joins the marker with the smallest squared RGB distance.`;
+      if (currentStep === 6) return "Use each matched group to recalculate its marker. Compare old and new markers. If they move, match again. The loop always runs five passes here.";
+      if (currentStep === 7) return `Count how many pixels chose each marker. Marker ${dominantIndex + 1} owns ${finalPass.counts[dominantIndex]} of ${pixels.length} pixels, so it wins.`;
+      return "The algorithm rounds the winning marker to whole RGB bytes and returns the color.";
+    }
+
+    function sceneMarkup() {
+      if (currentStep === 0) return `<div class="scene-inner"><div class="scene-label">the starting picture</div>${pixelTiles()}</div>`;
+      if (currentStep === 1) return `<div class="scene-inner"><div class="scene-label">every pixel gets one address</div>${addressRows()}</div>`;
+      if (currentStep === 2) return `<div class="scene-inner"><div class="scene-label">one address, two pixel contributions</div>${accumulatorScene()}</div>`;
+      if (currentStep === 3) return `<div class="scene-inner"><div class="scene-label">count the pixels in each drawer</div>${drawerRows()}</div>`;
+      if (currentStep === 4) return `<div class="scene-inner"><div class="scene-label">each drawer becomes one color marker</div>${markerRows()}</div>`;
+      if (currentStep === 5) return `<div class="scene-inner"><div class="scene-label">compare one pixel, then show all matches</div>${distanceWork()}</div>`;
+      if (currentStep === 6) return `<div class="scene-inner"><div class="scene-label">compare the markers before and after</div>${repeatRows()}</div>`;
+      if (currentStep === 7) return `<div class="scene-inner"><div class="scene-label">count the pixels in each group</div>${groupRows()}</div>`;
+      return finalScene();
+    }
+
+    function renderGridControls() {
+      gridButtons.innerHTML = [4, 6, 8].map((count) => `<button class="grid-button${count === pixelCount ? " active" : ""}" type="button" data-count="${count}" aria-pressed="${count === pixelCount}">${count}</button>`).join("");
+      gridButtons.querySelectorAll("button").forEach((button) => button.addEventListener("click", () => {
+        pixelCount = Number(button.dataset.count);
+        pixels = makeStarterPixels(pixelCount);
+        recalculate();
+        setStep(0);
+      }));
+    }
+
+    function renderProgress() {
+      progress.innerHTML = steps.map((step, index) => `<button class="progress-dot${index < currentStep ? " done" : ""}${index === currentStep ? " current" : ""}" type="button" aria-label="Go to ${step.title}" title="${step.title}" data-step="${index}"></button>`).join("");
+      progress.querySelectorAll("button").forEach((button) => button.addEventListener("click", () => setStep(Number(button.dataset.step))));
+    }
+
+    function render() {
+      const step = steps[currentStep];
+      stepLabel.textContent = `${currentStep + 1} / ${steps.length} · ${step.label}`;
+      lessonTitle.textContent = step.title;
+      lessonText.textContent = describeStep();
+      pageTitle.innerHTML = `How ${pixels.length} pixels<br>choose one color.`;
+      scene.innerHTML = sceneMarkup();
+      renderGridControls();
+      backButton.disabled = currentStep === 0;
+      nextButton.disabled = currentStep === steps.length - 1;
+      nextButton.textContent = currentStep === steps.length - 1 ? "Done" : "Next";
+      renderProgress();
+    }
+
+    function setStep(step) {
+      currentStep = Math.max(0, Math.min(steps.length - 1, step));
+      render();
+    }
+
+    backButton.addEventListener("click", () => setStep(currentStep - 1));
+    nextButton.addEventListener("click", () => setStep(currentStep + 1));
+    resetButton.addEventListener("click", () => setStep(0));
+    randomizeButton.addEventListener("click", () => {
+      pixels = makeRandomPixels(pixelCount);
+      recalculate();
+      setStep(0);
+    });
+    render();
+  </script>
+</body>
+</html>
