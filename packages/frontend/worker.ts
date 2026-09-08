@@ -148,9 +148,10 @@ const [BASE_LOCALE] = locales;
 
 app.get('/', c => {
   const response = c.redirect(`/${BASE_LOCALE}`, 307);
+  response.headers.delete('Set-Cookie');
   response.headers.set(
     'Cache-Control',
-    'public, max-age=0, s-maxage=30, stale-while-revalidate=30, stale-if-error=30'
+    'public, max-age=0, s-maxage=60, stale-while-revalidate=60, stale-if-error=60'
   );
   return response;
 });
