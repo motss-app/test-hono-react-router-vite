@@ -75,6 +75,18 @@ struct Bin {
   a: u64,
 }
 
+/*
+ * Union-find root lookup for the post K-Means merge.
+ * Path compression keeps the tiny cluster set flat.
+ */
+fn find_root(parent: &mut [usize], mut x: usize) -> usize {
+  while parent[x] != x {
+    parent[x] = parent[parent[x]];
+    x = parent[x];
+  }
+  x
+}
+
 pub fn dominant_color(rgba: &[u8], width: u32, height: u32) -> Result<DominantColor, &'static str> {
   let expected = width as usize * height as usize * 4;
   if expected == 0 || rgba.len() != expected {
@@ -179,18 +191,52 @@ pub fn dominant_color(rgba: &[u8], width: u32, height: u32) -> Result<DominantCo
   }
 
   /*
-   * Final pass: pick the cluster with the most pixels
-   * as the dominant color.
+   * Final pass: merge nearby centroids into color families,
+   * then pick the family with the most pixels.
+   * K-Means splits gradients across seeds, so a divided
+   * majority can lose to one tight minority cluster.
+   * Union clusters within RGB distance 60 and vote by
+   * family totals instead of single cluster counts.
    */
-  let dominant_idx = pixel_count_by_cluster
+  const MERGE_DIST2: f64 = 60.0 * 60.0;
+  let n = centroids.len();
+  let mut parent: Vec<usize> = (0..n).collect();
+  for i in 0..n {
+    for j in (i + 1)..n {
+      let d2 = (centroids[i][0] - centroids[j][0]).powi(2)
+        + (centroids[i][1] - centroids[j][1]).powi(2)
+        + (centroids[i][2] - centroids[j][2]).powi(2);
+      if d2 <= MERGE_DIST2 {
+        let ri = find_root(&mut parent, i);
+        let rj = find_root(&mut parent, j);
+        if ri != rj {
+          parent[rj] = ri;
+        }
+      }
+    }
+  }
+  let mut family_pixels = vec![0u64; n];
+  let mut family_r = vec![0.0; n];
+  let mut family_g = vec![0.0; n];
+  let mut family_b = vec![0.0; n];
+  for (i, centroid) in centroids.iter().enumerate() {
+    let root = find_root(&mut parent, i);
+    let w = pixel_count_by_cluster[i] as f64;
+    family_pixels[root] += pixel_count_by_cluster[i];
+    family_r[root] += centroid[0] * w;
+    family_g[root] += centroid[1] * w;
+    family_b[root] += centroid[2] * w;
+  }
+  let dominant_root = family_pixels
     .iter()
     .enumerate()
     .max_by_key(|(_, count)| *count)
     .map(|(i, _)| i)
     .ok_or("no visible pixels")?;
-  let r = centroids[dominant_idx][0].round().clamp(0.0, 255.0) as u8;
-  let g = centroids[dominant_idx][1].round().clamp(0.0, 255.0) as u8;
-  let b = centroids[dominant_idx][2].round().clamp(0.0, 255.0) as u8;
+  let total = family_pixels[dominant_root] as f64;
+  let r = (family_r[dominant_root] / total).round().clamp(0.0, 255.0) as u8;
+  let g = (family_g[dominant_root] / total).round().clamp(0.0, 255.0) as u8;
+  let b = (family_b[dominant_root] / total).round().clamp(0.0, 255.0) as u8;
   let total_alpha_weight: u64 = bins.iter().map(|bin| bin.a).sum();
   let total_samples: u64 = bins.iter().map(|bin| bin.samples).sum();
   let a = if total_samples > 0 {
@@ -212,7 +258,7 @@ pub fn dominant_color(rgba: &[u8], width: u32, height: u32) -> Result<DominantCo
     h: oklab.b.atan2(oklab.a).to_degrees().rem_euclid(360.0),
   };
   Ok(DominantColor {
-    pixel_count: pixel_count_by_cluster[dominant_idx],
+    pixel_count: family_pixels[dominant_root],
     coverage: (total_alpha_weight as f64 / (expected as f64 / 4.0 * 255.0)).min(1.0),
     rgba: Rgba { r, g, b, a },
     hex: format!("#{r:02X}{g:02X}{b:02X}"),
@@ -322,4 +368,34 @@ fn rgb_oklab(r: u8, g: u8, b: u8) -> Oklab {
 pub fn dominant_color_json(rgba: &[u8], width: u32, height: u32) -> String {
   serde_json::to_string(&dominant_color(rgba, width, height))
     .unwrap_or_else(|_| "{\"error\":\"serialization failed\"}".to_string())
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  fn push(px: &mut Vec<u8>, r: u8, g: u8, b: u8, n: usize) {
+    for _ in 0..n {
+      px.extend_from_slice(&[r, g, b, 255]);
+    }
+  }
+
+  /*
+   * Regression: a divided red majority (69%) split across
+   * gradient shades must beat one tight white minority (31%).
+   * Old single-cluster vote picked white.
+   */
+  #[test]
+  fn split_majority_beats_tight_minority() {
+    let mut px = Vec::with_capacity(10 * 10 * 4);
+    push(&mut px, 254, 254, 254, 31);
+    push(&mut px, 200, 20, 20, 23);
+    push(&mut px, 220, 30, 30, 23);
+    push(&mut px, 180, 10, 10, 23);
+    let out = dominant_color(&px, 10, 10).expect("dominant");
+    assert_eq!(out.pixel_count, 69);
+    assert!(out.rgba.r > 150, "red channel {}", out.rgba.r);
+    assert!(out.rgba.g < 80, "green channel {}", out.rgba.g);
+    assert!(out.rgba.b < 80, "blue channel {}", out.rgba.b);
+  }
 }
