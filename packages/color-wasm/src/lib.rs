@@ -80,6 +80,13 @@ pub fn dominant_color(rgba: &[u8], width: u32, height: u32) -> Result<DominantCo
     if expected == 0 || rgba.len() != expected {
         return Err("invalid RGBA buffer");
     }
+
+    /*
+     * Phase 1: bin pixels into a 32x32x32 color histogram.
+     * Each bin accumulates alpha-weighted channel sums.
+     * This is a fast single-pass O(n) quantization that
+     * gives us good initial centroids for K-Means.
+     */
     let mut bins = vec![Bin::default(); 32 * 32 * 32];
     for px in rgba.chunks_exact(4) {
         let alpha = px[3];
@@ -97,17 +104,100 @@ pub fn dominant_color(rgba: &[u8], width: u32, height: u32) -> Result<DominantCo
         bin.b += u64::from(px[2]) * u64::from(alpha);
         bin.a += u64::from(alpha);
     }
-    let best = bins
-        .into_iter()
-        .max_by_key(|bin| bin.count)
-        .ok_or("no visible pixels")?;
-    if best.count == 0 {
+
+    /*
+     * Extract top centroids from the binning phase.
+     * Sort by alpha-weighted count descending, take the top K.
+     * Empty bins (count == 0) are skipped.
+     */
+    const K: usize = 8;
+    const KMEANS_ITERS: usize = 5;
+    let mut centroid_entries: Vec<(f64, f64, f64, f64, u64)> = bins
+        .iter()
+        .filter(|bin| bin.count > 0)
+        .map(|bin| {
+            (
+                bin.r as f64 / bin.a as f64,
+                bin.g as f64 / bin.a as f64,
+                bin.b as f64 / bin.a as f64,
+                bin.a as f64 / bin.samples as f64,
+                bin.count,
+            )
+        })
+        .collect();
+    centroid_entries.sort_by(|a, b| b.4.cmp(&a.4));
+    centroid_entries.truncate(K);
+    let mut centroids: Vec<[f64; 3]> = centroid_entries.iter().map(|c| [c.0, c.1, c.2]).collect();
+    if centroids.is_empty() {
         return Err("no visible pixels");
     }
-    let r = (best.r / best.a) as u8;
-    let g = (best.g / best.a) as u8;
-    let b = (best.b / best.a) as u8;
-    let a = (best.a / best.samples).min(255) as u8;
+
+    /*
+     * Phase 2: refine centroids with K-Means.
+     * Each iteration assigns every visible pixel to the
+     * nearest centroid, then recomputes centroids as the
+     * alpha-weighted mean of their assigned pixels.
+     * 5 iterations converge quickly from good bin seeds.
+     */
+    let mut pixel_count_by_cluster = vec![0u64; centroids.len()];
+    for _ in 0..KMEANS_ITERS {
+        let mut sums: Vec<(f64, f64, f64, f64)> =
+            centroids.iter().map(|_| (0.0, 0.0, 0.0, 0.0)).collect();
+        pixel_count_by_cluster.iter_mut().for_each(|c| *c = 0);
+        for px in rgba.chunks_exact(4) {
+            let alpha = px[3];
+            if alpha < 16 {
+                continue;
+            }
+            let r = f64::from(px[0]);
+            let g = f64::from(px[1]);
+            let b = f64::from(px[2]);
+            let w = f64::from(alpha);
+            let best = centroids
+                .iter()
+                .enumerate()
+                .min_by(|(_, ca), (_, cb)| {
+                    let da = (ca[0] - r).powi(2) + (ca[1] - g).powi(2) + (ca[2] - b).powi(2);
+                    let db = (cb[0] - r).powi(2) + (cb[1] - g).powi(2) + (cb[2] - b).powi(2);
+                    da.partial_cmp(&db).unwrap_or(std::cmp::Ordering::Equal)
+                })
+                .map(|(i, _)| i)
+                .unwrap();
+            sums[best].0 += r * w;
+            sums[best].1 += g * w;
+            sums[best].2 += b * w;
+            sums[best].3 += w;
+            pixel_count_by_cluster[best] += 1;
+        }
+        for (i, centroid) in centroids.iter_mut().enumerate() {
+            if sums[i].3 > 0.0 {
+                centroid[0] = sums[i].0 / sums[i].3;
+                centroid[1] = sums[i].1 / sums[i].3;
+                centroid[2] = sums[i].2 / sums[i].3;
+            }
+        }
+    }
+
+    /*
+     * Final pass: pick the cluster with the most pixels
+     * as the dominant color.
+     */
+    let dominant_idx = pixel_count_by_cluster
+        .iter()
+        .enumerate()
+        .max_by_key(|(_, count)| *count)
+        .map(|(i, _)| i)
+        .ok_or("no visible pixels")?;
+    let r = centroids[dominant_idx][0].round().clamp(0.0, 255.0) as u8;
+    let g = centroids[dominant_idx][1].round().clamp(0.0, 255.0) as u8;
+    let b = centroids[dominant_idx][2].round().clamp(0.0, 255.0) as u8;
+    let total_alpha_weight: u64 = bins.iter().map(|bin| bin.a).sum();
+    let total_samples: u64 = bins.iter().map(|bin| bin.samples).sum();
+    let a = if total_samples > 0 {
+        (total_alpha_weight / total_samples).min(255) as u8
+    } else {
+        255
+    };
     let (hsl, hsv) = rgb_hsl_hsv(r, g, b);
     let lab = rgb_lab(r, g, b);
     let lch = Lch {
@@ -122,8 +212,8 @@ pub fn dominant_color(rgba: &[u8], width: u32, height: u32) -> Result<DominantCo
         h: oklab.b.atan2(oklab.a).to_degrees().rem_euclid(360.0),
     };
     Ok(DominantColor {
-        pixel_count: best.samples,
-        coverage: (best.count as f64 / (expected as f64 / 4.0 * 255.0)).min(1.0),
+        pixel_count: pixel_count_by_cluster[dominant_idx],
+        coverage: (total_alpha_weight as f64 / (expected as f64 / 4.0 * 255.0)).min(1.0),
         rgba: Rgba { r, g, b, a },
         hex: format!("#{r:02X}{g:02X}{b:02X}"),
         hsl,
