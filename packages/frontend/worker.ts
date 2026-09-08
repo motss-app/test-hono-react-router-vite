@@ -80,9 +80,14 @@ function handleWorkerAppRequest({
 }): Promise<Response> {
   setTag(appSessionIdTagName, appSessionId);
 
-  return PromiseFrom(app.fetch(request, env, executionContext)).then(response =>
-    attachAppSessionCookie(request, response, appSessionId, shouldSetAppSessionCookie)
-  );
+  return PromiseFrom(app.fetch(request, env, executionContext)).then(response => {
+    // Skip Set-Cookie on redirects to keep them cacheable at the edge.
+    if (response.status >= 300 && response.status < 400) {
+      return response;
+    }
+
+    return attachAppSessionCookie(request, response, appSessionId, shouldSetAppSessionCookie);
+  });
 }
 
 function recordWorkerResponse(
@@ -147,10 +152,10 @@ function recordWorkerRequestError(
 const [BASE_LOCALE] = locales;
 
 app.get('/', c => {
-  const response = c.redirect(`/${BASE_LOCALE}`, 302);
+  const response = c.redirect(`/${BASE_LOCALE}`, 307);
   response.headers.set(
     'Cache-Control',
-    'public, max-age=900, s-maxage=3600, stale-while-revalidate=300, stale-if-error=86400'
+    'public, max-age=0, s-maxage=60, stale-while-revalidate=60, stale-if-error=60'
   );
   return response;
 });
