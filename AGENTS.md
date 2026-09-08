@@ -8,7 +8,7 @@
 
 **Always work inside this directory (`/Users/rongsen/motss/test-hono-react-router-vite`).** Do not navigate outside it, and never request to access files or folders outside this directory. If a task requires something outside, stop and ask the user how to proceed.
 
-Before editing, verify the repository root is the main checkout and the current branch is `main`. If running in a worktree or another branch, stop and ask the user to reopen the task in the Local environment. Do not create or use worktrees.
+Before editing, verify the repository root is the main checkout and is not a worktree. Work on `main` by default. If the current branch is not `main`, confirm with the user that they want to work on that specific non-main branch before editing. Do not switch branches or create or use worktrees. If running in a worktree, stop and ask the user to reopen the task in the Local environment.
 
 ## Skill Selection
 
