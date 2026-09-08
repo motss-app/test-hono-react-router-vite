@@ -69,7 +69,7 @@
 
     .grid-controls { display: flex; align-items: center; gap: 10px; margin-top: 18px; color: var(--muted); font: 11px var(--mono); }
     .grid-label { color: var(--quiet); }
-    .grid-buttons { display: flex; gap: 5px; }
+    .grid-buttons { display: flex; flex-wrap: wrap; gap: 5px; }
     .grid-button { padding: 7px 9px; border: 1px solid var(--line); border-radius: 7px; color: var(--muted); background: transparent; cursor: pointer; font: 11px var(--mono); }
     .grid-button:hover { border-color: var(--lime); color: var(--ink); }
     .grid-button.active { border-color: var(--lime); color: #11170e; background: var(--lime); }
@@ -145,7 +145,7 @@
       text-transform: uppercase;
     }
 
-    .pixel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); justify-content: center; gap: 8px; width: min(var(--grid-width, 280px), 100%); margin: 0 auto; }
+    .pixel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(var(--pixel-min, 104px), 1fr)); justify-content: center; gap: 8px; width: min(var(--grid-width, 280px), 100%); margin: 0 auto; }
 
     .pixel {
       aspect-ratio: 1;
@@ -162,6 +162,11 @@
     .pixel-id { font: 700 13px var(--mono); }
     .pixel-hex { font: 17px var(--mono); }
     .pixel-rgb { opacity: 0.78; font: 11px var(--mono); }
+    .pixel-grid.dense { gap: 3px; }
+    .pixel-grid.dense .pixel { padding: 0; border-radius: 3px; box-shadow: none; }
+    .pixel-grid.dense .pixel-id,
+    .pixel-grid.dense .pixel-hex,
+    .pixel-grid.dense .pixel-rgb { display: none; }
 
     .address-list,
     .drawer-list,
@@ -382,23 +387,6 @@
       { id: "P4", r: 242, g: 193, b: 78, a: 255 }
     ];
 
-    const starterFamilies = [
-      [
-        { r: 232, g: 76, b: 58 },
-        { r: 239, g: 79, b: 63 },
-        { r: 235, g: 74, b: 60 },
-        { r: 237, g: 78, b: 62 }
-      ],
-      [
-        { r: 44, g: 182, b: 164 },
-        { r: 47, g: 180, b: 165 }
-      ],
-      [
-        { r: 242, g: 193, b: 78 },
-        { r: 245, g: 194, b: 77 }
-      ]
-    ];
-
     const steps = [
       { label: "Start", title: "A pixel is four numbers", text: "Each square is one pixel. Its color is described by red, green, blue, and opacity. We have four pixels to summarize." },
       { label: "Address", title: "Give each pixel a drawer", text: "Imagine many labeled drawers. Each pixel gets a drawer address based on its color. This is what the code calls a bin index." },
@@ -417,23 +405,41 @@
     let pixelCount = 4;
     let pixels = starterPixels.map((pixel) => ({ ...pixel }));
 
+    function hslToRgb(hue, saturation, lightness) {
+      const chroma = (1 - Math.abs(2 * lightness - 1)) * saturation;
+      const part = (hue / 60) % 2;
+      const secondary = chroma * (1 - Math.abs(part - 1));
+      const match = lightness - chroma / 2;
+      const rgb = hue < 60 ? [chroma, secondary, 0] : hue < 120 ? [secondary, chroma, 0] : hue < 180 ? [0, chroma, secondary] : hue < 240 ? [0, secondary, chroma] : hue < 300 ? [secondary, 0, chroma] : [chroma, 0, secondary];
+      return rgb.map((channel) => Math.round((channel + match) * 255));
+    }
+
+    function makeDistinctPixels(count, randomize) {
+      const hueOffset = randomize ? Math.random() * 360 : 22;
+      const used = new Set();
+      return Array.from({ length: count }, (_, index) => {
+        let attempt = 0;
+        let rgb = [];
+        let key = "";
+        do {
+          const hue = (hueOffset + index * 137.508 + attempt * 0.71) % 360;
+          const saturation = 0.65 + ((index * 0.17) % 0.22);
+          const lightness = 0.43 + ((index * 0.13) % 0.18);
+          rgb = hslToRgb(hue, saturation, lightness);
+          key = rgb.join(",");
+          attempt += 1;
+        } while (used.has(key));
+        used.add(key);
+        return { id: `P${index + 1}`, r: rgb[0], g: rgb[1], b: rgb[2], a: 255 };
+      });
+    }
+
     function makeStarterPixels(count) {
-      const total = count;
-      const familySizes = [Math.ceil(total / 2), Math.ceil((total - Math.ceil(total / 2)) / 2), 0];
-      familySizes[2] = total - familySizes[0] - familySizes[1];
-      return familySizes.flatMap((size, familyIndex) => starterFamilies[familyIndex].slice(0, size)).map((pixel, index) => ({ ...pixel, a: 255, id: `P${index + 1}` }));
+      return count === 4 ? starterPixels.map((pixel) => ({ ...pixel })) : makeDistinctPixels(count, false);
     }
 
     function makeRandomPixels(count) {
-      const total = count;
-      const familySizes = [Math.ceil(total / 2), Math.ceil((total - Math.ceil(total / 2)) / 2), 0];
-      familySizes[2] = total - familySizes[0] - familySizes[1];
-      const families = [
-        { r: 210 + Math.floor(Math.random() * 40), g: 35 + Math.floor(Math.random() * 65), b: 30 + Math.floor(Math.random() * 70) },
-        { r: 20 + Math.floor(Math.random() * 75), g: 140 + Math.floor(Math.random() * 75), b: 135 + Math.floor(Math.random() * 90) },
-        { r: 200 + Math.floor(Math.random() * 55), g: 145 + Math.floor(Math.random() * 80), b: 35 + Math.floor(Math.random() * 90) }
-      ];
-      return familySizes.flatMap((size, familyIndex) => Array.from({ length: size }, () => ({ ...families[familyIndex], a: 255 }))).map((pixel, index) => ({ ...pixel, id: `P${index + 1}` }));
+      return makeDistinctPixels(count, true);
     }
 
     function buildBins(sourcePixels) {
@@ -500,7 +506,7 @@
     function recalculate() {
       bins = buildBins(pixels);
       sortedBins = [...bins.values()].sort((left, right) => right.count - left.count);
-      seeds = sortedBins.map((bin) => [bin.sumR / bin.alphaSum, bin.sumG / bin.alphaSum, bin.sumB / bin.alphaSum]);
+      seeds = sortedBins.slice(0, 8).map((bin) => [bin.sumR / bin.alphaSum, bin.sumG / bin.alphaSum, bin.sumB / bin.alphaSum]);
       iterations = [];
       let centroids = seeds.map((seed) => [...seed]);
       for (let iteration = 0; iteration < 5; iteration += 1) {
@@ -543,7 +549,9 @@
     }
 
     function pixelTiles(showNumbers = true) {
-      return `<div class="pixel-grid" style="--grid-width: ${Math.min(560, Math.max(280, pixelCount * 70))}px">${pixels.map((pixel) => `<div class="pixel" style="--pixel-foreground: ${pixelForeground(pixel)}; --pixel-outline: ${pixelOutline(pixel)}; background: rgb(${pixel.r} ${pixel.g} ${pixel.b})"><span class="pixel-id">${pixel.id}</span><span class="pixel-hex">${rgbHex([pixel.r, pixel.g, pixel.b])}</span><span class="pixel-rgb">${showNumbers ? `${pixel.r}, ${pixel.g}, ${pixel.b} · opacity ${pixel.a}` : "one pixel"}</span></div>`).join("")}</div>`;
+      const minCell = pixelCount > 128 ? 20 : pixelCount > 64 ? 28 : pixelCount > 32 ? 48 : 104;
+      const density = pixelCount > 32 ? " dense" : "";
+      return `<div class="pixel-grid${density}" style="--pixel-min: ${minCell}px; --grid-width: ${Math.min(640, Math.max(280, pixelCount * 70))}px">${pixels.map((pixel) => `<div class="pixel" title="${pixel.id}: ${rgbHex([pixel.r, pixel.g, pixel.b])}" style="--pixel-foreground: ${pixelForeground(pixel)}; --pixel-outline: ${pixelOutline(pixel)}; background: rgb(${pixel.r} ${pixel.g} ${pixel.b})"><span class="pixel-id">${pixel.id}</span><span class="pixel-hex">${rgbHex([pixel.r, pixel.g, pixel.b])}</span><span class="pixel-rgb">${showNumbers ? `${pixel.r}, ${pixel.g}, ${pixel.b} · opacity ${pixel.a}` : "one pixel"}</span></div>`).join("")}</div>`;
     }
 
     function addressRows() {
@@ -562,11 +570,14 @@
     }
 
     function drawerRows() {
-      return `<div class="drawer-list">${sortedBins.map((bin) => `<div class="drawer-row"><span class="color-dot" style="--color: rgb(${bin.sumR / bin.alphaSum} ${bin.sumG / bin.alphaSum} ${bin.sumB / bin.alphaSum})"></span><div class="row-main"><div class="row-title">drawer ${binIndex(bin)}</div><div class="row-note">${bin.pixels.join(" + ")} are here</div></div><span class="row-value">${bin.samples} pixel${bin.samples === 1 ? "" : "s"}</span></div>`).join("")}</div>`;
+      const visibleBins = sortedBins.slice(0, 8);
+      const more = sortedBins.length > visibleBins.length ? `<div class="stable-note">showing the 8 bins that can become K-Means markers</div>` : "";
+      return `<div class="drawer-list">${visibleBins.map((bin) => `<div class="drawer-row"><span class="color-dot" style="--color: rgb(${bin.sumR / bin.alphaSum} ${bin.sumG / bin.alphaSum} ${bin.sumB / bin.alphaSum})"></span><div class="row-main"><div class="row-title">drawer ${binIndex(bin)}</div><div class="row-note">${bin.pixels.join(" + ")} are here</div></div><span class="row-value">${bin.samples} pixel${bin.samples === 1 ? "" : "s"}</span></div>`).join("")}</div>${more}`;
     }
 
     function markerRows() {
-      return `<div class="transform-list">${sortedBins.map((bin, index) => `<div class="transform-row"><div class="transform-source"><div class="transform-kicker">drawer ${binIndex(bin)}</div><div class="transform-name">${bin.pixels.join(" + ")} are here</div><div class="transform-value">weighted RGB sum<br>(${bin.sumR}, ${bin.sumG}, ${bin.sumB})</div></div><div class="transform-arrow">→</div><div class="transform-target"><span class="marker-swatch" style="--color: rgb(${seeds[index].join(" ")})"></span><div><div class="transform-name">marker ${index + 1}</div><div class="transform-value">(${bin.sumR}, ${bin.sumG}, ${bin.sumB}) ÷ ${bin.count}<br>= (${seeds[index].map((value) => value.toFixed(1)).join(", ")})</div></div></div></div>`).join("")}</div>`;
+      const seedBins = sortedBins.slice(0, seeds.length);
+      return `<div class="transform-list">${seedBins.map((bin, index) => `<div class="transform-row"><div class="transform-source"><div class="transform-kicker">drawer ${binIndex(bin)}</div><div class="transform-name">${bin.pixels.join(" + ")} are here</div><div class="transform-value">weighted RGB sum<br>(${bin.sumR}, ${bin.sumG}, ${bin.sumB})</div></div><div class="transform-arrow">→</div><div class="transform-target"><span class="marker-swatch" style="--color: rgb(${seeds[index].join(" ")})"></span><div><div class="transform-name">marker ${index + 1}</div><div class="transform-value">(${bin.sumR}, ${bin.sumG}, ${bin.sumB}) ÷ ${bin.count}<br>= (${seeds[index].map((value) => value.toFixed(1)).join(", ")})</div></div></div></div>`).join("")}</div>`;
     }
 
     function matchRows() {
@@ -583,7 +594,8 @@
     }
 
     function repeatRows() {
-      return `<div class="repeat-intro"><strong>Iteration 1</strong><br>1. Keep the matches: P1 + P2 → marker 1, P3 → marker 2, P4 → marker 3.<br>2. Recalculate each marker from only the pixels that chose it.<br>3. Compare the new marker with the old marker.</div><div class="repeat-list">${finalPass.centroids.map((centroid, index) => `<div class="repeat-row"><span class="repeat-label">marker ${index + 1}<br>${sortedBins[index].pixels.join(" + ")}</span><span class="repeat-value">RGB sum<br>(${sortedBins[index].sumR}, ${sortedBins[index].sumG}, ${sortedBins[index].sumB})</span><span class="repeat-arrow">÷</span><span class="repeat-value">alpha weight ${sortedBins[index].count}<br>= (${centroid.map((value) => value.toFixed(1)).join(", ")})</span><span class="repeat-state">same</span></div>`).join("")}</div><div class="stable-note">new markers = old markers, so iterations 2, 3, 4, and 5 repeat the same assignments</div>`;
+      const groups = iterations[0].groups;
+      return `<div class="repeat-intro"><strong>Iteration 1</strong><br>1. Keep the matches for all ${pixels.length} pixels.<br>2. Recalculate each marker from only the pixels that chose it.<br>3. Compare the new marker with the old marker.</div><div class="repeat-list">${finalPass.centroids.map((centroid, index) => { const group = groups[index]; return `<div class="repeat-row"><span class="repeat-label">marker ${index + 1}<br>${group.pixels.join(" + ") || "no pixels"}</span><span class="repeat-value">RGB sum<br>(${group.r}, ${group.g}, ${group.b})</span><span class="repeat-arrow">÷</span><span class="repeat-value">alpha weight ${group.weight}<br>= (${centroid.map((value) => value.toFixed(1)).join(", ")})</span><span class="repeat-state">same</span></div>`; }).join("")}</div><div class="stable-note">new markers = old markers, so iterations 2, 3, 4, and 5 repeat the same assignments</div>`;
     }
 
     function groupRows() {
@@ -602,7 +614,7 @@
       if (currentStep === 1) return "Imagine many labeled drawers. Each pixel gets a drawer address based on its color. This is what the code calls a bin index.";
       if (currentStep === 2) return `An address only tells us where to look. We open the busiest drawer, start at zero, and add its ${focus.samples} matching pixel${focus.samples === 1 ? "" : "s"}.`;
       if (currentStep === 3) return `The busiest drawer contains ${focus.samples} of the ${pixels.length} pixels in this example. That makes it the largest color group so far.`;
-      if (currentStep === 4) return `Turn each of the ${sortedBins.length} non-empty drawers into one visible color marker. Now the algorithm has colors to compare against.`;
+      if (currentStep === 4) return `There are ${sortedBins.length} non-empty drawers, but Rust keeps only the top ${seeds.length} as starting markers. Now the algorithm has colors to compare against.`;
       if (currentStep === 5) return `Compare each pixel with all ${seeds.length} markers. Each pixel joins the marker with the smallest squared RGB distance.`;
       if (currentStep === 6) return "Use each matched group to recalculate its marker. Compare old and new markers. If they move, match again. The loop always runs five passes here.";
       if (currentStep === 7) return `Count how many pixels chose each marker. Marker ${dominantIndex + 1} owns ${finalPass.counts[dominantIndex]} of ${pixels.length} pixels, so it wins.`;
@@ -622,7 +634,7 @@
     }
 
     function renderGridControls() {
-      gridButtons.innerHTML = [4, 6, 8].map((count) => `<button class="grid-button${count === pixelCount ? " active" : ""}" type="button" data-count="${count}" aria-pressed="${count === pixelCount}">${count}</button>`).join("");
+      gridButtons.innerHTML = [4, 8, 16, 32, 64, 128, 256].map((count) => `<button class="grid-button${count === pixelCount ? " active" : ""}" type="button" data-count="${count}" aria-pressed="${count === pixelCount}">${count}</button>`).join("");
       gridButtons.querySelectorAll("button").forEach((button) => button.addEventListener("click", () => {
         pixelCount = Number(button.dataset.count);
         pixels = makeStarterPixels(pixelCount);
