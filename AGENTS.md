@@ -61,6 +61,14 @@ Before editing, verify the repository root is the main checkout and the current 
   - `packages/frontend/vite.config.ts`: Frontend Cloudflare Vite dev config; keep `@stylexjs/unplugin` here, not in gateway configs.
   - `packages/frontend/vite.react-router.config.ts`: Frontend React Router production build config; this is also allowed to use StyleX.
 
+## Agent Behavior Rules
+
+- Never instruct or tell the user to check, fact check, or find out something themselves.
+- Never teach or explain concepts unless the user explicitly asks.
+- Do the work yourself — look it up, run the command, fetch the docs.
+- When the user asks a question, you must research it and provide the answer. Do not deflect.
+- When you don't know something, say so and offer to look it up.
+
 ## Coding Conventions
 
 - Prefer `satisfies` for object literals that must conform to a type unless an explicit variable annotation is required.
