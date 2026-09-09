@@ -1,0 +1,52 @@
+name: Update Binaryen
+
+on:
+  schedule:
+    - cron: '0 8 * * 1'
+  workflow_dispatch:
+
+jobs:
+  update:
+    name: Update Binaryen pin
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      id-token: write
+      contents: write
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Run OpenCode
+        uses: anomalyco/opencode/github@10c894bdeef3618f5666fb506ef7f9491bb964d8 # v1.17.13
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          model: opencode/mimo-v2.5-free
+          variant: high
+          prompt: |
+            Check the pinned native Binaryen release in
+            .github/actions/install-binaryen/action.yml.
+
+            Read the version and sha256 defaults from that file. Query the
+            latest stable release from the official Binaryen GitHub API and
+            its x86_64 Linux archive checksum. If the pinned tag is current
+            and its checksum matches, make no changes and do not open a PR.
+
+            If the pin is outdated, update only the version and sha256
+            defaults in .github/actions/install-binaryen/action.yml. Verify
+            the official checksum and YAML syntax. Create a new branch from
+            main and open a PR against main titled
+            "ci: update Binaryen to <tag>". Explain the old and new pins and
+            checksum in the PR description.
+
+            Do not modify any other files, merge the PR, or push to main.
