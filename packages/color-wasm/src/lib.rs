@@ -68,11 +68,19 @@ pub struct CssColor {
 #[derive(Default, Clone, Copy)]
 struct Bin {
   samples: u64,
-  count: u64,
   r: u64,
   g: u64,
   b: u64,
   a: u64,
+}
+
+#[derive(Default, Clone, Copy)]
+struct ClusterStats {
+  samples: u64,
+  alpha_weight: u64,
+  r: f64,
+  g: f64,
+  b: f64,
 }
 
 /*
@@ -85,6 +93,37 @@ fn find_root(parent: &mut [usize], mut x: usize) -> usize {
     x = parent[x];
   }
   x
+}
+
+/*
+ * Assign histogram bins to their nearest centroid and accumulate the
+ * statistics needed by both K-Means updates and the final color result.
+ * Iterating bins keeps the work bounded by the 32x32x32 histogram instead
+ * of rescanning every image pixel for every centroid on every iteration.
+ */
+fn assign_bins(bins: &[Bin], centroids: &[[f64; 3]]) -> Vec<ClusterStats> {
+  let mut clusters = vec![ClusterStats::default(); centroids.len()];
+  for bin in bins.iter().filter(|bin| bin.a > 0) {
+    let r = bin.r as f64 / bin.a as f64;
+    let g = bin.g as f64 / bin.a as f64;
+    let b = bin.b as f64 / bin.a as f64;
+    let best = centroids
+      .iter()
+      .enumerate()
+      .min_by(|(_, ca), (_, cb)| {
+        let da = (ca[0] - r).powi(2) + (ca[1] - g).powi(2) + (ca[2] - b).powi(2);
+        let db = (cb[0] - r).powi(2) + (cb[1] - g).powi(2) + (cb[2] - b).powi(2);
+        da.partial_cmp(&db).unwrap_or(std::cmp::Ordering::Equal)
+      })
+      .map(|(i, _)| i)
+      .unwrap();
+    clusters[best].samples += bin.samples;
+    clusters[best].alpha_weight += bin.a;
+    clusters[best].r += bin.r as f64;
+    clusters[best].g += bin.g as f64;
+    clusters[best].b += bin.b as f64;
+  }
+  clusters
 }
 
 pub fn dominant_color(rgba: &[u8], width: u32, height: u32) -> Result<DominantColor, &'static str> {
@@ -110,7 +149,6 @@ pub fn dominant_color(rgba: &[u8], width: u32, height: u32) -> Result<DominantCo
       + (usize::from(px[2]) >> 3);
     let bin = &mut bins[index];
     bin.samples += 1;
-    bin.count += u64::from(alpha);
     bin.r += u64::from(px[0]) * u64::from(alpha);
     bin.g += u64::from(px[1]) * u64::from(alpha);
     bin.b += u64::from(px[2]) * u64::from(alpha);
@@ -120,24 +158,23 @@ pub fn dominant_color(rgba: &[u8], width: u32, height: u32) -> Result<DominantCo
   /*
    * Extract top centroids from the binning phase.
    * Sort by alpha-weighted count descending, take the top K.
-   * Empty bins (count == 0) are skipped.
+   * Empty bins (alpha weight == 0) are skipped.
    */
   const K: usize = 8;
   const KMEANS_ITERS: usize = 5;
-  let mut centroid_entries: Vec<(f64, f64, f64, f64, u64)> = bins
+  let mut centroid_entries: Vec<(f64, f64, f64, u64)> = bins
     .iter()
-    .filter(|bin| bin.count > 0)
+    .filter(|bin| bin.a > 0)
     .map(|bin| {
       (
         bin.r as f64 / bin.a as f64,
         bin.g as f64 / bin.a as f64,
         bin.b as f64 / bin.a as f64,
-        bin.a as f64 / bin.samples as f64,
-        bin.count,
+        bin.a,
       )
     })
     .collect();
-  centroid_entries.sort_by(|a, b| b.4.cmp(&a.4));
+  centroid_entries.sort_by(|a, b| b.3.cmp(&a.3));
   centroid_entries.truncate(K);
   let mut centroids: Vec<[f64; 3]> = centroid_entries.iter().map(|c| [c.0, c.1, c.2]).collect();
   if centroids.is_empty() {
@@ -146,53 +183,33 @@ pub fn dominant_color(rgba: &[u8], width: u32, height: u32) -> Result<DominantCo
 
   /*
    * Phase 2: refine centroids with K-Means.
-   * Each iteration assigns every visible pixel to the
-   * nearest centroid, then recomputes centroids as the
+   * Each iteration assigns every non-empty histogram bin to
+   * the nearest centroid, then recomputes centroids as the
    * alpha-weighted mean of their assigned pixels.
    * 5 iterations converge quickly from good bin seeds.
    */
-  let mut pixel_count_by_cluster = vec![0u64; centroids.len()];
   for _ in 0..KMEANS_ITERS {
-    let mut sums: Vec<(f64, f64, f64, f64)> =
-      centroids.iter().map(|_| (0.0, 0.0, 0.0, 0.0)).collect();
-    pixel_count_by_cluster.iter_mut().for_each(|c| *c = 0);
-    for px in rgba.chunks_exact(4) {
-      let alpha = px[3];
-      if alpha < 16 {
-        continue;
-      }
-      let r = f64::from(px[0]);
-      let g = f64::from(px[1]);
-      let b = f64::from(px[2]);
-      let w = f64::from(alpha);
-      let best = centroids
-        .iter()
-        .enumerate()
-        .min_by(|(_, ca), (_, cb)| {
-          let da = (ca[0] - r).powi(2) + (ca[1] - g).powi(2) + (ca[2] - b).powi(2);
-          let db = (cb[0] - r).powi(2) + (cb[1] - g).powi(2) + (cb[2] - b).powi(2);
-          da.partial_cmp(&db).unwrap_or(std::cmp::Ordering::Equal)
-        })
-        .map(|(i, _)| i)
-        .unwrap();
-      sums[best].0 += r * w;
-      sums[best].1 += g * w;
-      sums[best].2 += b * w;
-      sums[best].3 += w;
-      pixel_count_by_cluster[best] += 1;
-    }
+    let clusters = assign_bins(&bins, &centroids);
     for (i, centroid) in centroids.iter_mut().enumerate() {
-      if sums[i].3 > 0.0 {
-        centroid[0] = sums[i].0 / sums[i].3;
-        centroid[1] = sums[i].1 / sums[i].3;
-        centroid[2] = sums[i].2 / sums[i].3;
+      if clusters[i].alpha_weight > 0 {
+        let weight = clusters[i].alpha_weight as f64;
+        centroid[0] = clusters[i].r / weight;
+        centroid[1] = clusters[i].g / weight;
+        centroid[2] = clusters[i].b / weight;
       }
     }
   }
 
   /*
+   * Reassign bins after the last centroid update so the final family
+   * statistics describe the final centroids rather than the previous
+   * iteration's Voronoi regions.
+   */
+  let clusters = assign_bins(&bins, &centroids);
+
+  /*
    * Final pass: merge nearby centroids into color families,
-   * then pick the family with the most pixels.
+   * then pick the family with the greatest alpha weight.
    * K-Means splits gradients across seeds, so a divided
    * majority can lose to one tight minority cluster.
    * Union clusters within RGB distance 60 and vote by
@@ -215,35 +232,29 @@ pub fn dominant_color(rgba: &[u8], width: u32, height: u32) -> Result<DominantCo
       }
     }
   }
-  let mut family_pixels = vec![0u64; n];
-  let mut family_r = vec![0.0; n];
-  let mut family_g = vec![0.0; n];
-  let mut family_b = vec![0.0; n];
-  for (i, centroid) in centroids.iter().enumerate() {
+  let mut families = vec![ClusterStats::default(); n];
+  for (i, cluster) in clusters.iter().enumerate() {
     let root = find_root(&mut parent, i);
-    let w = pixel_count_by_cluster[i] as f64;
-    family_pixels[root] += pixel_count_by_cluster[i];
-    family_r[root] += centroid[0] * w;
-    family_g[root] += centroid[1] * w;
-    family_b[root] += centroid[2] * w;
+    families[root].samples += cluster.samples;
+    families[root].alpha_weight += cluster.alpha_weight;
+    families[root].r += cluster.r;
+    families[root].g += cluster.g;
+    families[root].b += cluster.b;
   }
-  let dominant_root = family_pixels
+  let dominant_root = families
     .iter()
     .enumerate()
-    .max_by_key(|(_, count)| *count)
+    .max_by_key(|(_, family)| family.alpha_weight)
     .map(|(i, _)| i)
     .ok_or("no visible pixels")?;
-  let total = family_pixels[dominant_root] as f64;
-  let r = (family_r[dominant_root] / total).round().clamp(0.0, 255.0) as u8;
-  let g = (family_g[dominant_root] / total).round().clamp(0.0, 255.0) as u8;
-  let b = (family_b[dominant_root] / total).round().clamp(0.0, 255.0) as u8;
-  let total_alpha_weight: u64 = bins.iter().map(|bin| bin.a).sum();
-  let total_samples: u64 = bins.iter().map(|bin| bin.samples).sum();
-  let a = if total_samples > 0 {
-    (total_alpha_weight / total_samples).min(255) as u8
-  } else {
-    255
-  };
+  let dominant = families[dominant_root];
+  let alpha_weight = dominant.alpha_weight as f64;
+  let r = (dominant.r / alpha_weight).round().clamp(0.0, 255.0) as u8;
+  let g = (dominant.g / alpha_weight).round().clamp(0.0, 255.0) as u8;
+  let b = (dominant.b / alpha_weight).round().clamp(0.0, 255.0) as u8;
+  let a = (dominant.alpha_weight as f64 / dominant.samples as f64)
+    .round()
+    .clamp(0.0, 255.0) as u8;
   let (hsl, hsv) = rgb_hsl_hsv(r, g, b);
   let lab = rgb_lab(r, g, b);
   let lch = Lch {
@@ -258,8 +269,8 @@ pub fn dominant_color(rgba: &[u8], width: u32, height: u32) -> Result<DominantCo
     h: oklab.b.atan2(oklab.a).to_degrees().rem_euclid(360.0),
   };
   Ok(DominantColor {
-    pixel_count: family_pixels[dominant_root],
-    coverage: (total_alpha_weight as f64 / (expected as f64 / 4.0 * 255.0)).min(1.0),
+    pixel_count: dominant.samples,
+    coverage: (dominant.alpha_weight as f64 / (expected as f64 / 4.0 * 255.0)).min(1.0),
     rgba: Rgba { r, g, b, a },
     hex: format!("#{r:02X}{g:02X}{b:02X}"),
     hsl,
@@ -374,10 +385,14 @@ pub fn dominant_color_json(rgba: &[u8], width: u32, height: u32) -> String {
 mod tests {
   use super::*;
 
-  fn push(px: &mut Vec<u8>, r: u8, g: u8, b: u8, n: usize) {
+  fn push_alpha(px: &mut Vec<u8>, r: u8, g: u8, b: u8, a: u8, n: usize) {
     for _ in 0..n {
-      px.extend_from_slice(&[r, g, b, 255]);
+      px.extend_from_slice(&[r, g, b, a]);
     }
+  }
+
+  fn push(px: &mut Vec<u8>, r: u8, g: u8, b: u8, n: usize) {
+    push_alpha(px, r, g, b, 255, n);
   }
 
   /*
@@ -397,5 +412,40 @@ mod tests {
     assert!(out.rgba.r > 150, "red channel {}", out.rgba.r);
     assert!(out.rgba.g < 80, "green channel {}", out.rgba.g);
     assert!(out.rgba.b < 80, "blue channel {}", out.rgba.b);
+  }
+
+  /*
+   * Alpha-weighted selection must prefer fewer opaque pixels over more
+   * nearly transparent pixels, and alpha and coverage must describe the
+   * selected family rather than the whole image.
+   */
+  #[test]
+  fn alpha_weighted_family_metrics_use_selected_family() {
+    let mut px = Vec::with_capacity(30 * 4);
+    push_alpha(&mut px, 20, 20, 220, 16, 20);
+    push_alpha(&mut px, 220, 20, 20, 255, 10);
+    let out = dominant_color(&px, 30, 1).expect("dominant");
+    assert_eq!(out.pixel_count, 10);
+    assert_eq!(out.rgba.r, 220);
+    assert_eq!(out.rgba.g, 20);
+    assert_eq!(out.rgba.b, 20);
+    assert_eq!(out.rgba.a, 255);
+    let expected_coverage = 2550.0 / (30.0 * 255.0);
+    assert!((out.coverage - expected_coverage).abs() < f64::EPSILON);
+  }
+
+  /*
+   * Nearby clusters must be merged using their accumulated alpha weight,
+   * not their raw sample count, when producing the family color.
+   */
+  #[test]
+  fn merged_family_uses_alpha_weighted_color() {
+    let mut px = Vec::with_capacity(110 * 4);
+    push_alpha(&mut px, 150, 0, 0, 16, 100);
+    push_alpha(&mut px, 200, 0, 0, 255, 10);
+    let out = dominant_color(&px, 110, 1).expect("dominant");
+    assert_eq!(out.pixel_count, 110);
+    assert_eq!(out.rgba.r, 181);
+    assert_eq!(out.rgba.a, 38);
   }
 }
