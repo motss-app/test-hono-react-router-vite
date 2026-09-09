@@ -126,6 +126,38 @@ fn assign_bins(bins: &[Bin], centroids: &[[f64; 3]]) -> Vec<ClusterStats> {
   clusters
 }
 
+/*
+ * Merge populated centroids into color families. Empty centroids are
+ * excluded because their stale positions must not bridge two populated
+ * families that are farther apart than the merge threshold.
+ */
+fn merge_centroids(centroids: &[[f64; 3]], clusters: &[ClusterStats]) -> Vec<usize> {
+  const MERGE_DIST2: f64 = 60.0 * 60.0;
+  let n = centroids.len();
+  let mut parent: Vec<usize> = (0..n).collect();
+  for i in 0..n {
+    if clusters[i].alpha_weight == 0 {
+      continue;
+    }
+    for j in (i + 1)..n {
+      if clusters[j].alpha_weight == 0 {
+        continue;
+      }
+      let d2 = (centroids[i][0] - centroids[j][0]).powi(2)
+        + (centroids[i][1] - centroids[j][1]).powi(2)
+        + (centroids[i][2] - centroids[j][2]).powi(2);
+      if d2 <= MERGE_DIST2 {
+        let ri = find_root(&mut parent, i);
+        let rj = find_root(&mut parent, j);
+        if ri != rj {
+          parent[rj] = ri;
+        }
+      }
+    }
+  }
+  parent
+}
+
 pub fn dominant_color(rgba: &[u8], width: u32, height: u32) -> Result<DominantColor, &'static str> {
   let expected = width as usize * height as usize * 4;
   if expected == 0 || rgba.len() != expected {
@@ -208,30 +240,15 @@ pub fn dominant_color(rgba: &[u8], width: u32, height: u32) -> Result<DominantCo
   let clusters = assign_bins(&bins, &centroids);
 
   /*
-   * Final pass: merge nearby centroids into color families,
+   * Final pass: merge nearby populated centroids into color families,
    * then pick the family with the greatest alpha weight.
    * K-Means splits gradients across seeds, so a divided
    * majority can lose to one tight minority cluster.
    * Union clusters within RGB distance 60 and vote by
    * family totals instead of single cluster counts.
    */
-  const MERGE_DIST2: f64 = 60.0 * 60.0;
   let n = centroids.len();
-  let mut parent: Vec<usize> = (0..n).collect();
-  for i in 0..n {
-    for j in (i + 1)..n {
-      let d2 = (centroids[i][0] - centroids[j][0]).powi(2)
-        + (centroids[i][1] - centroids[j][1]).powi(2)
-        + (centroids[i][2] - centroids[j][2]).powi(2);
-      if d2 <= MERGE_DIST2 {
-        let ri = find_root(&mut parent, i);
-        let rj = find_root(&mut parent, j);
-        if ri != rj {
-          parent[rj] = ri;
-        }
-      }
-    }
-  }
+  let mut parent = merge_centroids(&centroids, &clusters);
   let mut families = vec![ClusterStats::default(); n];
   for (i, cluster) in clusters.iter().enumerate() {
     let root = find_root(&mut parent, i);
@@ -447,5 +464,29 @@ mod tests {
     assert_eq!(out.pixel_count, 110);
     assert_eq!(out.rgba.r, 181);
     assert_eq!(out.rgba.a, 38);
+  }
+
+  /*
+   * An empty centroid between two populated centroids must not bridge
+   * separate families through its stale position.
+   */
+  #[test]
+  fn empty_centroid_does_not_bridge_populated_families() {
+    let centroids = vec![[0.0, 0.0, 0.0], [60.0, 0.0, 0.0], [120.0, 0.0, 0.0]];
+    let clusters = vec![
+      ClusterStats {
+        alpha_weight: 255,
+        ..ClusterStats::default()
+      },
+      ClusterStats::default(),
+      ClusterStats {
+        alpha_weight: 255,
+        ..ClusterStats::default()
+      },
+    ];
+    let mut parent = merge_centroids(&centroids, &clusters);
+    let left = find_root(&mut parent, 0);
+    let right = find_root(&mut parent, 2);
+    assert_ne!(left, right);
   }
 }
