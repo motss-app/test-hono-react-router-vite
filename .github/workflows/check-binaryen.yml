@@ -1,0 +1,44 @@
+name: Check Binaryen version
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Check pinned Binaryen release
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Check pinned Binaryen release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          file='.github/actions/install-binaryen/action.yml'
+          pinned=$(awk '/^  version:/{found=1; next} found && /default:/{print $2; exit}' "$file")
+          pinned_sha=$(awk '/^  sha256:/{found=1; next} found && /default:/{print $2; exit}' "$file")
+          latest=$(gh api repos/WebAssembly/binaryen/releases/latest --jq .tag_name)
+          archive="binaryen-${pinned}-x86_64-linux.tar.gz"
+          release_sha=$(curl -fsSL --retry 3 --retry-all-errors \
+            "https://github.com/WebAssembly/binaryen/releases/download/${pinned}/${archive}.sha256" |
+            awk '{print $1}')
+
+          if [ "$pinned_sha" != "$release_sha" ]; then
+            echo "::error title=Binaryen checksum mismatch::${file} does not match the official ${pinned} archive checksum"
+            exit 1
+          fi
+
+          if [ "$pinned" != "$latest" ]; then
+            echo "::error title=Binaryen update required::${pinned} is pinned, but ${latest} is the latest stable release"
+            exit 1
+          fi
+
+          printf 'Binaryen %s is current and checksum-valid\n' "$pinned"
