@@ -42,9 +42,7 @@ jobs:
         uses: ./.github/actions/resolve-playwright-version
 
       - name: Install CJK fonts
-        uses: ./.github/actions/install-ubuntu-packages
-        with:
-          packages: fonts-noto-cjk
+        uses: ./.github/actions/install-noto-cjk
 
       - name: Build fractal WASM
         uses: ./.github/actions/build-fractal-wasm

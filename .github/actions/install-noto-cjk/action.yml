@@ -1,0 +1,46 @@
+name: Install Noto CJK fonts
+description: Install a pinned Ubuntu Noto CJK package without APT
+
+inputs:
+  version:
+    description: Ubuntu fonts-noto-cjk package version
+    required: false
+    default: 20230817+repack1-3
+  sha256:
+    description: SHA-256 for the Ubuntu fonts-noto-cjk package
+    required: false
+    default: 7d64b985f6fe128c99eae5610d5c047338e572bdcfb2bb09736be01b824a7f6c
+
+runs:
+  using: composite
+  steps:
+    - name: Cache Noto CJK package
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ~/.cache/noto-cjk
+        key: noto-cjk-${{ runner.os }}-all-${{ inputs.version }}-${{ inputs.sha256 }}
+
+    - name: Download and install Noto CJK fonts
+      shell: bash
+      env:
+        FONT_PACKAGE_VERSION: ${{ inputs.version }}
+        FONT_PACKAGE_SHA256: ${{ inputs.sha256 }}
+      run: |
+        set -euo pipefail
+        package="fonts-noto-cjk_${FONT_PACKAGE_VERSION}_all.deb"
+        cache_dir="$HOME/.cache/noto-cjk/$FONT_PACKAGE_VERSION"
+        package_path="$cache_dir/$package"
+        package_root="$RUNNER_TEMP/noto-cjk-$FONT_PACKAGE_VERSION"
+        font_dir="$HOME/.local/share/fonts/noto-cjk"
+        mkdir -p "$cache_dir"
+        if [ ! -f "$package_path" ]; then
+          curl -fsSL --retry 3 --retry-all-errors \
+            "https://archive.ubuntu.com/ubuntu/pool/main/f/fonts-noto-cjk/$package" \
+            -o "$package_path"
+        fi
+        printf '%s  %s\n' "$FONT_PACKAGE_SHA256" "$package_path" | sha256sum --check
+        mkdir -p "$package_root" "$font_dir"
+        dpkg-deb --extract "$package_path" "$package_root"
+        cp -R "$package_root/usr/share/fonts/opentype/noto/." "$font_dir/"
+        fc-cache -f "$font_dir"
+        test -n "$(find "$font_dir" -type f \( -name '*.ttc' -o -name '*.otf' -o -name '*.ttf' \) -print -quit)"
