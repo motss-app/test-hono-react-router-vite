@@ -6,11 +6,18 @@
 use color_wasm::dominant_color;
 use image::ImageReader;
 use std::io::Cursor;
+use wasm_bindgen::prelude::wasm_bindgen;
 use worker::*;
 
 const MAX_UPLOAD_BYTES: usize = 32 * 1024 * 1024;
 const MAX_PIXELS: u64 = 3840 * 2160;
 const MAX_DIMENSION: u32 = 3840;
+
+#[wasm_bindgen]
+extern "C" {
+  #[wasm_bindgen(js_namespace = performance, js_name = now)]
+  fn performance_now() -> f64;
+}
 
 #[event(fetch)]
 pub async fn main(req: Request, _env: Env, _ctx: Context) -> Result<Response> {
@@ -26,7 +33,7 @@ async fn handle_dominant_color(mut req: Request) -> Result<Response> {
     return Response::error("Image exceeds the 32 MB upload limit", 413);
   }
 
-  let started = js_sys::Date::now();
+  let started = performance_now();
   let format = detect_format(&bytes);
   let image = match decode_image(&bytes) {
     Ok(image) => image,
@@ -53,8 +60,8 @@ async fn handle_dominant_color(mut req: Request) -> Result<Response> {
     object.insert("height".to_string(), serde_json::json!(height));
     object.insert("format".to_string(), serde_json::json!(format));
     object.insert(
-      "decode_ms".to_string(),
-      serde_json::json!(js_sys::Date::now() - started),
+      "time_ms".to_string(),
+      serde_json::json!(performance_now() - started),
     );
     object.insert(
       "engine".to_string(),
