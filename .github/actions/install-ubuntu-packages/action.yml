@@ -1,0 +1,27 @@
+name: Install Ubuntu packages
+description: Install packages without the flaky Google Chrome APT source
+
+inputs:
+  packages:
+    description: Space-separated Ubuntu package names
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Disable flaky Google Chrome APT sources
+      shell: bash
+      run: |
+        for source in /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources; do
+          if [ -f "$source" ] && grep -q 'dl.google.com' "$source"; then
+            sudo rm -f "$source"
+          fi
+        done
+
+    - name: Install Ubuntu packages
+      shell: bash
+      env:
+        PACKAGES: ${{ inputs.packages }}
+      run: |
+        sudo apt-get update -o Acquire::Retries=3
+        sudo apt-get install -y --no-install-recommends $PACKAGES
