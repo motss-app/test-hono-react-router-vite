@@ -20,7 +20,8 @@ interface ColorResponse {
   width: number;
   height: number;
   format: string;
-  decode_ms: number;
+  decode_ms: number | null;
+  decode_timing: 'runtime-clock' | 'unavailable';
   [key: string]: unknown;
 }
 
@@ -224,7 +225,9 @@ export default function DominantColorLab(): JSX.Element {
                       <p className={c.resultTitle}>{result.hex}</p>
                       <p className={c.resultMeta}>
                         {result.width} × {result.height} · {result.format} ·{' '}
-                        {result.decode_ms.toFixed(1)} ms
+                        {result.decode_ms === null
+                          ? 'CPU timing unavailable'
+                          : `${result.decode_ms.toFixed(1)} ms`}
                       </p>
                     </div>
                     <span

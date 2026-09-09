@@ -46,15 +46,26 @@ async fn handle_dominant_color(mut req: Request) -> Result<Response> {
     Ok(color) => color,
     Err(message) => return Response::error(message, 422),
   };
+  /*
+   * Cloudflare freezes runtime clocks during CPU-only execution in deployed
+   * Workers, so a zero delta is unavailable timing rather than zero work.
+   */
+  let decode_ms = available_elapsed_ms(started, js_sys::Date::now());
+  let timing_available = decode_ms.is_some();
   let mut response =
     serde_json::to_value(color).map_err(|_| Error::from("JSON serialization failed"))?;
   if let Some(object) = response.as_object_mut() {
     object.insert("width".to_string(), serde_json::json!(width));
     object.insert("height".to_string(), serde_json::json!(height));
     object.insert("format".to_string(), serde_json::json!(format));
+    object.insert("decode_ms".to_string(), serde_json::json!(decode_ms));
     object.insert(
-      "decode_ms".to_string(),
-      serde_json::json!(js_sys::Date::now() - started),
+      "decode_timing".to_string(),
+      serde_json::json!(if timing_available {
+        "runtime-clock"
+      } else {
+        "unavailable"
+      }),
     );
     object.insert(
       "engine".to_string(),
@@ -64,6 +75,11 @@ async fn handle_dominant_color(mut req: Request) -> Result<Response> {
   let response = Response::from_json(&response)?;
   response.headers().set("cache-control", "no-store")?;
   Ok(response)
+}
+
+fn available_elapsed_ms(started: f64, ended: f64) -> Option<f64> {
+  let elapsed = ended - started;
+  (elapsed > 0.0).then_some(elapsed)
 }
 
 fn detect_format(bytes: &[u8]) -> String {
@@ -104,6 +120,21 @@ fn is_avif(bytes: &[u8]) -> bool {
 
 fn is_jxl(bytes: &[u8]) -> bool {
   bytes.starts_with(&[0xff, 0x0a]) || bytes.get(4..12) == Some(b"JXL \x0d\x0a\x87\x0a")
+}
+
+#[cfg(test)]
+mod tests {
+  use super::available_elapsed_ms;
+
+  #[test]
+  fn zero_delta_is_unavailable() {
+    assert_eq!(available_elapsed_ms(42.0, 42.0), None);
+  }
+
+  #[test]
+  fn positive_delta_is_preserved() {
+    assert_eq!(available_elapsed_ms(42.0, 54.5), Some(12.5));
+  }
 }
 
 fn decode_image(bytes: &[u8]) -> std::result::Result<image::DynamicImage, ()> {
