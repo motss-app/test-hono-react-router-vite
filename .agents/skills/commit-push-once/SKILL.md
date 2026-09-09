@@ -36,7 +36,7 @@ Rules
 - Do not unstage, amend, or rewrite commits.
 - Do not switch branches.
 - If nothing is staged and no `stage` keyword was used, report that there is nothing to commit and stop.
-- If the push succeeds, stop immediately.
+- If the push succeeds, stop immediately for a standalone commit-push request. When this invocation is an explicitly authorized handoff from `pr-review-triage`, continue only with that workflow's post-push reaction, reply, and resolution steps. Do not make another commit or push.
 - If the push fails, report the failure and stop; do not retry unless the user explicitly asks.
 
 Success criteria
@@ -56,7 +56,7 @@ Checklist
 - [ ] commit staged changes (use `git commit -S` if GPG key available)
 - [ ] push the current branch
 - [ ] verify clean status
-- [ ] stop after the first successful push
+- [ ] stop after the first successful push, unless an explicitly authorized `pr-review-triage` post-push handoff is active
 
 Notes
 - Always run format, lint, and typecheck before committing. If any check fails, fix the issues before proceeding with the commit.

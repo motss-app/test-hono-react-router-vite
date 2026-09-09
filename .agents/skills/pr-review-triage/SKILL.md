@@ -42,6 +42,10 @@ React to the original inline comment when the user authorizes review interaction
 
 8. Do not react to, reply to, or resolve informational comments or threads whose disposition is uncertain. Do not resolve a `fix` or `fixed` thread until its implementation is verified and the user has authorized post-fix review interaction. Ask the user when a missing product decision or contract makes classification material.
 
+## Post-push completion
+
+When code fixes are committed and pushed as part of this workflow, treat the push as a checkpoint rather than completion. Refresh the remote PR head and review threads after the push, then apply the authorized reaction, reply, and resolution mutations against the pushed commit. Do not act on local-only code, stale thread state, or the pre-push head. If the commit workflow ended the turn before this handoff, the next `pr-review-triage` invocation must resume here before reporting the review complete.
+
 ## GitHub mutations
 
 Use the thread ID, not the comment database ID, for replies and resolution. The mutations are conceptually:
@@ -72,4 +76,4 @@ Use `gh api graphql` for these operations when available. React to the original 
 
 ## Final report
 
-Report the PR URL, head SHA, a numbered disposition for every thread, the evidence for each `fix` or `no-fix`, reactions, replies, resolutions, and verification results. State explicitly when no threads qualified for reaction, reply, or resolution. Mention any remaining uncertainty or blocked validation.
+Report the PR URL, pushed head SHA, a numbered disposition for every thread, the evidence for each `fix`, `fixed`, or `no-fix`, reactions, replies, resolutions, and verification results. State explicitly when no threads qualified for reaction, reply, or resolution, and when no post-push actions remain pending. Mention any remaining uncertainty or blocked validation.
