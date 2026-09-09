@@ -77,6 +77,50 @@ function cloneResponse(response: Response): Response {
   });
 }
 
+function isJsonObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/*
+ * Cloudflare freezes in-worker clocks while synchronous CPU work runs. The
+ * gateway can measure the Rust service call because it crosses an awaited
+ * service-binding I/O boundary. This value is edge wall time for the Rust
+ * service, including service-binding overhead, rather than Rust CPU time.
+ */
+async function addColorServiceTime(response: Response, timeMs: number): Promise<Response> {
+  const contentType = response.headers.get('Content-Type') ?? '';
+  if (!response.ok || !contentType.includes('application/json')) {
+    return response;
+  }
+
+  let payload: unknown;
+  try {
+    payload = await response.clone().json();
+  } catch {
+    return response;
+  }
+
+  if (!isJsonObject(payload)) {
+    return response;
+  }
+
+  const headers = new Headers(response.headers);
+  headers.delete('Content-Length');
+  headers.delete('Content-Encoding');
+
+  return new Response(
+    JSON.stringify({
+      ...payload,
+      time_ms: Number(Math.max(0, timeMs).toFixed(1)),
+    }),
+    {
+      headers,
+      status: response.status,
+      statusText: response.statusText,
+    }
+  );
+}
+
 /**
  * Skip in-worker gzip above this input size. HTML pages are expected to
  * stay well under it.
@@ -280,10 +324,16 @@ app.all('/api/rust/color/*', async c => {
   const url = new URL(c.req.url);
   const targetPath = url.pathname.replace(/^\/api\/rust/, '') || '/';
   const target = new Request(`http://COLOR_RUST${targetPath}${url.search}`, c.req.raw);
-
-  return cloneResponse(
-    await wrapTime(c, 'color-rust', rust.fetch(target), 'Color Rust worker service binding')
+  const startedAt = performance.now();
+  const response = await wrapTime(
+    c,
+    'color-rust',
+    rust.fetch(target),
+    'Color Rust worker service binding'
   );
+  const timeMs = performance.now() - startedAt;
+
+  return cloneResponse(await addColorServiceTime(response, timeMs));
 });
 
 /**
