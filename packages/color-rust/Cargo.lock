@@ -235,6 +235,7 @@ dependencies = [
  "js-sys",
  "jxl-oxide",
  "serde_json",
+ "wasm-bindgen",
  "worker",
  "zenavif",
  "zenpixels-convert",
