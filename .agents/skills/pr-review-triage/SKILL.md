@@ -12,10 +12,11 @@ Use this skill when the user asks to review comments on a GitHub pull request, d
 Produce an evidence-backed disposition for every unresolved inline review thread:
 
 - `fix`: the current code still has the behavior or risk described by the comment
+- `fixed`: the comment correctly identified an issue and the current head already contains a verified fix
 - `no-fix`: the comment is incorrect, already addressed, out of scope, or not applicable to the current implementation
 - `informational`: an automated status comment or review summary that is not an inline issue
 
-When the user explicitly authorizes review interaction, handle `no-fix` threads with a thumbs-down reaction, reply, and resolution. Handle `fix` threads with a thumbs-up reaction, reply, and resolution only after the fix is implemented and verified. Never resolve a thread merely because its original line is outdated.
+When the user explicitly authorizes review interaction, handle `no-fix` threads with a thumbs-down reaction, reply, and resolution. Handle `fix` threads with a thumbs-up reaction, reply, and resolution only after the fix is implemented and verified. Handle `fixed` threads through the same thumbs-up path after verifying the existing fix. Never resolve a thread merely because its original line is outdated.
 
 React to the original inline comment when the user authorizes review interaction:
 
@@ -35,9 +36,11 @@ React to the original inline comment when the user authorizes review interaction
 
 5. For each `fix` thread, report the required change and the evidence. Do not edit code unless the user explicitly asks to implement the fixes. If fixes are authorized, make the smallest targeted change, run the relevant tests and repository-required checks, then re-read the changed files and diff before reporting completion. After a fix is verified, add a `THUMBS_UP` reaction to the original review comment. If post-fix review interaction is authorized, reply with the verified change, then resolve the thread. Do not add the reaction or resolve the thread before the fix is verified.
 
-6. For each `no-fix` thread, add a `THUMBS_DOWN` reaction to the original review comment, then write a short factual reply that explains why the concern does not require a change. After the reply succeeds, resolve the same review-thread ID. Do not resolve first. If the reaction, reply, or resolution fails, report the exact failure and leave the thread unresolved when possible.
+6. For each `fixed` thread, verify that the current head contains the requested fix and that the relevant checks pass. Do not make a duplicate code change. After verification and explicit review-interaction authorization, follow the `fix` path by adding `THUMBS_UP`, replying with the evidence, and resolving the thread.
 
-7. Do not react to, reply to, or resolve informational comments or threads whose disposition is uncertain. Do not resolve a `fix` thread until its implementation is verified and the user has authorized post-fix review interaction. Ask the user when a missing product decision or contract makes classification material.
+7. For each `no-fix` thread, add a `THUMBS_DOWN` reaction to the original review comment, then write a short factual reply that explains why the concern does not require a change. After the reply succeeds, resolve the same review-thread ID. Do not resolve first. If the reaction, reply, or resolution fails, report the exact failure and leave the thread unresolved when possible.
+
+8. Do not react to, reply to, or resolve informational comments or threads whose disposition is uncertain. Do not resolve a `fix` or `fixed` thread until its implementation is verified and the user has authorized post-fix review interaction. Ask the user when a missing product decision or contract makes classification material.
 
 ## GitHub mutations
 
