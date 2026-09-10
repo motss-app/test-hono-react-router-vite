@@ -72,8 +72,8 @@
       "route": "/labs-dominant-color"
     },
     {
-      "gzipBytes": 288983,
-      "ownGzipBytes": 12070,
+      "gzipBytes": 288982,
+      "ownGzipBytes": 12069,
       "ownRawBytes": 34426,
       "rawBytes": 857255,
       "route": "/labs-mandelbrot"

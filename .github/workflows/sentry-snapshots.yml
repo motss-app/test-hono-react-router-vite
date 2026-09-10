@@ -63,7 +63,7 @@ jobs:
         uses: ./.github/actions/resolve-playwright-version
 
       - name: Install CJK fonts
-        run: sudo apt-get update && sudo apt-get install -y fonts-noto-cjk
+        uses: ./.github/actions/install-noto-cjk
 
       # actions/cache v6.1.0
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
