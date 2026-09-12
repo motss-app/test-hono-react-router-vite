@@ -13,6 +13,7 @@ import { createSentryBuildOptions } from '../../vite-utils/sentry-build.ts';
 import { logBuildSentryEnvSnapshot } from '../../vite-utils/sentry-build-env-log.ts';
 
 const repoRootPath = new URL('../../', import.meta.url).pathname;
+const packageRootPath = new URL('./', import.meta.url).pathname;
 const publicDirPath = new URL('./public', import.meta.url).pathname;
 const optimizeDepsInclude = [
   '@sentry/react-router',
@@ -65,7 +66,7 @@ export default defineConfig(async config => {
   const sentryPlugins = await sentryReactRouter(sentryBuildOptions, config);
 
   return {
-    cacheDir: `${repoRootPath}node_modules/.vite/frontend`,
+    cacheDir: `${packageRootPath}node_modules/.vite`,
     optimizeDeps: {
       include: optimizeDepsInclude,
     },

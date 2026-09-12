@@ -5,7 +5,7 @@ import { defineConfig } from 'vite';
 import { readRequiredEnv } from '../../vite-utils/get-required-env.ts';
 import { createImportMetaEnvDefine } from '../../vite-utils/import-meta-env.ts';
 
-const repoRootPath = new URL('../../', import.meta.url).pathname;
+const packageRootPath = new URL('./', import.meta.url).pathname;
 
 function isHealthzRustBuilt(): boolean {
   try {
@@ -37,7 +37,7 @@ export default defineConfig(({ command }) => {
   const isDeploymentBuild = Deno.env.get('DEPLOYMENT_BUILD') === 'true';
 
   return {
-    cacheDir: `${repoRootPath}node_modules/.vite/gateway`,
+    cacheDir: `${packageRootPath}node_modules/.vite`,
     define: createImportMetaEnvDefine({
       SENTRY_RELEASE: isDeploymentBuild
         ? readRequiredEnv('SENTRY_RELEASE', {
