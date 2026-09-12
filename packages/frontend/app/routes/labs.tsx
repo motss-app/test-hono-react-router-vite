@@ -27,10 +27,9 @@ function getTools(): LabTool[] {
       to: '/labs/mandelbrot',
     },
     {
-      description:
-        'Upload an image and let Rust at the edge find its dominant color in modern color spaces.',
+      description: m.labs_tool_dominant_color_desc(),
       number: '02',
-      title: 'Dominant Color',
+      title: m.labs_tool_dominant_color_title(),
       to: '/labs/dominant-color',
     },
   ];

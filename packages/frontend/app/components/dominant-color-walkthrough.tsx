@@ -1,14 +1,17 @@
 import type { JSX, MouseEvent as ReactMouseEvent } from 'react';
 import { useCallback, useId, useMemo, useState } from 'react';
 
+import * as m from '../paraglide/messages.js';
 import * as c from './dominant-color-walkthrough.css.ts';
+
+type PixelName = 'coral' | 'coral-light' | 'gold' | 'teal';
 
 type Pixel = {
   readonly a: number;
   readonly b: number;
   readonly g: number;
   readonly id: string;
-  readonly name: string;
+  readonly name: PixelName;
   readonly r: number;
 };
 
@@ -71,7 +74,7 @@ const PIXELS: Pixel[] = [
     b: 63,
     g: 79,
     id: 'P2',
-    name: 'coral light',
+    name: 'coral-light',
     r: 239,
   },
   {
@@ -94,38 +97,45 @@ const PIXELS: Pixel[] = [
 
 const STEPS = [
   {
-    label: 'Input',
-    title: 'A pixel is four numbers',
+    label: () => m.dominant_color_stage_input_label(),
+    title: () => m.dominant_color_stage_input(),
   },
   {
-    label: 'Address',
-    title: 'Give each pixel a drawer',
+    label: () => m.dominant_color_stage_address_label(),
+    title: () => m.dominant_color_stage_address(),
   },
   {
-    label: 'Collect',
-    title: 'Accumulate each drawer',
+    label: () => m.dominant_color_stage_collect_label(),
+    title: () => m.dominant_color_stage_collect(),
   },
   {
-    label: 'Seeds',
-    title: 'Make starting markers',
+    label: () => m.dominant_color_stage_seeds_label(),
+    title: () => m.dominant_color_stage_seeds(),
   },
   {
-    label: 'Match',
-    title: 'Match colors to markers',
+    label: () => m.dominant_color_stage_match_label(),
+    title: () => m.dominant_color_stage_match(),
   },
   {
-    label: 'Repeat',
-    title: 'Repeat the K-Means update',
+    label: () => m.dominant_color_stage_repeat_label(),
+    title: () => m.dominant_color_stage_repeat(),
   },
   {
-    label: 'Winner',
-    title: 'Choose the biggest family',
+    label: () => m.dominant_color_stage_winner_label(),
+    title: () => m.dominant_color_stage_winner(),
   },
   {
-    label: 'Output',
-    title: 'Return one color',
+    label: () => m.dominant_color_stage_output_label(),
+    title: () => m.dominant_color_stage_output(),
   },
 ];
+
+function pixelName(name: PixelName): string {
+  if (name === 'coral') return m.dominant_color_pixel_coral();
+  if (name === 'coral-light') return m.dominant_color_pixel_coral_light();
+  if (name === 'gold') return m.dominant_color_pixel_gold();
+  return m.dominant_color_pixel_teal();
+}
 
 function binFor(pixel: Pixel): {
   b: number;
@@ -370,10 +380,12 @@ function PixelTile({
     >
       <div className={c.pixelTop}>
         <span>{pixel.id}</span>
-        <span>α {pixel.a}</span>
+        <span>
+          {m.dominant_color_alpha()} {pixel.a}
+        </span>
       </div>
       <div>
-        <div className={c.pixelName}>{pixel.name}</div>
+        <div className={c.pixelName}>{pixelName(pixel.name)}</div>
         <div className={c.pixelValue}>
           {pixel.r}, {pixel.g}, {pixel.b}
         </div>
@@ -384,11 +396,11 @@ function PixelTile({
 
 function WalkthroughScene({ model, step }: { model: Model; step: number }): JSX.Element {
   const busiest = model.bins[0];
-  if (!busiest) return <div className={c.stable}>No visible pixels.</div>;
+  if (!busiest) return <div className={c.stable}>{m.dominant_color_no_visible_pixels()}</div>;
   if (step === 0) {
     return (
       <div>
-        <div className={c.stageHeader}>the starting picture · 4 pixels</div>
+        <div className={c.stageHeader}>{m.dominant_color_scene_input()}</div>
         <div className={c.pixelGrid}>
           {PIXELS.map(pixel => (
             <PixelTile
@@ -405,7 +417,7 @@ function WalkthroughScene({ model, step }: { model: Model; step: number }): JSX.
   if (step === 1) {
     return (
       <div>
-        <div className={c.stageHeader}>every pixel gets one address</div>
+        <div className={c.stageHeader}>{m.dominant_color_scene_address()}</div>
         <div className={c.addressList}>
           {PIXELS.map(pixel => {
             const address = binFor(pixel);
@@ -428,7 +440,7 @@ function WalkthroughScene({ model, step }: { model: Model; step: number }): JSX.
                   <div className={c.rowTitle}>
                     {pixel.id} → ({address.r}, {address.g}, {address.b})
                   </div>
-                  <div className={c.rowNote}>divide each channel by 8 and round down</div>
+                  <div className={c.rowNote}>{m.dominant_color_address_note()}</div>
                 </div>
                 <span className={c.rowValue}>bins[{binIndex(address)}]</span>
               </div>
@@ -436,7 +448,7 @@ function WalkthroughScene({ model, step }: { model: Model; step: number }): JSX.
           })}
         </div>
         <div className={c.mathBlock}>
-          <span className={c.mathLabel}>one-dimensional address</span>
+          <span className={c.mathLabel}>{m.dominant_color_address_formula()}</span>
           <span className={c.mathValue}>29 × 1024 + 9 × 32 + 7 = 29991</span>
         </div>
       </div>
@@ -445,10 +457,10 @@ function WalkthroughScene({ model, step }: { model: Model; step: number }): JSX.
   if (step === 2) {
     return (
       <div>
-        <div className={c.stageHeader}>the busiest drawer receives two contributions</div>
+        <div className={c.stageHeader}>{m.dominant_color_scene_collect()}</div>
         <div className={c.mathBlock}>
-          <span className={c.mathLabel}>drawer bins[29991]</span>
-          <span className={c.mathValue}>starts at (0, 0, 0)</span>
+          <span className={c.mathLabel}>{m.dominant_color_drawer_slot()} bins[29991]</span>
+          <span className={c.mathValue}>{m.dominant_color_drawer_start()} (0, 0, 0)</span>
         </div>
         {busiest.pixels.map(pixel => (
           <div
@@ -467,17 +479,18 @@ function WalkthroughScene({ model, step }: { model: Model; step: number }): JSX.
             />
             <div className={c.rowMain}>
               <div className={c.rowTitle}>
-                {pixel.id} adds ({pixel.r}, {pixel.g}, {pixel.b}) × {pixel.a}
+                {pixel.id} {m.dominant_color_adds()} ({pixel.r}, {pixel.g}, {pixel.b}) × {pixel.a}
               </div>
               <div className={c.rowNote}>
-                weighted sum ({pixel.r * pixel.a}, {pixel.g * pixel.a}, {pixel.b * pixel.a})
+                {m.dominant_color_weighted_sum()} ({pixel.r * pixel.a}, {pixel.g * pixel.a},{' '}
+                {pixel.b * pixel.a})
               </div>
             </div>
-            <span className={c.rowValue}>+ 1 sample</span>
+            <span className={c.rowValue}>{m.dominant_color_one_sample()}</span>
           </div>
         ))}
         <div className={c.mathBlock}>
-          <span className={c.mathLabel}>drawer total</span>
+          <span className={c.mathLabel}>{m.dominant_color_drawer_total()}</span>
           <span className={c.mathValue}>
             ({busiest.r}, {busiest.g}, {busiest.b}) ÷ {busiest.a} = (
             {markerFor(busiest)
@@ -492,7 +505,7 @@ function WalkthroughScene({ model, step }: { model: Model; step: number }): JSX.
   if (step === 3) {
     return (
       <div>
-        <div className={c.stageHeader}>non-empty drawers become starting markers</div>
+        <div className={c.stageHeader}>{m.dominant_color_scene_seeds()}</div>
         <div className={c.markerList}>
           {model.bins.map((bin, index) => {
             const marker = markerFor(bin);
@@ -516,7 +529,7 @@ function WalkthroughScene({ model, step }: { model: Model; step: number }): JSX.
                   }}
                 />
                 <span className={c.markerName}>
-                  marker {index + 1}
+                  {m.dominant_color_marker()} {index + 1}
                   <br />
                   {bin.pixels.map(pixel => pixel.id).join(' + ')}
                 </span>
@@ -529,7 +542,8 @@ function WalkthroughScene({ model, step }: { model: Model; step: number }): JSX.
           })}
         </div>
         <p className={c.stable}>
-          Rust keeps at most K = 8 markers. This fixture has three non-empty drawers.
+          {m.dominant_color_seed_prefix()} 8 {m.dominant_color_seed_markers()} 3{' '}
+          {m.dominant_color_seed_drawers()}
         </p>
       </div>
     );
@@ -537,7 +551,7 @@ function WalkthroughScene({ model, step }: { model: Model; step: number }): JSX.
   if (step === 4) {
     return (
       <div>
-        <div className={c.stageHeader}>nearest squared RGB distance decides each match</div>
+        <div className={c.stageHeader}>{m.dominant_color_scene_match()}</div>
         <div className={c.matchList}>
           {PIXELS.map((pixel, index) => (
             <div
@@ -545,15 +559,15 @@ function WalkthroughScene({ model, step }: { model: Model; step: number }): JSX.
               key={pixel.id}
             >
               <span className={c.matchLabel}>{pixel.id}</span>
-              <span className={c.matchArrow}>smallest distance</span>
+              <span className={c.matchArrow}>{m.dominant_color_smallest_distance()}</span>
               <span className={c.rowValue}>
-                marker {(model.firstAssignment.assignments[index] ?? 0) + 1}
+                {m.dominant_color_marker()} {(model.firstAssignment.assignments[index] ?? 0) + 1}
               </span>
             </div>
           ))}
         </div>
         <div className={c.mathBlock}>
-          <span className={c.mathLabel}>worked example · P1 to marker 1</span>
+          <span className={c.mathLabel}>{m.dominant_color_worked_example()}</span>
           <span className={c.mathValue}>
             d = (235.5 − 232)² + (77.5 − 76)² + (60.5 − 58)² = 20.75
           </span>
@@ -564,7 +578,7 @@ function WalkthroughScene({ model, step }: { model: Model; step: number }): JSX.
   if (step === 5) {
     return (
       <div>
-        <div className={c.stageHeader}>recalculate each marker from its assigned pixels</div>
+        <div className={c.stageHeader}>{m.dominant_color_scene_repeat()}</div>
         <div className={c.repeatList}>
           {model.finalCentroids.map((centroid, index) => {
             const group = model.finalAssignment.clusters[index];
@@ -574,21 +588,20 @@ function WalkthroughScene({ model, step }: { model: Model; step: number }): JSX.
                 className={c.repeatRow}
                 key={centroid.join('-')}
               >
-                <span className={c.repeatMarker}>marker {index + 1}</span>
+                <span className={c.repeatMarker}>
+                  {m.dominant_color_marker()} {index + 1}
+                </span>
                 <span className={c.repeatText}>
-                  {group.pixels.map(pixel => pixel.id).join(' + ') || 'no pixels'}
+                  {group.pixels.map(pixel => pixel.id).join(' + ') || m.dominant_color_no_pixels()}
                   <br />({group.r}, {group.g}, {group.b}) ÷ {group.alphaWeight}
                   <br />= ({centroid.map(value => value.toFixed(1)).join(', ')})
                 </span>
-                <span className={c.rowValue}>stable</span>
+                <span className={c.rowValue}>{m.dominant_color_stable()}</span>
               </div>
             );
           })}
         </div>
-        <p className={c.stable}>
-          The loop runs five passes. These markers do not move, so passes 2 to 5 repeat the same
-          assignments.
-        </p>
+        <p className={c.stable}>{m.dominant_color_loop_note()}</p>
       </div>
     );
   }
@@ -596,7 +609,7 @@ function WalkthroughScene({ model, step }: { model: Model; step: number }): JSX.
     const maxWeight = Math.max(...model.families.map(family => family.alphaWeight));
     return (
       <div>
-        <div className={c.stageHeader}>nearby markers become color families</div>
+        <div className={c.stageHeader}>{m.dominant_color_scene_winner()}</div>
         <div className={c.familyList}>
           {model.families.map((family, index) => {
             const winner = family === model.winnerFamily;
@@ -607,11 +620,12 @@ function WalkthroughScene({ model, step }: { model: Model; step: number }): JSX.
               >
                 <div className={c.familyHeader}>
                   <span className={c.familyName}>
-                    family {index + 1} · markers{' '}
+                    {m.dominant_color_family()} {index + 1} · {m.dominant_color_markers()}{' '}
                     {family.members.map(member => member + 1).join(' + ')}
                   </span>
                   <span className={c.familyWeight}>
-                    {family.samples} pixels · α {family.alphaWeight}
+                    {family.samples} {m.dominant_color_pixels()} · {m.dominant_color_alpha()}{' '}
+                    {family.alphaWeight}
                   </span>
                 </div>
                 <div className={c.familyTrack}>
@@ -624,24 +638,21 @@ function WalkthroughScene({ model, step }: { model: Model; step: number }): JSX.
                 </div>
                 <div className={c.familyMembers}>
                   {family.pixels.map(pixel => pixel.id).join(' + ')}
-                  {winner ? ' · winner' : ''}
+                  {winner ? ` · ${m.dominant_color_winner()}` : ''}
                 </div>
               </div>
             );
           })}
         </div>
-        <p className={c.stable}>
-          Rust merges centroids within RGB distance 60, then votes by total alpha weight. In this
-          fixture, the P1 + P2 marker is already the largest family.
-        </p>
+        <p className={c.stable}>{m.dominant_color_family_merge_note()}</p>
       </div>
     );
   }
   return (
     <div>
-      <div className={c.stageHeader}>the answer</div>
+      <div className={c.stageHeader}>{m.dominant_color_scene_output()}</div>
       <div className={c.mathBlock}>
-        <span className={c.mathLabel}>winning family mean</span>
+        <span className={c.mathLabel}>{m.dominant_color_winning_family_mean()}</span>
         <span className={c.mathValue}>
           ({model.winnerFamily.r}, {model.winnerFamily.g}, {model.winnerFamily.b}) ÷{' '}
           {model.winnerFamily.alphaWeight} = (
@@ -658,7 +669,8 @@ function WalkthroughScene({ model, step }: { model: Model; step: number }): JSX.
         <div>
           <div className={c.winnerHex}>{model.winnerHex}</div>
           <div className={c.familyMembers}>
-            rounded RGB ({model.winnerRgb.map(value => Math.round(value)).join(', ')}) · P1 + P2
+            {m.dominant_color_rounded_rgb()} (
+            {model.winnerRgb.map(value => Math.round(value)).join(', ')}) · P1 + P2
           </div>
         </div>
       </div>
@@ -667,21 +679,14 @@ function WalkthroughScene({ model, step }: { model: Model; step: number }): JSX.
 }
 
 function stepCopy(step: number): string {
-  if (step === 0)
-    return 'Each square is one pixel. Its color is four bytes: red, green, blue, and opacity.';
-  if (step === 1)
-    return 'Divide each channel by 8 and round down to form a compact drawer address.';
-  if (step === 2)
-    return 'Pixels in one drawer add their alpha-weighted channel values to the same running total.';
-  if (step === 3)
-    return 'The busiest non-empty drawers provide the initial color markers for K-Means.';
-  if (step === 4)
-    return 'Every drawer joins the marker with the smallest squared distance in RGB space.';
-  if (step === 5)
-    return 'Recompute marker means from their assigned pixels and repeat the pass five times.';
-  if (step === 6)
-    return 'The production Rust path merges nearby markers before selecting the alpha-weighted winner.';
-  return 'Round the winning family mean to RGB bytes and format it as HEX.';
+  if (step === 0) return m.dominant_color_stage_input_copy();
+  if (step === 1) return m.dominant_color_stage_address_copy();
+  if (step === 2) return m.dominant_color_stage_collect_copy();
+  if (step === 3) return m.dominant_color_stage_seeds_copy();
+  if (step === 4) return m.dominant_color_stage_match_copy();
+  if (step === 5) return m.dominant_color_stage_repeat_copy();
+  if (step === 6) return m.dominant_color_stage_winner_copy();
+  return m.dominant_color_stage_output_copy();
 }
 
 export function DominantColorWalkthrough(): JSX.Element {
@@ -709,34 +714,31 @@ export function DominantColorWalkthrough(): JSX.Element {
       className={c.section}
     >
       <div className={c.intro}>
-        <p className={c.kicker}>Interactive walkthrough</p>
+        <p className={c.kicker}>{m.dominant_color_walkthrough_kicker()}</p>
         <h2
           className={c.title}
           id={titleId}
         >
-          Watch four pixels become one color.
+          {m.dominant_color_walkthrough_title()}
         </h2>
-        <p className={c.lead}>
-          Move through the same bins, weighted means, K-Means passes, and family vote used by the
-          Rust color kernel.
-        </p>
+        <p className={c.lead}>{m.dominant_color_walkthrough_lead()}</p>
       </div>
       <div className={`${c.shell} ${c.reducedMotion}`.trim()}>
         <div className={c.shellBar}>
           <span className={c.shellLabel}>
-            dominant color · step {step + 1} of {STEPS.length}
+            {m.dominant_color_step_prefix()} {step + 1} {m.dominant_color_step_of()} {STEPS.length}
           </span>
           <nav
-            aria-label="Walkthrough steps"
+            aria-label={m.dominant_color_walkthrough_steps()}
             className={c.stepRail}
           >
             {STEPS.map((item, index) => (
               <button
                 aria-current={step === index ? 'step' : undefined}
-                aria-label={`${index + 1}. ${item.label}`}
+                aria-label={`${index + 1}. ${item.label()}`}
                 className={`${c.stepButton} ${step === index ? c.stepButtonActive : ''}`.trim()}
                 data-step={index}
-                key={item.label}
+                key={item.label()}
                 onClick={handleStepSelect}
                 type="button"
               >
@@ -757,8 +759,8 @@ export function DominantColorWalkthrough(): JSX.Element {
           </div>
           <aside className={c.side}>
             <div>
-              <span className={c.sideLabel}>{activeStep?.label}</span>
-              <h3 className={c.stepTitle}>{activeStep?.title}</h3>
+              <span className={c.sideLabel}>{activeStep?.label()}</span>
+              <h3 className={c.stepTitle}>{activeStep?.title()}</h3>
               <p className={c.stepCopy}>{stepCopy(step)}</p>
             </div>
             <div>
@@ -769,20 +771,22 @@ export function DominantColorWalkthrough(): JSX.Element {
                   onClick={handlePrevious}
                   type="button"
                 >
-                  Back
+                  {m.dominant_color_back()}
                 </button>
                 <button
                   className={`${c.controlButton} ${c.controlButtonPrimary}`.trim()}
                   onClick={handleNext}
                   type="button"
                 >
-                  {step === lastStep ? 'Start again' : 'Next step'}
+                  {step === lastStep
+                    ? m.dominant_color_start_again()
+                    : m.dominant_color_next_step()}
                 </button>
               </div>
               <p className={c.sourceNote}>
-                The fixture returns <span className={c.sourceCode}>{model.winnerHex}</span>.
-                Production Rust also applies the same alpha cutoff, family merge, and coverage
-                accounting to full images.
+                {m.dominant_color_fixture_prefix()}{' '}
+                <span className={c.sourceCode}>{model.winnerHex}</span>.{' '}
+                {m.dominant_color_fixture_note()}
               </p>
             </div>
           </aside>

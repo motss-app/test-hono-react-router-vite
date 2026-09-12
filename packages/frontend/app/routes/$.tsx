@@ -48,16 +48,16 @@ export default function NotFound({ loaderData }: Route.ComponentProps): JSX.Elem
   return (
     <div className={s.container}>
       <h1 className={s.h1}>404</h1>
-      <h2>Page Not Found</h2>
+      <h2>{m.not_found_title()}</h2>
       <p>
-        The page <code>{loaderData.url}</code> does not exist.
+        <code>{loaderData.url}</code> {m.not_found_description()}
       </p>
       <div className={s.marginTop}>
         <Link
           className={s.link}
           to="/"
         >
-          ← Go back home
+          ← {m.not_found_back_home()}
         </Link>
       </div>
     </div>

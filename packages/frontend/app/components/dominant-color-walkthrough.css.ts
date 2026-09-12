@@ -141,7 +141,8 @@ export const body = style({
 });
 
 export const stage = style({
-  minHeight: '31rem',
+  blockSize: '36rem',
+  overflow: 'auto',
   padding: 'clamp(1.1rem, 3vw, 2.25rem)',
 });
 
@@ -433,6 +434,7 @@ export const winnerHex = style({
 export const side = style({
   '@media': {
     '(max-width: 760px)': {
+      blockSize: '20rem',
       borderBlockStart: '1px solid #26333d',
       borderInlineStart: 0,
     },

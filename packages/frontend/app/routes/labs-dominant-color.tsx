@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { DominantColorWalkthrough } from '../components/dominant-color-walkthrough.tsx';
 import { Link } from '../components/Link.tsx';
 import { PageFooter } from '../components/page-footer.tsx';
+import * as m from '../paraglide/messages.js';
 import type { Route } from './+types/labs-dominant-color.ts';
 import * as c from './labs-dominant-color.css.ts';
 
@@ -28,10 +29,10 @@ interface ColorResponse {
 export function meta(): Route.MetaDescriptors {
   return [
     {
-      title: 'Dominant Color · WASM Labs',
+      title: m.meta_dominant_color_title(),
     },
     {
-      content: 'Extract dominant image colors with Rust WASM at the edge.',
+      content: m.meta_dominant_color_desc(),
       name: 'description',
     },
   ];
@@ -65,11 +66,11 @@ export default function DominantColorLab(): JSX.Element {
     setResult(null);
     if (!nextFile) return;
     if (!nextFile.type.startsWith('image/') && !nextFile.name.toLowerCase().endsWith('.jxl')) {
-      setError('Choose an image file.');
+      setError(m.dominant_color_error_invalid_file());
       return;
     }
     if (nextFile.size > MAX_BYTES) {
-      setError('This image is larger than the 32 MB upload limit.');
+      setError(m.dominant_color_error_size());
       return;
     }
     setFile(nextFile);
@@ -136,26 +137,23 @@ export default function DominantColorLab(): JSX.Element {
               className={c.backLink}
               to="/labs"
             >
-              ← Back to labs
+              {m.labs_mandelbrot_cta_back_home()}
             </Link>
-            <div className={c.eyebrow}>Lab 02 · Rust + image decoding</div>
-            <h1 className={c.title}>Dominant color.</h1>
-            <p className={c.heroLead}>
-              Drop in an image. The edge decodes it, samples its palette, and returns one color
-              expressed across the color systems designers actually use.
-            </p>
+            <div className={c.eyebrow}>{m.dominant_color_hero_eyebrow()}</div>
+            <h1 className={c.title}>{m.dominant_color_title()}</h1>
+            <p className={c.heroLead}>{m.dominant_color_hero_lead()}</p>
           </div>
         </div>
       </section>
+
+      <DominantColorWalkthrough />
+
       <section className={c.inner}>
         <div className={c.workspace}>
           <div className={c.uploadColumn}>
-            <p className={c.sectionLabel}>Input</p>
-            <h2 className={c.sectionTitle}>Give it a frame.</h2>
-            <p className={c.sectionBody}>
-              Images up to 4K and 32 MB are accepted. AVIF, JPEG XL, JPEG, PNG, WebP, GIF, and TIFF
-              are decoded inside the Rust Worker.
-            </p>
+            <p className={c.sectionLabel}>{m.dominant_color_input_label()}</p>
+            <h2 className={c.sectionTitle}>{m.dominant_color_input_title()}</h2>
+            <p className={c.sectionBody}>{m.dominant_color_input_desc()}</p>
             {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: the label is the keyboard-accessible file picker and drag target. */}
             <label
               className={`${c.dropzone} ${dragging ? c.dropzoneActive : ''}`.trim()}
@@ -181,8 +179,8 @@ export default function DominantColorLab(): JSX.Element {
               ) : (
                 <div className={c.dropContent}>
                   <span className={c.dropIcon}>◌</span>
-                  <p className={c.dropTitle}>Choose or drop an image</p>
-                  <p className={c.dropNote}>AVIF · JXL · JPEG · PNG · WebP · TIFF</p>
+                  <p className={c.dropTitle}>{m.dominant_color_drop_title()}</p>
+                  <p className={c.dropNote}>{m.dominant_color_formats()}</p>
                 </div>
               )}
             </label>
@@ -194,7 +192,7 @@ export default function DominantColorLab(): JSX.Element {
                   onClick={analyze}
                   type="button"
                 >
-                  {busy ? 'Analyzing at the edge…' : 'Extract dominant color'}
+                  {busy ? m.dominant_color_analyzing() : m.dominant_color_analyze()}
                 </button>
                 <span className={c.dropNote}>
                   {file.name} · {formatBytes(file.size)}
@@ -211,12 +209,9 @@ export default function DominantColorLab(): JSX.Element {
             ) : null}
           </div>
           <div className={c.resultColumn}>
-            <p className={c.sectionLabel}>Output</p>
-            <h2 className={c.sectionTitle}>A color, unpacked.</h2>
-            <p className={c.sectionBody}>
-              The response stays intentionally inspectable: the full JSON is the artifact, with the
-              dominant swatch as its visual checksum.
-            </p>
+            <p className={c.sectionLabel}>{m.dominant_color_output_label()}</p>
+            <h2 className={c.sectionTitle}>{m.dominant_color_output_title()}</h2>
+            <p className={c.sectionBody}>{m.dominant_color_output_desc()}</p>
             <div className={c.result}>
               {result ? (
                 <>
@@ -237,19 +232,13 @@ export default function DominantColorLab(): JSX.Element {
                   <pre className={c.json}>{JSON.stringify(result, null, 2)}</pre>
                 </>
               ) : (
-                <div className={c.emptyResult}>Your formatted color JSON will appear here.</div>
+                <div className={c.emptyResult}>{m.dominant_color_empty_result()}</div>
               )}
             </div>
           </div>
         </div>
-        <p className={c.footer}>
-          The analysis kernel is shared Rust code compiled into the Cloudflare Worker as WASM.
-          Transparent pixels are ignored, and the winning color is selected from a quantized,
-          alpha-weighted pixel histogram.
-        </p>
+        <p className={c.footer}>{m.dominant_color_footer_note()}</p>
       </section>
-
-      <DominantColorWalkthrough />
 
       <PageFooter />
     </main>

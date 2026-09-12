@@ -114,12 +114,12 @@ export const dropzone = style({
   alignItems: 'center',
   animation: `${reveal} 600ms cubic-bezier(0.22, 1, 0.36, 1) both`,
   backgroundColor: '#f7fee7',
+  blockSize: '21rem',
   border: '1px dashed #84cc16',
   borderRadius: radiusTokens.radiusMd,
   cursor: 'pointer',
   display: 'flex',
   justifyContent: 'center',
-  minBlockSize: '21rem',
   padding: '2rem',
   selectors: {
     ':root[data-theme="dark"] &': {
@@ -187,10 +187,10 @@ export const preview = style({
 export const previewWrap = style({
   alignItems: 'center',
   backgroundColor: '#111827',
+  blockSize: '21rem',
   borderRadius: radiusTokens.radiusMd,
   display: 'flex',
   justifyContent: 'center',
-  minBlockSize: '21rem',
   overflow: 'hidden',
 });
 export const actionRow = style({
