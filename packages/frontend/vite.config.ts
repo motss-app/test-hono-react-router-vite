@@ -65,6 +65,7 @@ export default defineConfig(async config => {
   const sentryPlugins = await sentryReactRouter(sentryBuildOptions, config);
 
   return {
+    cacheDir: `${repoRootPath}node_modules/.vite/frontend`,
     optimizeDeps: {
       include: optimizeDepsInclude,
     },

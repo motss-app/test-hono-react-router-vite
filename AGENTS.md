@@ -136,6 +136,7 @@ unaffected by this rule.
 - `docs/sentry-cloudflare-workers-vs-nodejs.md`: Sentry CF Workers vs Node.js.
 - `docs/benchmark-baseline.md`: benchmark baseline data.
 - `docs/testing.md`: testing guide.
+- `docs/vscode-integrated-browser-agent-guide.md`: verified native computer-use workflow for the VS Code integrated browser.
 
 ## Maintenance
 

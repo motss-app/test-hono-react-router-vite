@@ -12,7 +12,43 @@ const MAX_BYTES = 32 * 1024 * 1024;
 const ACCEPT = 'image/avif,image/jpeg,image/png,image/webp,image/gif,image/tiff,image/jxl,.jxl';
 
 interface ColorResponse {
+  coverage: number;
+  css: {
+    color_4: string;
+    srgb: string;
+  };
   hex: string;
+  hsl: {
+    h: number;
+    l: number;
+    s: number;
+  };
+  hsv: {
+    h: number;
+    s: number;
+    v: number;
+  };
+  lab: {
+    a: number;
+    b: number;
+    l: number;
+  };
+  lch: {
+    c: number;
+    h: number;
+    l: number;
+  };
+  oklab: {
+    a: number;
+    b: number;
+    l: number;
+  };
+  oklch: {
+    c: number;
+    h: number;
+    l: number;
+  };
+  pixel_count: number;
   rgba: {
     r: number;
     g: number;
@@ -23,7 +59,146 @@ interface ColorResponse {
   height: number;
   format: string;
   time_ms: number;
-  [key: string]: unknown;
+}
+
+type OutputMode = 'formatted' | 'raw';
+
+type FormatRow = {
+  cssColor: string | null;
+  id: string;
+  label: string;
+  value: string;
+};
+
+function formatAlpha(alpha: number): string {
+  return (alpha / 255).toFixed(3);
+}
+
+function formatPercent(value: number): string {
+  return `${(value * 100).toFixed(2)}%`;
+}
+
+function buildFormatRows(result: ColorResponse): FormatRow[] {
+  const alpha = formatAlpha(result.rgba.a);
+  return [
+    {
+      cssColor: result.hex,
+      id: 'hex',
+      label: m.dominant_color_output_hex(),
+      value: result.hex,
+    },
+    {
+      cssColor: result.css.srgb,
+      id: 'rgb',
+      label: m.dominant_color_output_rgb(),
+      value: `rgb(${result.rgba.r} ${result.rgba.g} ${result.rgba.b} / ${alpha})`,
+    },
+    {
+      cssColor: `hsl(${result.hsl.h.toFixed(2)} ${formatPercent(result.hsl.s)} ${formatPercent(result.hsl.l)} / ${alpha})`,
+      id: 'hsl',
+      label: m.dominant_color_output_hsl(),
+      value: `hsl(${result.hsl.h.toFixed(2)}°, ${formatPercent(result.hsl.s)}, ${formatPercent(result.hsl.l)} / ${alpha})`,
+    },
+    {
+      cssColor: null,
+      id: 'hsv',
+      label: m.dominant_color_output_hsv(),
+      value: `hsv(${result.hsv.h.toFixed(2)}°, ${formatPercent(result.hsv.s)}, ${formatPercent(result.hsv.v)} / ${alpha})`,
+    },
+    {
+      cssColor: `lab(${result.lab.l.toFixed(2)}% ${result.lab.a.toFixed(2)} ${result.lab.b.toFixed(2)} / ${alpha})`,
+      id: 'lab',
+      label: m.dominant_color_output_lab(),
+      value: `lab(${result.lab.l.toFixed(2)}% ${result.lab.a.toFixed(2)} ${result.lab.b.toFixed(2)} / ${alpha})`,
+    },
+    {
+      cssColor: `lch(${result.lch.l.toFixed(2)}% ${result.lch.c.toFixed(2)} ${result.lch.h.toFixed(2)} / ${alpha})`,
+      id: 'lch',
+      label: m.dominant_color_output_lch(),
+      value: `lch(${result.lch.l.toFixed(2)}% ${result.lch.c.toFixed(2)} ${result.lch.h.toFixed(2)} / ${alpha})`,
+    },
+    {
+      cssColor: `oklab(${result.oklab.l.toFixed(5)} ${result.oklab.a.toFixed(5)} ${result.oklab.b.toFixed(5)} / ${alpha})`,
+      id: 'oklab',
+      label: m.dominant_color_output_oklab(),
+      value: `oklab(${result.oklab.l.toFixed(5)} ${result.oklab.a.toFixed(5)} ${result.oklab.b.toFixed(5)} / ${alpha})`,
+    },
+    {
+      cssColor: `oklch(${result.oklch.l.toFixed(5)} ${result.oklch.c.toFixed(5)} ${result.oklch.h.toFixed(2)} / ${alpha})`,
+      id: 'oklch',
+      label: m.dominant_color_output_oklch(),
+      value: `oklch(${result.oklch.l.toFixed(5)} ${result.oklch.c.toFixed(5)} ${result.oklch.h.toFixed(2)} / ${alpha})`,
+    },
+    {
+      cssColor: result.css.srgb,
+      id: 'css-srgb',
+      label: m.dominant_color_output_css_srgb(),
+      value: result.css.srgb,
+    },
+    {
+      cssColor: result.css.color_4,
+      id: 'css-color-4',
+      label: m.dominant_color_output_css_color4(),
+      value: result.css.color_4,
+    },
+  ];
+}
+
+function supportsCssColor(value: string): boolean {
+  return typeof globalThis.CSS !== 'undefined' && globalThis.CSS.supports('color', value);
+}
+
+function FormattedOutput({ result }: { result: ColorResponse }): JSX.Element {
+  const rows = buildFormatRows(result);
+  return (
+    <div className={c.formattedOutput}>
+      <div className={c.formattedIntro}>
+        <p className={c.formattedTitle}>{m.dominant_color_output_formats_title()}</p>
+        <p className={c.formattedNote}>{m.dominant_color_output_formats_note()}</p>
+      </div>
+      <div className={c.formatList}>
+        {rows.map(row => {
+          const native = row.cssColor !== null && supportsCssColor(row.cssColor);
+          return (
+            <div
+              className={c.formatRow}
+              key={row.id}
+            >
+              <span
+                className={c.formatSwatch}
+                style={{
+                  backgroundColor: native && row.cssColor ? row.cssColor : result.hex,
+                }}
+              />
+              <div className={c.formatCopy}>
+                <div className={c.formatHeader}>
+                  <span className={c.formatLabel}>{row.label}</span>
+                  <span className={c.formatSupport}>
+                    {native ? m.dominant_color_output_native() : m.dominant_color_output_numeric()}
+                  </span>
+                </div>
+                <code className={c.formatValue}>{row.value}</code>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className={c.metrics}>
+        <p className={c.metricsTitle}>{m.dominant_color_output_metrics()}</p>
+        <div className={c.metricList}>
+          <span>
+            {result.pixel_count} {m.dominant_color_output_pixel_count()}
+          </span>
+          <span>
+            {(result.coverage * 100).toFixed(1)}% {m.dominant_color_output_coverage()}
+          </span>
+          <span>
+            {result.rgba.a} {m.dominant_color_output_alpha()}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function meta(): Route.MetaDescriptors {
@@ -51,6 +226,7 @@ export default function DominantColorLab(): JSX.Element {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const [outputMode, setOutputMode] = useState<OutputMode>('formatted');
 
   useEffect(
     () => () => {
@@ -64,6 +240,7 @@ export default function DominantColorLab(): JSX.Element {
   const chooseFile = useCallback((nextFile: File | null) => {
     setError(null);
     setResult(null);
+    setOutputMode('formatted');
     if (!nextFile) return;
     if (!nextFile.type.startsWith('image/') && !nextFile.name.toLowerCase().endsWith('.jxl')) {
       setError(m.dominant_color_error_invalid_file());
@@ -102,6 +279,8 @@ export default function DominantColorLab(): JSX.Element {
     (event: ReactDragEvent<HTMLLabelElement>) => event.preventDefault(),
     []
   );
+  const showFormattedOutput = useCallback(() => setOutputMode('formatted'), []);
+  const showRawOutput = useCallback(() => setOutputMode('raw'), []);
 
   const analyze = useCallback(async () => {
     if (!file) return;
@@ -229,7 +408,37 @@ export default function DominantColorLab(): JSX.Element {
                       }}
                     />
                   </div>
-                  <pre className={c.json}>{JSON.stringify(result, null, 2)}</pre>
+                  <div
+                    aria-label={m.dominant_color_output_toggle()}
+                    className={c.outputToggle}
+                    role="tablist"
+                  >
+                    <button
+                      aria-selected={outputMode === 'formatted'}
+                      className={`${c.outputTab} ${outputMode === 'formatted' ? c.outputTabActive : ''}`.trim()}
+                      onClick={showFormattedOutput}
+                      role="tab"
+                      type="button"
+                    >
+                      {m.dominant_color_output_formatted()}
+                    </button>
+                    <button
+                      aria-selected={outputMode === 'raw'}
+                      className={`${c.outputTab} ${outputMode === 'raw' ? c.outputTabActive : ''}`.trim()}
+                      onClick={showRawOutput}
+                      role="tab"
+                      type="button"
+                    >
+                      {m.dominant_color_output_raw_json()}
+                    </button>
+                  </div>
+                  <div className={c.outputContent}>
+                    {outputMode === 'formatted' ? (
+                      <FormattedOutput result={result} />
+                    ) : (
+                      <pre className={c.json}>{JSON.stringify(result, null, 2)}</pre>
+                    )}
+                  </div>
                 </>
               ) : (
                 <div className={c.emptyResult}>{m.dominant_color_empty_result()}</div>
