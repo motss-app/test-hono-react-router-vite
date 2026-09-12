@@ -42,23 +42,21 @@ Before editing:
 - Discover the available MCP tools and choose the appropriate ones for each
   task. Do not use computer-use automation, custom browser scripts, standalone
   browsers, or headless browsers.
-- Reuse existing pages when appropriate, and clean up every page or dedicated
-  browser process created by the agent. Never terminate a pre-existing shared
-  Edge process or user-owned tabs.
-- When visual evidence is requested, capture it with the Edge DevTools MCP and
-  attach the returned image content directly to the final user-facing response.
-  A tool trace preview, JSON wrapper, text attachment, or screenshot file path
-  does not satisfy this requirement. Verify that the response contains a
-  native inline image before claiming that visual evidence was delivered.
-- After Edge DevTools MCP work, close created pages, then use terminal `ps` to
-  find the MCP-owned Edge and `chrome-devtools-mcp` launcher by the temporary
-  `puppeteer_dev_chrome_profile-*` directory and `--remote-debugging-pipe`.
-  Kill only their recorded PIDs with `kill -TERM`, then verify with `ps`.
-  Page closure or `about:blank` is not process cleanup. Request elevated access
-  if needed.
-- Complete screenshot capture and image attachment before terminating the MCP
-  process. If image attachment is blocked or unavailable, report that honestly
-  instead of providing only a file path or tool result.
+- Run each browser task in a fresh dedicated Edge DevTools MCP process. The
+  lifecycle is: start, use, capture and attach any requested screenshot, close
+  created pages, then terminate that task's process. Never touch pre-existing
+  shared Edge processes or user-owned tabs.
+- If the Edge DevTools transport or a page call fails, recover in the same
+  turn by starting a new dedicated MCP process. Do not require a fresh
+  conversation merely because the previous browser process ended.
+- For visual evidence, attach the returned Edge DevTools image content directly
+  to the final response. A tool trace, JSON wrapper, text attachment, or file
+  path is not sufficient. Do not terminate the MCP process until the inline
+  image is attached, or report the attachment failure honestly.
+- After terminating the task process, use `ps` to match the temporary
+  `puppeteer_dev_chrome_profile-*` and `--remote-debugging-pipe`, then send
+  `kill -TERM` only to the recorded MCP-owned Edge and `chrome-devtools-mcp`
+  PIDs. Verify they exited. Request elevated access if needed.
 
 ## Project Structure
 

@@ -82,12 +82,6 @@ function buildFormatRows(result: ColorResponse): FormatRow[] {
   const alpha = formatAlpha(result.rgba.a);
   return [
     {
-      cssColor: result.hex,
-      id: 'hex',
-      label: m.dominant_color_output_hex(),
-      value: result.hex,
-    },
-    {
       cssColor: result.css.srgb,
       id: 'rgb',
       label: m.dominant_color_output_rgb(),
@@ -182,20 +176,6 @@ function FormattedOutput({ result }: { result: ColorResponse }): JSX.Element {
             </div>
           );
         })}
-      </div>
-      <div className={c.metrics}>
-        <p className={c.metricsTitle}>{m.dominant_color_output_metrics()}</p>
-        <div className={c.metricList}>
-          <span>
-            {result.pixel_count} {m.dominant_color_output_pixel_count()}
-          </span>
-          <span>
-            {(result.coverage * 100).toFixed(1)}% {m.dominant_color_output_coverage()}
-          </span>
-          <span>
-            {result.rgba.a} {m.dominant_color_output_alpha()}
-          </span>
-        </div>
       </div>
     </div>
   );
@@ -397,9 +377,18 @@ export default function DominantColorLab(): JSX.Element {
                   <div className={c.resultHeader}>
                     <div>
                       <p className={c.resultTitle}>{result.hex}</p>
-                      <p className={c.resultMeta}>
-                        {result.width} × {result.height} · {result.format} · {result.time_ms} ms
-                      </p>
+                      <div className={c.resultMeta}>
+                        <span>
+                          {result.width} × {result.height} · {result.pixel_count}{' '}
+                          {m.dominant_color_output_pixel_count()} · {m.dominant_color_output_took()}{' '}
+                          {result.time_ms} ms
+                        </span>
+                        <span>
+                          {result.format} · {(result.coverage * 100).toFixed(1)}%{' '}
+                          {m.dominant_color_output_coverage()} · {result.rgba.a}{' '}
+                          {m.dominant_color_output_alpha()}
+                        </span>
+                      </div>
                     </div>
                     <span
                       className={c.swatch}

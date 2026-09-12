@@ -269,7 +269,7 @@ export const resultColumn = style({
 });
 export const result = style({
   backgroundColor: '#0a1222',
-  blockSize: 'min(44rem, 70svh)',
+  blockSize: '44rem',
   border: '1px solid #5878a8',
   borderRadius: radiusTokens.radiusMd,
   color: '#d1d5db',
@@ -300,7 +300,10 @@ export const resultTitle = style({
 });
 export const resultMeta = style({
   color: '#9ca3af',
+  display: 'grid',
   fontSize: '0.78rem',
+  gap: '0.15rem',
+  lineHeight: 1.45,
   margin: '0.2rem 0 0',
 });
 export const json = style({
@@ -318,6 +321,7 @@ export const emptyResult = style({
   blockSize: '100%',
   color: '#f1f5ff',
   display: 'flex',
+  flex: '1 1 auto',
   justifyContent: 'center',
   padding: '2rem',
   textAlign: 'center',
@@ -344,7 +348,7 @@ export const outputTab = style({
       outline: '2px solid #bef264',
       outlineOffset: '2px',
     },
-    '&:hover': {
+    '&:not([aria-selected="true"]):hover': {
       color: colorTokens.white,
     },
   },
@@ -429,28 +433,6 @@ export const formatValue = style({
   lineHeight: 1.45,
   marginBlockStart: '0.18rem',
   overflowWrap: 'anywhere',
-});
-export const metrics = style({
-  borderBlockStart: '1px solid #26333d',
-  marginBlockStart: '1rem',
-  paddingBlockStart: '0.9rem',
-});
-export const metricsTitle = style({
-  color: '#60716e',
-  fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-  fontSize: '0.68rem',
-  letterSpacing: '0.1em',
-  margin: 0,
-  textTransform: 'uppercase',
-});
-export const metricList = style({
-  color: '#b8c8c3',
-  display: 'flex',
-  flexWrap: 'wrap',
-  fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-  fontSize: '0.7rem',
-  gap: '0.8rem',
-  marginBlockStart: '0.55rem',
 });
 export const footer = style({
   borderBlockStart: '1px solid #e5e7eb',
