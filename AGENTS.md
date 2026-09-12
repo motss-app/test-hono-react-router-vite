@@ -45,16 +45,20 @@ Before editing:
 - Reuse existing pages when appropriate, and clean up every page or dedicated
   browser process created by the agent. Never terminate a pre-existing shared
   Edge process or user-owned tabs.
+- When visual evidence is requested, capture it with the Edge DevTools MCP and
+  attach the returned image content directly to the final user-facing response.
+  A tool trace preview, JSON wrapper, text attachment, or screenshot file path
+  does not satisfy this requirement. Verify that the response contains a
+  native inline image before claiming that visual evidence was delivered.
 - After Edge DevTools MCP work, close created pages, then use terminal `ps` to
   find the MCP-owned Edge and `chrome-devtools-mcp` launcher by the temporary
   `puppeteer_dev_chrome_profile-*` directory and `--remote-debugging-pipe`.
   Kill only their recorded PIDs with `kill -TERM`, then verify with `ps`.
   Page closure or `about:blank` is not process cleanup. Request elevated access
   if needed.
-- When visual evidence is requested, attach the rendered screenshot as an image
-  in the Codex VS Code extension so it is visible inline. If screenshot capture
-  is blocked or unavailable, report that honestly instead of providing only a
-  file path or tool result.
+- Complete screenshot capture and image attachment before terminating the MCP
+  process. If image attachment is blocked or unavailable, report that honestly
+  instead of providing only a file path or tool result.
 
 ## Project Structure
 
