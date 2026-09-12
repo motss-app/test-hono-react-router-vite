@@ -23,6 +23,15 @@ Test your React Router + Hono + Vite setup.
 - Refresh browser
 - ✅ API updates (may need refresh)
 
+### 5. Visual Regression
+```bash
+deno task test:visual
+```
+
+The task captures every prerendered page at mobile and desktop viewports in
+light and dark themes. Verify that the expected files are generated under
+`__screenshots__/` before treating the visual check as passed.
+
 ## Production Tests
 
 ### Build Check
@@ -46,6 +55,7 @@ deno task start           # Runs on port 3000
 - **API not working**: Ensure `/api/*` prefix
 - **Build fails**: Run `deno check`
 - **HMR broken**: Check for TypeScript errors
+- **VRT blocked**: Report the startup or screenshot-artifact failure. A build pass is not a VRT pass.
 
 ## Quick Checklist
 
@@ -53,5 +63,7 @@ deno task start           # Runs on port 3000
 - [ ] Pages load at localhost:5173
 - [ ] Hot reload works
 - [ ] API routes return JSON
+- [ ] `deno task test:visual` completes
+- [ ] Expected screenshots are generated under `__screenshots__/`
 - [ ] `deno task build` completes
 - [ ] Production serves correctly

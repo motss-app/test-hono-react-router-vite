@@ -31,8 +31,9 @@ Before editing:
 6. Run Biome check/fix for linting and formatting after code changes.
 7. Run the benchmark after concluded changes to guard against regressions.
 8. Verify UI changes in the VS Code integrated browser (see Browser Interaction Rules).
-9. After verification passes, probe every URL in `docs/dev-urls.md` to ensure all return 200. Run these against the gateway at `localhost:8787` (and `localhost:5173` for direct frontend URLs). If the dev servers are not running, skip this step.
-10. Report what changed, what was verified, the URL probe results, and any remaining risks or blockers.
+9. For frontend visual changes, run `deno task test:visual` and verify the expected screenshots under `__screenshots__/`. If the dev stack cannot run or screenshots are not generated, report VRT as blocked and do not claim it passed.
+10. After verification passes, probe every URL in `docs/dev-urls.md` to ensure all return 200. Run these against the gateway at `localhost:8787` (and `localhost:5173` for direct frontend URLs). If the dev servers are not running, skip this step.
+11. Report what changed, what was verified, the URL probe results, and any remaining risks or blockers.
 
 ## Browser Interaction Rules
 
@@ -118,6 +119,7 @@ unaffected by this rule.
 | `deno run -P=lint npm:@biomejs/biome check --write .` | Lint fix |
 | `deno run -P=format npm:@biomejs/biome format --write .` | Format |
 | `BENCH_DURATION=20s deno task bench:all` | Full benchmark |
+| `deno task test:visual` | Generate visual regression screenshots |
 | `deno task dev` | Start all dev servers |
 
 ## Related Instruction Files

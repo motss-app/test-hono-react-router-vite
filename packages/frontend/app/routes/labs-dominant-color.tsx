@@ -1,6 +1,7 @@
 import type { JSX, ChangeEvent as ReactChangeEvent, DragEvent as ReactDragEvent } from 'react';
 import { useCallback, useEffect, useState } from 'react';
 
+import { DominantColorWalkthrough } from '../components/dominant-color-walkthrough.tsx';
 import { Link } from '../components/Link.tsx';
 import { PageFooter } from '../components/page-footer.tsx';
 import type { Route } from './+types/labs-dominant-color.ts';
@@ -247,6 +248,8 @@ export default function DominantColorLab(): JSX.Element {
           alpha-weighted pixel histogram.
         </p>
       </section>
+
+      <DominantColorWalkthrough />
 
       <PageFooter />
     </main>
