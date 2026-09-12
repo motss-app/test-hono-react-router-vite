@@ -37,21 +37,24 @@ Before editing:
 
 ## Browser Interaction Rules
 
-- **Always use the VS Code integrated browser for any frontend verification**
-  (visual checks, navigation, screenshots, page state). Sharing the integrated
-  browser may require user permission. Ask the user to share it or open a page
-  with the browser tools; never work around it by spawning another browser.
-- **Never write custom scripts** (Puppeteer/Playwright/`node` one-offs) or spawn
-  a standalone/headless browser instance to verify the frontend.
-- Prefer browser tools in this order:
-  1. VS Code integrated browser tools (`open_browser_page`, `navigate_page`,
-     `read_page`, `click_element`, `screenshot_page`, `type_in_page`,
-     `hover_element`, `handle_dialog`, ...).
-  2. Browser MCP tools (`playwright/*`, `io.github.chromedevtools/chrome-devtools-mcp/*`)
-     when the integrated browser tools lack a needed capability, reuse the
-     already-open page instead of launching a new browser.
-- `run_playwright_code` is a last resort only when no integrated browser or MCP
-  tool covers the needed action; explain why before using it.
+- Use the Microsoft Edge DevTools MCP exposed by the VS Code Edge DevTools
+  extension for browser-related verification and automation tasks.
+- Discover the available MCP tools and choose the appropriate ones for each
+  task. Do not use computer-use automation, custom browser scripts, standalone
+  browsers, or headless browsers.
+- Reuse existing pages when appropriate, and clean up every page or dedicated
+  browser process created by the agent. Never terminate a pre-existing shared
+  Edge process or user-owned tabs.
+- After Edge DevTools MCP work, close created pages, then use terminal `ps` to
+  find the MCP-owned Edge and `chrome-devtools-mcp` launcher by the temporary
+  `puppeteer_dev_chrome_profile-*` directory and `--remote-debugging-pipe`.
+  Kill only their recorded PIDs with `kill -TERM`, then verify with `ps`.
+  Page closure or `about:blank` is not process cleanup. Request elevated access
+  if needed.
+- When visual evidence is requested, attach the rendered screenshot as an image
+  in the Codex VS Code extension so it is visible inline. If screenshot capture
+  is blocked or unavailable, report that honestly instead of providing only a
+  file path or tool result.
 
 ## Project Structure
 
