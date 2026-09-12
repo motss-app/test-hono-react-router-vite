@@ -47,8 +47,10 @@ Before editing:
   created pages, then terminate that task's process. Never touch pre-existing
   shared Edge processes or user-owned tabs.
 - If the Edge DevTools transport or a page call fails, recover in the same
-  turn by starting a new dedicated MCP process. Do not require a fresh
-  conversation merely because the previous browser process ended.
+  turn by closing created pages, terminating only the exact task-owned Edge
+  and MCP PIDs, starting a fresh dedicated MCP process with the configured
+  launcher, and verifying the new session with `list_pages`. Do not retry a
+  dead transport or report `Transport closed` as the recovery result.
 - For visual evidence, attach the returned Edge DevTools image content directly
   to the final response. A tool trace, JSON wrapper, text attachment, or file
   path is not sufficient. Do not terminate the MCP process until the inline
