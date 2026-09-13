@@ -101,7 +101,10 @@ export default function Labs(): JSX.Element {
                 className={c.toolRow}
                 key={tool.to}
               >
-                <div className={c.toolPanel}>
+                <Link
+                  className={c.toolPanel}
+                  to={tool.to}
+                >
                   <span className={c.toolNumber}>{tool.number}</span>
 
                   <div className={c.toolContent}>
@@ -114,13 +117,8 @@ export default function Labs(): JSX.Element {
                     <p className={c.toolBody}>{tool.description}</p>
                   </div>
 
-                  <Link
-                    className={c.toolLink}
-                    to={tool.to}
-                  >
-                    <span>{m.route_open_action()}</span>
-                  </Link>
-                </div>
+                  <span className={c.toolAction}>{m.route_open_action()}</span>
+                </Link>
               </div>
             ))}
           </div>

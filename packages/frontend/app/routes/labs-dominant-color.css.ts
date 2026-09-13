@@ -61,6 +61,46 @@ export const backLink = style({
   marginBlockEnd: '2.5rem',
   textDecoration: 'none',
 });
+export const heroActions = style({
+  display: 'inline-grid',
+  gap: '0.75rem',
+  gridAutoFlow: 'column',
+  justifyContent: 'flex-start',
+  marginBlockStart: '2rem',
+});
+export const ctaSecondary = style({
+  alignItems: 'center',
+  backgroundColor: 'rgba(255, 255, 255, 0.78)',
+  borderColor: 'rgba(15, 23, 42, 0.12)',
+  borderRadius: radiusTokens.radiusMd,
+  borderStyle: 'solid',
+  borderWidth: '1px',
+  color: colorTokens.slate900,
+  display: 'inline-grid',
+  fontWeight: 600,
+  gap: '0.5rem',
+  gridAutoFlow: 'column',
+  padding: '0.92rem 1.45rem',
+  selectors: {
+    ':root[data-theme="dark"] &': {
+      backgroundColor: 'rgba(15, 23, 42, 0.28)',
+      borderColor: 'rgba(226, 232, 240, 0.26)',
+      color: colorTokens.slate100,
+    },
+    ':root[data-theme="dark"] &:hover': {
+      backgroundColor: 'rgba(148, 163, 184, 0.12)',
+      borderColor: colorTokens.slate400,
+    },
+    '&:hover': {
+      backgroundColor: 'rgba(255, 255, 255, 0.7)',
+      borderColor: '#c4b5fd',
+      transform: 'translate3d(0, -0.125rem, 0)',
+    },
+  },
+  textDecoration: 'none',
+  transition: 'background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease',
+  whiteSpace: 'nowrap',
+});
 export const inner = style({
   marginInline: 'auto',
   maxWidth: '84rem',
@@ -350,6 +390,10 @@ export const outputTab = style({
     },
     '&:not([aria-selected="true"]):hover': {
       color: colorTokens.white,
+    },
+    '&[aria-selected="true"]:hover': {
+      backgroundColor: '#c6eb4f',
+      color: '#152016',
     },
   },
 });

@@ -403,6 +403,13 @@ function RustLabHero(): JSX.Element {
           <div className={c.heroActions}>
             <Link
               className={c.ctaSecondary}
+              to="/"
+            >
+              <IconArrowLeft className={iconStyles.base} />
+              <span>{m.labs_cta_back_home()}</span>
+            </Link>
+            <Link
+              className={c.ctaSecondary}
               to="/labs"
             >
               <IconArrowLeft className={iconStyles.base} />

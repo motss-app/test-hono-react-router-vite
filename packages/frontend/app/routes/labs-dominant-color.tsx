@@ -4,7 +4,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { DominantColorWalkthrough } from '../components/dominant-color-walkthrough.tsx';
 import { Link } from '../components/Link.tsx';
 import { PageFooter } from '../components/page-footer.tsx';
+import { IconArrowLeft } from '../icons.ts';
 import * as m from '../paraglide/messages.js';
+import { iconStyles } from '../styles/icon.css.ts';
 import type { Route } from './+types/labs-dominant-color.ts';
 import * as c from './labs-dominant-color.css.ts';
 
@@ -292,15 +294,25 @@ export default function DominantColorLab(): JSX.Element {
       <section className={c.hero}>
         <div className={c.heroInner}>
           <div>
-            <Link
-              className={c.backLink}
-              to="/labs"
-            >
-              {m.labs_mandelbrot_cta_back_home()}
-            </Link>
             <div className={c.eyebrow}>{m.dominant_color_hero_eyebrow()}</div>
             <h1 className={c.title}>{m.dominant_color_title()}</h1>
             <p className={c.heroLead}>{m.dominant_color_hero_lead()}</p>
+            <div className={c.heroActions}>
+              <Link
+                className={c.ctaSecondary}
+                to="/"
+              >
+                <IconArrowLeft className={iconStyles.base} />
+                <span>{m.labs_cta_back_home()}</span>
+              </Link>
+              <Link
+                className={c.ctaSecondary}
+                to="/labs"
+              >
+                <IconArrowLeft className={iconStyles.base} />
+                <span>{m.labs_mandelbrot_cta_back_home()}</span>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
