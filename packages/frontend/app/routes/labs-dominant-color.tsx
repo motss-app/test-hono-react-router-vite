@@ -93,7 +93,7 @@ function buildFormatRows(result: ColorResponse): FormatRow[] {
       cssColor: `hsl(${result.hsl.h.toFixed(2)} ${formatPercent(result.hsl.s)} ${formatPercent(result.hsl.l)} / ${alpha})`,
       id: 'hsl',
       label: m.dominant_color_output_hsl(),
-      value: `hsl(${result.hsl.h.toFixed(2)}°, ${formatPercent(result.hsl.s)}, ${formatPercent(result.hsl.l)} / ${alpha})`,
+      value: `hsl(${result.hsl.h.toFixed(2)}° ${formatPercent(result.hsl.s)} ${formatPercent(result.hsl.l)} / ${alpha})`,
     },
     {
       cssColor: null,
@@ -163,7 +163,7 @@ function FormattedOutput({ result }: { result: ColorResponse }): JSX.Element {
               <span
                 className={c.formatSwatch}
                 style={{
-                  backgroundColor: native && row.cssColor ? row.cssColor : result.hex,
+                  backgroundColor: native && row.cssColor ? row.cssColor : result.css.srgb,
                 }}
               />
               <div className={c.formatCopy}>

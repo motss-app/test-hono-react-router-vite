@@ -292,6 +292,13 @@ export const markerRow = style({
   gridTemplateColumns: '1.8rem minmax(5rem, 0.55fr) minmax(8rem, 1fr)',
   paddingBlock: '0.7rem',
 });
+export const markerCalculation = style({
+  '@media': {
+    '(max-width: 520px)': {
+      gridColumn: '1 / -1',
+    },
+  },
+});
 
 export const markerName = style({
   color: '#ecfdf5',
@@ -434,9 +441,9 @@ export const winnerHex = style({
 export const side = style({
   '@media': {
     '(max-width: 760px)': {
-      blockSize: '20rem',
       borderBlockStart: '1px solid #26333d',
       borderInlineStart: 0,
+      minBlockSize: '16rem',
     },
   },
   borderInlineStart: '1px solid #26333d',

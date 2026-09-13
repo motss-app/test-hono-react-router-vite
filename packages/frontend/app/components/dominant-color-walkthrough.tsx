@@ -533,7 +533,7 @@ function WalkthroughScene({ model, step }: { model: Model; step: number }): JSX.
                   <br />
                   {bin.pixels.map(pixel => pixel.id).join(' + ')}
                 </span>
-                <span className={c.rowNote}>
+                <span className={`${c.rowNote} ${c.markerCalculation}`}>
                   ({bin.r}, {bin.g}, {bin.b}) ÷ {bin.a}
                   <br />= ({marker.map(value => value.toFixed(1)).join(', ')})
                 </span>

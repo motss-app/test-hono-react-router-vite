@@ -55,7 +55,7 @@ deno task start           # Runs on port 3000
 - **API not working**: Ensure `/api/*` prefix
 - **Build fails**: Run `deno check`
 - **HMR broken**: Check for TypeScript errors
-- **VRT blocked**: Report the startup or screenshot-artifact failure. A build pass is not a VRT pass.
+- VRT blocked: Report the startup or screenshot-artifact failure. A build pass is not a VRT pass.
 
 ## Quick Checklist
 
