@@ -18,7 +18,7 @@ Before editing:
 
 - Load `frontend-skill` when the task is primarily about visual direction, layout, landing pages, demos, or premium UI polish.
 - Load `skill-vite-plugin-creation` when the task is about creating or updating a Vite plugin that watches a TypeScript entry and emits a JavaScript artifact.
-- Load `commit-push-once` when the user explicitly invokes the commit-push-once trigger and wants the current staged changes committed and pushed exactly once. Treat that invocation as one-time permission only; do not reuse it until the user says so again.
+- Load `commit-push-once` when the user explicitly invokes the commit-push-once trigger and wants the current staged changes committed and pushed exactly once. Treat that invocation as one-time permission only. Do not reuse it until the user says so again.
 - Load `remix` skill only when the user is migrating away from this repo to a new Remix 3 project, or asks explicitly about Remix 3 patterns. This repo itself uses React Router v7, not Remix 3, so do not auto-load this skill for in-repo work.
 
 ## Default Workflow
@@ -70,7 +70,7 @@ Selection rules:
 
 ## Project Structure
 
-- Runtime: Deno for task orchestration and builds; Cloudflare Workers for app runtime.
+- Runtime: Deno for task orchestration and builds, Cloudflare Workers for app runtime.
 - Entry Points:
   - `packages/frontend/worker.ts`: Frontend Cloudflare Worker entry point used by local dev and production builds.
   - `packages/gateway/src/worker.ts`: Gateway Cloudflare Worker entry point.
@@ -78,8 +78,8 @@ Selection rules:
 - Configuration:
   - `deno.json`: Main configuration for Deno tasks and compiler options.
   - `packages/frontend/wrangler.jsonc`: Frontend Cloudflare Worker deploy configuration.
-  - `packages/frontend/vite.config.ts`: Frontend Cloudflare Vite dev config; keep `@stylexjs/unplugin` here, not in gateway configs.
-  - `packages/frontend/vite.react-router.config.ts`: Frontend React Router production build config; this is also allowed to use StyleX.
+  - `packages/frontend/vite.config.ts`: Frontend Cloudflare Vite dev config. Keep `@stylexjs/unplugin` here, not in gateway configs.
+  - `packages/frontend/vite.react-router.config.ts`: Frontend React Router production build config. This is also allowed to use StyleX.
 
 ## Coding Conventions
 
