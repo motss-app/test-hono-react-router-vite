@@ -37,13 +37,6 @@ Before editing:
 
 ## Browser Interaction Rules
 
-- If you are Codex, use only computer-use tooling for browser operations.
-  Otherwise, use only the Chrome DevTools MCP exposed by the VS Code Edge
-  DevTools extension. These are the only two permitted agent browser-operation
-  paths. Do not use custom browser scripts, standalone browsers, or headless
-  browsers for agent browser operations. Automated repository test runners,
-  including `deno task test:visual`, may launch their own Playwright browser
-  processes for test execution and screenshot generation.
 - Use a fresh dedicated MCP session for each task and verify it with
   `list_pages`. Track created pages and process ownership. Never modify
   user-owned tabs or pre-existing shared Edge processes.
