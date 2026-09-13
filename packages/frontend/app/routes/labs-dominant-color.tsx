@@ -65,6 +65,10 @@ interface ColorResponse {
 
 type OutputMode = 'formatted' | 'raw';
 
+const FORMATTED_TAB_ID = 'dominant-color-formatted-tab';
+const RAW_TAB_ID = 'dominant-color-raw-tab';
+const OUTPUT_PANEL_ID = 'dominant-color-output-panel';
+
 type FormatRow = {
   cssColor: string | null;
   id: string;
@@ -440,8 +444,10 @@ export default function DominantColorLab(): JSX.Element {
                     role="tablist"
                   >
                     <button
+                      aria-controls={OUTPUT_PANEL_ID}
                       aria-selected={outputMode === 'formatted'}
                       className={`${c.outputTab} ${outputMode === 'formatted' ? c.outputTabActive : ''}`.trim()}
+                      id={FORMATTED_TAB_ID}
                       onClick={showFormattedOutput}
                       role="tab"
                       tabIndex={outputMode === 'formatted' ? 0 : -1}
@@ -450,8 +456,10 @@ export default function DominantColorLab(): JSX.Element {
                       {m.dominant_color_output_formatted()}
                     </button>
                     <button
+                      aria-controls={OUTPUT_PANEL_ID}
                       aria-selected={outputMode === 'raw'}
                       className={`${c.outputTab} ${outputMode === 'raw' ? c.outputTabActive : ''}`.trim()}
+                      id={RAW_TAB_ID}
                       onClick={showRawOutput}
                       role="tab"
                       tabIndex={outputMode === 'raw' ? 0 : -1}
@@ -460,7 +468,12 @@ export default function DominantColorLab(): JSX.Element {
                       {m.dominant_color_output_raw_json()}
                     </button>
                   </div>
-                  <div className={c.outputContent}>
+                  <div
+                    aria-labelledby={outputMode === 'formatted' ? FORMATTED_TAB_ID : RAW_TAB_ID}
+                    className={c.outputContent}
+                    id={OUTPUT_PANEL_ID}
+                    role="tabpanel"
+                  >
                     {outputMode === 'formatted' ? (
                       <FormattedOutput result={result} />
                     ) : (
