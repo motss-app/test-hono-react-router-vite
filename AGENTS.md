@@ -37,28 +37,29 @@ Before editing:
 
 ## Browser Interaction Rules
 
-- Use the Microsoft Edge DevTools MCP exposed by the VS Code Edge DevTools
-  extension for browser-related verification and automation tasks.
-- Discover the available MCP tools and choose the appropriate ones for each
-  task. Do not use computer-use automation, custom browser scripts, standalone
-  browsers, or headless browsers.
-- Run each browser task in a fresh dedicated Edge DevTools MCP process. The
-  lifecycle is: start, use, capture and attach any requested screenshot, close
-  created pages, then terminate that task's process. Never touch pre-existing
-  shared Edge processes or user-owned tabs.
-- If the Edge DevTools transport or a page call fails, recover in the same
-  turn by closing created pages, terminating only the exact task-owned Edge
-  and MCP PIDs, starting a fresh dedicated MCP process with the configured
-  launcher, and verifying the new session with `list_pages`. Do not retry a
-  dead transport or report `Transport closed` as the recovery result.
-- For visual evidence, attach the returned Edge DevTools image content directly
-  to the final response. A tool trace, JSON wrapper, text attachment, or file
-  path is not sufficient. Do not terminate the MCP process until the inline
-  image is attached, or report the attachment failure honestly.
-- After terminating the task process, use `ps` to match the temporary
-  `puppeteer_dev_chrome_profile-*` and `--remote-debugging-pipe`, then send
-  `kill -TERM` only to the recorded MCP-owned Edge and `chrome-devtools-mcp`
-  PIDs. Verify they exited. Request elevated access if needed.
+- Use only the Microsoft Edge DevTools MCP exposed by the VS Code extension.
+  Discover its tools before use. Do not use computer-use automation, custom
+  browser scripts, standalone browsers, or headless browsers.
+- Use a fresh dedicated MCP session for each task and verify it with
+  `list_pages`. Track created pages and process ownership. Never modify
+  user-owned tabs or pre-existing shared Edge processes.
+- On `Transport closed`, stop and ask the user to restart
+  `io.github.ChromeDevTools/chrome-devtools-mcp` through `MCP: List Servers`
+  → select the server → `Restart Server`, or the restart action in `mcp.json`.
+  After confirmation, call `list_pages` before continuing. Never retry a dead
+  transport or launch a separate stdio server as a replacement connection.
+- For other page-call failures, inspect the live session and recover when
+  possible. If a server restart is needed, follow the restart procedure above.
+- Capture screenshots with `take_screenshot`, `format: "png"`, and no
+  `filePath`. Forward each returned `image` block through the host image
+  attachment mechanism in the same tool call. Verify the inline image appears
+  before cleanup, or report attachment failure. Text, JSON, and paths alone
+  do not count as image attachments.
+- After attaching screenshots, close created pages. Use `ps` to identify the
+  task-owned Edge and `chrome-devtools-mcp` PIDs by their parent relationships,
+  `puppeteer_dev_chrome_profile-*`, and `--remote-debugging-pipe`. Send
+  `kill -TERM` only to those exact PIDs and verify exit with `ps`, requesting
+  elevated access if needed. Later browser work requires a new MCP connection.
 
 ## Project Structure
 
