@@ -61,6 +61,52 @@ export const backLink = style({
   marginBlockEnd: '2.5rem',
   textDecoration: 'none',
 });
+export const heroActions = style({
+  '@media': {
+    '(max-width: 480px)': {
+      gridAutoFlow: 'row',
+    },
+  },
+  display: 'inline-grid',
+  gap: '0.75rem',
+  gridAutoFlow: 'column',
+  justifyContent: 'flex-start',
+  marginBlockStart: '2rem',
+  maxInlineSize: '100%',
+});
+export const ctaSecondary = style({
+  alignItems: 'center',
+  backgroundColor: 'rgba(255, 255, 255, 0.78)',
+  borderColor: 'rgba(15, 23, 42, 0.12)',
+  borderRadius: radiusTokens.radiusMd,
+  borderStyle: 'solid',
+  borderWidth: '1px',
+  color: colorTokens.slate900,
+  display: 'inline-grid',
+  fontWeight: 600,
+  gap: '0.5rem',
+  gridAutoFlow: 'column',
+  padding: '0.92rem 1.45rem',
+  selectors: {
+    ':root[data-theme="dark"] &': {
+      backgroundColor: 'rgba(15, 23, 42, 0.28)',
+      borderColor: 'rgba(226, 232, 240, 0.26)',
+      color: colorTokens.slate100,
+    },
+    ':root[data-theme="dark"] &:hover': {
+      backgroundColor: 'rgba(148, 163, 184, 0.12)',
+      borderColor: colorTokens.slate400,
+    },
+    '&:hover': {
+      backgroundColor: 'rgba(255, 255, 255, 0.7)',
+      borderColor: '#c4b5fd',
+      transform: 'translate3d(0, -0.125rem, 0)',
+    },
+  },
+  textDecoration: 'none',
+  transition: 'background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease',
+  whiteSpace: 'nowrap',
+});
 export const inner = style({
   marginInline: 'auto',
   maxWidth: '84rem',
@@ -113,21 +159,22 @@ export const sectionBody = style({
 export const dropzone = style({
   alignItems: 'center',
   animation: `${reveal} 600ms cubic-bezier(0.22, 1, 0.36, 1) both`,
-  backgroundColor: '#f7fee7',
+  backgroundColor: '#ecfccb',
+  blockSize: '21rem',
   border: '1px dashed #84cc16',
   borderRadius: radiusTokens.radiusMd,
   cursor: 'pointer',
   display: 'flex',
   justifyContent: 'center',
-  minBlockSize: '21rem',
-  padding: '2rem',
+  overflow: 'hidden',
+  padding: '0.75rem',
   selectors: {
     ':root[data-theme="dark"] &': {
-      backgroundColor: '#1a2413',
-      borderColor: '#65a30d',
+      backgroundColor: '#203817',
+      borderColor: '#84cc16',
     },
     ':root[data-theme="dark"] &:hover': {
-      backgroundColor: '#25351a',
+      backgroundColor: '#2b491b',
     },
     '&:hover': {
       backgroundColor: '#ecfccb',
@@ -140,7 +187,13 @@ export const dropzone = style({
 });
 export const dropzoneActive = style({
   backgroundColor: '#ecfccb',
-  borderColor: '#365314',
+  borderColor: '#4d7c0f',
+  selectors: {
+    ':root[data-theme="dark"] &': {
+      backgroundColor: '#2f5219',
+      borderColor: '#bef264',
+    },
+  },
   transform: 'scale(1.01)',
 });
 export const dropContent = style({
@@ -177,20 +230,25 @@ export const input = style({
   display: 'none',
 });
 export const preview = style({
+  blockSize: '100%',
   borderRadius: radiusTokens.radiusMd,
   display: 'block',
-  maxBlockSize: '21rem',
+  inlineSize: '100%',
+  maxBlockSize: '100%',
   maxInlineSize: '100%',
   objectFit: 'contain',
-  width: '100%',
 });
 export const previewWrap = style({
   alignItems: 'center',
   backgroundColor: '#111827',
+  blockSize: '100%',
   borderRadius: radiusTokens.radiusMd,
   display: 'flex',
+  inlineSize: '100%',
   justifyContent: 'center',
-  minBlockSize: '21rem',
+  maxBlockSize: '100%',
+  minBlockSize: 0,
+  minInlineSize: 0,
   overflow: 'hidden',
 });
 export const actionRow = style({
@@ -214,6 +272,10 @@ export const action = style({
       cursor: 'wait',
       opacity: 0.55,
     },
+    '&:focus-visible': {
+      outline: '2px solid #bef264',
+      outlineOffset: '2px',
+    },
     '&:hover': {
       backgroundColor: '#4d7c0f',
       transform: 'translateY(-1px)',
@@ -232,6 +294,10 @@ export const subtleAction = style({
   selectors: {
     ':root[data-theme="dark"] &': {
       color: colorTokens.slate300,
+    },
+    '&:focus-visible': {
+      outline: '2px solid #bef264',
+      outlineOffset: '2px',
     },
     '&:hover': {
       color: '#4d7c0f',
@@ -256,10 +322,13 @@ export const resultColumn = style({
   minInlineSize: 0,
 });
 export const result = style({
-  backgroundColor: '#111827',
+  backgroundColor: '#0a1222',
+  blockSize: '44rem',
+  border: '1px solid #5878a8',
   borderRadius: radiusTokens.radiusMd,
   color: '#d1d5db',
-  minBlockSize: '21rem',
+  display: 'flex',
+  flexDirection: 'column',
   overflow: 'hidden',
 });
 export const resultHeader = style({
@@ -285,26 +354,144 @@ export const resultTitle = style({
 });
 export const resultMeta = style({
   color: '#9ca3af',
+  display: 'grid',
   fontSize: '0.78rem',
+  gap: '0.15rem',
+  lineHeight: 1.45,
   margin: '0.2rem 0 0',
 });
 export const json = style({
+  blockSize: '100%',
   fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
   fontSize: '0.8rem',
   lineHeight: 1.65,
   margin: 0,
-  maxBlockSize: '35rem',
+  minBlockSize: 0,
   overflow: 'auto',
   padding: '1.2rem',
 });
 export const emptyResult = style({
   alignItems: 'center',
-  color: colorTokens.slate500,
+  blockSize: '100%',
+  color: '#f1f5ff',
   display: 'flex',
+  flex: '1 1 auto',
   justifyContent: 'center',
-  minBlockSize: '21rem',
   padding: '2rem',
   textAlign: 'center',
+});
+export const outputToggle = style({
+  alignItems: 'center',
+  borderBlockEnd: '1px solid #374151',
+  display: 'flex',
+  gap: '0.35rem',
+  minBlockSize: '3.5rem',
+  padding: '0.65rem 1.2rem',
+});
+export const outputTab = style({
+  backgroundColor: 'transparent',
+  border: '1px solid transparent',
+  borderRadius: radiusTokens.radiusMd,
+  color: '#9ca3af',
+  cursor: 'pointer',
+  font: 'inherit',
+  fontSize: '0.75rem',
+  padding: '0.55rem 0.75rem',
+  selectors: {
+    '&:focus-visible': {
+      outline: '2px solid #bef264',
+      outlineOffset: '2px',
+    },
+    '&:not([aria-selected="true"]):hover': {
+      borderColor: '#40514f',
+      color: colorTokens.white,
+    },
+    '&[aria-selected="true"]:hover': {
+      backgroundColor: '#c6eb4f',
+      color: '#152016',
+    },
+  },
+});
+export const outputTabActive = style({
+  backgroundColor: '#d7f36b',
+  color: '#152016',
+  fontWeight: 700,
+});
+export const outputContent = style({
+  blockSize: 'auto',
+  flex: '1 1 0',
+  minBlockSize: 0,
+  overflow: 'hidden',
+});
+export const formattedOutput = style({
+  blockSize: '100%',
+  overflow: 'auto',
+  padding: '1.1rem 1.2rem 1.3rem',
+});
+export const formattedIntro = style({
+  borderBlockEnd: '1px solid #26333d',
+  paddingBlockEnd: '0.9rem',
+});
+export const formattedTitle = style({
+  color: colorTokens.white,
+  fontSize: '0.95rem',
+  fontWeight: 700,
+  margin: 0,
+});
+export const formattedNote = style({
+  color: '#9ca3af',
+  fontSize: '0.76rem',
+  lineHeight: 1.5,
+  margin: '0.4rem 0 0',
+});
+export const formatList = style({
+  display: 'grid',
+  gap: '0.1rem',
+  marginBlockStart: '0.6rem',
+});
+export const formatRow = style({
+  alignItems: 'center',
+  borderBlockEnd: '1px solid #26333d',
+  display: 'flex',
+  gap: '0.8rem',
+  minBlockSize: '3.3rem',
+  paddingBlock: '0.55rem',
+});
+export const formatSwatch = style({
+  border: '1px solid rgba(255,255,255,0.3)',
+  borderRadius: '0.5rem',
+  flex: '0 0 auto',
+  height: '2.1rem',
+  width: '2.1rem',
+});
+export const formatCopy = style({
+  minWidth: 0,
+});
+export const formatHeader = style({
+  alignItems: 'center',
+  display: 'flex',
+  gap: '0.6rem',
+});
+export const formatLabel = style({
+  color: '#ecfdf5',
+  fontSize: '0.8rem',
+  fontWeight: 700,
+});
+export const formatSupport = style({
+  color: '#82938f',
+  fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+  fontSize: '0.62rem',
+  letterSpacing: '0.04em',
+  textTransform: 'uppercase',
+});
+export const formatValue = style({
+  color: '#b8c8c3',
+  display: 'block',
+  fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+  fontSize: '0.7rem',
+  lineHeight: 1.45,
+  marginBlockStart: '0.18rem',
+  overflowWrap: 'anywhere',
 });
 export const footer = style({
   borderBlockStart: '1px solid #e5e7eb',

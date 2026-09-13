@@ -43,9 +43,7 @@ fn jpeg_bytes(img: &RgbImage) -> Vec<u8> {
 }
 
 fn decode_rgba(bytes: &[u8]) -> (Vec<u8>, u32, u32) {
-  /*
-   * Same decode path shape as packages/color-rust: bytes -> DynamicImage -> RGBA.
-   */
+  // Same decode path shape as packages/color-rust: bytes -> DynamicImage -> RGBA.
   let dyn_img = ImageReader::new(Cursor::new(bytes))
     .with_guessed_format()
     .expect("guess")
@@ -80,10 +78,7 @@ fn repro_reported_receipt_ratio() {
     "REPRO hex={} rgba=({},{},{}) pixel_count={} coverage={:.3}",
     out.hex, out.rgba.r, out.rgba.g, out.rgba.b, out.pixel_count, out.coverage
   );
-  /*
-   * Old single-cluster vote picked #FEFEFE white here. Fixed family vote
-   * must pick red.
-   */
+  // Old single-cluster vote picked #FEFEFE white here. Fixed family vote must pick red.
   assert!(out.rgba.r > 150, "expected red family, got {}", out.hex);
   assert!(out.rgba.g < 80, "expected red family, got {}", out.hex);
   assert_eq!(out.pixel_count, 69);
@@ -92,9 +87,9 @@ fn repro_reported_receipt_ratio() {
 #[test]
 fn repro_reported_receipt_jpeg_roundtrip() {
   /*
-   * End to end through real JPEG bytes: encode a receipt-like 126x280 image
-   * (same 31/69 split as the reported 1260x2800), decode it exactly like the
-   * worker, then run dominant_color.
+   * End to end through real JPEG bytes: encode a receipt-like
+   * 126x280 image (same 31/69 split as the reported 1260x2800),
+   * decode it exactly like the worker, then run dominant_color.
    */
   let rgb = build_receipt_rgb(126, 280);
   let bytes = jpeg_bytes(&rgb);
@@ -111,10 +106,7 @@ fn repro_reported_receipt_jpeg_roundtrip() {
     h,
     bytes.len()
   );
-  /*
-   * The reported bug returned #FEFEFE white. Fixed code must return the red
-   * family.
-   */
+  // The reported bug returned #FEFEFE white. Fixed code must return the red family.
   assert!(out.rgba.r > 150, "expected red family, got {}", out.hex);
   assert!(out.rgba.g < 80, "expected red family, got {}", out.hex);
   assert!(out.rgba.b < 80, "expected red family, got {}", out.hex);

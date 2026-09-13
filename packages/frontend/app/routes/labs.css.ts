@@ -256,6 +256,7 @@ export const toolPanel = style({
     },
   },
   alignItems: 'center',
+  borderRadius: radiusTokens.radiusMd,
   display: 'grid',
   gap: '1rem',
   gridTemplateColumns: '1fr',
@@ -264,6 +265,18 @@ export const toolPanel = style({
   paddingBlockStart: '1.45rem',
   paddingInlineEnd: '0.5rem',
   paddingInlineStart: '0.5rem',
+  position: 'relative',
+  selectors: {
+    ':root[data-theme="dark"] &:hover': {
+      backgroundColor: 'rgba(15, 23, 42, 0.22)',
+    },
+    '&:hover': {
+      backgroundColor: 'rgba(248, 250, 252, 0.9)',
+      transform: 'translate3d(0.35rem, 0, 0)',
+    },
+  },
+  textDecoration: 'none',
+  transition: 'background-color 0.2s ease, transform 0.2s ease',
 });
 
 export const toolNumber = style({
@@ -321,33 +334,14 @@ export const toolBody = style({
   },
 });
 
-export const toolLink = style({
-  alignItems: 'center',
-  backgroundColor: 'transparent',
-  borderColor: colorTokens.borderColor,
-  borderRadius: radiusTokens.radiusMd,
-  borderStyle: 'solid',
-  borderWidth: '1px',
-  color: colorTokens.slate900,
-  display: 'inline-grid',
+export const toolAction = style({
+  color: colorTokens.purple,
   fontWeight: 600,
-  justifyContent: 'center',
-  padding: '0.6rem 1.1rem',
   selectors: {
     ':root[data-theme="dark"] &': {
-      borderColor: colorTokens.slate700,
-      color: colorTokens.slate100,
-    },
-    ':root[data-theme="dark"] &:hover': {
-      borderColor: '#c4b5fd',
-    },
-    '&:hover': {
-      borderColor: colorTokens.purple,
-      transform: 'translate3d(0, -0.125rem, 0)',
+      color: '#c4b5fd',
     },
   },
-  textDecoration: 'none',
-  transition: 'border-color 0.2s ease, transform 0.2s ease',
   whiteSpace: 'nowrap',
 });
 

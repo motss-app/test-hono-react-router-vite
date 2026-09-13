@@ -5,10 +5,13 @@ import { defineConfig } from 'vite';
 import { createImportMetaEnvDefine } from '../../vite-utils/import-meta-env.ts';
 import { getBffSentryRelease } from './build-env.ts';
 
+const packageRootPath = new URL('./', import.meta.url).pathname;
+
 export default defineConfig(() => {
   const sentryRelease = getBffSentryRelease();
 
   return {
+    cacheDir: `${packageRootPath}node_modules/.vite`,
     define: createImportMetaEnvDefine({
       SENTRY_RELEASE: sentryRelease,
     }),

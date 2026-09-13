@@ -1,8 +1,12 @@
 import type { JSX, ChangeEvent as ReactChangeEvent, DragEvent as ReactDragEvent } from 'react';
 import { useCallback, useEffect, useState } from 'react';
 
+import { DominantColorWalkthrough } from '../components/dominant-color-walkthrough.tsx';
 import { Link } from '../components/Link.tsx';
 import { PageFooter } from '../components/page-footer.tsx';
+import { IconArrowLeft } from '../icons.ts';
+import * as m from '../paraglide/messages.js';
+import { iconStyles } from '../styles/icon.css.ts';
 import type { Route } from './+types/labs-dominant-color.ts';
 import * as c from './labs-dominant-color.css.ts';
 
@@ -10,7 +14,43 @@ const MAX_BYTES = 32 * 1024 * 1024;
 const ACCEPT = 'image/avif,image/jpeg,image/png,image/webp,image/gif,image/tiff,image/jxl,.jxl';
 
 interface ColorResponse {
+  coverage: number;
+  css: {
+    color_4: string;
+    srgb: string;
+  };
   hex: string;
+  hsl: {
+    h: number;
+    l: number;
+    s: number;
+  };
+  hsv: {
+    h: number;
+    s: number;
+    v: number;
+  };
+  lab: {
+    a: number;
+    b: number;
+    l: number;
+  };
+  lch: {
+    c: number;
+    h: number;
+    l: number;
+  };
+  oklab: {
+    a: number;
+    b: number;
+    l: number;
+  };
+  oklch: {
+    c: number;
+    h: number;
+    l: number;
+  };
+  pixel_count: number;
   rgba: {
     r: number;
     g: number;
@@ -21,16 +61,135 @@ interface ColorResponse {
   height: number;
   format: string;
   time_ms: number;
-  [key: string]: unknown;
+}
+
+type OutputMode = 'formatted' | 'raw';
+
+type FormatRow = {
+  cssColor: string | null;
+  id: string;
+  label: string;
+  value: string;
+};
+
+function formatAlpha(alpha: number): string {
+  return (alpha / 255).toFixed(3);
+}
+
+function formatPercent(value: number): string {
+  return `${(value * 100).toFixed(2)}%`;
+}
+
+function buildFormatRows(result: ColorResponse): FormatRow[] {
+  const alpha = formatAlpha(result.rgba.a);
+  return [
+    {
+      cssColor: result.css.srgb,
+      id: 'rgb',
+      label: m.dominant_color_output_rgb(),
+      value: `rgb(${result.rgba.r} ${result.rgba.g} ${result.rgba.b} / ${alpha})`,
+    },
+    {
+      cssColor: `hsl(${result.hsl.h.toFixed(2)} ${formatPercent(result.hsl.s)} ${formatPercent(result.hsl.l)} / ${alpha})`,
+      id: 'hsl',
+      label: m.dominant_color_output_hsl(),
+      value: `hsl(${result.hsl.h.toFixed(2)}deg ${formatPercent(result.hsl.s)} ${formatPercent(result.hsl.l)} / ${alpha})`,
+    },
+    {
+      cssColor: null,
+      id: 'hsv',
+      label: m.dominant_color_output_hsv(),
+      value: `hsv(${result.hsv.h.toFixed(2)}deg ${formatPercent(result.hsv.s)} ${formatPercent(result.hsv.v)} / ${alpha})`,
+    },
+    {
+      cssColor: `lab(${result.lab.l.toFixed(2)}% ${result.lab.a.toFixed(2)} ${result.lab.b.toFixed(2)} / ${alpha})`,
+      id: 'lab',
+      label: m.dominant_color_output_lab(),
+      value: `lab(${result.lab.l.toFixed(2)}% ${result.lab.a.toFixed(2)} ${result.lab.b.toFixed(2)} / ${alpha})`,
+    },
+    {
+      cssColor: `lch(${result.lch.l.toFixed(2)}% ${result.lch.c.toFixed(2)} ${result.lch.h.toFixed(2)} / ${alpha})`,
+      id: 'lch',
+      label: m.dominant_color_output_lch(),
+      value: `lch(${result.lch.l.toFixed(2)}% ${result.lch.c.toFixed(2)} ${result.lch.h.toFixed(2)} / ${alpha})`,
+    },
+    {
+      cssColor: `oklab(${result.oklab.l.toFixed(5)} ${result.oklab.a.toFixed(5)} ${result.oklab.b.toFixed(5)} / ${alpha})`,
+      id: 'oklab',
+      label: m.dominant_color_output_oklab(),
+      value: `oklab(${result.oklab.l.toFixed(5)} ${result.oklab.a.toFixed(5)} ${result.oklab.b.toFixed(5)} / ${alpha})`,
+    },
+    {
+      cssColor: `oklch(${result.oklch.l.toFixed(5)} ${result.oklch.c.toFixed(5)} ${result.oklch.h.toFixed(2)} / ${alpha})`,
+      id: 'oklch',
+      label: m.dominant_color_output_oklch(),
+      value: `oklch(${result.oklch.l.toFixed(5)} ${result.oklch.c.toFixed(5)} ${result.oklch.h.toFixed(2)} / ${alpha})`,
+    },
+    {
+      cssColor: result.css.srgb,
+      id: 'css-srgb',
+      label: m.dominant_color_output_css_srgb(),
+      value: result.css.srgb,
+    },
+    {
+      cssColor: result.css.color_4,
+      id: 'css-color-4',
+      label: m.dominant_color_output_css_color4(),
+      value: result.css.color_4,
+    },
+  ];
+}
+
+function supportsCssColor(value: string): boolean {
+  return typeof globalThis.CSS !== 'undefined' && globalThis.CSS.supports('color', value);
+}
+
+function FormattedOutput({ result }: { result: ColorResponse }): JSX.Element {
+  const rows = buildFormatRows(result);
+  return (
+    <div className={c.formattedOutput}>
+      <div className={c.formattedIntro}>
+        <p className={c.formattedTitle}>{m.dominant_color_output_formats_title()}</p>
+        <p className={c.formattedNote}>{m.dominant_color_output_formats_note()}</p>
+      </div>
+      <div className={c.formatList}>
+        {rows.map(row => {
+          const native = row.cssColor !== null && supportsCssColor(row.cssColor);
+          return (
+            <div
+              className={c.formatRow}
+              key={row.id}
+            >
+              <span
+                className={c.formatSwatch}
+                style={{
+                  backgroundColor: native && row.cssColor ? row.cssColor : result.css.srgb,
+                }}
+              />
+              <div className={c.formatCopy}>
+                <div className={c.formatHeader}>
+                  <span className={c.formatLabel}>{row.label}</span>
+                  <span className={c.formatSupport}>
+                    {native ? m.dominant_color_output_native() : m.dominant_color_output_numeric()}
+                  </span>
+                </div>
+                <code className={c.formatValue}>{row.value}</code>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 export function meta(): Route.MetaDescriptors {
   return [
     {
-      title: 'Dominant Color · WASM Labs',
+      title: m.meta_dominant_color_title(),
     },
     {
-      content: 'Extract dominant image colors with Rust WASM at the edge.',
+      content: m.meta_dominant_color_desc(),
       name: 'description',
     },
   ];
@@ -49,6 +208,7 @@ export default function DominantColorLab(): JSX.Element {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const [outputMode, setOutputMode] = useState<OutputMode>('formatted');
 
   useEffect(
     () => () => {
@@ -62,13 +222,14 @@ export default function DominantColorLab(): JSX.Element {
   const chooseFile = useCallback((nextFile: File | null) => {
     setError(null);
     setResult(null);
+    setOutputMode('formatted');
     if (!nextFile) return;
     if (!nextFile.type.startsWith('image/') && !nextFile.name.toLowerCase().endsWith('.jxl')) {
-      setError('Choose an image file.');
+      setError(m.dominant_color_error_invalid_file());
       return;
     }
     if (nextFile.size > MAX_BYTES) {
-      setError('This image is larger than the 32 MB upload limit.');
+      setError(m.dominant_color_error_size());
       return;
     }
     setFile(nextFile);
@@ -100,6 +261,32 @@ export default function DominantColorLab(): JSX.Element {
     (event: ReactDragEvent<HTMLLabelElement>) => event.preventDefault(),
     []
   );
+  const showFormattedOutput = useCallback(() => setOutputMode('formatted'), []);
+  const showRawOutput = useCallback(() => setOutputMode('raw'), []);
+  const handleTabKeyDown = useCallback((event: React.KeyboardEvent) => {
+    if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+    event.preventDefault();
+    const target = event.currentTarget as HTMLElement;
+    const tabs = Array.from(target.querySelectorAll<HTMLElement>('[role="tab"]'));
+    const currentIndex = tabs.indexOf(event.target as HTMLElement);
+    const nextIndex =
+      event.key === 'ArrowRight'
+        ? (currentIndex + 1) % tabs.length
+        : (currentIndex - 1 + tabs.length) % tabs.length;
+    /*
+     * Tab order is [formatted, raw], so the mode name matches the
+     * next tab's text. Derive it from the index instead of
+     * aria-selected, which still reflects the previous state.
+     */
+    const modes: readonly OutputMode[] = [
+      'formatted',
+      'raw',
+    ];
+    const nextTab = tabs[nextIndex];
+    if (!nextTab) return;
+    setOutputMode(modes[nextIndex] ?? 'formatted');
+    nextTab.focus();
+  }, []);
 
   const analyze = useCallback(async () => {
     if (!file) return;
@@ -131,30 +318,37 @@ export default function DominantColorLab(): JSX.Element {
       <section className={c.hero}>
         <div className={c.heroInner}>
           <div>
-            <Link
-              className={c.backLink}
-              to="/labs"
-            >
-              ← Back to labs
-            </Link>
-            <div className={c.eyebrow}>Lab 02 · Rust + image decoding</div>
-            <h1 className={c.title}>Dominant color.</h1>
-            <p className={c.heroLead}>
-              Drop in an image. The edge decodes it, samples its palette, and returns one color
-              expressed across the color systems designers actually use.
-            </p>
+            <div className={c.eyebrow}>{m.dominant_color_hero_eyebrow()}</div>
+            <h1 className={c.title}>{m.dominant_color_title()}</h1>
+            <p className={c.heroLead}>{m.dominant_color_hero_lead()}</p>
+            <div className={c.heroActions}>
+              <Link
+                className={c.ctaSecondary}
+                to="/"
+              >
+                <IconArrowLeft className={iconStyles.base} />
+                <span>{m.labs_cta_back_home()}</span>
+              </Link>
+              <Link
+                className={c.ctaSecondary}
+                to="/labs"
+              >
+                <IconArrowLeft className={iconStyles.base} />
+                <span>{m.labs_mandelbrot_cta_back_home()}</span>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
+
+      <DominantColorWalkthrough />
+
       <section className={c.inner}>
         <div className={c.workspace}>
           <div className={c.uploadColumn}>
-            <p className={c.sectionLabel}>Input</p>
-            <h2 className={c.sectionTitle}>Give it a frame.</h2>
-            <p className={c.sectionBody}>
-              Images up to 4K and 32 MB are accepted. AVIF, JPEG XL, JPEG, PNG, WebP, GIF, and TIFF
-              are decoded inside the Rust Worker.
-            </p>
+            <p className={c.sectionLabel}>{m.dominant_color_input_label()}</p>
+            <h2 className={c.sectionTitle}>{m.dominant_color_input_title()}</h2>
+            <p className={c.sectionBody}>{m.dominant_color_input_desc()}</p>
             {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: the label is the keyboard-accessible file picker and drag target. */}
             <label
               className={`${c.dropzone} ${dragging ? c.dropzoneActive : ''}`.trim()}
@@ -180,8 +374,8 @@ export default function DominantColorLab(): JSX.Element {
               ) : (
                 <div className={c.dropContent}>
                   <span className={c.dropIcon}>◌</span>
-                  <p className={c.dropTitle}>Choose or drop an image</p>
-                  <p className={c.dropNote}>AVIF · JXL · JPEG · PNG · WebP · TIFF</p>
+                  <p className={c.dropTitle}>{m.dominant_color_drop_title()}</p>
+                  <p className={c.dropNote}>{m.dominant_color_formats()}</p>
                 </div>
               )}
             </label>
@@ -193,7 +387,7 @@ export default function DominantColorLab(): JSX.Element {
                   onClick={analyze}
                   type="button"
                 >
-                  {busy ? 'Analyzing at the edge…' : 'Extract dominant color'}
+                  {busy ? m.dominant_color_analyzing() : m.dominant_color_analyze()}
                 </button>
                 <span className={c.dropNote}>
                   {file.name} · {formatBytes(file.size)}
@@ -210,21 +404,27 @@ export default function DominantColorLab(): JSX.Element {
             ) : null}
           </div>
           <div className={c.resultColumn}>
-            <p className={c.sectionLabel}>Output</p>
-            <h2 className={c.sectionTitle}>A color, unpacked.</h2>
-            <p className={c.sectionBody}>
-              The response stays intentionally inspectable: the full JSON is the artifact, with the
-              dominant swatch as its visual checksum.
-            </p>
+            <p className={c.sectionLabel}>{m.dominant_color_output_label()}</p>
+            <h2 className={c.sectionTitle}>{m.dominant_color_output_title()}</h2>
+            <p className={c.sectionBody}>{m.dominant_color_output_desc()}</p>
             <div className={c.result}>
               {result ? (
                 <>
                   <div className={c.resultHeader}>
                     <div>
                       <p className={c.resultTitle}>{result.hex}</p>
-                      <p className={c.resultMeta}>
-                        {result.width} × {result.height} · {result.format} · {result.time_ms} ms
-                      </p>
+                      <div className={c.resultMeta}>
+                        <span>
+                          {result.width} × {result.height} · {result.pixel_count}{' '}
+                          {m.dominant_color_output_pixel_count()} · {m.dominant_color_output_took()}{' '}
+                          {result.time_ms} ms
+                        </span>
+                        <span>
+                          {result.format} · {(result.coverage * 100).toFixed(1)}%{' '}
+                          {m.dominant_color_output_coverage()} · {result.rgba.a}{' '}
+                          {m.dominant_color_output_alpha()}
+                        </span>
+                      </div>
                     </div>
                     <span
                       className={c.swatch}
@@ -233,19 +433,48 @@ export default function DominantColorLab(): JSX.Element {
                       }}
                     />
                   </div>
-                  <pre className={c.json}>{JSON.stringify(result, null, 2)}</pre>
+                  <div
+                    aria-label={m.dominant_color_output_toggle()}
+                    className={c.outputToggle}
+                    onKeyDown={handleTabKeyDown}
+                    role="tablist"
+                  >
+                    <button
+                      aria-selected={outputMode === 'formatted'}
+                      className={`${c.outputTab} ${outputMode === 'formatted' ? c.outputTabActive : ''}`.trim()}
+                      onClick={showFormattedOutput}
+                      role="tab"
+                      tabIndex={outputMode === 'formatted' ? 0 : -1}
+                      type="button"
+                    >
+                      {m.dominant_color_output_formatted()}
+                    </button>
+                    <button
+                      aria-selected={outputMode === 'raw'}
+                      className={`${c.outputTab} ${outputMode === 'raw' ? c.outputTabActive : ''}`.trim()}
+                      onClick={showRawOutput}
+                      role="tab"
+                      tabIndex={outputMode === 'raw' ? 0 : -1}
+                      type="button"
+                    >
+                      {m.dominant_color_output_raw_json()}
+                    </button>
+                  </div>
+                  <div className={c.outputContent}>
+                    {outputMode === 'formatted' ? (
+                      <FormattedOutput result={result} />
+                    ) : (
+                      <pre className={c.json}>{JSON.stringify(result, null, 2)}</pre>
+                    )}
+                  </div>
                 </>
               ) : (
-                <div className={c.emptyResult}>Your formatted color JSON will appear here.</div>
+                <div className={c.emptyResult}>{m.dominant_color_empty_result()}</div>
               )}
             </div>
           </div>
         </div>
-        <p className={c.footer}>
-          The analysis kernel is shared Rust code compiled into the Cloudflare Worker as WASM.
-          Transparent pixels are ignored, and the winning color is selected from a quantized,
-          alpha-weighted pixel histogram.
-        </p>
+        <p className={c.footer}>{m.dominant_color_footer_note()}</p>
       </section>
 
       <PageFooter />

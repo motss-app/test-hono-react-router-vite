@@ -67,10 +67,10 @@ export const links: Route.LinksFunction = () =>
 export function meta(_args: Route.MetaArgs): Route.MetaDescriptors {
   return [
     {
-      title: 'React Router + Hono Demo',
+      title: m.meta_home_title(),
     },
     {
-      content: 'A full-stack React Router and Hono demo for SSR, RPC, and error handling.',
+      content: m.meta_home_desc(),
       name: 'description',
     },
   ];
@@ -174,7 +174,7 @@ export default function Home(): JSX.Element {
       <footer className={c.footer}>
         <div className={c.footerInner}>
           <LocaleSwitcher />
-          <p className={c.footerNote}>React Router + Hono Demo</p>
+          <p className={c.footerNote}>{m.footer_note()}</p>
         </div>
       </footer>
     </main>
