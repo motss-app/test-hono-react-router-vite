@@ -282,8 +282,10 @@ export default function DominantColorLab(): JSX.Element {
       'formatted',
       'raw',
     ];
+    const nextTab = tabs[nextIndex];
+    if (!nextTab) return;
     setOutputMode(modes[nextIndex] ?? 'formatted');
-    tabs[nextIndex].focus();
+    nextTab.focus();
   }, []);
 
   const analyze = useCallback(async () => {
