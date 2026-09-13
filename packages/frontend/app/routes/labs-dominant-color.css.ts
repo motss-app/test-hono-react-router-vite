@@ -62,17 +62,17 @@ export const backLink = style({
   textDecoration: 'none',
 });
 export const heroActions = style({
+  '@media': {
+    '(max-width: 480px)': {
+      gridAutoFlow: 'row',
+    },
+  },
   display: 'inline-grid',
   gap: '0.75rem',
   gridAutoFlow: 'column',
   justifyContent: 'flex-start',
   marginBlockStart: '2rem',
   maxInlineSize: '100%',
-  selectors: {
-    '@media (max-width: 480px)': {
-      gridAutoFlow: 'row',
-    },
-  },
 });
 export const ctaSecondary = style({
   alignItems: 'center',
