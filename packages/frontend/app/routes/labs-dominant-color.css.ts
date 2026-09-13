@@ -266,6 +266,10 @@ export const action = style({
       cursor: 'wait',
       opacity: 0.55,
     },
+    '&:focus-visible': {
+      outline: '2px solid #bef264',
+      outlineOffset: '2px',
+    },
     '&:hover': {
       backgroundColor: '#4d7c0f',
       transform: 'translateY(-1px)',
@@ -284,6 +288,10 @@ export const subtleAction = style({
   selectors: {
     ':root[data-theme="dark"] &': {
       color: colorTokens.slate300,
+    },
+    '&:focus-visible': {
+      outline: '2px solid #bef264',
+      outlineOffset: '2px',
     },
     '&:hover': {
       color: '#4d7c0f',
@@ -376,7 +384,7 @@ export const outputToggle = style({
 });
 export const outputTab = style({
   backgroundColor: 'transparent',
-  border: 0,
+  border: '1px solid transparent',
   borderRadius: radiusTokens.radiusMd,
   color: '#9ca3af',
   cursor: 'pointer',
@@ -389,6 +397,7 @@ export const outputTab = style({
       outlineOffset: '2px',
     },
     '&:not([aria-selected="true"]):hover': {
+      borderColor: '#40514f',
       color: colorTokens.white,
     },
     '&[aria-selected="true"]:hover': {

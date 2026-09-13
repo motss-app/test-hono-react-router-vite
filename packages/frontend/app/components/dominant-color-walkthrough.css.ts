@@ -508,6 +508,12 @@ export const controlButtonPrimary = style({
   borderColor: '#d7f36b',
   color: '#152016',
   fontWeight: 700,
+  selectors: {
+    '&:hover:not(:disabled)': {
+      backgroundColor: '#c6eb4f',
+      borderColor: '#c6eb4f',
+    },
+  },
 });
 
 export const sourceNote = style({
