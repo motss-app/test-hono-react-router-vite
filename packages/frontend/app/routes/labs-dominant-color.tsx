@@ -93,13 +93,13 @@ function buildFormatRows(result: ColorResponse): FormatRow[] {
       cssColor: `hsl(${result.hsl.h.toFixed(2)} ${formatPercent(result.hsl.s)} ${formatPercent(result.hsl.l)} / ${alpha})`,
       id: 'hsl',
       label: m.dominant_color_output_hsl(),
-      value: `hsl(${result.hsl.h.toFixed(2)}° ${formatPercent(result.hsl.s)} ${formatPercent(result.hsl.l)} / ${alpha})`,
+      value: `hsl(${result.hsl.h.toFixed(2)}deg ${formatPercent(result.hsl.s)} ${formatPercent(result.hsl.l)} / ${alpha})`,
     },
     {
       cssColor: null,
       id: 'hsv',
       label: m.dominant_color_output_hsv(),
-      value: `hsv(${result.hsv.h.toFixed(2)}°, ${formatPercent(result.hsv.s)}, ${formatPercent(result.hsv.v)} / ${alpha})`,
+      value: `hsv(${result.hsv.h.toFixed(2)}deg ${formatPercent(result.hsv.s)} ${formatPercent(result.hsv.v)} / ${alpha})`,
     },
     {
       cssColor: `lab(${result.lab.l.toFixed(2)}% ${result.lab.a.toFixed(2)} ${result.lab.b.toFixed(2)} / ${alpha})`,
@@ -263,6 +263,12 @@ export default function DominantColorLab(): JSX.Element {
   );
   const showFormattedOutput = useCallback(() => setOutputMode('formatted'), []);
   const showRawOutput = useCallback(() => setOutputMode('raw'), []);
+  const handleTabKeyDown = useCallback((event: React.KeyboardEvent) => {
+    if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setOutputMode(event.key === 'ArrowRight' ? 'raw' : 'formatted');
+    }
+  }, []);
 
   const analyze = useCallback(async () => {
     if (!file) return;
@@ -412,6 +418,7 @@ export default function DominantColorLab(): JSX.Element {
                   <div
                     aria-label={m.dominant_color_output_toggle()}
                     className={c.outputToggle}
+                    onKeyDown={handleTabKeyDown}
                     role="tablist"
                   >
                     <button
@@ -419,6 +426,7 @@ export default function DominantColorLab(): JSX.Element {
                       className={`${c.outputTab} ${outputMode === 'formatted' ? c.outputTabActive : ''}`.trim()}
                       onClick={showFormattedOutput}
                       role="tab"
+                      tabIndex={outputMode === 'formatted' ? 0 : -1}
                       type="button"
                     >
                       {m.dominant_color_output_formatted()}
@@ -428,6 +436,7 @@ export default function DominantColorLab(): JSX.Element {
                       className={`${c.outputTab} ${outputMode === 'raw' ? c.outputTabActive : ''}`.trim()}
                       onClick={showRawOutput}
                       role="tab"
+                      tabIndex={outputMode === 'raw' ? 0 : -1}
                       type="button"
                     >
                       {m.dominant_color_output_raw_json()}

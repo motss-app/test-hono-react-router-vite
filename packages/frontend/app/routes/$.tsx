@@ -50,7 +50,9 @@ export default function NotFound({ loaderData }: Route.ComponentProps): JSX.Elem
       <h1 className={s.h1}>404</h1>
       <h2>{m.not_found_title()}</h2>
       <p>
-        <code>{loaderData.url}</code> {m.not_found_description()}
+        {m.not_found_description({
+          url: loaderData.url,
+        })}
       </p>
       <div className={s.marginTop}>
         <Link

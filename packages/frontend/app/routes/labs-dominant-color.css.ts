@@ -67,6 +67,12 @@ export const heroActions = style({
   gridAutoFlow: 'column',
   justifyContent: 'flex-start',
   marginBlockStart: '2rem',
+  maxInlineSize: '100%',
+  selectors: {
+    '@media (max-width: 480px)': {
+      gridAutoFlow: 'row',
+    },
+  },
 });
 export const ctaSecondary = style({
   alignItems: 'center',

@@ -386,7 +386,7 @@
   "meta_labs_title": "WASM Labs · React Router + Hono Demo",
   "meta_ssr_title": "SSR 示範 · React Router + Hono 示範",
   "not_found_back_home": "返回主頁",
-  "not_found_description": "呢個頁面唔存在。",
+  "not_found_description": "{url} 唔存在。",
   "not_found_title": "搵唔到頁面",
   "route_about_description": "專案概覽、技術棧筆記同應用嘅遷移決策。",
   "route_about_title": "關於",

@@ -157,6 +157,11 @@ function rgbCss(rgb: Marker): string {
   return `rgb(${rgb[0]} ${rgb[1]} ${rgb[2]})`;
 }
 
+function textColorForBg(rgb: Marker): string {
+  const luminance = (0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]) / 255;
+  return luminance > 0.55 ? '#152016' : '#ecfdf5';
+}
+
 function rgbHex(rgb: Marker): string {
   return `#${rgb
     .map(channel => Math.round(channel).toString(16).padStart(2, '0'))
@@ -189,29 +194,40 @@ function createCluster(): Cluster {
 
 function buildBins(pixels: Pixel[]): Bin[] {
   const bins = new Map<number, Bin>();
+  const indexOrder = new Map<Bin, number>();
+  let nextIndex = 0;
   for (const pixel of pixels) {
     if (pixel.a < 16) continue;
     const address = binFor(pixel);
     const index = binIndex(address);
-    const bin = bins.get(index) ?? {
-      a: 0,
-      b: 0,
-      g: 0,
-      pixels: [],
-      r: 0,
-      samples: 0,
-    };
+    let bin = bins.get(index);
+    if (!bin) {
+      bin = {
+        a: 0,
+        b: 0,
+        g: 0,
+        pixels: [],
+        r: 0,
+        samples: 0,
+      };
+      indexOrder.set(bin, nextIndex);
+      nextIndex += 1;
+      bins.set(index, bin);
+    }
     bin.a += pixel.a;
     bin.b += pixel.b * pixel.a;
     bin.g += pixel.g * pixel.a;
     bin.pixels.push(pixel);
     bin.r += pixel.r * pixel.a;
     bin.samples += 1;
-    bins.set(index, bin);
   }
   return [
     ...bins.values(),
-  ].sort((left, right) => right.a - left.a);
+  ].sort((left, right) => {
+    const delta = right.a - left.a;
+    if (delta !== 0) return delta;
+    return (indexOrder.get(left) ?? 0) - (indexOrder.get(right) ?? 0);
+  });
 }
 
 function assignBins(bins: Bin[], centroids: Marker[], pixels: Pixel[]): Assignment {
@@ -372,6 +388,11 @@ function PixelTile({
       className={`${c.pixel} ${highlighted ? c.pixelHighlighted : ''} ${dimmed ? c.pixelDimmed : ''}`.trim()}
       style={{
         backgroundColor: rgbCss([
+          pixel.r,
+          pixel.g,
+          pixel.b,
+        ]),
+        color: textColorForBg([
           pixel.r,
           pixel.g,
           pixel.b,

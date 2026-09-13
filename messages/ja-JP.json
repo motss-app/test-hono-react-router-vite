@@ -386,7 +386,7 @@
   "meta_labs_title": "WASM Labs · React Router + Hono Demo",
   "meta_ssr_title": "SSRデモ · React Router + Hono デモ",
   "not_found_back_home": "ホームに戻る",
-  "not_found_description": "このページは存在しません。",
+  "not_found_description": "{url} は存在しません。",
   "not_found_title": "ページが見つかりません",
   "route_about_description": "プロジェクトの概要、スタックノート、そしてアプリの移行判断について。",
   "route_about_title": "概要",
