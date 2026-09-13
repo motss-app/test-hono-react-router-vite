@@ -15,8 +15,9 @@ node_modules/
 /packages/frontend/app/**/+types/
 
 # AI coding assistant internal data
-.codex/
 __screenshots__
+.codex/
+.tmp/
 .vitest-attachments
 
 # Git worktrees (e.g. created by AI agents via `git worktree add`)

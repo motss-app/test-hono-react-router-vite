@@ -39,22 +39,33 @@ Before editing:
 
 ### Browser toolsets
 
-Two browser MCP toolsets are available: VS Code integrated browser and Chrome DevTools. Prefer VS Code integrated browser MCP. Fallback to Chrome DevTools MCP if VS Code lacks a needed capability. Pick one set per task; all tools within the chosen set are available with no further restriction.
+Three browser MCP toolsets are available, in this priority order:
+
+1. VS Code integrated browser (preferred)
+2. Chrome DevTools MCP (fallback if VS Code lacks a needed capability)
+3. Playwright MCP (last resort)
+
+Selection rules:
+- Justify the selection: Before beginning browser operations, briefly explain which toolset you are picking and why (e.g. "Using VS Code integrated browser because it handles the needed interaction and requires no cleanup.").
+- Always pick the highest-priority toolset that satisfies the task.
+- Once a toolset is selected, stick with it for the entire chat session.
+- If a toolset becomes insufficient mid-task, prompt the user for permission before switching to the next one.
+- If a tool reports "disabled by the user", activate the matching fallback when available, then retry the original call once.
 
 ### Session hygiene
 
 - Start each task with a fresh dedicated MCP session. List pages first, record the baseline, and track created pages and process ownership. Never modify user-owned tabs or pre-existing shared browser processes.
-- If a tool reports "disabled by the user", activate the matching fallback when available, then retry the original call once. Do not guess activation names or use unrelated workarounds.
 - On `Transport closed`, stop and ask the user to restart the MCP server through the VS Code MCP panel. After confirmation, list pages again before continuing. Never retry a dead transport or launch a separate stdio server as a replacement connection.
 - After an MCP reconnect or restart, list pages again and discard stale page IDs before continuing.
 - For other page-call failures, inspect the live session and recover when possible.
 
 ### Screenshots and cleanup
 
-- Capture screenshots using the appropriate screenshot tool, format `png`, no file path. Attach the resulting image directly in the chat response. Verify the inline image appears, or report attachment failure. Do not save files unless asked. Do not chase file-not-found errors or retry screenshot saves when the platform already displayed the image inline. Move on.
+- Capture screenshots using the appropriate screenshot tool, format `png`, no file path. Attach the resulting image directly in the chat response. Verify the inline image appears, or report attachment failure. If the platform drops the inline image (e.g. provider limitation), ask the user for permission before saving to disk. When saving, use the `.tmp/` directory inside the workspace root. Create it first if it does not exist. Never save screenshots to the workspace root or any source-controlled directory. Clean up temp screenshots after the user confirms they are no longer needed.
 - After attaching screenshots, clean up depends on which MCP set was used:
   - VS Code integrated browser MCP: No cleanup needed. VS Code manages page lifecycle.
   - Chrome DevTools MCP: Close the tab. If close fails because it's the last page, accept it and move on. Do NOT open a new blank tab just to close the original. When the task explicitly requests process cleanup, use `ps` to find task-owned Edge and MCP PIDs by their parent relationships, `puppeteer_dev_chrome_profile-*`, and `--remote-debugging-pipe`. Send `kill -TERM` only to those PIDs and verify exit with `ps`, requesting elevated access if needed. Later browser work requires a new MCP connection.
+  - Playwright MCP: Close the page using the `close` tool.
 
 ## Project Structure
 
