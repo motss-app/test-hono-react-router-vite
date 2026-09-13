@@ -3,8 +3,10 @@ use image::{ImageReader, RgbImage};
 use std::io::Cursor;
 
 fn build_receipt_rgb(width: u32, height: u32) -> RgbImage {
-  // Layout mirrors the reported receipt: white card band on top (~31%),
-  // red gradient background below (~69%) with CIMB-style darker reds.
+  /*
+   * Layout mirrors the reported receipt: white card band on top (~31%),
+   * red gradient background below (~69%) with CIMB-style darker reds.
+   */
   let mut img = RgbImage::new(width, height);
   let card_h = height * 31 / 100;
   for y in 0..height {
@@ -12,8 +14,10 @@ fn build_receipt_rgb(width: u32, height: u32) -> RgbImage {
       let px = if y < card_h {
         [254, 254, 254]
       } else {
-        // Vertical red gradient with slight horizontal variation,
-        // like the photographed background shapes.
+        /*
+         * Vertical red gradient with slight horizontal variation,
+         * like the photographed background shapes.
+         */
         let t = f64::from(y - card_h) / f64::from(height - card_h);
         let wobble = ((f64::from(x) * 0.05).sin() * 8.0) as i16;
         let r = (200.0 + t * 30.0) as i16 + wobble / 4;
@@ -51,9 +55,11 @@ fn decode_rgba(bytes: &[u8]) -> (Vec<u8>, u32, u32) {
 
 #[test]
 fn repro_reported_receipt_ratio() {
-  // Mimic reported JPEG: 1260x2800 = 3528000 px, white card 1094934 (31%),
-  // red background 2433066 (69%) split across gradient shades.
-  // Scaled 100x: 31 white + 69 red shades.
+  /*
+   * Mimic reported JPEG: 1260x2800 = 3528000 px, white card 1094934 (31%),
+   * red background 2433066 (69%) split across gradient shades.
+   * Scaled 100x: 31 white + 69 red shades.
+   */
   let mut px: Vec<u8> = Vec::with_capacity(100 * 4);
   for _ in 0..31 {
     px.extend_from_slice(&[254, 254, 254, 255]);
@@ -80,9 +86,11 @@ fn repro_reported_receipt_ratio() {
 
 #[test]
 fn repro_reported_receipt_jpeg_roundtrip() {
-  // End to end through real JPEG bytes: encode a receipt-like
-  // 126x280 image (same 31/69 split as the reported 1260x2800),
-  // decode it exactly like the worker, then run dominant_color.
+  /*
+   * End to end through real JPEG bytes: encode a receipt-like
+   * 126x280 image (same 31/69 split as the reported 1260x2800),
+   * decode it exactly like the worker, then run dominant_color.
+   */
   let rgb = build_receipt_rgb(126, 280);
   let bytes = jpeg_bytes(&rgb);
   let (rgba, w, h) = decode_rgba(&bytes);

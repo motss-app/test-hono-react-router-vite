@@ -264,10 +264,26 @@ export default function DominantColorLab(): JSX.Element {
   const showFormattedOutput = useCallback(() => setOutputMode('formatted'), []);
   const showRawOutput = useCallback(() => setOutputMode('raw'), []);
   const handleTabKeyDown = useCallback((event: React.KeyboardEvent) => {
-    if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
-      event.preventDefault();
-      setOutputMode(event.key === 'ArrowRight' ? 'raw' : 'formatted');
-    }
+    if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+    event.preventDefault();
+    const target = event.currentTarget as HTMLElement;
+    const tabs = Array.from(target.querySelectorAll<HTMLElement>('[role="tab"]'));
+    const currentIndex = tabs.indexOf(event.target as HTMLElement);
+    const nextIndex =
+      event.key === 'ArrowRight'
+        ? (currentIndex + 1) % tabs.length
+        : (currentIndex - 1 + tabs.length) % tabs.length;
+    /*
+     * Tab order is [formatted, raw], so the mode name matches the
+     * next tab's text. Derive it from the index instead of
+     * aria-selected, which still reflects the previous state.
+     */
+    const modes: readonly OutputMode[] = [
+      'formatted',
+      'raw',
+    ];
+    setOutputMode(modes[nextIndex] ?? 'formatted');
+    tabs[nextIndex].focus();
   }, []);
 
   const analyze = useCallback(async () => {
