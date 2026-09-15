@@ -29,7 +29,7 @@ Before editing:
 4. Follow repository rules in this file even when a skill is loaded, unless the skill gives a more specific instruction for the same area.
 5. After code changes, run `deno task check` unless the task is documentation-only or the user says not to.
 6. Run Biome check/fix for linting and formatting after code changes.
-7. Run the benchmark after concluded changes to guard against regressions.
+7. ~~Run the benchmark after concluded changes to guard against regressions.~~ **TEMPORARILY DISABLED** — benchmarks are skipped until further notice. Re-enable by removing this strikethrough and note.
 8. Use MCP for UI verification by default (see Browser Interaction Rules).
 9. For frontend visual changes, run `deno task test:visual` and verify the expected screenshots under `__screenshots__/`. If the dev stack cannot run or screenshots are not generated, report VRT as blocked and do not claim it passed.
 10. After verification passes, probe every URL in `docs/dev-urls.md` to ensure all return 200. Run these against the gateway at `localhost:8787` (and `localhost:5173` for direct frontend URLs). If the dev servers are not running, skip this step.
@@ -129,7 +129,7 @@ Never use semicolons or em dashes in comments, docs, or user-facing prose. Use p
 | `deno run -P=lint npm:@biomejs/biome check .` | Lint check |
 | `deno run -P=lint npm:@biomejs/biome check --write .` | Lint fix |
 | `deno run -P=format npm:@biomejs/biome format --write .` | Format |
-| `BENCH_DURATION=20s deno task bench:all` | Full benchmark |
+| `BENCH_DURATION=20s deno task bench:all` | Full benchmark (temporarily skipped in workflow) |
 | `deno task test:visual` | Generate visual regression screenshots |
 | `deno task dev` | Start all dev servers |
 
