@@ -1,4 +1,4 @@
-import { keyframes, style } from '@vanilla-extract/css';
+import { createVar, keyframes, style } from '@vanilla-extract/css';
 
 import { colorTokens } from '../styles/color-tokens.contract.css.ts';
 import { radiusTokens } from '../styles/radius-tokens.contract.css.ts';
@@ -13,6 +13,8 @@ const reveal = keyframes({
     transform: 'translateY(0)',
   },
 });
+
+export const previewBackgroundColor = createVar();
 
 export const page = style({
   minInlineSize: 0,
@@ -240,7 +242,7 @@ export const preview = style({
 });
 export const previewWrap = style({
   alignItems: 'center',
-  backgroundColor: '#111827',
+  backgroundColor: previewBackgroundColor,
   blockSize: '100%',
   borderRadius: radiusTokens.radiusMd,
   display: 'flex',
@@ -250,6 +252,9 @@ export const previewWrap = style({
   minBlockSize: 0,
   minInlineSize: 0,
   overflow: 'hidden',
+  vars: {
+    [previewBackgroundColor]: '#111827',
+  },
 });
 export const actionRow = style({
   alignItems: 'center',
