@@ -1,3 +1,4 @@
+import { assignInlineVars } from '@vanilla-extract/dynamic';
 import type { JSX, ChangeEvent as ReactChangeEvent, DragEvent as ReactDragEvent } from 'react';
 import { useCallback, useEffect, useId, useState } from 'react';
 
@@ -368,7 +369,12 @@ export default function DominantColorLab(): JSX.Element {
                 type="file"
               />
               {previewUrl ? (
-                <div className={c.previewWrap}>
+                <div
+                  className={c.previewWrap}
+                  style={assignInlineVars({
+                    [c.previewBackgroundColor]: result?.css.srgb,
+                  })}
+                >
                   <img
                     alt="Selected upload preview"
                     className={c.preview}

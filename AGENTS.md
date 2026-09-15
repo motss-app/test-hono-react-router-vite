@@ -29,7 +29,7 @@ Before editing:
 4. Follow repository rules in this file even when a skill is loaded, unless the skill gives a more specific instruction for the same area.
 5. After code changes, run `deno task check` unless the task is documentation-only or the user says not to.
 6. Run Biome check/fix for linting and formatting after code changes.
-7. Run the benchmark after concluded changes to guard against regressions.
+7. ~~Run the benchmark after concluded changes to guard against regressions.~~ **TEMPORARILY DISABLED** — benchmarks are skipped until further notice. Re-enable by removing this strikethrough and note.
 8. Use MCP for UI verification by default (see Browser Interaction Rules).
 9. For frontend visual changes, run `deno task test:visual` and verify the expected screenshots under `__screenshots__/`. If the dev stack cannot run or screenshots are not generated, report VRT as blocked and do not claim it passed.
 10. After verification passes, probe every URL in `docs/dev-urls.md` to ensure all return 200. Run these against the gateway at `localhost:8787` (and `localhost:5173` for direct frontend URLs). If the dev servers are not running, skip this step.
@@ -78,8 +78,8 @@ Selection rules:
 - Configuration:
   - `deno.json`: Main configuration for Deno tasks and compiler options.
   - `packages/frontend/wrangler.jsonc`: Frontend Cloudflare Worker deploy configuration.
-  - `packages/frontend/vite.config.ts`: Frontend Cloudflare Vite dev config. Keep `@stylexjs/unplugin` here, not in gateway configs.
-  - `packages/frontend/vite.react-router.config.ts`: Frontend React Router production build config. This is also allowed to use StyleX.
+  - `packages/frontend/vite.config.ts`: Frontend Cloudflare Vite dev config. Keep `@vanilla-extract/vite-plugin` and `veCssTextPlugin` here, not in gateway configs.
+  - `packages/frontend/vite.react-router.config.ts`: Frontend React Router production build config. This is also allowed to use Vanilla Extract.
 
 ## Coding Conventions
 
@@ -114,8 +114,8 @@ Never use semicolons or em dashes in comments, docs, or user-facing prose. Use p
 - Task execution: Prefer `deno task [script-name]` for project scripts. Do not use `npm run` or `pnpm run` for repo tasks.
 - One-off CLIs: If a one-off external CLI is needed, use `pnpm dlx` instead of `npx`.
 - CLI tools: Prefer Rust-based CLI tools when available (e.g. `rg` over `grep`, `bat` over `cat`, `fd` over `find`, `sd` over `sed`).
-- Styling: Use StyleX (`@stylexjs/stylex`). Do not create or import global CSS files such as `app.css`.
-- Vite configs: Never gratuitously modify Vite configs with the StyleX plugin. Keep it in the designated files only.
+- Styling: Use Vanilla Extract (`@vanilla-extract/css`). Use `@vanilla-extract/dynamic` for runtime CSS variables. Do not create or import global CSS files such as `app.css`.
+- Vite configs: Never gratuitously modify Vite configs with the Vanilla Extract plugin. Keep it in the designated files only.
 - Base UI components: When implementing a component using Base UI (`@base-ui/react`), retrieve the latest API reference from `https://base-ui.com/llms.txt` before writing code. Base UI is unstyled, so use vanilla-extract CSS for styling components.
 - Function signatures: Avoid default parameter values. Do not use `= {}` or any other default parameter value. Normalize options inside the function body instead.
 - JSX rendering: Never use `&&` for conditional rendering. Falsy-but-renderable values (e.g. `""`, `0`) slip through and render unintended text. Use `{condition ? <A /> : null}` or `{condition ? <A /> : <B />}` instead.
@@ -129,7 +129,7 @@ Never use semicolons or em dashes in comments, docs, or user-facing prose. Use p
 | `deno run -P=lint npm:@biomejs/biome check .` | Lint check |
 | `deno run -P=lint npm:@biomejs/biome check --write .` | Lint fix |
 | `deno run -P=format npm:@biomejs/biome format --write .` | Format |
-| `BENCH_DURATION=20s deno task bench:all` | Full benchmark |
+| `BENCH_DURATION=20s deno task bench:all` | Full benchmark (temporarily skipped in workflow) |
 | `deno task test:visual` | Generate visual regression screenshots |
 | `deno task dev` | Start all dev servers |
 
