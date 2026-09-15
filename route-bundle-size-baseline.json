@@ -65,10 +65,10 @@
       "route": "/labs"
     },
     {
-      "gzipBytes": 293823,
-      "ownGzipBytes": 16910,
-      "ownRawBytes": 52613,
-      "rawBytes": 875442,
+      "gzipBytes": 293890,
+      "ownGzipBytes": 16977,
+      "ownRawBytes": 52785,
+      "rawBytes": 875614,
       "route": "/labs-dominant-color"
     },
     {
@@ -95,7 +95,7 @@
   ],
   "summary": {
     "maxRoute": "/labs-dominant-color",
-    "maxRouteRawBytes": 875442,
+    "maxRouteRawBytes": 875614,
     "minRoute": "/page-layout",
     "minRouteRawBytes": 823026
   }
