@@ -1,5 +1,5 @@
 import type { JSX, ChangeEvent as ReactChangeEvent, DragEvent as ReactDragEvent } from 'react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useId, useState } from 'react';
 
 import { DominantColorWalkthrough } from '../components/dominant-color-walkthrough.tsx';
 import { Link } from '../components/Link.tsx';
@@ -209,6 +209,10 @@ export default function DominantColorLab(): JSX.Element {
   const [busy, setBusy] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [outputMode, setOutputMode] = useState<OutputMode>('formatted');
+  const outputId = useId();
+  const formattedTabId = `${outputId}-formatted`;
+  const rawTabId = `${outputId}-raw`;
+  const outputPanelId = `${outputId}-panel`;
 
   useEffect(
     () => () => {
@@ -440,8 +444,10 @@ export default function DominantColorLab(): JSX.Element {
                     role="tablist"
                   >
                     <button
+                      aria-controls={outputPanelId}
                       aria-selected={outputMode === 'formatted'}
                       className={`${c.outputTab} ${outputMode === 'formatted' ? c.outputTabActive : ''}`.trim()}
+                      id={formattedTabId}
                       onClick={showFormattedOutput}
                       role="tab"
                       tabIndex={outputMode === 'formatted' ? 0 : -1}
@@ -450,8 +456,10 @@ export default function DominantColorLab(): JSX.Element {
                       {m.dominant_color_output_formatted()}
                     </button>
                     <button
+                      aria-controls={outputPanelId}
                       aria-selected={outputMode === 'raw'}
                       className={`${c.outputTab} ${outputMode === 'raw' ? c.outputTabActive : ''}`.trim()}
+                      id={rawTabId}
                       onClick={showRawOutput}
                       role="tab"
                       tabIndex={outputMode === 'raw' ? 0 : -1}
@@ -460,7 +468,12 @@ export default function DominantColorLab(): JSX.Element {
                       {m.dominant_color_output_raw_json()}
                     </button>
                   </div>
-                  <div className={c.outputContent}>
+                  <div
+                    aria-labelledby={outputMode === 'formatted' ? formattedTabId : rawTabId}
+                    className={c.outputContent}
+                    id={outputPanelId}
+                    role="tabpanel"
+                  >
                     {outputMode === 'formatted' ? (
                       <FormattedOutput result={result} />
                     ) : (
