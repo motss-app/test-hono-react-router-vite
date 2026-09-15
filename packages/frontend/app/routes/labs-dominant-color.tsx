@@ -1,5 +1,5 @@
 import type { JSX, ChangeEvent as ReactChangeEvent, DragEvent as ReactDragEvent } from 'react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useId, useState } from 'react';
 
 import { DominantColorWalkthrough } from '../components/dominant-color-walkthrough.tsx';
 import { Link } from '../components/Link.tsx';
@@ -64,10 +64,6 @@ interface ColorResponse {
 }
 
 type OutputMode = 'formatted' | 'raw';
-
-const FORMATTED_TAB_ID = 'dominant-color-formatted-tab';
-const RAW_TAB_ID = 'dominant-color-raw-tab';
-const OUTPUT_PANEL_ID = 'dominant-color-output-panel';
 
 type FormatRow = {
   cssColor: string | null;
@@ -213,6 +209,10 @@ export default function DominantColorLab(): JSX.Element {
   const [busy, setBusy] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [outputMode, setOutputMode] = useState<OutputMode>('formatted');
+  const outputId = useId();
+  const formattedTabId = `${outputId}-formatted`;
+  const rawTabId = `${outputId}-raw`;
+  const outputPanelId = `${outputId}-panel`;
 
   useEffect(
     () => () => {
@@ -444,10 +444,10 @@ export default function DominantColorLab(): JSX.Element {
                     role="tablist"
                   >
                     <button
-                      aria-controls={OUTPUT_PANEL_ID}
+                      aria-controls={outputPanelId}
                       aria-selected={outputMode === 'formatted'}
                       className={`${c.outputTab} ${outputMode === 'formatted' ? c.outputTabActive : ''}`.trim()}
-                      id={FORMATTED_TAB_ID}
+                      id={formattedTabId}
                       onClick={showFormattedOutput}
                       role="tab"
                       tabIndex={outputMode === 'formatted' ? 0 : -1}
@@ -456,10 +456,10 @@ export default function DominantColorLab(): JSX.Element {
                       {m.dominant_color_output_formatted()}
                     </button>
                     <button
-                      aria-controls={OUTPUT_PANEL_ID}
+                      aria-controls={outputPanelId}
                       aria-selected={outputMode === 'raw'}
                       className={`${c.outputTab} ${outputMode === 'raw' ? c.outputTabActive : ''}`.trim()}
-                      id={RAW_TAB_ID}
+                      id={rawTabId}
                       onClick={showRawOutput}
                       role="tab"
                       tabIndex={outputMode === 'raw' ? 0 : -1}
@@ -469,9 +469,9 @@ export default function DominantColorLab(): JSX.Element {
                     </button>
                   </div>
                   <div
-                    aria-labelledby={outputMode === 'formatted' ? FORMATTED_TAB_ID : RAW_TAB_ID}
+                    aria-labelledby={outputMode === 'formatted' ? formattedTabId : rawTabId}
                     className={c.outputContent}
-                    id={OUTPUT_PANEL_ID}
+                    id={outputPanelId}
                     role="tabpanel"
                   >
                     {outputMode === 'formatted' ? (
