@@ -70,12 +70,12 @@
     ]
   },
   "imports": {
-    "@sentry/browser": "npm:@sentry/browser@10.73.0",
+    "@sentry/browser": "npm:@sentry/browser@10.75.0",
     "@std/path": "jsr:@std/path@1.1.6",
     "clsx/lite": "npm:clsx@2.1.1/lite",
     "playwright": "npm:playwright@1.63.0",
     "posthog-js": "npm:posthog-js@1.427.2",
-    "react-dom/server": "npm:react-dom@19.2.8/server.edge"
+    "react-dom/server": "npm:react-dom@19.3.0/server.edge"
   },
   "lint": {
     "exclude": [
