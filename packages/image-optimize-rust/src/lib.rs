@@ -82,8 +82,8 @@ async fn handle_resize(mut req: Request) -> Result<Response> {
 
   // Reject oversized uploads before reading the body. Chunked or missing
   // Content-Length is allowed through, but the read is capped below.
-  if let Some(len) = req.headers().get("content-length") {
-    if let Ok(n) = len.to_str().unwrap_or("0").parse::<u64>() {
+  if let Ok(Some(len)) = req.headers().get("content-length") {
+    if let Ok(n) = len.parse::<u64>() {
       if n > MAX_UPLOAD_BYTES as u64 {
         return Response::error("Image exceeds the 32 MB upload limit", 413);
       }
