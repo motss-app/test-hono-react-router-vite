@@ -49,7 +49,7 @@ fn filter_name(filter: image::imageops::FilterType) -> &'static str {
 
 async fn handle_resize(mut req: Request) -> Result<Response> {
   let url = req.url().map_err(|_| Error::from("Invalid URL"))?;
-  let params = url.query_pairs();
+  let mut params = url.query_pairs();
 
   let target_width: u32 = params
     .find(|(key, _)| key == "width")
@@ -70,11 +70,23 @@ async fn handle_resize(mut req: Request) -> Result<Response> {
   if target_width > MAX_DIMENSION || target_height > MAX_DIMENSION {
     return Response::error("Target dimensions exceed the 4K limit", 400);
   }
-  // Reject output pixel count even when each axis is within MAX_DIMENSION.
+  // Reject output pixel count for explicit two-dimension requests.
+  // For single-axis resizes the output pixel count is checked after decoding
+  // (see validate_output_pixels below).
   if target_width > 0 && target_height > 0 {
     let pixels = u64::from(target_width) * u64::from(target_height);
     if pixels > MAX_PIXELS {
       return Response::error("Output pixel count exceeds the 4K limit", 400);
+    }
+  }
+
+  // Reject oversized uploads before reading the body. Chunked or missing
+  // Content-Length is allowed through, but the read is capped below.
+  if let Some(len) = req.headers().get("content-length") {
+    if let Ok(n) = len.to_str().unwrap_or("0").parse::<u64>() {
+      if n > MAX_UPLOAD_BYTES as u64 {
+        return Response::error("Image exceeds the 32 MB upload limit", 413);
+      }
     }
   }
 
@@ -103,14 +115,37 @@ async fn handle_resize(mut req: Request) -> Result<Response> {
   }
 
   let filter = parse_filter(&filter_str);
+
+  // For single-axis resizes, compute the derived dimension and validate the
+  // output pixel count before allocating the resize buffer.
+  let (effective_width, effective_height) = if target_width > 0 && target_height > 0 {
+    (target_width, target_height)
+  } else if target_width > 0 {
+    let ratio = target_width as f64 / orig_width as f64;
+    let derived_height = (orig_height as f64 * ratio).round() as u32;
+    let pixels = u64::from(target_width) * u64::from(derived_height);
+    if pixels > MAX_PIXELS {
+      return Response::error("Output pixel count exceeds the 4K limit", 400);
+    }
+    (target_width, derived_height)
+  } else {
+    let ratio = target_height as f64 / orig_height as f64;
+    let derived_width = (orig_width as f64 * ratio).round() as u32;
+    let pixels = u64::from(derived_width) * u64::from(target_height);
+    if pixels > MAX_PIXELS {
+      return Response::error("Output pixel count exceeds the 4K limit", 400);
+    }
+    (derived_width, target_height)
+  };
+
   let resize_start = performance_now();
 
   let resized = if target_width > 0 && target_height > 0 {
-    image.resize_exact(target_width, target_height, filter)
+    image.resize_exact(effective_width, effective_height, filter)
   } else if target_width > 0 {
-    image.resize(target_width, 0, filter)
+    image.resize(effective_width, filter)
   } else {
-    image.resize(0, target_height, filter)
+    image.resize_to_height(effective_height, filter)
   };
 
   let resize_ms = performance_now() - resize_start;

@@ -222,7 +222,13 @@ export const dropNote = style({
   },
 });
 export const input = style({
-  display: 'none',
+  clipPath: 'inset(50%)',
+  height: '1px',
+  margin: '-1px',
+  overflow: 'hidden',
+  position: 'absolute',
+  whiteSpace: 'nowrap',
+  width: '1px',
 });
 export const preview = style({
   blockSize: '100%',

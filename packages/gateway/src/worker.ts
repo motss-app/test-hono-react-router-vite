@@ -339,6 +339,12 @@ app.all('/api/rust/color/*', async c => {
 /**
  * Proxies image-optimization work to its dedicated Rust Worker. Registered
  * before the general fractal route so decoder dependencies stay isolated.
+ *
+ * Unlike the color route, this proxy does NOT parse the JSON body to inject
+ * timing. The response contains a large base64 PNG payload, and cloning +
+ * re-serializing it would exhaust Worker memory. Instead, timing is returned
+ * via the Server-Timing header added by wrapTime, and the Rust worker
+ * includes its own timing in the JSON response.
  */
 app.all('/api/rust/image-optimize/*', async c => {
   const rust = c.env.IMAGE_OPTIMIZE_RUST;
@@ -349,16 +355,15 @@ app.all('/api/rust/image-optimize/*', async c => {
   const url = new URL(c.req.url);
   const targetPath = url.pathname.replace(/^\/api\/rust/, '') || '/';
   const target = new Request(`http://IMAGE_OPTIMIZE_RUST${targetPath}${url.search}`, c.req.raw);
-  const startedAt = performance.now();
-  const response = await wrapTime(
-    c,
-    'image-optimize-rust',
-    rust.fetch(target),
-    'Image optimize Rust worker service binding'
-  );
-  const timeMs = performance.now() - startedAt;
 
-  return cloneResponse(await addColorServiceTime(response, timeMs));
+  return cloneResponse(
+    await wrapTime(
+      c,
+      'image-optimize-rust',
+      rust.fetch(target),
+      'Image optimize Rust worker service binding'
+    )
+  );
 });
 
 /**

@@ -170,6 +170,10 @@
     {
       "binding": "HEALTHZ_RUST",
       "service": "healthz-rust"
+    },
+    {
+      "binding": "IMAGE_OPTIMIZE_RUST",
+      "service": "image-optimize-rust"
     }
   ],
   "upload_source_maps": true,

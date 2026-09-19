@@ -1,5 +1,5 @@
-import type { JSX, ChangeEvent as ReactChangeEvent, DragEvent as ReactDragEvent } from 'react';
-import { useCallback, useEffect, useState } from 'react';
+import type { JSX, ChangeEvent as ReactChangeEvent } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Link } from '../components/Link.tsx';
 import { PageFooter } from '../components/page-footer.tsx';
@@ -174,7 +174,7 @@ function ImageOptimizeHero(): JSX.Element {
   );
 }
 
-export default function ImageOptimizeLab(): JSX.Element {
+function useImageOptimize() {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [filter, setFilter] = useState<FilterId>('lanczos3');
@@ -185,6 +185,7 @@ export default function ImageOptimizeLab(): JSX.Element {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const requestIdRef = useRef(0);
 
   useEffect(
     () => () => {
@@ -217,8 +218,9 @@ export default function ImageOptimizeLab(): JSX.Element {
       chooseFile,
     ]
   );
+
   const onDrop = useCallback(
-    (event: ReactDragEvent<HTMLLabelElement>) => {
+    (event: React.DragEvent<HTMLLabelElement>) => {
       event.preventDefault();
       setDragging(false);
       chooseFile(event.dataTransfer.files[0] ?? null);
@@ -227,13 +229,13 @@ export default function ImageOptimizeLab(): JSX.Element {
       chooseFile,
     ]
   );
-  const onDragEnter = useCallback((event: ReactDragEvent<HTMLLabelElement>) => {
+  const onDragEnter = useCallback((event: React.DragEvent<HTMLLabelElement>) => {
     event.preventDefault();
     setDragging(true);
   }, []);
   const onDragLeave = useCallback(() => setDragging(false), []);
   const onDragOver = useCallback(
-    (event: ReactDragEvent<HTMLLabelElement>) => event.preventDefault(),
+    (event: React.DragEvent<HTMLLabelElement>) => event.preventDefault(),
     []
   );
 
@@ -261,6 +263,7 @@ export default function ImageOptimizeLab(): JSX.Element {
       setError('Set at least one target dimension.');
       return;
     }
+    const id = ++requestIdRef.current;
     setBusy(true);
     setError(null);
     setResult(null);
@@ -279,11 +282,13 @@ export default function ImageOptimizeLab(): JSX.Element {
       });
       if (!response.ok)
         throw new Error((await response.text()) || `Request failed (${response.status})`);
+      if (id !== requestIdRef.current) return;
       setResult((await response.json()) as ResizeResult);
     } catch (cause) {
+      if (id !== requestIdRef.current) return;
       setError(cause instanceof Error ? cause.message : 'The edge optimization failed.');
     } finally {
-      setBusy(false);
+      if (id === requestIdRef.current) setBusy(false);
     }
   }, [
     file,
@@ -292,9 +297,70 @@ export default function ImageOptimizeLab(): JSX.Element {
     targetWidth,
   ]);
 
+  const clearAll = useCallback(() => {
+    setFile(null);
+    setPreviewUrl(null);
+    setResult(null);
+    setError(null);
+  }, []);
+
   const optimizedSrc = result?.output_png_base64
     ? `data:image/png;base64,${result.output_png_base64}`
     : null;
+
+  return {
+    activePreset,
+    busy,
+    chooseFile,
+    clearAll,
+    dragging,
+    error,
+    file,
+    filter,
+    onDragEnter,
+    onDragLeave,
+    onDragOver,
+    onDrop,
+    onHeightChange,
+    onInput,
+    onWidthChange,
+    optimize,
+    optimizedSrc,
+    previewUrl,
+    result,
+    selectPreset,
+    setDragging,
+    setFilter,
+    targetHeight,
+    targetWidth,
+  };
+}
+
+export default function ImageOptimizeLab(): JSX.Element {
+  const {
+    activePreset,
+    busy,
+    clearAll,
+    dragging,
+    error,
+    file,
+    filter,
+    onDrop,
+    onDragEnter,
+    onDragLeave,
+    onDragOver,
+    onHeightChange,
+    onInput,
+    onWidthChange,
+    optimize,
+    optimizedSrc,
+    previewUrl,
+    result,
+    selectPreset,
+    setFilter,
+    targetHeight,
+    targetWidth,
+  } = useImageOptimize();
 
   return (
     <main className={c.page}>
@@ -416,13 +482,7 @@ export default function ImageOptimizeLab(): JSX.Element {
                 </button>
                 <button
                   className={c.subtleAction}
-                  /* biome-ignore lint/performance/noJsxPropsBind: trivial clear handler */
-                  onClick={() => {
-                    setFile(null);
-                    setPreviewUrl(null);
-                    setResult(null);
-                    setError(null);
-                  }}
+                  onClick={clearAll}
                   type="button"
                 >
                   {m.image_optimize_back()}
