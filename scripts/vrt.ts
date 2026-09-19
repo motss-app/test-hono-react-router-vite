@@ -112,7 +112,6 @@ async function screenshot(
       timeout: 15_000,
     });
   }
-
   if (page.path.endsWith('/labs/mandelbrot')) {
     await playwrightPage.locator('[data-vrt-ready="true"]').waitFor({
       state: 'attached',

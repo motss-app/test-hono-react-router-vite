@@ -20,8 +20,6 @@
     "npm:@inlang/paraglide-js-react@1.0.3": "1.0.3_@inlang+paraglide-js@2.25.4_react@19.3.0_typescript@7.0.2_vite@8.3.0",
     "npm:@inlang/paraglide-js@2.25.4": "2.25.4_typescript@7.0.2_vite@8.3.0",
     "npm:@inlang/plugin-icu1@1.1.0": "1.1.0",
-    "npm:@playwright/test@*": "1.63.0",
-    "npm:@playwright/test@1.63.0": "1.63.0",
     "npm:@react-router/dev@*": "8.4.0_react-router@8.4.0_typescript@7.0.2_vite@8.3.0_wrangler@4.129.0_react@19.3.0_react-dom@19.3.0",
     "npm:@react-router/dev@8.4.0": "8.4.0_react-router@8.4.0_typescript@7.0.2_vite@8.3.0_wrangler@4.129.0_react@19.3.0_react-dom@19.3.0",
     "npm:@sentry/browser@10.75.0": "10.75.0",
@@ -36,7 +34,7 @@
     "npm:@vanilla-extract/dynamic@2.1.5": "2.1.5",
     "npm:@vanilla-extract/vite-plugin@5.2.6": "5.2.6_vite@8.3.0",
     "npm:@vitest/browser-playwright@4.1.11": "4.1.11_playwright@1.63.0_vitest@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-v8@4.1.11_typescript@7.0.2_@voidzero-dev+vite-plus-core@0.3.2",
-    "npm:@vitest/coverage-v8@4.1.11": "4.1.11_@vitest+browser@4.1.11_vitest@4.1.11_playwright@1.63.0",
+    "npm:@vitest/coverage-v8@4.1.11": "4.1.11_playwright@1.63.0",
     "npm:clsx@*": "2.1.1",
     "npm:clsx@2.1.1": "2.1.1",
     "npm:hono-problem-details@0.11.0": "0.11.0_@opentelemetry+api@1.9.1_hono@4.13.8",
@@ -1517,13 +1515,6 @@
     "@oxlint/plugins@1.79.0": {
       "integrity": "sha512-S0uyoxakDINJ4DPgqxGlEEvrdSMeQb7Z2lKVjxoY2gwsbZbfg2Xr8Klfeo5ZeraHmmdBCELFUHkSe6KEmBpMvg=="
     },
-    "@playwright/test@1.63.0": {
-      "integrity": "sha512-oxMK4vllB9RK5NQ2l1pq1IfOf2AvnEuj/vYGDj0H2nMtmtZpKtCwt/l00GEO6xjGfpBNAvjovvYdCm50dRQkpQ==",
-      "dependencies": [
-        "playwright"
-      ],
-      "bin": true
-    },
     "@polka/url@1.0.0-next.29": {
       "integrity": "sha512-wwQAWhWSuHaag8c4q/KN/vCoeOJYshAIvMQwD4GpSb3OiZklFfvAgmj0VCBBImRpuF/aFgIRzllXlVX93Jevww=="
     },
@@ -2270,13 +2261,33 @@
         "obug",
         "std-env",
         "tinyrainbow",
-        "vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-v8@4.1.11_@voidzero-dev+vite-plus-core@0.3.2_@vitest+browser@4.1.11_playwright@1.63.0_typescript@7.0.2"
+        "vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-v8@4.1.11_vite@8.3.0_@vitest+browser@4.1.11_playwright@1.63.0"
       ],
       "optionalPeers": [
         "@vitest/browser"
       ]
     },
-    "@vitest/coverage-v8@4.1.11_@vitest+browser@4.1.11_vitest@4.1.11_playwright@1.63.0": {
+    "@vitest/coverage-v8@4.1.11_@vitest+browser@4.1.11_vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+browser-preview@4.1.11_vite@8.3.0": {
+      "integrity": "sha512-8MVGEFnJIcdGjcbfKmeq8z0pZHH0JlVtoVZH9Q/qwUp6wyFnEJUBMrw9DCaj+ra3vShGmhavjalMIhPNxZAUcw==",
+      "dependencies": [
+        "@bcoe/v8-coverage",
+        "@vitest/browser",
+        "@vitest/utils",
+        "ast-v8-to-istanbul",
+        "istanbul-lib-coverage",
+        "istanbul-lib-report",
+        "istanbul-reports",
+        "magicast",
+        "obug",
+        "std-env",
+        "tinyrainbow",
+        "vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-v8@4.1.11_vite@8.3.0_@vitest+browser@4.1.11_playwright@1.63.0"
+      ],
+      "optionalPeers": [
+        "@vitest/browser"
+      ]
+    },
+    "@vitest/coverage-v8@4.1.11_playwright@1.63.0": {
       "integrity": "sha512-8MVGEFnJIcdGjcbfKmeq8z0pZHH0JlVtoVZH9Q/qwUp6wyFnEJUBMrw9DCaj+ra3vShGmhavjalMIhPNxZAUcw==",
       "dependencies": [
         "@bcoe/v8-coverage",
@@ -3974,7 +3985,7 @@
       "dependencies": [
         "@vitest/browser-playwright@4.1.11_playwright@1.63.0_vitest@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-v8@4.1.11_vite@8.3.0",
         "@vitest/browser-preview",
-        "@vitest/coverage-v8@4.1.11_@vitest+browser@4.1.11_vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+browser-preview@4.1.11_@voidzero-dev+vite-plus-core@0.3.2",
+        "@vitest/coverage-v8@4.1.11_@vitest+browser@4.1.11_vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+browser-preview@4.1.11_vite@8.3.0",
         "@vitest/expect",
         "@vitest/mocker@4.1.11_@voidzero-dev+vite-plus-core@0.3.2_typescript@7.0.2",
         "@vitest/pretty-format",
@@ -3999,7 +4010,7 @@
       "optionalPeers": [
         "@vitest/browser-playwright@4.1.11_playwright@1.63.0_vitest@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-v8@4.1.11_vite@8.3.0",
         "@vitest/browser-preview",
-        "@vitest/coverage-v8@4.1.11_@vitest+browser@4.1.11_vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+browser-preview@4.1.11_@voidzero-dev+vite-plus-core@0.3.2"
+        "@vitest/coverage-v8@4.1.11_@vitest+browser@4.1.11_vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+browser-preview@4.1.11_vite@8.3.0"
       ],
       "bin": true
     },
@@ -4008,7 +4019,7 @@
       "dependencies": [
         "@vitest/browser-playwright@4.1.11_playwright@1.63.0_vitest@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-v8@4.1.11_vite@8.3.0",
         "@vitest/browser-preview",
-        "@vitest/coverage-v8@4.1.11_@vitest+browser@4.1.11_vitest@4.1.11_playwright@1.63.0",
+        "@vitest/coverage-v8@4.1.11_@vitest+browser@4.1.11_vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+browser-preview@4.1.11_@voidzero-dev+vite-plus-core@0.3.2",
         "@vitest/expect",
         "@vitest/mocker@4.1.11_vite@8.3.0",
         "@vitest/pretty-format",
@@ -4033,7 +4044,7 @@
       "optionalPeers": [
         "@vitest/browser-playwright@4.1.11_playwright@1.63.0_vitest@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-v8@4.1.11_vite@8.3.0",
         "@vitest/browser-preview",
-        "@vitest/coverage-v8@4.1.11_@vitest+browser@4.1.11_vitest@4.1.11_playwright@1.63.0"
+        "@vitest/coverage-v8@4.1.11_@vitest+browser@4.1.11_vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+browser-preview@4.1.11_@voidzero-dev+vite-plus-core@0.3.2"
       ],
       "bin": true
     },
@@ -4219,7 +4230,6 @@
   "workspace": {
     "dependencies": [
       "jsr:@std/path@1.1.6",
-      "npm:@playwright/test@1.63.0",
       "npm:@sentry/browser@10.75.0",
       "npm:clsx@2.1.1",
       "npm:playwright@1.63.0",
