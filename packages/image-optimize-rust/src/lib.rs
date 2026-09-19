@@ -108,9 +108,9 @@ async fn handle_resize(mut req: Request) -> Result<Response> {
   let resized = if target_width > 0 && target_height > 0 {
     image.resize_exact(target_width, target_height, filter)
   } else if target_width > 0 {
-    image.resize(target_width, filter)
+    image.resize(target_width, 0, filter)
   } else {
-    image.resize_to_height(target_height, filter)
+    image.resize(0, target_height, filter)
   };
 
   let resize_ms = performance_now() - resize_start;
