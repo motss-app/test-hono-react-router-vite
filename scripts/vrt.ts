@@ -86,7 +86,7 @@ async function screenshot(
 
   /*
    * Wait for the lazy-loaded LocaleSwitcher to finish rendering. The
-   * footer wraps LocaleSwitcherInner in React.lazy + Suspense; while
+   * footer wraps LocaleSwitcherInner in React.lazy + Suspense. While
    * the chunk downloads, a plain "..." fallback is shown. On slow or
    * variable networks (like GHA runners) the chunk may not have arrived
    * by the time fonts finish loading, so the screenshot captures the
