@@ -83,6 +83,42 @@ async function screenshot(
   // Wait for web fonts so text rendering is deterministic.
   await playwrightPage.evaluate(() => document.fonts.ready);
 
+  /*
+   * Wait for the lazy-loaded LocaleSwitcher to finish rendering. The
+   * footer wraps LocaleSwitcherInner in React.lazy + Suspense; while
+   * the chunk downloads, a plain "..." fallback is shown. On slow or
+   * variable networks (like GHA runners) the chunk may not have arrived
+   * by the time fonts finish loading, so the screenshot captures the
+   * fallback text instead of the real locale selector. We assert the
+   * trigger is visible and contains a known locale label, proving the
+   * lazy Suspense boundary has fully resolved with real data.
+   */
+  const LOCALE_LABELS = [
+    'English (US)',
+    '日本語',
+    // biome-ignore lint/security/noSecrets: CJK display names are not secrets
+    '繁體中文（香港）',
+    // biome-ignore lint/security/noSecrets: CJK display names are not secrets
+    '繁體中文',
+  ];
+  /*
+   * waitForFunction polls until the predicate returns true. This handles
+   * the race where the trigger element is visible but Select.Value has
+   * not yet populated its text content on the first frame.
+   */
+  await playwrightPage.waitForFunction(
+    (labels: string[]) => {
+      const trigger = document.querySelector('.locale-switcher-trigger');
+      if (!trigger) return false;
+      const text = trigger.textContent ?? '';
+      return labels.some(label => text.includes(label));
+    },
+    LOCALE_LABELS,
+    {
+      timeout: 15_000,
+    }
+  );
+
   if (page.path.endsWith('/labs/mandelbrot')) {
     await playwrightPage.locator('[data-vrt-ready="true"]').waitFor({
       state: 'attached',
@@ -182,7 +218,7 @@ async function startDevStack(): Promise<void> {
   await waitForServer();
 }
 
-async function waitForServer(timeoutMs = 60_000): Promise<void> {
+async function waitForServer(timeoutMs = 150_000): Promise<void> {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     if ((await probeServer()) === 'up') return;
