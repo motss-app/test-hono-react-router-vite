@@ -125,7 +125,7 @@ export const sectionLabel = style({
   fontSize: '0.72rem',
   fontWeight: 750,
   letterSpacing: '0.13em',
-  margin: '0 0 0.75rem',
+  margin: '1.5rem 0 0.75rem',
   textTransform: 'uppercase',
 });
 export const sectionTitle = style({

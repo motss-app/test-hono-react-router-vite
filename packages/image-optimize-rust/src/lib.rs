@@ -70,6 +70,13 @@ async fn handle_resize(mut req: Request) -> Result<Response> {
   if target_width > MAX_DIMENSION || target_height > MAX_DIMENSION {
     return Response::error("Target dimensions exceed the 4K limit", 400);
   }
+  // Reject output pixel count even when each axis is within MAX_DIMENSION.
+  if target_width > 0 && target_height > 0 {
+    let pixels = u64::from(target_width) * u64::from(target_height);
+    if pixels > MAX_PIXELS {
+      return Response::error("Output pixel count exceeds the 4K limit", 400);
+    }
+  }
 
   let bytes = req.bytes().await?;
   if bytes.len() > MAX_UPLOAD_BYTES {

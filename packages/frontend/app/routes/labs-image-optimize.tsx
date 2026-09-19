@@ -55,6 +55,7 @@ interface ResizeResult {
     width: number;
   };
   resize_ms: number;
+  time_ms: number;
   total_ms: number;
 }
 
@@ -125,7 +126,7 @@ function ResultMetadata({ result }: { result: ResizeResult }): JSX.Element {
       </div>
       <div className={c.metadataRow}>
         <span className={c.metadataLabel}>{m.image_optimize_label_total_time()}</span>
-        <span className={c.metadataValue}>{result.total_ms.toFixed(1)} ms</span>
+        <span className={c.metadataValue}>{(result.time_ms ?? result.total_ms).toFixed(1)} ms</span>
       </div>
     </div>
   );
