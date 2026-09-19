@@ -102,22 +102,27 @@ async function screenshot(
 
   if ((await localeFallback.count()) > 0 || (await localeTrigger.count()) > 0) {
     /*
-     * waitForFunction polls the DOM until the trigger element exists
-     * and contains real locale text (not the Suspense fallback).
-     * The predicate is intentionally locale-agnostic so adding a new
-     * locale to project.inlang/settings.json does not break VRT.
+     * locator.waitFor polls with Playwright's built-in retry until the
+     * element is visible. Once visible, Select.Value has rendered the
+     * locale label in the same React commit.
      */
-    await playwrightPage.waitForFunction(
-      () => {
-        const trigger = document.querySelector('.locale-switcher-trigger');
-        if (!trigger) return false;
-        const text = trigger.textContent ?? '';
-        return text.trim().length > 0 && !text.includes('...');
-      },
-      {
-        timeout: 15_000,
-      }
-    );
+    await localeTrigger.waitFor({
+      state: 'visible',
+      timeout: 15_000,
+    });
+
+    /*
+     * Assert the trigger has real locale text, not the Suspense
+     * fallback ("..."). The check is intentionally locale-agnostic
+     * so adding a new locale to project.inlang/settings.json does
+     * not break VRT.
+     */
+    const localeText = await localeTrigger.textContent();
+    if (!localeText?.trim() || localeText.includes('...')) {
+      throw new Error(
+        `Locale switcher trigger has unexpected content "${localeText?.trim()}" on ${page.path}`
+      );
+    }
   }
 
   if (page.path.endsWith('/labs/mandelbrot')) {
