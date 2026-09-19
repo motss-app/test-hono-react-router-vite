@@ -40,10 +40,7 @@ Before editing:
 
 ### Playwright tests and VRT scripts
 
-- Prefer Playwright's built-in locator APIs and assertions that retry automatically for browser tests and VRT scripts. Follow the [Playwright assertion guidance](https://playwright.dev/docs/best-practices#use-web-first-assertions).
-- Assert the actual readiness condition with `await expect(locator).toBeVisible()`, `.toHaveText(...)`, `.toContainText(...)`, or `.toHaveCount(...)` as appropriate. Waiting for visibility alone does not guarantee that asynchronous text has finished rendering.
-- Do not use immediate `count()` or `isVisible()` results to decide whether to wait for asynchronously rendered UI. Avoid `textContent()` or `innerText()` followed by a manual assertion when the expected content may still change.
-- Avoid fixed sleeps, custom polling loops, and DOM checks through `page.evaluate()` or `page.waitForFunction()` when a built-in locator API or assertion expresses the condition. If custom logic is necessary, document why the built-in APIs cannot cover it.
+Prefer Playwright's built-in capabilities for browser tests and VRT scripts. Consult its official `llms.txt` when available, documentation, or source code to choose APIs suited to the task and installed version. Use custom logic only when the built-in capabilities cannot meet the requirement.
 
 ### Browser toolsets
 
