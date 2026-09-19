@@ -8,5 +8,6 @@ export interface GatewayBindings {
   HEALTHZ_RUST?: WorkerFetcher;
   COLOR_RUST?: WorkerFetcher;
   FRACTAL_RUST?: WorkerFetcher;
+  IMAGE_OPTIMIZE_RUST?: WorkerFetcher;
   SENTRY_DSN?: string;
 }

@@ -44,6 +44,10 @@
         {
           "binding": "COLOR_RUST",
           "service": "color-rust-canary"
+        },
+        {
+          "binding": "IMAGE_OPTIMIZE_RUST",
+          "service": "image-optimize-rust-canary"
         }
       ],
       "vars": {
@@ -73,6 +77,10 @@
         {
           "binding": "COLOR_RUST",
           "service": "color-rust-dev"
+        },
+        {
+          "binding": "IMAGE_OPTIMIZE_RUST",
+          "service": "image-optimize-rust-dev"
         }
       ],
       "vars": {
@@ -108,6 +116,10 @@
         {
           "binding": "COLOR_RUST",
           "service": "color-rust-production"
+        },
+        {
+          "binding": "IMAGE_OPTIMIZE_RUST",
+          "service": "image-optimize-rust-production"
         }
       ],
       "vars": {
