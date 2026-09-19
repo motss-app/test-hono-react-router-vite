@@ -16,6 +16,7 @@
  *   deno run -A scripts/vrt.ts
  */
 
+import { expect } from '@playwright/test';
 import { type Browser, type BrowserContext, chromium } from 'playwright';
 
 import { discoverPrerenderRoutes } from '../vite-utils/route-discovery.ts';
@@ -102,22 +103,14 @@ async function screenshot(
 
   if ((await localeFallback.count()) > 0 || (await localeTrigger.count()) > 0) {
     /*
-     * Poll via waitForFunction until the trigger contains real locale
-     * text (not the Suspense fallback). The elementHandle() keeps the
-     * locator API involved while the polling handles the
-     * element-visible-but-text-not-populated race that a one-shot
-     * textContent() call would miss.
+     * expect(locator).toHaveText() polls with built-in retry until the
+     * text matches. The regex asserts the trigger has real locale text
+     * (at least one character) and does not contain the Suspense
+     * fallback marker ("...").
      */
-    await playwrightPage.waitForFunction(
-      triggerEl => {
-        const text = triggerEl.textContent ?? '';
-        return text.trim().length > 0 && !text.includes('...');
-      },
-      await localeTrigger.elementHandle(),
-      {
-        timeout: 15_000,
-      }
-    );
+    await expect(localeTrigger).toHaveText(/^(?!.*\.\.\.).+/, {
+      timeout: 15_000,
+    });
   }
 
   if (page.path.endsWith('/labs/mandelbrot')) {
