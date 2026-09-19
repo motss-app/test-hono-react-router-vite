@@ -356,14 +356,28 @@ app.all('/api/rust/image-optimize/*', async c => {
   const targetPath = url.pathname.replace(/^\/api\/rust/, '') || '/';
   const target = new Request(`http://IMAGE_OPTIMIZE_RUST${targetPath}${url.search}`, c.req.raw);
 
-  return cloneResponse(
-    await wrapTime(
-      c,
-      'image-optimize-rust',
-      rust.fetch(target),
-      'Image optimize Rust worker service binding'
-    )
+  const start = performance.now();
+  const resp = await wrapTime(
+    c,
+    'image-optimize-rust',
+    rust.fetch(target),
+    'Image optimize Rust worker service binding'
   );
+  const timeMs = performance.now() - start;
+
+  // Inject gateway-measured timing into the JSON response. The Rust worker's
+  // performance.now() is frozen on CF Workers, so we measure wall time here
+  // and merge it into the payload without cloning/re-serializing the full body.
+  const contentType = resp.headers.get('content-type') ?? '';
+  if (resp.ok && contentType.includes('application/json')) {
+    const text = await resp.text();
+    const patched = text.replace(/("total_ms":\s*)([\d.]+)/, `$1${timeMs.toFixed(1)}`);
+    return new Response(patched, {
+      headers: resp.headers,
+      status: resp.status,
+    });
+  }
+  return cloneResponse(resp);
 });
 
 /**

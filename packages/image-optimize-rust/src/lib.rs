@@ -37,6 +37,32 @@ fn parse_filter(name: &str) -> image::imageops::FilterType {
   }
 }
 
+/// Compute output dimensions that fit within (max_w, max_h) while preserving
+/// aspect ratio. If either target is 0, scale proportionally from the other.
+/// This matches Cloudflare Images resize behavior.
+fn resize_dimensions(
+  orig_w: u32,
+  orig_h: u32,
+  max_w: u32,
+  max_h: u32,
+) -> (u32, u32) {
+  if max_w > 0 && max_h > 0 {
+    // Fit inside the bounding box
+    let scale = (max_w as f64 / orig_w as f64).min(max_h as f64 / orig_h as f64);
+    let w = (orig_w as f64 * scale).round() as u32;
+    let h = (orig_h as f64 * scale).round() as u32;
+    (w.max(1), h.max(1))
+  } else if max_w > 0 {
+    let scale = max_w as f64 / orig_w as f64;
+    let h = (orig_h as f64 * scale).round() as u32;
+    (max_w, h.max(1))
+  } else {
+    let scale = max_h as f64 / orig_h as f64;
+    let w = (orig_w as f64 * scale).round() as u32;
+    (w.max(1), max_h)
+  }
+}
+
 fn filter_name(filter: image::imageops::FilterType) -> &'static str {
   match filter {
     image::imageops::FilterType::Nearest => "nearest",
@@ -47,37 +73,45 @@ fn filter_name(filter: image::imageops::FilterType) -> &'static str {
   }
 }
 
+use std::collections::HashMap;
+
 async fn handle_resize(mut req: Request) -> Result<Response> {
   let url = req.url().map_err(|_| Error::from("Invalid URL"))?;
-  let mut params = url.query_pairs();
 
-  let target_width: u32 = params
-    .find(|(key, _)| key == "width")
-    .and_then(|(_, v)| v.parse().ok())
+  // Collect all query params into a map so parsing is independent of order.
+  let query: HashMap<String, String> = url
+    .query_pairs()
+    .map(|(k, v)| (k.into_owned(), v.into_owned()))
+    .collect();
+
+  // Support CF Images-style short params: w, h, f, q
+  let target_width: u32 = query
+    .get("w")
+    .or_else(|| query.get("width"))
+    .and_then(|v| v.parse().ok())
     .unwrap_or(0);
-  let target_height: u32 = params
-    .find(|(key, _)| key == "height")
-    .and_then(|(_, v)| v.parse().ok())
+  let target_height: u32 = query
+    .get("h")
+    .or_else(|| query.get("height"))
+    .and_then(|v| v.parse().ok())
     .unwrap_or(0);
-  let filter_str: String = params
-    .find(|(key, _)| key == "filter")
-    .map(|(_, v)| v.into_owned())
+  let filter_str: String = query
+    .get("f")
+    .or_else(|| query.get("filter"))
+    .cloned()
     .unwrap_or_else(|| "lanczos3".to_string());
+  // Quality param reserved for future JPEG/WebP output; ignored for now.
+  let _quality: u32 = query
+    .get("q")
+    .or_else(|| query.get("quality"))
+    .and_then(|v| v.parse().ok())
+    .unwrap_or(85);
 
   if target_width == 0 && target_height == 0 {
     return Response::error("Provide at least one of width or height", 400);
   }
   if target_width > MAX_DIMENSION || target_height > MAX_DIMENSION {
     return Response::error("Target dimensions exceed the 4K limit", 400);
-  }
-  // Reject output pixel count for explicit two-dimension requests.
-  // For single-axis resizes the output pixel count is checked after decoding
-  // (see validate_output_pixels below).
-  if target_width > 0 && target_height > 0 {
-    let pixels = u64::from(target_width) * u64::from(target_height);
-    if pixels > MAX_PIXELS {
-      return Response::error("Output pixel count exceeds the 4K limit", 400);
-    }
   }
 
   // Reject oversized uploads before reading the body. Chunked or missing
@@ -116,31 +150,24 @@ async fn handle_resize(mut req: Request) -> Result<Response> {
 
   let filter = parse_filter(&filter_str);
 
-  // For single-axis resizes, compute the derived dimension and validate the
-  // output pixel count before allocating the resize buffer.
-  let (effective_width, effective_height) = if target_width > 0 && target_height > 0 {
-    (target_width, target_height)
-  } else if target_width > 0 {
-    let ratio = target_width as f64 / orig_width as f64;
-    let derived_height = (orig_height as f64 * ratio).round() as u32;
-    let pixels = u64::from(target_width) * u64::from(derived_height);
-    if pixels > MAX_PIXELS {
-      return Response::error("Output pixel count exceeds the 4K limit", 400);
-    }
-    (target_width, derived_height)
-  } else {
-    let ratio = target_height as f64 / orig_height as f64;
-    let derived_width = (orig_width as f64 * ratio).round() as u32;
-    let pixels = u64::from(derived_width) * u64::from(target_height);
-    if pixels > MAX_PIXELS {
-      return Response::error("Output pixel count exceeds the 4K limit", 400);
-    }
-    (derived_width, target_height)
-  };
+  // Compute output dimensions preserving aspect ratio (CF Images behavior):
+  // When both w and h are given, fit inside the bounding box.
+  // When one axis is given, scale the other proportionally.
+  let (out_w, out_h) = resize_dimensions(orig_width, orig_height, target_width, target_height);
+
+  if out_w == 0 || out_h == 0 {
+    return Response::error("Computed output dimensions are zero", 400);
+  }
+  if out_w > MAX_DIMENSION || out_h > MAX_DIMENSION {
+    return Response::error("Output dimensions exceed the 4K limit", 400);
+  }
+  if u64::from(out_w) * u64::from(out_h) > MAX_PIXELS {
+    return Response::error("Output pixel count exceeds the 4K limit", 400);
+  }
 
   let resize_start = performance_now();
 
-  let resized = image.resize_exact(effective_width, effective_height, filter);
+  let resized = image.resize(out_w, out_h, filter);
 
   let resize_ms = performance_now() - resize_start;
   let total_ms = performance_now() - started;

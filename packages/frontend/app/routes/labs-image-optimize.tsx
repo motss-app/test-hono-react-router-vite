@@ -59,6 +59,8 @@ interface ResizeResult {
   total_ms: number;
 }
 
+const RECOMMENDED_FILTER: FilterId = 'lanczos3';
+
 interface Preset {
   height: number;
   label: () => string;
@@ -199,13 +201,24 @@ function useImageOptimize() {
   const chooseFile = useCallback((nextFile: File | null) => {
     setError(null);
     setResult(null);
-    if (!nextFile) return;
+    // Invalidate any in-flight request when the selection changes.
+    ++requestIdRef.current;
+    setBusy(false);
+    if (!nextFile) {
+      setFile(null);
+      setPreviewUrl(null);
+      return;
+    }
     if (!nextFile.type.startsWith('image/')) {
       setError(m.image_optimize_error_invalid_file());
+      setFile(null);
+      setPreviewUrl(null);
       return;
     }
     if (nextFile.size > MAX_BYTES) {
       setError(m.image_optimize_error_size());
+      setFile(null);
+      setPreviewUrl(null);
       return;
     }
     setFile(nextFile);
@@ -297,11 +310,20 @@ function useImageOptimize() {
     targetWidth,
   ]);
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const clearAll = useCallback(() => {
+    // Invalidate in-flight requests.
+    ++requestIdRef.current;
+    setBusy(false);
     setFile(null);
     setPreviewUrl(null);
     setResult(null);
     setError(null);
+    // Reset the file input DOM value so re-selecting the same file triggers change.
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   }, []);
 
   const optimizedSrc = result?.output_png_base64
@@ -316,6 +338,7 @@ function useImageOptimize() {
     dragging,
     error,
     file,
+    fileInputRef,
     filter,
     onDragEnter,
     onDragLeave,
@@ -344,6 +367,7 @@ export default function ImageOptimizeLab(): JSX.Element {
     dragging,
     error,
     file,
+    fileInputRef,
     filter,
     onDrop,
     onDragEnter,
@@ -385,6 +409,7 @@ export default function ImageOptimizeLab(): JSX.Element {
                 accept={ACCEPT}
                 className={c.input}
                 onChange={onInput}
+                ref={fileInputRef}
                 type="file"
               />
               {previewUrl ? (
@@ -464,7 +489,10 @@ export default function ImageOptimizeLab(): JSX.Element {
                     type="radio"
                     value={f.id}
                   />
-                  <span className={c.filterLabel}>{f.labelKey()}</span>
+                  <span className={c.filterLabel}>
+                    {f.labelKey()}
+                    {f.id === RECOMMENDED_FILTER ? ' ★' : ''}
+                  </span>
                 </label>
               ))}
             </div>
