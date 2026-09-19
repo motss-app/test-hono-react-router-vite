@@ -491,7 +491,9 @@ export default function ImageOptimizeLab(): JSX.Element {
                   />
                   <span className={c.filterLabel}>
                     {f.labelKey()}
-                    {f.id === RECOMMENDED_FILTER ? ' ★' : ''}
+                    {f.id === RECOMMENDED_FILTER ? (
+                      <span className={c.filterRecommended}>Recommended</span>
+                    ) : null}
                   </span>
                 </label>
               ))}

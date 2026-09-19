@@ -448,6 +448,24 @@ export const filterLabel = style({
     },
   },
 });
+export const filterRecommended = style({
+  backgroundColor: '#dcfce7',
+  border: '1px solid #86efac',
+  borderRadius: '9999px',
+  color: '#166534',
+  fontSize: '0.65rem',
+  fontWeight: 700,
+  lineHeight: 1,
+  padding: '0.2rem 0.5rem',
+  selectors: {
+    ':root[data-theme="dark"] &': {
+      backgroundColor: 'rgba(34, 197, 94, 0.15)',
+      borderColor: 'rgba(34, 197, 94, 0.3)',
+      color: '#86efac',
+    },
+  },
+  textTransform: 'uppercase',
+});
 export const dimensionRow = style({
   alignItems: 'center',
   display: 'flex',
