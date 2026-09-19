@@ -38,6 +38,10 @@ Before editing:
 
 ## Browser Interaction Rules
 
+### Playwright tests and VRT scripts
+
+Prefer Playwright's built-in capabilities for browser tests and VRT scripts. Consult the [official Playwright documentation](https://playwright.dev/docs/intro) or source code to choose APIs suited to the task and installed version. Use custom logic only when the built-in capabilities cannot meet the requirement.
+
 ### Browser toolsets
 
 Three browser MCP toolsets are available, in this priority order:

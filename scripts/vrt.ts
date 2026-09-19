@@ -16,6 +16,7 @@
  *   deno run -A scripts/vrt.ts
  */
 
+import { expect } from '@playwright/test';
 import { type Browser, type BrowserContext, chromium } from 'playwright';
 
 import { discoverPrerenderRoutes } from '../vite-utils/route-discovery.ts';
@@ -82,6 +83,35 @@ async function screenshot(
 
   // Wait for web fonts so text rendering is deterministic.
   await playwrightPage.evaluate(() => document.fonts.ready);
+
+  /*
+   * Wait for the lazy-loaded LocaleSwitcher to finish rendering. The
+   * footer wraps LocaleSwitcherInner in React.lazy + Suspense. While
+   * the chunk downloads, a plain "..." fallback is shown. On slow or
+   * variable networks (like GHA runners) the chunk may not have arrived
+   * by the time fonts finish loading, so the screenshot captures the
+   * fallback text instead of the real locale selector.
+   *
+   * Detect the locale switcher via the Suspense fallback element
+   * (.locale-switcher-fallback), which exists while the lazy chunk
+   * is loading. Checking the trigger element alone would miss this
+   * case because the trigger does not exist until after React.lazy
+   * resolves.
+   */
+  const localeFallback = playwrightPage.locator('.locale-switcher-fallback');
+  const localeTrigger = playwrightPage.locator('.locale-switcher-trigger');
+
+  if ((await localeFallback.count()) > 0 || (await localeTrigger.count()) > 0) {
+    /*
+     * expect(locator).toHaveText() polls with built-in retry until the
+     * text matches. The regex asserts the trigger has real locale text
+     * (at least one character) and does not contain the Suspense
+     * fallback marker ("...").
+     */
+    await expect(localeTrigger).toHaveText(/^(?!.*\.\.\.).+/, {
+      timeout: 15_000,
+    });
+  }
 
   if (page.path.endsWith('/labs/mandelbrot')) {
     await playwrightPage.locator('[data-vrt-ready="true"]').waitFor({
@@ -182,7 +212,7 @@ async function startDevStack(): Promise<void> {
   await waitForServer();
 }
 
-async function waitForServer(timeoutMs = 60_000): Promise<void> {
+async function waitForServer(timeoutMs = 150_000): Promise<void> {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     if ((await probeServer()) === 'up') return;
