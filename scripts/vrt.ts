@@ -89,40 +89,31 @@ async function screenshot(
    * the chunk downloads, a plain "..." fallback is shown. On slow or
    * variable networks (like GHA runners) the chunk may not have arrived
    * by the time fonts finish loading, so the screenshot captures the
-   * fallback text instead of the real locale selector. We assert the
-   * trigger is visible and contains a known locale label, proving the
-   * lazy Suspense boundary has fully resolved with real data.
+   * fallback text instead of the real locale selector.
+   *
+   * Detect the locale switcher via the Suspense fallback element
+   * (.locale-switcher-fallback), which exists while the lazy chunk
+   * is loading. Checking the trigger element alone would miss this
+   * case because the trigger does not exist until after React.lazy
+   * resolves.
    */
-  const LOCALE_LABELS = [
-    'English (US)',
-    '日本語',
-    // biome-ignore lint/security/noSecrets: CJK display names are not secrets
-    '繁體中文（香港）',
-    // biome-ignore lint/security/noSecrets: CJK display names are not secrets
-    '繁體中文',
-  ];
+  const localeFallback = playwrightPage.locator('.locale-switcher-fallback');
   const localeTrigger = playwrightPage.locator('.locale-switcher-trigger');
 
-  /*
-   * Only wait for the locale switcher if the page actually has one.
-   * Checking count() first avoids a 15s timeout on pages without the
-   * footer (e.g. future routes that omit the LocaleSwitcher).
-   */
-  if ((await localeTrigger.count()) > 0) {
+  if ((await localeFallback.count()) > 0 || (await localeTrigger.count()) > 0) {
     /*
-     * waitForFunction polls the DOM until the trigger contains a known
-     * locale label. This handles the race where the element is in the
-     * document but React.lazy has not yet resolved the Select.Value
-     * text content.
+     * waitForFunction polls the DOM until the trigger element exists
+     * and contains real locale text (not the Suspense fallback).
+     * The predicate is intentionally locale-agnostic so adding a new
+     * locale to project.inlang/settings.json does not break VRT.
      */
     await playwrightPage.waitForFunction(
-      (labels: string[]) => {
+      () => {
         const trigger = document.querySelector('.locale-switcher-trigger');
         if (!trigger) return false;
         const text = trigger.textContent ?? '';
-        return labels.some(label => text.includes(label));
+        return text.trim().length > 0 && !text.includes('...');
       },
-      LOCALE_LABELS,
       {
         timeout: 15_000,
       }
