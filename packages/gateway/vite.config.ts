@@ -31,6 +31,15 @@ function isColorRustBuilt(): boolean {
   }
 }
 
+function isImageOptimizeRustBuilt(): boolean {
+  try {
+    return Deno.statSync(new URL('../image-optimize-rust/build/worker/shim.mjs', import.meta.url))
+      .isFile;
+  } catch {
+    return false;
+  }
+}
+
 export default defineConfig(({ command }) => {
   const isDev = command === 'serve';
   const isVrt = Deno.env.get('VRT') === 'true';
@@ -79,6 +88,14 @@ export default defineConfig(({ command }) => {
                   ? [
                       {
                         configPath: '../color-rust/wrangler.toml',
+                      },
+                    ]
+                  : []),
+                // Image optimize Rust worker only once built (requires Rust toolchain).
+                ...(isImageOptimizeRustBuilt()
+                  ? [
+                      {
+                        configPath: '../image-optimize-rust/wrangler.toml',
                       },
                     ]
                   : []),

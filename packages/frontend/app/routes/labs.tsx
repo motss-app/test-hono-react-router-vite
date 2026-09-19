@@ -32,6 +32,12 @@ function getTools(): LabTool[] {
       title: m.labs_tool_dominant_color_title(),
       to: '/labs/dominant-color',
     },
+    {
+      description: m.labs_tool_image_optimize_desc(),
+      number: '03',
+      title: m.labs_tool_image_optimize_title(),
+      to: '/labs/image-optimize',
+    },
   ];
 }
 

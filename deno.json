@@ -62,7 +62,8 @@
     "packages/fractal-wasm",
     "packages/fractal-rust",
     "packages/color-wasm",
-    "packages/color-rust"
+    "packages/color-rust",
+    "packages/image-optimize-rust"
   ],
   "fmt": {
     "exclude": [

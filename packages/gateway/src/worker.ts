@@ -337,6 +337,50 @@ app.all('/api/rust/color/*', async c => {
 });
 
 /**
+ * Proxies image-optimization work to its dedicated Rust Worker. Registered
+ * before the general fractal route so decoder dependencies stay isolated.
+ *
+ * Unlike the color route, this proxy does NOT parse the JSON body to inject
+ * timing. The response contains a large base64 PNG payload, and cloning +
+ * re-serializing it would exhaust Worker memory. Instead, timing is returned
+ * via the Server-Timing header added by wrapTime, and the Rust worker
+ * includes its own timing in the JSON response.
+ */
+app.all('/api/rust/image-optimize/*', async c => {
+  const rust = c.env.IMAGE_OPTIMIZE_RUST;
+  if (!rust) {
+    return c.text('IMAGE_OPTIMIZE_RUST binding not configured', 503);
+  }
+
+  const url = new URL(c.req.url);
+  const targetPath = url.pathname.replace(/^\/api\/rust/, '') || '/';
+  const target = new Request(`http://IMAGE_OPTIMIZE_RUST${targetPath}${url.search}`, c.req.raw);
+
+  const start = performance.now();
+  const resp = await wrapTime(
+    c,
+    'image-optimize-rust',
+    rust.fetch(target),
+    'Image optimize Rust worker service binding'
+  );
+  const timeMs = performance.now() - start;
+
+  // Inject gateway-measured timing into the JSON response. The Rust worker's
+  // performance.now() is frozen on CF Workers, so we measure wall time here
+  // and merge it into the payload without cloning/re-serializing the full body.
+  const contentType = resp.headers.get('content-type') ?? '';
+  if (resp.ok && contentType.includes('application/json')) {
+    const text = await resp.text();
+    const patched = text.replace(/("total_ms":\s*)([\d.]+)/, `$1${timeMs.toFixed(1)}`);
+    return new Response(patched, {
+      headers: resp.headers,
+      status: resp.status,
+    });
+  }
+  return cloneResponse(resp);
+});
+
+/**
  * Proxies `/api/rust/*` to the fractal Rust WASM worker through the
  * FRACTAL_RUST service binding. The `/api/rust` prefix is stripped so the
  * worker sees `/fractal/...` style paths. Registered before the `/api/*` BFF

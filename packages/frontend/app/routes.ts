@@ -11,6 +11,7 @@ export default [
       route('/labs', './routes/labs.tsx'),
       route('/labs/mandelbrot', './routes/labs-mandelbrot.tsx'),
       route('/labs/dominant-color', './routes/labs-dominant-color.tsx'),
+      route('/labs/image-optimize', './routes/labs-image-optimize.tsx'),
       route('/errors', './routes/errors.tsx'),
       route('/errors/:code', './routes/errors.$code.tsx'), // Dynamic error code routes
     ]),
