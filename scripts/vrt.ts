@@ -101,23 +101,33 @@ async function screenshot(
     // biome-ignore lint/security/noSecrets: CJK display names are not secrets
     '繁體中文',
   ];
+  const localeTrigger = playwrightPage.locator('.locale-switcher-trigger');
+
   /*
-   * waitForFunction polls until the predicate returns true. This handles
-   * the race where the trigger element is visible but Select.Value has
-   * not yet populated its text content on the first frame.
+   * Only wait for the locale switcher if the page actually has one.
+   * Checking count() first avoids a 15s timeout on pages without the
+   * footer (e.g. future routes that omit the LocaleSwitcher).
    */
-  await playwrightPage.waitForFunction(
-    (labels: string[]) => {
-      const trigger = document.querySelector('.locale-switcher-trigger');
-      if (!trigger) return false;
-      const text = trigger.textContent ?? '';
-      return labels.some(label => text.includes(label));
-    },
-    LOCALE_LABELS,
-    {
-      timeout: 15_000,
-    }
-  );
+  if ((await localeTrigger.count()) > 0) {
+    /*
+     * waitForFunction polls the DOM until the trigger contains a known
+     * locale label. This handles the race where the element is in the
+     * document but React.lazy has not yet resolved the Select.Value
+     * text content.
+     */
+    await playwrightPage.waitForFunction(
+      (labels: string[]) => {
+        const trigger = document.querySelector('.locale-switcher-trigger');
+        if (!trigger) return false;
+        const text = trigger.textContent ?? '';
+        return labels.some(label => text.includes(label));
+      },
+      LOCALE_LABELS,
+      {
+        timeout: 15_000,
+      }
+    );
+  }
 
   if (page.path.endsWith('/labs/mandelbrot')) {
     await playwrightPage.locator('[data-vrt-ready="true"]').waitFor({
