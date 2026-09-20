@@ -265,9 +265,9 @@ export const previewWrap = style({
   },
 });
 export const actionRow = style({
-  alignItems: 'center',
+  alignItems: 'flex-start',
   display: 'flex',
-  flexWrap: 'wrap',
+  flexDirection: 'column',
   gap: '0.8rem',
   marginBlockStart: '1rem',
 });
@@ -535,15 +535,20 @@ export const dimensionRow = style({
   marginBlockEnd: '1rem',
 });
 export const dimensionInput = style({
-  backgroundColor: 'rgba(255, 255, 255, 0.06)',
-  border: '1px solid #374151',
+  backgroundColor: 'rgba(0, 0, 0, 0.04)',
+  border: '1px solid #d1d5db',
   borderRadius: radiusTokens.radiusMd,
-  color: colorTokens.slate100,
+  color: colorTokens.slate900,
   fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
   fontSize: '0.9rem',
   fontVariantNumeric: 'tabular-nums',
   padding: '0.6rem 0.75rem',
   selectors: {
+    ':root[data-theme="dark"] &': {
+      backgroundColor: 'rgba(255, 255, 255, 0.06)',
+      borderColor: '#374151',
+      color: colorTokens.slate100,
+    },
     '&:focus': {
       borderColor: '#3b82f6',
       outline: 'none',
@@ -569,10 +574,15 @@ export const qualityInput = style({
   width: '100%',
 });
 export const qualityValue = style({
-  color: colorTokens.slate300,
+  color: colorTokens.slate600,
   fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
   fontSize: '0.85rem',
   fontWeight: 700,
+  selectors: {
+    ':root[data-theme="dark"] &': {
+      color: colorTokens.slate300,
+    },
+  },
 });
 export const presetGroup = style({
   display: 'flex',
@@ -581,16 +591,26 @@ export const presetGroup = style({
   marginBlockEnd: '1.5rem',
 });
 export const presetChip = style({
-  backgroundColor: 'rgba(255, 255, 255, 0.06)',
-  border: '1px solid #374151',
+  backgroundColor: 'rgba(0, 0, 0, 0.04)',
+  border: '1px solid #d1d5db',
   borderRadius: '9999px',
-  color: colorTokens.slate300,
+  color: colorTokens.slate700,
   cursor: 'pointer',
   font: 'inherit',
   fontSize: '0.78rem',
   fontWeight: 600,
   padding: '0.4rem 0.85rem',
   selectors: {
+    ':root[data-theme="dark"] &': {
+      backgroundColor: 'rgba(255, 255, 255, 0.06)',
+      borderColor: '#374151',
+      color: colorTokens.slate300,
+    },
+    ':root[data-theme="dark"] &::hover': {
+      backgroundColor: 'rgba(59, 130, 246, 0.12)',
+      borderColor: '#3b82f6',
+      color: colorTokens.white,
+    },
     '&:hover': {
       backgroundColor: 'rgba(59, 130, 246, 0.12)',
       borderColor: '#3b82f6',

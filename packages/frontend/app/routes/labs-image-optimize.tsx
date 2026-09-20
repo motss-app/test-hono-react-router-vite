@@ -262,6 +262,7 @@ function ImageOptimizeHero(): JSX.Element {
   );
 }
 
+// biome-ignore lint/complexity/noExcessiveLinesPerFunction: route hook
 function useImageOptimize() {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -278,6 +279,10 @@ function useImageOptimize() {
   const [placeholderUrl, setPlaceholderUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const requestIdRef = useRef(0);
+
+  const resetFileInput = useCallback(() => {
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }, []);
 
   useEffect(
     () => () => {
@@ -297,41 +302,46 @@ function useImageOptimize() {
     ]
   );
 
-  const chooseFile = useCallback((nextFile: File | null) => {
-    setError(null);
-    setResult(null);
-    setPlaceholderUrl(null);
-    // Invalidate any in-flight request when the selection changes.
-    ++requestIdRef.current;
-    setBusy(false);
-    if (!nextFile) {
-      setFile(null);
-      setPreviewUrl(null);
+  const chooseFile = useCallback(
+    (nextFile: File | null) => {
+      setError(null);
+      setResult(null);
+      setPlaceholderUrl(null);
+      // Invalidate any in-flight request when the selection changes.
+      ++requestIdRef.current;
+      setBusy(false);
+      if (!nextFile) {
+        setFile(null);
+        setPreviewUrl(null);
+        resetFileInput();
+        return;
+      }
+      if (!nextFile.type.startsWith('image/')) {
+        setError(m.image_optimize_error_invalid_file());
+        setFile(null);
+        setPreviewUrl(null);
+        resetFileInput();
+        return;
+      }
+      if (nextFile.size > MAX_BYTES) {
+        setError(m.image_optimize_error_size());
+        setFile(null);
+        setPreviewUrl(null);
+        resetFileInput();
+        return;
+      }
+      setFile(nextFile);
+      setPreviewUrl(URL.createObjectURL(nextFile));
       if (fileInputRef.current) fileInputRef.current.value = '';
-      return;
-    }
-    if (!nextFile.type.startsWith('image/')) {
-      setError(m.image_optimize_error_invalid_file());
-      setFile(null);
-      setPreviewUrl(null);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-      return;
-    }
-    if (nextFile.size > MAX_BYTES) {
-      setError(m.image_optimize_error_size());
-      setFile(null);
-      setPreviewUrl(null);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-      return;
-    }
-    setFile(nextFile);
-    setPreviewUrl(URL.createObjectURL(nextFile));
-    if (fileInputRef.current) fileInputRef.current.value = '';
-    const selectionId = requestIdRef.current;
-    void createPixelPlaceholder(nextFile).then(placeholder => {
-      if (selectionId === requestIdRef.current) setPlaceholderUrl(placeholder);
-    });
-  }, []);
+      const selectionId = requestIdRef.current;
+      void createPixelPlaceholder(nextFile).then(placeholder => {
+        if (selectionId === requestIdRef.current) setPlaceholderUrl(placeholder);
+      });
+    },
+    [
+      resetFileInput,
+    ]
+  );
 
   const onInput = useCallback(
     (event: ReactChangeEvent<HTMLInputElement>) => chooseFile(event.target.files?.[0] ?? null),
@@ -361,6 +371,7 @@ function useImageOptimize() {
   );
 
   const selectPreset = useCallback((preset: Preset) => {
+    ++requestIdRef.current;
     setTargetWidth(preset.width);
     setTargetHeight(preset.height);
     setActivePreset(`${preset.width}x${preset.height}`);
@@ -368,18 +379,31 @@ function useImageOptimize() {
 
   const onWidthChange = useCallback((event: ReactChangeEvent<HTMLInputElement>) => {
     const value = Number.parseInt(event.target.value, 10);
+    ++requestIdRef.current;
     setTargetWidth(Number.isFinite(value) ? value : 0);
     setActivePreset(null);
   }, []);
 
   const onHeightChange = useCallback((event: ReactChangeEvent<HTMLInputElement>) => {
     const value = Number.parseInt(event.target.value, 10);
+    ++requestIdRef.current;
     setTargetHeight(Number.isFinite(value) ? value : 0);
     setActivePreset(null);
   }, []);
 
   const onQualityChange = useCallback((event: ReactChangeEvent<HTMLInputElement>) => {
+    ++requestIdRef.current;
     setQuality(Number(event.target.value));
+  }, []);
+
+  const invalidateFilter = useCallback((id: FilterId) => {
+    ++requestIdRef.current;
+    setFilter(id);
+  }, []);
+
+  const invalidateFormat = useCallback((fmt: OutputFormat) => {
+    ++requestIdRef.current;
+    setFormat(fmt);
   }, []);
 
   const optimize = useCallback(async () => {
@@ -448,10 +472,10 @@ function useImageOptimize() {
     /*
      * Reset the file input so selecting the same file triggers change.
      */
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  }, []);
+    resetFileInput();
+  }, [
+    resetFileInput,
+  ]);
 
   const optimizedSrc = result?.output_url ?? null;
 
@@ -466,6 +490,8 @@ function useImageOptimize() {
     fileInputRef,
     filter,
     format,
+    invalidateFilter,
+    invalidateFormat,
     onDragEnter,
     onDragLeave,
     onDragOver,
@@ -482,8 +508,6 @@ function useImageOptimize() {
     result,
     selectPreset,
     setDragging,
-    setFilter,
-    setFormat,
     targetHeight,
     targetWidth,
   };
@@ -515,8 +539,8 @@ export default function ImageOptimizeLab(): JSX.Element {
     quality,
     result,
     selectPreset,
-    setFormat,
-    setFilter,
+    invalidateFormat,
+    invalidateFilter,
     targetHeight,
     targetWidth,
   } = useImageOptimize();
@@ -620,7 +644,7 @@ export default function ImageOptimizeLab(): JSX.Element {
                     className={c.filterRadio}
                     name="output-format"
                     /* biome-ignore lint/performance/noJsxPropsBind: format id is a stable const */
-                    onChange={() => setFormat(outputFormat)}
+                    onChange={() => invalidateFormat(outputFormat)}
                     type="radio"
                     value={outputFormat}
                   />
@@ -657,7 +681,7 @@ export default function ImageOptimizeLab(): JSX.Element {
                     className={c.filterRadio}
                     name="filter"
                     /* biome-ignore lint/performance/noJsxPropsBind: filter id is a stable const */
-                    onChange={() => setFilter(f.id)}
+                    onChange={() => invalidateFilter(f.id)}
                     type="radio"
                     value={f.id}
                   />
