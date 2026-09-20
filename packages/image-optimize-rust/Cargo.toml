@@ -1,0 +1,19 @@
+[package]
+name = "image-optimize-rust"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+worker = "0.8.5"
+image = { version = "0.25.10", default-features = false, features = ["avif", "bmp", "gif", "jpeg", "png", "tiff", "webp"] }
+color_quant = "=2.0.0"
+png = "=0.18.1"
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = 3
+panic = "abort"

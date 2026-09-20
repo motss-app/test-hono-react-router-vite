@@ -337,6 +337,46 @@ app.all('/api/rust/color/*', async c => {
 });
 
 /**
+ * Proxies image-optimization work to its dedicated Rust Worker. Registered
+ * before the general fractal route so decoder dependencies stay isolated.
+ *
+ * The Rust worker returns a binary image body. The gateway preserves that
+ * stream and adds the awaited service duration in headers.
+ */
+app.all('/api/rust/image-optimize/*', async c => {
+  const rust = c.env.IMAGE_OPTIMIZE_RUST;
+  if (!rust) {
+    return c.text('IMAGE_OPTIMIZE_RUST binding not configured', 503);
+  }
+
+  const url = new URL(c.req.url);
+  const targetPath = url.pathname.replace(/^\/api\/rust/, '') || '/';
+  const target = new Request(`http://IMAGE_OPTIMIZE_RUST${targetPath}${url.search}`, c.req.raw);
+
+  const start = performance.now();
+  const resp = await wrapTime(
+    c,
+    'image-optimize-rust',
+    rust.fetch(target),
+    'Image optimize Rust worker service binding'
+  );
+  const timeMs = performance.now() - start;
+
+  if (resp.ok) {
+    const headers = new Headers(resp.headers);
+    const duration = timeMs.toFixed(1);
+    headers.set('x-image-total-ms', duration);
+    headers.append('server-timing', `image-optimize-rust;dur=${duration}`);
+    return new Response(resp.body, {
+      headers,
+      status: resp.status,
+      statusText: resp.statusText,
+    });
+  }
+  return cloneResponse(resp);
+});
+
+/**
  * Proxies `/api/rust/*` to the fractal Rust WASM worker through the
  * FRACTAL_RUST service binding. The `/api/rust` prefix is stripped so the
  * worker sees `/fractal/...` style paths. Registered before the `/api/*` BFF

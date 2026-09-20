@@ -34,23 +34,20 @@ every unresolved thread, including outdated ones, then choose the disposition
 above. Use judgment about the appropriate checks and smallest safe fix.
 
 For `fix` and `fixed`, verify the result before any GitHub mutation. After
-all fixes pass, commit and push once, refresh the remote head, then react to
-the original comment, reply, and resolve. For `no-fix`, react, reply, and
-resolve without editing code. Leave informational or uncertain threads open.
+all fixes pass, commit and push, refresh the remote head, then for each
+thread: react to the original comment, reply with concise evidence, and
+resolve by thread ID. For `no-fix`, react, reply, and resolve without
+editing code. Leave informational or uncertain threads open.
+
+All of this happens in a single turn. Do not stop after pushing. If the push
+succeeds but threads are not reacted to, replied to, and resolved, the task is
+incomplete. Use `gh api graphql` for mutations. Do not resolve a thread before
+its reply succeeds. After all mutations, run a final
+verification query to confirm zero unresolved threads remain (excluding any
+intentionally left open).
 
 Preserve unrelated dirty work. Never resolve against a local-only or stale
 head. If a mutation fails, report it rather than substituting another action.
-
-## Post-push completion
-
-After a push, refresh the remote head and threads before review mutations.
-If the turn ended at the push checkpoint, the next invocation resumes here.
-
-## GitHub mutations
-
-Use `gh api graphql` or an equivalent API. React to the original comment
-node, reply with concise evidence, and resolve by thread ID, in that order.
-Do not resolve before the reply succeeds.
 
 ## Final report
 
