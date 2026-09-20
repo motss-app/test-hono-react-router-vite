@@ -374,6 +374,7 @@ function useImageOptimize() {
 
   const selectPreset = useCallback((preset: Preset) => {
     ++requestIdRef.current;
+    setBusy(false);
     setTargetWidth(preset.width);
     setTargetHeight(preset.height);
     setActivePreset(`${preset.width}x${preset.height}`);
@@ -382,6 +383,7 @@ function useImageOptimize() {
   const onWidthChange = useCallback((event: ReactChangeEvent<HTMLInputElement>) => {
     const value = Number.parseInt(event.target.value, 10);
     ++requestIdRef.current;
+    setBusy(false);
     setTargetWidth(Number.isFinite(value) ? value : 0);
     setActivePreset(null);
   }, []);
@@ -389,22 +391,26 @@ function useImageOptimize() {
   const onHeightChange = useCallback((event: ReactChangeEvent<HTMLInputElement>) => {
     const value = Number.parseInt(event.target.value, 10);
     ++requestIdRef.current;
+    setBusy(false);
     setTargetHeight(Number.isFinite(value) ? value : 0);
     setActivePreset(null);
   }, []);
 
   const onQualityChange = useCallback((event: ReactChangeEvent<HTMLInputElement>) => {
     ++requestIdRef.current;
+    setBusy(false);
     setQuality(Number(event.target.value));
   }, []);
 
   const invalidateFilter = useCallback((id: FilterId) => {
     ++requestIdRef.current;
+    setBusy(false);
     setFilter(id);
   }, []);
 
   const invalidateFormat = useCallback((fmt: OutputFormat) => {
     ++requestIdRef.current;
+    setBusy(false);
     setFormat(fmt);
   }, []);
 
