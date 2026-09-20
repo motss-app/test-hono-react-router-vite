@@ -125,12 +125,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bin-rs"
-version = "0.0.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "23f756521115a60a84bc45722261eaf03aa6a59d886c9c3b41d08ac1c39e3e24"
-
-[[package]]
 name = "bitflags"
 version = "2.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -596,7 +590,6 @@ dependencies = [
  "color_quant 2.0.0",
  "image",
  "png",
- "webp-rust",
  "worker",
 ]
 
@@ -1421,15 +1414,6 @@ checksum = "9fbddc4a036f00ec4f18c83445bd3115cb306a91da554919a099d9222fe4a7f8"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
-]
-
-[[package]]
-name = "webp-rust"
-version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c9c8776fe97ff9083d2c7ebb62dd98f643124c2ce94cb50a7bbf1dfea5deb5a0"
-dependencies = [
- "bin-rs",
 ]
 
 [[package]]

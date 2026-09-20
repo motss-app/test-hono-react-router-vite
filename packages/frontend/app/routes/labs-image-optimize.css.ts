@@ -265,9 +265,9 @@ export const previewWrap = style({
   },
 });
 export const actionRow = style({
-  alignItems: 'flex-start',
+  alignItems: 'center',
   display: 'flex',
-  flexDirection: 'column',
+  flexDirection: 'row',
   gap: '0.8rem',
   marginBlockStart: '1rem',
 });
@@ -567,10 +567,18 @@ export const qualityHeader = style({
   display: 'flex',
   justifyContent: 'space-between',
 });
+export const qualityControlDisabled = style({
+  opacity: 0.45,
+});
 export const qualityInput = style({
   accentColor: '#3b82f6',
   display: 'block',
   marginBlockEnd: '1.5rem',
+  selectors: {
+    '&:disabled': {
+      cursor: 'not-allowed',
+    },
+  },
   width: '100%',
 });
 export const qualityValue = style({

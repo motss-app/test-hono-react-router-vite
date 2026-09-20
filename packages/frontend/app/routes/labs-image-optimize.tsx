@@ -208,7 +208,9 @@ function ResultMetadata({ result }: { result: ResizeResult }): JSX.Element {
       </div>
       <div className={c.metadataRow}>
         <span className={c.metadataLabel}>{m.image_optimize_quality_title()}</span>
-        <span className={c.metadataValue}>{result.quality}</span>
+        <span className={c.metadataValue}>
+          {result.format === 'webp' ? m.image_optimize_quality_lossless() : String(result.quality)}
+        </span>
       </div>
       <div className={c.metadataRow}>
         <span className={c.metadataLabel}>{m.image_optimize_label_total_time()}</span>
@@ -423,7 +425,7 @@ function useImageOptimize() {
       if (targetHeight > 0) params.set('h', String(targetHeight));
       params.set('f', format);
       params.set('fit', 'scale-down');
-      params.set('q', String(quality));
+      if (format !== 'webp') params.set('q', String(quality));
       params.set('filter', filter);
 
       const response = await fetch(`/api/rust/image-optimize/resize?${params}`, {
@@ -654,19 +656,24 @@ export default function ImageOptimizeLab(): JSX.Element {
             </div>
 
             {/* Output quality */}
-            <div className={c.qualityHeader}>
-              <p className={c.sectionLabel}>{m.image_optimize_quality_title()}</p>
-              <span className={c.qualityValue}>{quality}</span>
+            <div className={format === 'webp' ? c.qualityControlDisabled : undefined}>
+              <div className={c.qualityHeader}>
+                <p className={c.sectionLabel}>{m.image_optimize_quality_title()}</p>
+                <span className={c.qualityValue}>
+                  {format === 'webp' ? m.image_optimize_quality_lossless() : String(quality)}
+                </span>
+              </div>
+              <input
+                aria-label={m.image_optimize_quality_title()}
+                className={c.qualityInput}
+                disabled={format === 'webp'}
+                max={100}
+                min={1}
+                onChange={onQualityChange}
+                type="range"
+                value={quality}
+              />
             </div>
-            <input
-              aria-label={m.image_optimize_quality_title()}
-              className={c.qualityInput}
-              max={100}
-              min={1}
-              onChange={onQualityChange}
-              type="range"
-              value={quality}
-            />
 
             {/* Filter selection */}
             <p className={c.sectionLabel}>{m.image_optimize_filter_title()}</p>
@@ -696,25 +703,24 @@ export default function ImageOptimizeLab(): JSX.Element {
             </div>
 
             {/* Actions */}
-            {file ? (
-              <div className={c.actionRow}>
-                <button
-                  className={c.action}
-                  disabled={busy}
-                  onClick={optimize}
-                  type="button"
-                >
-                  {busy ? m.image_optimize_analyzing() : m.image_optimize_action_optimize()}
-                </button>
-                <button
-                  className={c.subtleAction}
-                  onClick={clearAll}
-                  type="button"
-                >
-                  {m.image_optimize_back()}
-                </button>
-              </div>
-            ) : null}
+            <div className={c.actionRow}>
+              <button
+                className={c.action}
+                disabled={!file || busy}
+                onClick={optimize}
+                type="button"
+              >
+                {busy ? m.image_optimize_analyzing() : m.image_optimize_action_optimize()}
+              </button>
+              <button
+                className={c.subtleAction}
+                disabled={!file}
+                onClick={clearAll}
+                type="button"
+              >
+                {m.image_optimize_reset()}
+              </button>
+            </div>
 
             {error ? <div className={c.error}>{error}</div> : null}
           </div>

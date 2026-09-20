@@ -243,19 +243,12 @@ fn encode_output(
         }
         OutputFormat::Png => encode_png(image, quality, quality_explicit),
         OutputFormat::Webp => {
-            let rgba = image.to_rgba8();
-            let webp_image = webp_rust::ImageBuffer {
-                width: rgba.width() as usize,
-                height: rgba.height() as usize,
-                rgba: rgba.into_raw(),
-            };
-            let config = webp_rust::LossyEncodingConfig {
-                method: 4,
-                quality: quality as f32,
-                ..Default::default()
-            };
-            webp_rust::encode_lossy_with_config(&webp_image, &config, None)
-                .map_err(|_| "WebP encoding failed")
+            let mut output = Vec::new();
+            let encoder = image::codecs::webp::WebPEncoder::new_lossless(Cursor::new(&mut output));
+            image
+                .write_with_encoder(encoder)
+                .map_err(|_| "WebP encoding failed")?;
+            Ok(output)
         }
     }
 }
@@ -513,6 +506,11 @@ mod tests {
         assert_eq!(&png8[..8], b"\x89PNG\r\n\x1a\n");
         assert_eq!(&webp[..4], b"RIFF");
         assert_eq!(&webp[8..12], b"WEBP");
+        let decoded_webp = image::load_from_memory_with_format(&webp, image::ImageFormat::WebP)
+            .unwrap()
+            .to_rgba8();
+        let webp_pixel = decoded_webp.get_pixel(0, 0);
+        assert_ne!(webp_pixel[0], webp_pixel[1]);
         assert!(avif.windows(4).any(|chunk| chunk == b"avif"));
     }
 }
