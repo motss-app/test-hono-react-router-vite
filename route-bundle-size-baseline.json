@@ -58,10 +58,10 @@
       "route": "/hono-rpc"
     },
     {
-      "gzipBytes": 290933,
-      "ownGzipBytes": 4745,
-      "ownRawBytes": 10250,
-      "rawBytes": 863915,
+      "gzipBytes": 291103,
+      "ownGzipBytes": 4915,
+      "ownRawBytes": 11236,
+      "rawBytes": 864901,
       "route": "/labs"
     },
     {
@@ -70,6 +70,13 @@
       "ownRawBytes": 53777,
       "rawBytes": 907442,
       "route": "/labs-dominant-color"
+    },
+    {
+      "gzipBytes": 293363,
+      "ownGzipBytes": 7175,
+      "ownRawBytes": 23925,
+      "rawBytes": 877590,
+      "route": "/labs-image-optimize"
     },
     {
       "gzipBytes": 298762,
