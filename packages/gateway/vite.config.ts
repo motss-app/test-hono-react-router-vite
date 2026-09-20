@@ -91,7 +91,10 @@ export default defineConfig(({ command }) => {
                       },
                     ]
                   : []),
-                // Image optimize Rust worker only once built (requires Rust toolchain).
+                /*
+                 * Register the image optimizer only after its Rust artifact
+                 * has been built locally.
+                 */
                 ...(isImageOptimizeRustBuilt()
                   ? [
                       {

@@ -1,216 +1,514 @@
 //! Image optimization Cloudflare Worker for the Labs pages.
 //!
-//! Accepts an image upload, resizes it using the `image` crate's built-in
-//! filters, and returns the result as base64-encoded PNG along with timing
-//! and dimension metadata.
+//! Accepts an image upload, resizes it with the `image` crate's filters, and
+//! returns the encoded output image with dimension and format metadata headers.
 
-use image::ImageReader;
-use std::io::Cursor;
-use wasm_bindgen::prelude::wasm_bindgen;
+use image::{DynamicImage, ImageReader};
+use std::{collections::HashMap, io::Cursor};
 use worker::*;
 
 const MAX_UPLOAD_BYTES: usize = 32 * 1024 * 1024;
 const MAX_PIXELS: u64 = 3840 * 2160;
 const MAX_DIMENSION: u32 = 3840;
+const DEFAULT_QUALITY: u8 = 85;
+const FIT_SCALE_DOWN: &str = "scale-down";
 
-#[wasm_bindgen]
-extern "C" {
-  #[wasm_bindgen(js_namespace = performance, js_name = now)]
-  fn performance_now() -> f64;
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum OutputFormat {
+    Avif,
+    Jpeg,
+    Png,
+    Webp,
+}
+
+impl OutputFormat {
+    fn parse(value: &str, accept: Option<&str>) -> Option<Self> {
+        match value.to_ascii_lowercase().as_str() {
+            "auto" => Some(Self::from_accept(accept)),
+            "avif" => Some(Self::Avif),
+            "jpeg" | "jpg" => Some(Self::Jpeg),
+            "png" => Some(Self::Png),
+            "webp" => Some(Self::Webp),
+            _ => None,
+        }
+    }
+
+    fn from_accept(accept: Option<&str>) -> Self {
+        let accept = accept.unwrap_or_default().to_ascii_lowercase();
+        if accept.contains("image/avif") {
+            Self::Avif
+        } else if accept.contains("image/webp") {
+            Self::Webp
+        } else if accept.contains("image/jpeg") {
+            Self::Jpeg
+        } else {
+            Self::Png
+        }
+    }
+
+    fn content_type(self) -> &'static str {
+        match self {
+            Self::Avif => "image/avif",
+            Self::Jpeg => "image/jpeg",
+            Self::Png => "image/png",
+            Self::Webp => "image/webp",
+        }
+    }
+
+    fn name(self) -> &'static str {
+        match self {
+            Self::Avif => "avif",
+            Self::Jpeg => "jpeg",
+            Self::Png => "png",
+            Self::Webp => "webp",
+        }
+    }
 }
 
 #[event(fetch)]
 pub async fn main(req: Request, _env: Env, _ctx: Context) -> Result<Response> {
-  match req.path().as_str() {
-    "/image-optimize/resize" => handle_resize(req).await,
-    _ => Response::error("Not Found", 404),
-  }
+    match req.path().as_str() {
+        "/image-optimize/resize" => handle_resize(req).await,
+        _ => Response::error("Not Found", 404),
+    }
 }
 
-fn parse_filter(name: &str) -> image::imageops::FilterType {
-  match name.to_ascii_lowercase().as_str() {
-    "nearest" => image::imageops::FilterType::Nearest,
-    "triangle" | "bilinear" => image::imageops::FilterType::Triangle,
-    "catmullrom" | "bicubic" => image::imageops::FilterType::CatmullRom,
-    "lanczos3" => image::imageops::FilterType::Lanczos3,
-    _ => image::imageops::FilterType::Lanczos3,
-  }
+fn parse_filter(name: &str) -> Option<image::imageops::FilterType> {
+    match name.to_ascii_lowercase().as_str() {
+        "nearest" => Some(image::imageops::FilterType::Nearest),
+        "triangle" | "bilinear" => Some(image::imageops::FilterType::Triangle),
+        "catmullrom" | "bicubic" => Some(image::imageops::FilterType::CatmullRom),
+        "lanczos3" => Some(image::imageops::FilterType::Lanczos3),
+        _ => None,
+    }
 }
 
-/// Compute output dimensions that fit within (max_w, max_h) while preserving
-/// aspect ratio. If either target is 0, scale proportionally from the other.
-/// This matches Cloudflare Images resize behavior.
-fn resize_dimensions(
-  orig_w: u32,
-  orig_h: u32,
-  max_w: u32,
-  max_h: u32,
-) -> (u32, u32) {
-  if max_w > 0 && max_h > 0 {
-    // Fit inside the bounding box
-    let scale = (max_w as f64 / orig_w as f64).min(max_h as f64 / orig_h as f64);
-    let w = (orig_w as f64 * scale).round() as u32;
-    let h = (orig_h as f64 * scale).round() as u32;
-    (w.max(1), h.max(1))
-  } else if max_w > 0 {
-    let scale = max_w as f64 / orig_w as f64;
-    let h = (orig_h as f64 * scale).round() as u32;
-    (max_w, h.max(1))
-  } else {
-    let scale = max_h as f64 / orig_h as f64;
-    let w = (orig_w as f64 * scale).round() as u32;
-    (w.max(1), max_h)
-  }
+/// Compute output dimensions that fit within a bounding box while preserving
+/// aspect ratio and never upscaling the source image.
+fn resize_dimensions(orig_w: u32, orig_h: u32, max_w: u32, max_h: u32) -> (u32, u32) {
+    if max_w > 0 && max_h > 0 {
+        let scale = (max_w as f64 / orig_w as f64)
+            .min(max_h as f64 / orig_h as f64)
+            .min(1.0);
+        let w = (orig_w as f64 * scale).round() as u32;
+        let h = (orig_h as f64 * scale).round() as u32;
+        (w.max(1), h.max(1))
+    } else if max_w > 0 {
+        let scale = (max_w as f64 / orig_w as f64).min(1.0);
+        let w = (orig_w as f64 * scale).round() as u32;
+        let h = (orig_h as f64 * scale).round() as u32;
+        (w.max(1), h.max(1))
+    } else {
+        let scale = (max_h as f64 / orig_h as f64).min(1.0);
+        let w = (orig_w as f64 * scale).round() as u32;
+        let h = (orig_h as f64 * scale).round() as u32;
+        (w.max(1), h.max(1))
+    }
 }
 
 fn filter_name(filter: image::imageops::FilterType) -> &'static str {
-  match filter {
-    image::imageops::FilterType::Nearest => "nearest",
-    image::imageops::FilterType::Triangle => "triangle",
-    image::imageops::FilterType::CatmullRom => "catmullrom",
-    image::imageops::FilterType::Lanczos3 => "lanczos3",
-    _ => "unknown",
-  }
+    match filter {
+        image::imageops::FilterType::Nearest => "nearest",
+        image::imageops::FilterType::Triangle => "triangle",
+        image::imageops::FilterType::CatmullRom => "catmullrom",
+        image::imageops::FilterType::Lanczos3 => "lanczos3",
+        _ => "unknown",
+    }
 }
 
-use std::collections::HashMap;
+fn query_value<'a>(
+    query: &'a HashMap<String, String>,
+    short: &str,
+    long: &str,
+) -> Result<Option<&'a str>, &'static str> {
+    match (query.get(short), query.get(long)) {
+        (Some(short_value), Some(long_value)) if short_value != long_value => {
+            Err("Conflicting query aliases")
+        }
+        (Some(short_value), _) => Ok(Some(short_value)),
+        (_, Some(long_value)) => Ok(Some(long_value)),
+        (None, None) => Ok(None),
+    }
+}
+
+fn parse_dimension(
+    query: &HashMap<String, String>,
+    short: &str,
+    long: &str,
+) -> Result<u32, &'static str> {
+    let Some(value) = query_value(query, short, long)? else {
+        return Ok(0);
+    };
+    let parsed = value
+        .parse::<u32>()
+        .map_err(|_| "Dimensions must be positive integers")?;
+    if parsed == 0 {
+        return Err("Dimensions must be positive integers");
+    }
+    Ok(parsed)
+}
+
+fn parse_quality(query: &HashMap<String, String>) -> Result<(u8, bool), &'static str> {
+    let Some(value) = query_value(query, "q", "quality")? else {
+        return Ok((DEFAULT_QUALITY, false));
+    };
+    let quality = value
+        .parse::<u8>()
+        .map_err(|_| "Quality must be an integer from 1 to 100")?;
+    if !(1..=100).contains(&quality) {
+        return Err("Quality must be an integer from 1 to 100");
+    }
+    Ok((quality, true))
+}
+
+fn encode_png(
+    image: &DynamicImage,
+    quality: u8,
+    quality_explicit: bool,
+) -> std::result::Result<Vec<u8>, &'static str> {
+    if !quality_explicit {
+        let mut output = Vec::new();
+        image
+            .write_to(Cursor::new(&mut output), image::ImageFormat::Png)
+            .map_err(|_| "PNG encoding failed")?;
+        return Ok(output);
+    }
+
+    let rgba = image.to_rgba8();
+    let palette_size = 64 + (usize::from(quality.saturating_sub(1)) * 192 / 99);
+    let quantizer = color_quant::NeuQuant::new(10, palette_size, rgba.as_raw());
+    let palette = quantizer.color_map_rgba();
+    let mut indices = Vec::with_capacity(rgba.as_raw().len() / 4);
+    for pixel in rgba.as_raw().chunks_exact(4) {
+        indices.push(quantizer.index_of(pixel) as u8);
+    }
+
+    let mut palette_rgb = Vec::with_capacity(palette.len() / 4 * 3);
+    let mut palette_alpha = Vec::with_capacity(palette.len() / 4);
+    for color in palette.chunks_exact(4) {
+        palette_rgb.extend_from_slice(&color[..3]);
+        palette_alpha.push(color[3]);
+    }
+
+    let mut output = Vec::new();
+    {
+        let mut encoder = png::Encoder::new(&mut output, rgba.width(), rgba.height());
+        encoder.set_color(png::ColorType::Indexed);
+        encoder.set_depth(png::BitDepth::Eight);
+        encoder.set_palette(palette_rgb);
+        if palette_alpha.iter().any(|alpha| *alpha < u8::MAX) {
+            encoder.set_trns(palette_alpha);
+        }
+        let mut writer = encoder.write_header().map_err(|_| "PNG encoding failed")?;
+        writer
+            .write_image_data(&indices)
+            .map_err(|_| "PNG encoding failed")?;
+    }
+    Ok(output)
+}
+
+fn encode_output(
+    image: &DynamicImage,
+    format: OutputFormat,
+    quality: u8,
+    quality_explicit: bool,
+) -> std::result::Result<Vec<u8>, &'static str> {
+    match format {
+        OutputFormat::Avif => {
+            let mut output = Vec::new();
+            let encoder = image::codecs::avif::AvifEncoder::new_with_speed_quality(
+                Cursor::new(&mut output),
+                6,
+                quality,
+            );
+            image
+                .write_with_encoder(encoder)
+                .map_err(|_| "AVIF encoding failed")?;
+            Ok(output)
+        }
+        OutputFormat::Jpeg => {
+            let mut output = Vec::new();
+            let encoder = image::codecs::jpeg::JpegEncoder::new_with_quality(
+                Cursor::new(&mut output),
+                quality,
+            );
+            image
+                .write_with_encoder(encoder)
+                .map_err(|_| "JPEG encoding failed")?;
+            Ok(output)
+        }
+        OutputFormat::Png => encode_png(image, quality, quality_explicit),
+        OutputFormat::Webp => {
+            let rgba = image.to_rgba8();
+            let webp_image = webp_rust::ImageBuffer {
+                width: rgba.width() as usize,
+                height: rgba.height() as usize,
+                rgba: rgba.into_raw(),
+            };
+            let config = webp_rust::LossyEncodingConfig {
+                method: 4,
+                quality: quality as f32,
+                ..Default::default()
+            };
+            webp_rust::encode_lossy_with_config(&webp_image, &config, None)
+                .map_err(|_| "WebP encoding failed")
+        }
+    }
+}
+
+fn set_resize_headers(
+    response: &Response,
+    format: OutputFormat,
+    original_width: u32,
+    original_height: u32,
+    original_bytes: usize,
+    resized_width: u32,
+    resized_height: u32,
+    resized_bytes: usize,
+    filter: image::imageops::FilterType,
+    quality: u8,
+    compression_ratio: &str,
+) -> Result<()> {
+    let original_width = original_width.to_string();
+    let original_height = original_height.to_string();
+    let original_bytes = original_bytes.to_string();
+    let resized_width = resized_width.to_string();
+    let resized_height = resized_height.to_string();
+    let resized_bytes = resized_bytes.to_string();
+    let quality = quality.to_string();
+
+    response
+        .headers()
+        .set("content-type", format.content_type())?;
+    response
+        .headers()
+        .set("x-image-original-width", &original_width)?;
+    response
+        .headers()
+        .set("x-image-original-height", &original_height)?;
+    response
+        .headers()
+        .set("x-image-original-bytes", &original_bytes)?;
+    response
+        .headers()
+        .set("x-image-resized-width", &resized_width)?;
+    response
+        .headers()
+        .set("x-image-resized-height", &resized_height)?;
+    response
+        .headers()
+        .set("x-image-resized-bytes", &resized_bytes)?;
+    response
+        .headers()
+        .set("x-image-filter", filter_name(filter))?;
+    response.headers().set("x-image-fit", FIT_SCALE_DOWN)?;
+    response.headers().set("x-image-format", format.name())?;
+    response.headers().set("x-image-quality", &quality)?;
+    response
+        .headers()
+        .set("x-image-compression-ratio", compression_ratio)?;
+    Ok(())
+}
 
 async fn handle_resize(mut req: Request) -> Result<Response> {
-  let url = req.url().map_err(|_| Error::from("Invalid URL"))?;
+    let url = req.url().map_err(|_| Error::from("Invalid URL"))?;
 
-  // Collect all query params into a map so parsing is independent of order.
-  let query: HashMap<String, String> = url
-    .query_pairs()
-    .map(|(k, v)| (k.into_owned(), v.into_owned()))
-    .collect();
-
-  // Support CF Images-style short params: w, h, f, q
-  let target_width: u32 = query
-    .get("w")
-    .or_else(|| query.get("width"))
-    .and_then(|v| v.parse().ok())
-    .unwrap_or(0);
-  let target_height: u32 = query
-    .get("h")
-    .or_else(|| query.get("height"))
-    .and_then(|v| v.parse().ok())
-    .unwrap_or(0);
-  let filter_str: String = query
-    .get("f")
-    .or_else(|| query.get("filter"))
-    .cloned()
-    .unwrap_or_else(|| "lanczos3".to_string());
-  // Quality param reserved for future JPEG/WebP output; ignored for now.
-  let _quality: u32 = query
-    .get("q")
-    .or_else(|| query.get("quality"))
-    .and_then(|v| v.parse().ok())
-    .unwrap_or(85);
-
-  if target_width == 0 && target_height == 0 {
-    return Response::error("Provide at least one of width or height", 400);
-  }
-  if target_width > MAX_DIMENSION || target_height > MAX_DIMENSION {
-    return Response::error("Target dimensions exceed the 4K limit", 400);
-  }
-
-  // Reject oversized uploads before reading the body. Chunked or missing
-  // Content-Length is allowed through, but the read is capped below.
-  if let Ok(Some(len)) = req.headers().get("content-length") {
-    if let Ok(n) = len.parse::<u64>() {
-      if n > MAX_UPLOAD_BYTES as u64 {
-        return Response::error("Image exceeds the 32 MB upload limit", 413);
-      }
+    let mut query = HashMap::new();
+    for (key, value) in url.query_pairs() {
+        if query.insert(key.into_owned(), value.into_owned()).is_some() {
+            return Response::error("Duplicate query parameter", 400);
+        }
     }
-  }
+    const SUPPORTED_QUERY_KEYS: [&str; 10] = [
+        "f", "fit", "filter", "format", "h", "height", "q", "quality", "w", "width",
+    ];
+    if query
+        .keys()
+        .any(|key| !SUPPORTED_QUERY_KEYS.contains(&key.as_str()))
+    {
+        return Response::error("Unsupported query parameter", 400);
+    }
 
-  let bytes = req.bytes().await?;
-  if bytes.len() > MAX_UPLOAD_BYTES {
-    return Response::error("Image exceeds the 32 MB upload limit", 413);
-  }
+    let target_width = match parse_dimension(&query, "w", "width") {
+        Ok(value) => value,
+        Err(message) => return Response::error(message, 400),
+    };
+    let target_height = match parse_dimension(&query, "h", "height") {
+        Ok(value) => value,
+        Err(message) => return Response::error(message, 400),
+    };
+    if target_width == 0 && target_height == 0 {
+        return Response::error("Provide at least one of w or h", 400);
+    }
+    if target_width > MAX_DIMENSION || target_height > MAX_DIMENSION {
+        return Response::error("Target dimensions exceed the 4K limit", 400);
+    }
 
-  let started = performance_now();
-  let image = match ImageReader::new(Cursor::new(&bytes))
-    .with_guessed_format()
-    .map_err(|_| Error::from("Could not detect image format"))?
-    .decode()
-  {
-    Ok(img) => img,
-    Err(_) => return Response::error("Unsupported or invalid image format", 415),
-  };
+    if let Some(fit) = query.get("fit") {
+        if !fit.eq_ignore_ascii_case(FIT_SCALE_DOWN) {
+            return Response::error("Only fit=scale-down is supported", 400);
+        }
+    }
 
-  let orig_width = image.width();
-  let orig_height = image.height();
-  if orig_width > MAX_DIMENSION
-    || orig_height > MAX_DIMENSION
-    || u64::from(orig_width) * u64::from(orig_height) > MAX_PIXELS
-  {
-    return Response::error("Image dimensions exceed the 4K limit", 413);
-  }
+    let accept = req.headers().get("accept").ok().flatten();
+    let format_value = match query_value(&query, "f", "format") {
+        Ok(Some(value)) => value,
+        Ok(None) => "png",
+        Err(message) => return Response::error(message, 400),
+    };
+    let format = match OutputFormat::parse(format_value, accept.as_deref()) {
+        Some(format) => format,
+        None => return Response::error("Unsupported output format", 400),
+    };
 
-  let filter = parse_filter(&filter_str);
+    let (quality, quality_explicit) = match parse_quality(&query) {
+        Ok(value) => value,
+        Err(message) => return Response::error(message, 400),
+    };
+    let filter_str = query
+        .get("filter")
+        .map(String::as_str)
+        .unwrap_or("lanczos3");
+    let filter = match parse_filter(filter_str) {
+        Some(filter) => filter,
+        None => return Response::error("Unsupported resize filter", 400),
+    };
 
-  // Compute output dimensions preserving aspect ratio (CF Images behavior):
-  // When both w and h are given, fit inside the bounding box.
-  // When one axis is given, scale the other proportionally.
-  let (out_w, out_h) = resize_dimensions(orig_width, orig_height, target_width, target_height);
+    if let Ok(Some(len)) = req.headers().get("content-length") {
+        if let Ok(n) = len.parse::<u64>() {
+            if n > MAX_UPLOAD_BYTES as u64 {
+                return Response::error("Image exceeds the 32 MB upload limit", 413);
+            }
+        }
+    }
 
-  if out_w == 0 || out_h == 0 {
-    return Response::error("Computed output dimensions are zero", 400);
-  }
-  if out_w > MAX_DIMENSION || out_h > MAX_DIMENSION {
-    return Response::error("Output dimensions exceed the 4K limit", 400);
-  }
-  if u64::from(out_w) * u64::from(out_h) > MAX_PIXELS {
-    return Response::error("Output pixel count exceeds the 4K limit", 400);
-  }
+    let bytes = req.bytes().await?;
+    if bytes.len() > MAX_UPLOAD_BYTES {
+        return Response::error("Image exceeds the 32 MB upload limit", 413);
+    }
+    let original_bytes = bytes.len();
 
-  let resize_start = performance_now();
+    let image = match ImageReader::new(Cursor::new(&bytes))
+        .with_guessed_format()
+        .map_err(|_| Error::from("Could not detect image format"))?
+        .decode()
+    {
+        Ok(img) => img,
+        Err(_) => return Response::error("Unsupported or invalid image format", 415),
+    };
 
-  let resized = image.resize(out_w, out_h, filter);
+    let orig_width = image.width();
+    let orig_height = image.height();
+    if orig_width > MAX_DIMENSION
+        || orig_height > MAX_DIMENSION
+        || u64::from(orig_width) * u64::from(orig_height) > MAX_PIXELS
+    {
+        return Response::error("Image dimensions exceed the 4K limit", 413);
+    }
+    drop(bytes);
 
-  let resize_ms = performance_now() - resize_start;
-  let total_ms = performance_now() - started;
+    let (out_w, out_h) = resize_dimensions(orig_width, orig_height, target_width, target_height);
+    if u64::from(out_w) * u64::from(out_h) > MAX_PIXELS {
+        return Response::error("Output pixel count exceeds the 4K limit", 400);
+    }
 
-  let out_width = resized.width();
-  let out_height = resized.height();
+    let resized = image.resize(out_w, out_h, filter);
+    drop(image);
+    let output = match encode_output(&resized, format, quality, quality_explicit) {
+        Ok(output) => output,
+        Err(message) => return Response::error(message, 500),
+    };
+    let output_size = output.len();
+    let ratio = if original_bytes == 0 {
+        0.0
+    } else {
+        (1.0 - output_size as f64 / original_bytes as f64) * 100.0
+    };
 
-  let mut png_buf: Vec<u8> = Vec::new();
-  resized
-    .write_to(&mut Cursor::new(&mut png_buf), image::ImageFormat::Png)
-    .map_err(|_| Error::from("PNG encoding failed"))?;
+    let compression_ratio = format!("{:.1}%", ratio);
+    let resp = Response::from_bytes(output)?;
+    resp.headers().set("cache-control", "no-store")?;
+    set_resize_headers(
+        &resp,
+        format,
+        orig_width,
+        orig_height,
+        original_bytes,
+        resized.width(),
+        resized.height(),
+        output_size,
+        filter,
+        quality,
+        &compression_ratio,
+    )?;
+    Ok(resp)
+}
 
-  let original_size = bytes.len();
-  let output_size = png_buf.len();
-  let ratio = if original_size > 0 {
-    (1.0 - output_size as f64 / original_size as f64) * 100.0
-  } else {
-    0.0
-  };
+#[cfg(test)]
+mod tests {
+    use image::{Rgba, RgbaImage};
 
-  use base64::Engine;
-  let encoded = base64::engine::general_purpose::STANDARD.encode(&png_buf);
+    use super::*;
 
-  let response = serde_json::json!({
-    "original": {
-      "width": orig_width,
-      "height": orig_height,
-      "bytes": original_size,
-    },
-    "resized": {
-      "width": out_width,
-      "height": out_height,
-      "bytes": output_size,
-    },
-    "filter": filter_name(filter),
-    "resize_ms": resize_ms,
-    "total_ms": total_ms,
-    "compression_ratio": format!("{:.1}%", ratio),
-    "output_png_base64": encoded,
-    "engine": "Rust image crate at the edge",
-  });
+    #[test]
+    fn fits_a_wide_image_inside_a_square_without_upscaling() {
+        assert_eq!(resize_dimensions(1520, 1080, 100, 100), (100, 71));
+        assert_eq!(resize_dimensions(100, 71, 256, 256), (100, 71));
+    }
 
-  let resp = Response::from_json(&response)?;
-  resp.headers().set("cache-control", "no-store")?;
-  Ok(resp)
+    #[test]
+    fn scales_from_one_axis_without_upscaling() {
+        assert_eq!(resize_dimensions(1520, 1080, 100, 0), (100, 71));
+        assert_eq!(resize_dimensions(1520, 1080, 0, 100), (141, 100));
+        assert_eq!(resize_dimensions(100, 71, 256, 0), (100, 71));
+    }
+
+    #[test]
+    fn parses_quality_and_tracks_explicit_png_quality() {
+        let mut query = HashMap::new();
+        assert_eq!(parse_quality(&query).unwrap(), (85, false));
+        query.insert("q".to_string(), "42".to_string());
+        assert_eq!(parse_quality(&query).unwrap(), (42, true));
+        query.insert("q".to_string(), "101".to_string());
+        assert!(parse_quality(&query).is_err());
+    }
+
+    #[test]
+    fn parses_supported_output_formats() {
+        assert_eq!(OutputFormat::parse("jpeg", None), Some(OutputFormat::Jpeg));
+        assert_eq!(OutputFormat::parse("png", None), Some(OutputFormat::Png));
+        assert_eq!(OutputFormat::parse("webp", None), Some(OutputFormat::Webp));
+        assert_eq!(OutputFormat::parse("avif", None), Some(OutputFormat::Avif));
+        assert_eq!(
+            OutputFormat::parse("auto", Some("image/avif,image/webp")),
+            Some(OutputFormat::Avif)
+        );
+        assert_eq!(OutputFormat::parse("jxl", None), None);
+    }
+
+    #[test]
+    fn rejects_invalid_filters_and_conflicting_aliases() {
+        assert!(parse_filter("unknown").is_none());
+        let mut query = HashMap::new();
+        query.insert("w".to_string(), "100".to_string());
+        query.insert("width".to_string(), "200".to_string());
+        assert!(query_value(&query, "w", "width").is_err());
+    }
+
+    #[test]
+    fn encodes_each_supported_output_format() {
+        let image = DynamicImage::ImageRgba8(RgbaImage::from_pixel(2, 2, Rgba([40, 80, 120, 255])));
+        let jpeg = encode_output(&image, OutputFormat::Jpeg, 85, true).unwrap();
+        let png = encode_output(&image, OutputFormat::Png, 85, false).unwrap();
+        let png8 = encode_output(&image, OutputFormat::Png, 40, true).unwrap();
+        let webp = encode_output(&image, OutputFormat::Webp, 85, true).unwrap();
+        let avif = encode_output(&image, OutputFormat::Avif, 85, true).unwrap();
+
+        assert_eq!(&jpeg[..2], &[0xff, 0xd8]);
+        assert_eq!(&png[..8], b"\x89PNG\r\n\x1a\n");
+        assert_eq!(&png8[..8], b"\x89PNG\r\n\x1a\n");
+        assert_eq!(&webp[..4], b"RIFF");
+        assert_eq!(&webp[8..12], b"WEBP");
+        assert!(avif.windows(4).any(|chunk| chunk == b"avif"));
+    }
 }

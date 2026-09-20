@@ -14,6 +14,7 @@ const MAX_BYTES = 32 * 1024 * 1024;
 const ACCEPT = 'image/jpeg,image/png,image/webp,image/gif,image/bmp,image/tiff';
 
 type FilterId = 'nearest' | 'triangle' | 'catmullrom' | 'lanczos3';
+type OutputFormat = 'avif' | 'jpeg' | 'png' | 'webp';
 
 interface FilterOption {
   id: FilterId;
@@ -39,11 +40,21 @@ const FILTERS: readonly FilterOption[] = [
   },
 ];
 
+const OUTPUT_FORMATS: readonly OutputFormat[] = [
+  'webp',
+  'avif',
+  'jpeg',
+  'png',
+];
+
 interface ResizeResult {
   compression_ratio: string;
-  engine: string;
+  content_type: string;
   filter: string;
-  output_png_base64: string;
+  fit: string;
+  format: OutputFormat;
+  output_url: string;
+  quality: number;
   original: {
     bytes: number;
     height: number;
@@ -54,9 +65,7 @@ interface ResizeResult {
     height: number;
     width: number;
   };
-  resize_ms: number;
-  time_ms: number;
-  total_ms: number;
+  total_ms: number | null;
 }
 
 const RECOMMENDED_FILTER: FilterId = 'lanczos3';
@@ -96,12 +105,87 @@ function formatBytes(bytes: number): string {
     : `${Math.ceil(bytes / 1024)} KB`;
 }
 
+async function createPixelPlaceholder(file: File): Promise<string | null> {
+  const sourceUrl = URL.createObjectURL(file);
+  try {
+    const image = new Image();
+    image.decoding = 'async';
+    image.src = sourceUrl;
+    await image.decode();
+
+    const canvas = document.createElement('canvas');
+    canvas.height = 1;
+    canvas.width = 1;
+    const context = canvas.getContext('2d');
+    if (!context) return null;
+    context.drawImage(image, 0, 0, 1, 1);
+    return canvas.toDataURL('image/png');
+  } catch {
+    return null;
+  } finally {
+    URL.revokeObjectURL(sourceUrl);
+  }
+}
+
+function requiredImageHeader(headers: Headers, name: string): string {
+  const value = headers.get(name);
+  if (!value) throw new Error(`Image response is missing ${name}.`);
+  return value;
+}
+
+function imageHeaderInteger(headers: Headers, name: string): number {
+  const value = Number.parseInt(requiredImageHeader(headers, name), 10);
+  if (!Number.isFinite(value)) throw new Error(`Image response has invalid ${name}.`);
+  return value;
+}
+
+function parseOutputFormat(value: string): OutputFormat {
+  if (value === 'avif' || value === 'jpeg' || value === 'png' || value === 'webp') {
+    return value;
+  }
+  throw new Error(`Image response has unsupported format: ${value}.`);
+}
+
+function readResizeResult(response: Response, outputUrl: string): ResizeResult {
+  const headers = response.headers;
+  const totalMs = headers.get('x-image-total-ms');
+  const parsedTotalMs = totalMs === null ? null : Number.parseFloat(totalMs);
+  if (parsedTotalMs !== null && !Number.isFinite(parsedTotalMs)) {
+    throw new Error('Image response has invalid x-image-total-ms.');
+  }
+
+  return {
+    compression_ratio: requiredImageHeader(headers, 'x-image-compression-ratio'),
+    content_type: requiredImageHeader(headers, 'content-type'),
+    filter: requiredImageHeader(headers, 'x-image-filter'),
+    fit: requiredImageHeader(headers, 'x-image-fit'),
+    format: parseOutputFormat(requiredImageHeader(headers, 'x-image-format')),
+    original: {
+      bytes: imageHeaderInteger(headers, 'x-image-original-bytes'),
+      height: imageHeaderInteger(headers, 'x-image-original-height'),
+      width: imageHeaderInteger(headers, 'x-image-original-width'),
+    },
+    output_url: outputUrl,
+    quality: imageHeaderInteger(headers, 'x-image-quality'),
+    resized: {
+      bytes: imageHeaderInteger(headers, 'x-image-resized-bytes'),
+      height: imageHeaderInteger(headers, 'x-image-resized-height'),
+      width: imageHeaderInteger(headers, 'x-image-resized-width'),
+    },
+    total_ms: parsedTotalMs,
+  };
+}
+
 function ResultMetadata({ result }: { result: ResizeResult }): JSX.Element {
   return (
     <div className={c.metadataGrid}>
       <div className={c.metadataRow}>
         <span className={c.metadataLabel}>{m.image_optimize_label_algorithm()}</span>
         <span className={c.metadataValue}>{result.filter}</span>
+      </div>
+      <div className={c.metadataRow}>
+        <span className={c.metadataLabel}>{m.image_optimize_format_title()}</span>
+        <span className={c.metadataValue}>{result.format.toUpperCase()}</span>
       </div>
       <div className={c.metadataRow}>
         <span className={c.metadataLabel}>{m.image_optimize_label_dimensions()}</span>
@@ -123,12 +207,14 @@ function ResultMetadata({ result }: { result: ResizeResult }): JSX.Element {
         <span className={c.metadataValue}>{result.compression_ratio}</span>
       </div>
       <div className={c.metadataRow}>
-        <span className={c.metadataLabel}>{m.image_optimize_label_resize_time()}</span>
-        <span className={c.metadataValue}>{result.resize_ms.toFixed(1)} ms</span>
+        <span className={c.metadataLabel}>{m.image_optimize_quality_title()}</span>
+        <span className={c.metadataValue}>{result.quality}</span>
       </div>
       <div className={c.metadataRow}>
         <span className={c.metadataLabel}>{m.image_optimize_label_total_time()}</span>
-        <span className={c.metadataValue}>{(result.time_ms ?? result.total_ms).toFixed(1)} ms</span>
+        <span className={c.metadataValue}>
+          {result.total_ms === null ? 'Unavailable' : `${result.total_ms.toFixed(1)} ms`}
+        </span>
       </div>
     </div>
   );
@@ -180,6 +266,8 @@ function useImageOptimize() {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [filter, setFilter] = useState<FilterId>('lanczos3');
+  const [format, setFormat] = useState<OutputFormat>('webp');
+  const [quality, setQuality] = useState<number>(85);
   const [targetWidth, setTargetWidth] = useState<number>(0);
   const [targetHeight, setTargetHeight] = useState<number>(0);
   const [activePreset, setActivePreset] = useState<string | null>(null);
@@ -187,6 +275,8 @@ function useImageOptimize() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const [placeholderUrl, setPlaceholderUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const requestIdRef = useRef(0);
 
   useEffect(
@@ -198,31 +288,48 @@ function useImageOptimize() {
     ]
   );
 
+  useEffect(
+    () => () => {
+      if (result?.output_url) URL.revokeObjectURL(result.output_url);
+    },
+    [
+      result?.output_url,
+    ]
+  );
+
   const chooseFile = useCallback((nextFile: File | null) => {
     setError(null);
     setResult(null);
+    setPlaceholderUrl(null);
     // Invalidate any in-flight request when the selection changes.
     ++requestIdRef.current;
     setBusy(false);
     if (!nextFile) {
       setFile(null);
       setPreviewUrl(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
     if (!nextFile.type.startsWith('image/')) {
       setError(m.image_optimize_error_invalid_file());
       setFile(null);
       setPreviewUrl(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
     if (nextFile.size > MAX_BYTES) {
       setError(m.image_optimize_error_size());
       setFile(null);
       setPreviewUrl(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
     setFile(nextFile);
     setPreviewUrl(URL.createObjectURL(nextFile));
+    const selectionId = requestIdRef.current;
+    void createPixelPlaceholder(nextFile).then(placeholder => {
+      if (selectionId === requestIdRef.current) setPlaceholderUrl(placeholder);
+    });
   }, []);
 
   const onInput = useCallback(
@@ -270,6 +377,10 @@ function useImageOptimize() {
     setActivePreset(null);
   }, []);
 
+  const onQualityChange = useCallback((event: ReactChangeEvent<HTMLInputElement>) => {
+    setQuality(Number(event.target.value));
+  }, []);
+
   const optimize = useCallback(async () => {
     if (!file) return;
     if (targetWidth === 0 && targetHeight === 0) {
@@ -280,10 +391,14 @@ function useImageOptimize() {
     setBusy(true);
     setError(null);
     setResult(null);
+    let outputUrl: string | null = null;
     try {
       const params = new URLSearchParams();
-      if (targetWidth > 0) params.set('width', String(targetWidth));
-      if (targetHeight > 0) params.set('height', String(targetHeight));
+      if (targetWidth > 0) params.set('w', String(targetWidth));
+      if (targetHeight > 0) params.set('h', String(targetHeight));
+      params.set('f', format);
+      params.set('fit', 'scale-down');
+      params.set('q', String(quality));
       params.set('filter', filter);
 
       const response = await fetch(`/api/rust/image-optimize/resize?${params}`, {
@@ -295,9 +410,17 @@ function useImageOptimize() {
       });
       if (!response.ok)
         throw new Error((await response.text()) || `Request failed (${response.status})`);
-      if (id !== requestIdRef.current) return;
-      setResult((await response.json()) as ResizeResult);
+      outputUrl = URL.createObjectURL(await response.blob());
+      const nextResult = readResizeResult(response, outputUrl);
+      if (id !== requestIdRef.current) {
+        URL.revokeObjectURL(outputUrl);
+        outputUrl = null;
+        return;
+      }
+      setResult(nextResult);
+      outputUrl = null;
     } catch (cause) {
+      if (outputUrl) URL.revokeObjectURL(outputUrl);
       if (id !== requestIdRef.current) return;
       setError(cause instanceof Error ? cause.message : 'The edge optimization failed.');
     } finally {
@@ -306,11 +429,11 @@ function useImageOptimize() {
   }, [
     file,
     filter,
+    format,
+    quality,
     targetHeight,
     targetWidth,
   ]);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const clearAll = useCallback(() => {
     // Invalidate in-flight requests.
@@ -318,17 +441,18 @@ function useImageOptimize() {
     setBusy(false);
     setFile(null);
     setPreviewUrl(null);
+    setPlaceholderUrl(null);
     setResult(null);
     setError(null);
-    // Reset the file input DOM value so re-selecting the same file triggers change.
+    /*
+     * Reset the file input so selecting the same file triggers change.
+     */
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   }, []);
 
-  const optimizedSrc = result?.output_png_base64
-    ? `data:image/png;base64,${result.output_png_base64}`
-    : null;
+  const optimizedSrc = result?.output_url ?? null;
 
   return {
     activePreset,
@@ -340,20 +464,25 @@ function useImageOptimize() {
     file,
     fileInputRef,
     filter,
+    format,
     onDragEnter,
     onDragLeave,
     onDragOver,
     onDrop,
     onHeightChange,
     onInput,
+    onQualityChange,
     onWidthChange,
     optimize,
     optimizedSrc,
+    placeholderUrl,
     previewUrl,
+    quality,
     result,
     selectPreset,
     setDragging,
     setFilter,
+    setFormat,
     targetHeight,
     targetWidth,
   };
@@ -369,18 +498,23 @@ export default function ImageOptimizeLab(): JSX.Element {
     file,
     fileInputRef,
     filter,
+    format,
     onDrop,
     onDragEnter,
     onDragLeave,
     onDragOver,
     onHeightChange,
     onInput,
+    onQualityChange,
     onWidthChange,
     optimize,
     optimizedSrc,
+    placeholderUrl,
     previewUrl,
+    quality,
     result,
     selectPreset,
+    setFormat,
     setFilter,
     targetHeight,
     targetWidth,
@@ -472,6 +606,43 @@ export default function ImageOptimizeLab(): JSX.Element {
               />
             </div>
 
+            {/* Output format */}
+            <p className={c.sectionLabel}>{m.image_optimize_format_title()}</p>
+            <div className={c.formatGroup}>
+              {OUTPUT_FORMATS.map(outputFormat => (
+                <label
+                  className={`${c.filterOption} ${format === outputFormat ? c.filterOptionSelected : ''}`.trim()}
+                  key={outputFormat}
+                >
+                  <input
+                    checked={format === outputFormat}
+                    className={c.filterRadio}
+                    name="output-format"
+                    /* biome-ignore lint/performance/noJsxPropsBind: format id is a stable const */
+                    onChange={() => setFormat(outputFormat)}
+                    type="radio"
+                    value={outputFormat}
+                  />
+                  <span className={c.filterLabel}>{outputFormat.toUpperCase()}</span>
+                </label>
+              ))}
+            </div>
+
+            {/* Output quality */}
+            <div className={c.qualityHeader}>
+              <p className={c.sectionLabel}>{m.image_optimize_quality_title()}</p>
+              <span className={c.qualityValue}>{quality}</span>
+            </div>
+            <input
+              aria-label={m.image_optimize_quality_title()}
+              className={c.qualityInput}
+              max={100}
+              min={1}
+              onChange={onQualityChange}
+              type="range"
+              value={quality}
+            />
+
             {/* Filter selection */}
             <p className={c.sectionLabel}>{m.image_optimize_filter_title()}</p>
             <div className={c.filterGroup}>
@@ -531,11 +702,38 @@ export default function ImageOptimizeLab(): JSX.Element {
                   as="h3"
                   className={c.resultTitle}
                 >
-                  {result ? m.image_optimize_optimized_title() : m.image_optimize_empty_result()}
+                  {busy
+                    ? m.image_optimize_analyzing()
+                    : result
+                      ? m.image_optimize_optimized_title()
+                      : m.image_optimize_empty_result()}
                 </Text>
               </div>
 
-              {result ? (
+              {busy ? (
+                <div
+                  aria-live="polite"
+                  className={c.loadingResult}
+                  role="status"
+                >
+                  {placeholderUrl ? (
+                    <img
+                      alt=""
+                      className={c.loadingPlaceholder}
+                      src={placeholderUrl}
+                    />
+                  ) : (
+                    <div className={c.loadingPlaceholderFallback} />
+                  )}
+                  <div className={c.loadingOverlay}>
+                    <span
+                      aria-hidden="true"
+                      className={c.loadingSpinner}
+                    />
+                    <span>{m.image_optimize_analyzing()}</span>
+                  </div>
+                </div>
+              ) : result ? (
                 <>
                   {optimizedSrc ? (
                     <img

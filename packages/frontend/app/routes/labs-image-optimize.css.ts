@@ -14,6 +14,15 @@ const reveal = keyframes({
   },
 });
 
+const spin = keyframes({
+  '0%': {
+    transform: 'rotate(0deg)',
+  },
+  '100%': {
+    transform: 'rotate(360deg)',
+  },
+});
+
 export const previewBackgroundColor = createVar();
 
 export const page = style({
@@ -366,6 +375,53 @@ export const emptyResult = style({
   padding: '2rem',
   textAlign: 'center',
 });
+export const loadingResult = style({
+  alignItems: 'center',
+  display: 'flex',
+  flex: '1 1 auto',
+  justifyContent: 'center',
+  minBlockSize: '18rem',
+  overflow: 'hidden',
+  position: 'relative',
+});
+export const loadingPlaceholder = style({
+  blockSize: '100%',
+  filter: 'blur(2rem)',
+  inlineSize: '100%',
+  inset: 0,
+  objectFit: 'cover',
+  position: 'absolute',
+  transform: 'scale(1.15)',
+});
+export const loadingPlaceholderFallback = style({
+  background: 'linear-gradient(135deg, #172554, #0f172a 55%, #1e3a5f)',
+  blockSize: '100%',
+  inlineSize: '100%',
+  inset: 0,
+  position: 'absolute',
+});
+export const loadingOverlay = style({
+  alignItems: 'center',
+  backgroundColor: 'rgba(10, 18, 34, 0.78)',
+  border: '1px solid rgba(147, 197, 253, 0.35)',
+  borderRadius: '9999px',
+  color: colorTokens.white,
+  display: 'flex',
+  fontSize: '0.9rem',
+  fontWeight: 700,
+  gap: '0.65rem',
+  padding: '0.8rem 1rem',
+  position: 'relative',
+});
+export const loadingSpinner = style({
+  animation: `${spin} 900ms linear infinite`,
+  blockSize: '1rem',
+  border: '2px solid rgba(255, 255, 255, 0.35)',
+  borderRadius: '50%',
+  borderTopColor: colorTokens.white,
+  display: 'block',
+  inlineSize: '1rem',
+});
 export const optimizedImage = style({
   blockSize: 'auto',
   display: 'block',
@@ -404,6 +460,12 @@ export const filterGroup = style({
   display: 'grid',
   gap: '0.5rem',
   marginBlockEnd: '1.5rem',
+});
+export const formatGroup = style({
+  display: 'grid',
+  gap: '0.5rem',
+  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+  marginBlockEnd: '1rem',
 });
 export const filterOption = style({
   alignItems: 'center',
@@ -494,6 +556,23 @@ export const dimensionSeparator = style({
   color: colorTokens.slate500,
   fontSize: '0.9rem',
   fontWeight: 500,
+});
+export const qualityHeader = style({
+  alignItems: 'center',
+  display: 'flex',
+  justifyContent: 'space-between',
+});
+export const qualityInput = style({
+  accentColor: '#3b82f6',
+  display: 'block',
+  marginBlockEnd: '1.5rem',
+  width: '100%',
+});
+export const qualityValue = style({
+  color: colorTokens.slate300,
+  fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+  fontSize: '0.85rem',
+  fontWeight: 700,
 });
 export const presetGroup = style({
   display: 'flex',

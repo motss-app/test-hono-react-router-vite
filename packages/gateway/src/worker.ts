@@ -340,11 +340,8 @@ app.all('/api/rust/color/*', async c => {
  * Proxies image-optimization work to its dedicated Rust Worker. Registered
  * before the general fractal route so decoder dependencies stay isolated.
  *
- * Unlike the color route, this proxy does NOT parse the JSON body to inject
- * timing. The response contains a large base64 PNG payload, and cloning +
- * re-serializing it would exhaust Worker memory. Instead, timing is returned
- * via the Server-Timing header added by wrapTime, and the Rust worker
- * includes its own timing in the JSON response.
+ * The Rust worker returns a binary image body. The gateway preserves that
+ * stream and adds the awaited service duration in headers.
  */
 app.all('/api/rust/image-optimize/*', async c => {
   const rust = c.env.IMAGE_OPTIMIZE_RUST;
@@ -365,16 +362,15 @@ app.all('/api/rust/image-optimize/*', async c => {
   );
   const timeMs = performance.now() - start;
 
-  // Inject gateway-measured timing into the JSON response. The Rust worker's
-  // performance.now() is frozen on CF Workers, so we measure wall time here
-  // and merge it into the payload without cloning/re-serializing the full body.
-  const contentType = resp.headers.get('content-type') ?? '';
-  if (resp.ok && contentType.includes('application/json')) {
-    const text = await resp.text();
-    const patched = text.replace(/("total_ms":\s*)([\d.]+)/, `$1${timeMs.toFixed(1)}`);
-    return new Response(patched, {
-      headers: resp.headers,
+  if (resp.ok) {
+    const headers = new Headers(resp.headers);
+    const duration = timeMs.toFixed(1);
+    headers.set('x-image-total-ms', duration);
+    headers.append('server-timing', `image-optimize-rust;dur=${duration}`);
+    return new Response(resp.body, {
+      headers,
       status: resp.status,
+      statusText: resp.statusText,
     });
   }
   return cloneResponse(resp);

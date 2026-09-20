@@ -39,10 +39,10 @@ thread: react to the original comment, reply with concise evidence, and
 resolve by thread ID. For `no-fix`, react, reply, and resolve without
 editing code. Leave informational or uncertain threads open.
 
-All of this happens in a single turn. Do not stop after pushing — if the
-push succeeds but threads are not reacted to, replied to, and resolved, the
-task is incomplete. Use `gh api graphql` for mutations. Do not resolve a
-thread before its reply succeeds. After all mutations, run a final
+All of this happens in a single turn. Do not stop after pushing. If the push
+succeeds but threads are not reacted to, replied to, and resolved, the task is
+incomplete. Use `gh api graphql` for mutations. Do not resolve a thread before
+its reply succeeds. After all mutations, run a final
 verification query to confirm zero unresolved threads remain (excluding any
 intentionally left open).
 
