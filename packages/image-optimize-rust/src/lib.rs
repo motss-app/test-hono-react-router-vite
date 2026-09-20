@@ -1,7 +1,9 @@
-//! Image optimization Cloudflare Worker for the Labs pages.
-//!
-//! Accepts an image upload, resizes it with the `image` crate's filters, and
-//! returns the encoded output image with dimension and format metadata headers.
+/*!
+ * Image optimization Cloudflare Worker for the Labs pages.
+ *
+ * Accepts an image upload, resizes it with the `image` crate's filters, and
+ * returns the encoded output image with dimension and format metadata headers.
+ */
 
 use image::{DynamicImage, ImageReader};
 use std::{collections::HashMap, io::Cursor};
@@ -83,8 +85,10 @@ fn parse_filter(name: &str) -> Option<image::imageops::FilterType> {
     }
 }
 
-/// Compute output dimensions that fit within a bounding box while preserving
-/// aspect ratio and never upscaling the source image.
+/**
+ * Compute output dimensions that fit within a bounding box while preserving
+ * aspect ratio and never upscaling the source image.
+ */
 fn resize_dimensions(orig_w: u32, orig_h: u32, max_w: u32, max_h: u32) -> (u32, u32) {
     if max_w > 0 && max_h > 0 {
         let scale = (max_w as f64 / orig_w as f64)

@@ -326,6 +326,7 @@ function useImageOptimize() {
     }
     setFile(nextFile);
     setPreviewUrl(URL.createObjectURL(nextFile));
+    if (fileInputRef.current) fileInputRef.current.value = '';
     const selectionId = requestIdRef.current;
     void createPixelPlaceholder(nextFile).then(placeholder => {
       if (selectionId === requestIdRef.current) setPlaceholderUrl(placeholder);
