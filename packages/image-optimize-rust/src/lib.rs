@@ -610,4 +610,55 @@ mod tests {
         assert_eq!(center[1], 0, "center pixel green should be 0");
         assert_eq!(center[2], 0, "center pixel blue should be 0");
     }
+
+    /**
+     * Integration test using the real iphone-duo.png sample image
+     * (1520x1080 RGBA with transparent background).
+     *
+     * Resizes to 100x100 with AVIF output, matching the Kaligo
+     * Cloudflare Images parameters (f=avif&w=100&h=100). Verifies:
+     * - Output dimensions are 100x71 (aspect-ratio preserved by
+     *   resize_dimensions)
+     * - Output is valid AVIF
+     * - AVIF encode completes without error
+     * - Premultiplied resize produces no panic on real RGBA data
+     */
+    #[test]
+    fn resize_iphone_duo_to_100x100_avif() {
+        let img = ImageReader::open("tests/fixtures/iphone-duo.png")
+            .expect("test fixture exists")
+            .decode()
+            .expect("valid PNG");
+
+        assert_eq!(img.width(), 1520);
+        assert_eq!(img.height(), 1080);
+
+        /* Match the query parameters: w=100, h=100, fit=scale-down */
+        let (out_w, out_h) = resize_dimensions(1520, 1080, 100, 100);
+        assert_eq!(out_w, 100);
+        assert_eq!(out_h, 71);
+
+        let resized = resize_premul(&img, out_w, out_h, image::imageops::FilterType::Lanczos3);
+        assert_eq!(resized.width(), 100);
+        assert_eq!(resized.height(), 71);
+
+        /* Encode to AVIF with default quality (85) */
+        let avif = encode_output(&resized, OutputFormat::Avif, 85, true).unwrap();
+        assert!(
+            avif.windows(4).any(|chunk| chunk == b"avif"),
+            "output should be valid AVIF"
+        );
+        assert!(
+            avif.len() > 100,
+            "AVIF output should be more than 100 bytes, got {}",
+            avif.len()
+        );
+
+        /* Also encode to PNG to verify pixel content via decode */
+        let png = encode_output(&resized, OutputFormat::Png, 85, false).unwrap();
+        let decoded =
+            image::load_from_memory_with_format(&png, image::ImageFormat::Png).unwrap();
+        assert_eq!(decoded.width(), 100);
+        assert_eq!(decoded.height(), 71);
+    }
 }
