@@ -5,7 +5,7 @@
  * returns the encoded output image with dimension and format metadata headers.
  */
 
-use image::{DynamicImage, ImageBuffer, ImageReader, Rgb};
+use image::{DynamicImage, ImageBuffer, ImageReader, Rgba, Rgb};
 use std::{collections::HashMap, io::Cursor};
 use worker::*;
 
@@ -75,31 +75,53 @@ pub async fn main(req: Request, _env: Env, _ctx: Context) -> Result<Response> {
     }
 }
 
-const WHITE: [u8; 3] = [255, 255, 255];
-
 /**
- * Flatten an RGBA image against a white background.
+ * Resize an RGBA image with separate RGB and Alpha handling.
  *
- * The `image` crate's resize filters interpolate all channels including alpha.
- * For images with transparent edges, this creates semi-transparent fringe pixels
- * that appear as a visible border when encoded to lossy formats (AVIF, JPEG).
- * Compositing against white first eliminates this artifact.
+ * The `image` crate's `resize()` interpolates all channels including alpha.
+ * For images with transparent edges, this creates semi-transparent fringe
+ * pixels that appear as a visible border or blur when encoded to lossy
+ * formats. This function resizes RGB with the requested filter for visual
+ * quality, and uses Nearest for the alpha channel to preserve sharp
+ * transparency edges without interpolation artifacts.
  */
-fn flatten_alpha(image: &DynamicImage) -> DynamicImage {
+fn resize_rgba(
+    image: &DynamicImage,
+    out_w: u32,
+    out_h: u32,
+    filter: image::imageops::FilterType,
+) -> DynamicImage {
     let rgba = image.to_rgba8();
-    let w = rgba.width();
-    let h = rgba.height();
-    let mut rgb = ImageBuffer::new(w, h);
-    for (px, dst) in rgba.pixels().zip(rgb.pixels_mut()) {
-        let a = px[3] as f64 / 255.0;
-        let inv = 1.0 - a;
-        *dst = Rgb([
-            (px[0] as f64 * a + WHITE[0] as f64 * inv).round() as u8,
-            (px[1] as f64 * a + WHITE[1] as f64 * inv).round() as u8,
-            (px[2] as f64 * a + WHITE[2] as f64 * inv).round() as u8,
-        ]);
+    let (w, h) = (rgba.width(), rgba.height());
+
+    /* Separate RGB and Alpha. */
+    let mut rgb_buf = ImageBuffer::new(w, h);
+    let mut alpha_buf = ImageBuffer::new(w, h);
+    for (px, (rgb_px, a_px)) in rgba
+        .pixels()
+        .zip(rgb_buf.pixels_mut().zip(alpha_buf.pixels_mut()))
+    {
+        *rgb_px = Rgb([px[0], px[1], px[2]]);
+        /* Store the single alpha channel as a grayscale pixel. */
+        *a_px = image::Luma([px[3]]);
     }
-    DynamicImage::ImageRgb8(rgb)
+
+    /* Resize RGB with the requested filter for visual quality. */
+    let rgb_resized = image::imageops::resize(&rgb_buf, out_w, out_h, filter);
+
+    /* Resize Alpha with Nearest to preserve sharp edges without fringe. */
+    let alpha_resized =
+        image::imageops::resize(&alpha_buf, out_w, out_h, image::imageops::FilterType::Nearest);
+
+    /* Recombine into RGBA. */
+    let mut out = ImageBuffer::new(out_w, out_h);
+    for (out_px, (rgb_px, a_px)) in out
+        .pixels_mut()
+        .zip(rgb_resized.pixels().zip(alpha_resized.pixels()))
+    {
+        *out_px = Rgba([rgb_px[0], rgb_px[1], rgb_px[2], a_px[0]]);
+    }
+    DynamicImage::ImageRgba8(out)
 }
 
 fn parse_filter(name: &str) -> Option<image::imageops::FilterType> {
@@ -436,10 +458,8 @@ async fn handle_resize(mut req: Request) -> Result<Response> {
         return Response::error("Output pixel count exceeds the 4K limit", 400);
     }
 
-    let opaque = flatten_alpha(&image);
+    let resized = resize_rgba(&image, out_w, out_h, filter);
     drop(image);
-    let resized = opaque.resize(out_w, out_h, filter);
-    drop(opaque);
     let output = match encode_output(&resized, format, quality, quality_explicit) {
         Ok(output) => output,
         Err(message) => return Response::error(message, 500),
