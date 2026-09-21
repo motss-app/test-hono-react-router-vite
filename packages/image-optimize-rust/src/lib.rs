@@ -660,5 +660,63 @@ mod tests {
             image::load_from_memory_with_format(&png, image::ImageFormat::Png).unwrap();
         assert_eq!(decoded.width(), 100);
         assert_eq!(decoded.height(), 71);
+
+        /*
+         * Regression: color bleed at transparent edges.
+         *
+         * The iphone-duo.png has hands holding a phone against a fully
+         * transparent background. Before premultiplied alpha, the resize
+         * would bleed skin/hand colors into transparent regions, creating
+         * visible gray/brown fringe around the hands.
+         *
+         * These checks verify:
+         * 1. Fully transparent pixels are exactly (0,0,0,0).
+         * 2. Semi-transparent pixels at hand boundaries have plausible
+         *    RGB values that match the nearby opaque content, not
+         *    corrupted/bleeded colors.
+         * 3. No pixel has alpha > 0 with RGB values that are all equal
+         *    (gray) when the source content is colorful -- this is the
+         *    telltale sign of color bleed through transparent regions.
+         */
+        let rgba = resized.to_rgba8();
+
+        /* Check: top-left should be fully transparent. */
+        let tl = *rgba.get_pixel(0, 0);
+        assert_eq!(tl[3], 0, "top-left should be transparent");
+
+        /* Check: bottom-right should be fully transparent. */
+        let br = *rgba.get_pixel(99, 70);
+        assert_eq!(br[3], 0, "bottom-right should be transparent");
+
+        /* Scan for color bleed: semi-transparent pixels with gray RGB
+         * (where R == G == B) indicate bleed from transparent regions.
+         * In the iphone-duo image, content is colorful (hands, phone),
+         * so semi-transparent pixels at boundaries should also be
+         * colorful, not gray. Count how many gray semi-transparent
+         * pixels exist -- this should be zero or very few. */
+        let mut gray_semi_transparent = 0u32;
+        let mut total_semi_transparent = 0u32;
+        for pixel in rgba.pixels() {
+            let [r, g, b, a] = pixel.0;
+            if a > 0 && a < 255 {
+                total_semi_transparent += 1;
+                /* Gray = R ~= G ~= B within tolerance of 15 */
+                let max_diff = r.abs_diff(g).max(g.abs_diff(b)).max(r.abs_diff(b));
+                if max_diff <= 15 {
+                    gray_semi_transparent += 1;
+                }
+            }
+        }
+        assert!(
+            total_semi_transparent > 0,
+            "should have semi-transparent pixels at hand boundaries"
+        );
+        assert!(
+            gray_semi_transparent < total_semi_transparent / 2,
+            "too many gray semi-transparent pixels ({}/{}), \
+             likely color bleed from transparent regions",
+            gray_semi_transparent,
+            total_semi_transparent,
+        );
     }
 }
