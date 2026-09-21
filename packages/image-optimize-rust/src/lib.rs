@@ -570,4 +570,44 @@ mod tests {
         assert_ne!(webp_pixel[0], webp_pixel[1]);
         assert!(avif.windows(4).any(|chunk| chunk == b"avif"));
     }
+
+    /**
+     * Verify that premultiplied alpha resize preserves correct colors
+     * at opaque/transparent boundaries (the hand-in-image scenario).
+     *
+     * Creates a 20x20 image with a 10x10 opaque red (200,0,0) block in
+     * the center surrounded by fully transparent pixels. After resizing
+     * to 5x5 with Lanczos3, pixels that are fully opaque should retain
+     * the original red color (200,0,0), not bleed toward gray.
+     *
+     * Without premultiplied alpha, Lanczos3 interpolates RGB=(200,0,0)
+     * with RGB=(0,0,0) at the boundary, producing RGB=(100,0,0) with
+     * alpha=127. After unpremultiplying, this becomes RGB=(200,0,0) --
+     * the correct color. Without premultiplied alpha, the result would
+     * be the wrong color.
+     */
+    #[test]
+    fn premul_preserves_color_at_opaque_transparent_boundary() {
+        let mut img = RgbaImage::new(20, 20);
+        for y in 5..15 {
+            for x in 5..15 {
+                img.put_pixel(x, y, Rgba([200, 0, 0, 255]));
+            }
+        }
+        let dyn_img = DynamicImage::ImageRgba8(img);
+        let resized = resize_premul(&dyn_img, 5, 5, image::imageops::FilterType::Lanczos3);
+        let rgba = resized.to_rgba8();
+
+        /* The center pixel (2,2) of the 5x5 output should be fully
+         * opaque red, not a grayish blend. */
+        let center = *rgba.get_pixel(2, 2);
+        assert_eq!(center[3], 255, "center pixel should be fully opaque");
+        assert!(
+            center[0] > 180,
+            "center pixel red channel should be close to 200, got {}",
+            center[0]
+        );
+        assert_eq!(center[1], 0, "center pixel green should be 0");
+        assert_eq!(center[2], 0, "center pixel blue should be 0");
+    }
 }
