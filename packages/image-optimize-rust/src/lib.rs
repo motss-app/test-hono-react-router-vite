@@ -5,7 +5,7 @@
  * returns the encoded output image with dimension and format metadata headers.
  */
 
-use image::{DynamicImage, ImageBuffer, ImageReader, Rgba, Rgb};
+use image::{DynamicImage, ImageBuffer, ImageReader, Rgba};
 use std::{collections::HashMap, io::Cursor};
 use worker::*;
 
@@ -76,16 +76,20 @@ pub async fn main(req: Request, _env: Env, _ctx: Context) -> Result<Response> {
 }
 
 /**
- * Resize an RGBA image with separate RGB and Alpha handling.
+ * Resize an RGBA image using premultiplied alpha.
  *
- * The `image` crate's `resize()` interpolates all channels including alpha.
- * For images with transparent edges, this creates semi-transparent fringe
- * pixels that appear as a visible border or blur when encoded to lossy
- * formats. This function resizes RGB with the requested filter for visual
- * quality, and uses Nearest for the alpha channel to preserve sharp
- * transparency edges without interpolation artifacts.
+ * The `image` crate's `resize()` interpolates all channels uniformly,
+ * including alpha. At the boundary between opaque and transparent pixels,
+ * this creates semi-transparent fringe with incorrect colors because RGB
+ * values bleed through transparent regions. Cloudflare avoids this by
+ * using premultiplied alpha internally.
+ *
+ * This function: (1) premultiplies RGB by alpha, (2) resizes all 4
+ * channels with the requested filter, (3) unpremultiplies the result.
+ * The interpolation now happens on correctly weighted color values,
+ * eliminating color bleed at transparent edges.
  */
-fn resize_rgba(
+fn resize_premul(
     image: &DynamicImage,
     out_w: u32,
     out_h: u32,
@@ -94,32 +98,36 @@ fn resize_rgba(
     let rgba = image.to_rgba8();
     let (w, h) = (rgba.width(), rgba.height());
 
-    /* Separate RGB and Alpha. */
-    let mut rgb_buf = ImageBuffer::new(w, h);
-    let mut alpha_buf = ImageBuffer::new(w, h);
-    for (px, (rgb_px, a_px)) in rgba
-        .pixels()
-        .zip(rgb_buf.pixels_mut().zip(alpha_buf.pixels_mut()))
-    {
-        *rgb_px = Rgb([px[0], px[1], px[2]]);
-        /* Store the single alpha channel as a grayscale pixel. */
-        *a_px = image::Luma([px[3]]);
+    /* Premultiply: store RGB * (alpha / 255). */
+    let mut buf = ImageBuffer::new(w, h);
+    for (src, dst) in rgba.pixels().zip(buf.pixels_mut()) {
+        let a = src[3] as f64 / 255.0;
+        *dst = Rgba([
+            (src[0] as f64 * a).round() as u8,
+            (src[1] as f64 * a).round() as u8,
+            (src[2] as f64 * a).round() as u8,
+            src[3],
+        ]);
     }
 
-    /* Resize RGB with the requested filter for visual quality. */
-    let rgb_resized = image::imageops::resize(&rgb_buf, out_w, out_h, filter);
+    /* Resize the premultiplied image. */
+    let resized = image::imageops::resize(&buf, out_w, out_h, filter);
 
-    /* Resize Alpha with Nearest to preserve sharp edges without fringe. */
-    let alpha_resized =
-        image::imageops::resize(&alpha_buf, out_w, out_h, image::imageops::FilterType::Nearest);
-
-    /* Recombine into RGBA. */
+    /* Unpremultiply: restore RGB from premultiplied values. */
     let mut out = ImageBuffer::new(out_w, out_h);
-    for (out_px, (rgb_px, a_px)) in out
-        .pixels_mut()
-        .zip(rgb_resized.pixels().zip(alpha_resized.pixels()))
-    {
-        *out_px = Rgba([rgb_px[0], rgb_px[1], rgb_px[2], a_px[0]]);
+    for (src, dst) in resized.pixels().zip(out.pixels_mut()) {
+        let a = src[3] as f64;
+        if a > 0.0 {
+            let inv = 255.0 / a;
+            *dst = Rgba([
+                (src[0] as f64 * inv).min(255.0).round() as u8,
+                (src[1] as f64 * inv).min(255.0).round() as u8,
+                (src[2] as f64 * inv).min(255.0).round() as u8,
+                src[3],
+            ]);
+        } else {
+            *dst = Rgba([0, 0, 0, 0]);
+        }
     }
     DynamicImage::ImageRgba8(out)
 }
@@ -458,7 +466,7 @@ async fn handle_resize(mut req: Request) -> Result<Response> {
         return Response::error("Output pixel count exceeds the 4K limit", 400);
     }
 
-    let resized = resize_rgba(&image, out_w, out_h, filter);
+    let resized = resize_premul(&image, out_w, out_h, filter);
     drop(image);
     let output = match encode_output(&resized, format, quality, quality_explicit) {
         Ok(output) => output,
@@ -561,39 +569,5 @@ mod tests {
         let webp_pixel = decoded_webp.get_pixel(0, 0);
         assert_ne!(webp_pixel[0], webp_pixel[1]);
         assert!(avif.windows(4).any(|chunk| chunk == b"avif"));
-    }
-
-    /**
-     * Verify that resize_rgba preserves sharp alpha boundaries.
-     *
-     * Simulates the hand-in-image scenario: a 10x10 opaque red block in
-     * the center of a 20x20 fully transparent image. After resizing to
-     * 5x5, the alpha channel should contain only 0 or 255, with no
-     * semi-transparent fringe pixels (values between 1 and 254).
-     */
-    #[test]
-    fn resize_rgba_preserves_sharp_alpha_boundary() {
-        let mut img = RgbaImage::new(20, 20);
-        /* Fill center 10x10 with opaque red. */
-        for y in 5..15 {
-            for x in 5..15 {
-                img.put_pixel(x, y, Rgba([200, 0, 0, 255]));
-            }
-        }
-        let dyn_img = DynamicImage::ImageRgba8(img);
-        let resized = resize_rgba(&dyn_img, 5, 5, image::imageops::FilterType::Lanczos3);
-        let rgba = resized.to_rgba8();
-
-        /* Every pixel should be either fully transparent (alpha=0) or
-         * fully opaque (alpha=255). No semi-transparent fringe. */
-        for pixel in rgba.pixels() {
-            let alpha = pixel[3];
-            assert!(
-                alpha == 0 || alpha == 255,
-                "Semi-transparent fringe detected: alpha={alpha} at ({},{})",
-                pixel[0],
-                pixel[1],
-            );
-        }
     }
 }
