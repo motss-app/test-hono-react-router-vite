@@ -5,7 +5,7 @@
  * returns the encoded output image with dimension and format metadata headers.
  */
 
-use image::{DynamicImage, ImageReader};
+use image::{DynamicImage, ImageBuffer, ImageReader, Rgb};
 use std::{collections::HashMap, io::Cursor};
 use worker::*;
 
@@ -73,6 +73,33 @@ pub async fn main(req: Request, _env: Env, _ctx: Context) -> Result<Response> {
         "/image-optimize/resize" => handle_resize(req).await,
         _ => Response::error("Not Found", 404),
     }
+}
+
+const WHITE: [u8; 3] = [255, 255, 255];
+
+/**
+ * Flatten an RGBA image against a white background.
+ *
+ * The `image` crate's resize filters interpolate all channels including alpha.
+ * For images with transparent edges, this creates semi-transparent fringe pixels
+ * that appear as a visible border when encoded to lossy formats (AVIF, JPEG).
+ * Compositing against white first eliminates this artifact.
+ */
+fn flatten_alpha(image: &DynamicImage) -> DynamicImage {
+    let rgba = image.to_rgba8();
+    let w = rgba.width();
+    let h = rgba.height();
+    let mut rgb = ImageBuffer::new(w, h);
+    for (px, dst) in rgba.pixels().zip(rgb.pixels_mut()) {
+        let a = px[3] as f64 / 255.0;
+        let inv = 1.0 - a;
+        *dst = Rgb([
+            (px[0] as f64 * a + WHITE[0] as f64 * inv).round() as u8,
+            (px[1] as f64 * a + WHITE[1] as f64 * inv).round() as u8,
+            (px[2] as f64 * a + WHITE[2] as f64 * inv).round() as u8,
+        ]);
+    }
+    DynamicImage::ImageRgb8(rgb)
 }
 
 fn parse_filter(name: &str) -> Option<image::imageops::FilterType> {
@@ -409,8 +436,10 @@ async fn handle_resize(mut req: Request) -> Result<Response> {
         return Response::error("Output pixel count exceeds the 4K limit", 400);
     }
 
-    let resized = image.resize(out_w, out_h, filter);
+    let opaque = flatten_alpha(&image);
     drop(image);
+    let resized = opaque.resize(out_w, out_h, filter);
+    drop(opaque);
     let output = match encode_output(&resized, format, quality, quality_explicit) {
         Ok(output) => output,
         Err(message) => return Response::error(message, 500),
