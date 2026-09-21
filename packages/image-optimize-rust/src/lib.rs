@@ -562,4 +562,38 @@ mod tests {
         assert_ne!(webp_pixel[0], webp_pixel[1]);
         assert!(avif.windows(4).any(|chunk| chunk == b"avif"));
     }
+
+    /**
+     * Verify that resize_rgba preserves sharp alpha boundaries.
+     *
+     * Simulates the hand-in-image scenario: a 10x10 opaque red block in
+     * the center of a 20x20 fully transparent image. After resizing to
+     * 5x5, the alpha channel should contain only 0 or 255, with no
+     * semi-transparent fringe pixels (values between 1 and 254).
+     */
+    #[test]
+    fn resize_rgba_preserves_sharp_alpha_boundary() {
+        let mut img = RgbaImage::new(20, 20);
+        /* Fill center 10x10 with opaque red. */
+        for y in 5..15 {
+            for x in 5..15 {
+                img.put_pixel(x, y, Rgba([200, 0, 0, 255]));
+            }
+        }
+        let dyn_img = DynamicImage::ImageRgba8(img);
+        let resized = resize_rgba(&dyn_img, 5, 5, image::imageops::FilterType::Lanczos3);
+        let rgba = resized.to_rgba8();
+
+        /* Every pixel should be either fully transparent (alpha=0) or
+         * fully opaque (alpha=255). No semi-transparent fringe. */
+        for pixel in rgba.pixels() {
+            let alpha = pixel[3];
+            assert!(
+                alpha == 0 || alpha == 255,
+                "Semi-transparent fringe detected: alpha={alpha} at ({},{})",
+                pixel[0],
+                pixel[1],
+            );
+        }
+    }
 }
