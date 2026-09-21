@@ -269,7 +269,7 @@ export const actionRow = style({
   display: 'flex',
   flexDirection: 'row',
   gap: '0.8rem',
-  marginBlockStart: '1rem',
+  marginBlock: '1rem 1.5rem',
 });
 export const action = style({
   backgroundColor: '#1e40af',
