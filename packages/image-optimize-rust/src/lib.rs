@@ -248,6 +248,24 @@ fn parse_quality(query: &HashMap<String, String>) -> Result<(u8, bool), &'static
     Ok((quality, true))
 }
 
+/**
+ * Choose the NeuQuant sampling factor for a given pixel count.
+ *
+ * Full-pixel sampling (samplefac=1) is what lifts palette quality from
+ * 27.7 dB to 31.0 dB on small outputs, but NeuQuant training is linear
+ * in samples: at the maximum allowed 3840x2160 output (8,294,400 px)
+ * samplefac=1 measured 4.7 s native, versus 436 ms at samplefac=10.
+ * That would exhaust the Cloudflare Worker CPU budget once wasm
+ * overhead is added. Cap total training samples at one million so
+ * small images keep full sampling while large ones degrade to the
+ * pre-existing cost envelope.
+ */
+fn training_samplefac(pixel_count: usize) -> i32 {
+    const MAX_TRAINING_SAMPLES: usize = 1_000_000;
+    let fac = pixel_count.div_ceil(MAX_TRAINING_SAMPLES).max(1);
+    i32::try_from(fac).unwrap_or(i32::MAX)
+}
+
 fn encode_png(
     image: &DynamicImage,
     quality: u8,
@@ -263,12 +281,11 @@ fn encode_png(
 
     let rgba = image.to_rgba8();
     let palette_size = 64 + (usize::from(quality.saturating_sub(1)) * 192 / 99);
-    /* samplefac=1 trains the NeuQuant network on every pixel. The default
-     * of 10 samples only every 10th pixel, which starves training for
-     * small outputs (100x71 = 710 samples for 226 colors) and causes
-     * visible palette banding. Full sampling measurably improves opaque
-     * PSNR from 27.7 dB to 31.0 dB against a lossless reference. */
-    let quantizer = color_quant::NeuQuant::new(1, palette_size, rgba.as_raw());
+    /* Full sampling for small outputs (measured: 27.7 dB -> 31.0 dB on
+     * the 100x71 reference), bounded to 1M training samples so max-size
+     * outputs stay within the Worker CPU budget. */
+    let samplefac = training_samplefac(rgba.as_raw().len() / 4);
+    let quantizer = color_quant::NeuQuant::new(samplefac, palette_size, rgba.as_raw());
     let palette = quantizer.color_map_rgba();
     let mut indices = Vec::with_capacity(rgba.as_raw().len() / 4);
     for pixel in rgba.as_raw().chunks_exact(4) {
