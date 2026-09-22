@@ -311,7 +311,7 @@
   "hono_rpc_value_typed_boundary": "`hc()`クライアントがルートコードをAPI契约に合わせて保ちます。",
   "image_optimize_action_optimize": "Optimize image",
   "image_optimize_analyzing": "Optimizing at the edge…",
-  "image_optimize_back": "Back",
+  "image_optimize_back": "Back to Labs",
   "image_optimize_drop_title": "Choose or drop an image",
   "image_optimize_empty_result": "Your optimized image will appear here.",
   "image_optimize_error_invalid_file": "Choose an image file (JPEG, PNG, WebP, GIF, BMP, TIFF).",
