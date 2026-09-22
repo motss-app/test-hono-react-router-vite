@@ -109,9 +109,11 @@ fn resize_premul(
             src[3],
         ]);
     }
+    drop(rgba);
 
     /* Resize the premultiplied image. */
     let resized = image::imageops::resize(&buf, out_w, out_h, filter);
+    drop(buf);
 
     /* Unpremultiply: restore RGB from premultiplied values. */
     let mut out = ImageBuffer::new(out_w, out_h);
