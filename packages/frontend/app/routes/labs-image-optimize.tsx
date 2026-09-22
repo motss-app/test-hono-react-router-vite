@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from '../components/Link.tsx';
 import { PageFooter } from '../components/page-footer.tsx';
 import { Text } from '../components/text.tsx';
-import { IconArrowLeft } from '../icons.ts';
+import { IconArrowLeft, IconTriangleExclamation } from '../icons.ts';
 import * as m from '../paraglide/messages.js';
 import { iconStyles } from '../styles/icon.css.ts';
 import type { Route } from './+types/labs-image-optimize.ts';
@@ -728,7 +728,16 @@ export default function ImageOptimizeLab(): JSX.Element {
               </button>
             </div>
 
-            {error ? <div className={c.error}>{error}</div> : null}
+            {error ? (
+              <div
+                aria-live="polite"
+                className={c.error}
+                role="alert"
+              >
+                <IconTriangleExclamation className={c.errorIcon} />
+                <span className={c.errorText}>{error}</span>
+              </div>
+            ) : null}
           </div>
 
           {/* Result column */}

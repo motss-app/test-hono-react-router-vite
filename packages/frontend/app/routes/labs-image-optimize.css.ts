@@ -14,6 +14,17 @@ const reveal = keyframes({
   },
 });
 
+const errorPop = keyframes({
+  '0%': {
+    opacity: 0,
+    transform: 'translateX(-0.5rem) scale(0.98)',
+  },
+  '100%': {
+    opacity: 1,
+    transform: 'translateX(0) scale(1)',
+  },
+});
+
 const spin = keyframes({
   '0%': {
     transform: 'rotate(0deg)',
@@ -318,17 +329,40 @@ export const subtleAction = style({
   },
 });
 export const error = style({
+  alignItems: 'flex-start',
+  animation: `${errorPop} 280ms cubic-bezier(0.22, 1, 0.36, 1) both`,
   backgroundColor: '#fef2f2',
+  border: '1px solid #fecaca',
   borderInlineStart: '3px solid #dc2626',
+  borderRadius: radiusTokens.radiusMd,
+  boxShadow: '0 4px 12px rgba(220, 38, 38, 0.12)',
   color: '#991b1b',
+  display: 'flex',
+  gap: '0.65rem',
   marginBlockStart: '1rem',
   padding: '0.9rem 1rem',
   selectors: {
     ':root[data-theme="dark"] &': {
       backgroundColor: '#32191c',
+      borderColor: '#7f1d1d',
+      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.35)',
       color: '#fecaca',
     },
   },
+});
+export const errorIcon = style({
+  flexShrink: 0,
+  fontSize: '1.05rem',
+  lineHeight: 1.5,
+  selectors: {
+    ':root[data-theme="dark"] &': {
+      color: '#fca5a5',
+    },
+  },
+});
+export const errorText = style({
+  lineHeight: 1.5,
+  overflowWrap: 'anywhere',
 });
 export const resultColumn = style({
   animation: `${reveal} 600ms 100ms cubic-bezier(0.22, 1, 0.36, 1) both`,
