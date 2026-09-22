@@ -134,6 +134,30 @@ fn resize_premul(
     DynamicImage::ImageRgba8(out)
 }
 
+/**
+ * Composite an RGBA image onto a white background.
+ *
+ * Used before JPEG encoding because JPEG cannot represent alpha.
+ * Transparent pixels in our resize pipeline carry RGB=(0,0,0); letting the
+ * encoder drop alpha would paint them black and bleed a dark halo into
+ * semi-transparent edge pixels. Cloudflare Images flattens the same source
+ * onto white, so this keeps our JPEG output visually consistent with it.
+ */
+fn flatten_on_white(image: &DynamicImage) -> DynamicImage {
+    let rgba = image.to_rgba8();
+    let mut out = ImageBuffer::new(rgba.width(), rgba.height());
+    for (src, dst) in rgba.pixels().zip(out.pixels_mut()) {
+        let a = src[3] as f64 / 255.0;
+        *dst = Rgba([
+            (src[0] as f64 * a + 255.0 * (1.0 - a)).round() as u8,
+            (src[1] as f64 * a + 255.0 * (1.0 - a)).round() as u8,
+            (src[2] as f64 * a + 255.0 * (1.0 - a)).round() as u8,
+            255,
+        ]);
+    }
+    DynamicImage::ImageRgba8(out)
+}
+
 fn parse_filter(name: &str) -> Option<image::imageops::FilterType> {
     match name.to_ascii_lowercase().as_str() {
         "nearest" => Some(image::imageops::FilterType::Nearest),
@@ -239,7 +263,12 @@ fn encode_png(
 
     let rgba = image.to_rgba8();
     let palette_size = 64 + (usize::from(quality.saturating_sub(1)) * 192 / 99);
-    let quantizer = color_quant::NeuQuant::new(10, palette_size, rgba.as_raw());
+    /* samplefac=1 trains the NeuQuant network on every pixel. The default
+     * of 10 samples only every 10th pixel, which starves training for
+     * small outputs (100x71 = 710 samples for 226 colors) and causes
+     * visible palette banding. Full sampling measurably improves opaque
+     * PSNR from 27.7 dB to 31.0 dB against a lossless reference. */
+    let quantizer = color_quant::NeuQuant::new(1, palette_size, rgba.as_raw());
     let palette = quantizer.color_map_rgba();
     let mut indices = Vec::with_capacity(rgba.as_raw().len() / 4);
     for pixel in rgba.as_raw().chunks_exact(4) {
@@ -290,12 +319,18 @@ fn encode_output(
             Ok(output)
         }
         OutputFormat::Jpeg => {
+            /* JPEG carries no alpha channel. Transparent pixels in our
+             * pipeline hold RGB=(0,0,0), so letting the encoder drop alpha
+             * paints the background black and bleeds dark fringe into the
+             * image edges. Flatten against white first, matching how
+             * Cloudflare Images renders the same source. */
+            let flattened = flatten_on_white(image);
             let mut output = Vec::new();
             let encoder = image::codecs::jpeg::JpegEncoder::new_with_quality(
                 Cursor::new(&mut output),
                 quality,
             );
-            image
+            flattened
                 .write_with_encoder(encoder)
                 .map_err(|_| "JPEG encoding failed")?;
             Ok(output)
@@ -719,6 +754,119 @@ mod tests {
              likely color bleed from transparent regions",
             gray_semi_transparent,
             total_semi_transparent,
+        );
+    }
+
+    /**
+     * Regression: JPEG background must be white, not black.
+     *
+     * JPEG carries no alpha channel. Our resize pipeline stores fully
+     * transparent pixels as RGB=(0,0,0,a=0). If the encoder simply drops
+     * alpha, the transparent background becomes black and bleeds a dark
+     * halo into semi-transparent edges. Cloudflare Images flattens the
+     * same source onto white (measured corners: 255,255,255), so our
+     * corners must also be near-white.
+     */
+    #[test]
+    fn jpeg_flattens_transparent_background_to_white() {
+        let img = ImageReader::open("tests/fixtures/iphone-duo.png")
+            .expect("test fixture exists")
+            .decode()
+            .expect("valid PNG");
+        let (out_w, out_h) = resize_dimensions(img.width(), img.height(), 100, 100);
+        let resized = resize_premul(&img, out_w, out_h, image::imageops::FilterType::Lanczos3);
+
+        let jpeg = encode_output(&resized, OutputFormat::Jpeg, 85, true).unwrap();
+        let decoded =
+            image::load_from_memory_with_format(&jpeg, image::ImageFormat::Jpeg).unwrap();
+        let rgb = decoded.to_rgb8();
+
+        for (name, x, y) in [
+            ("top-left", 0, 0),
+            ("top-right", rgb.width() - 1, 0),
+            ("bottom-left", 0, rgb.height() - 1),
+            ("bottom-right", rgb.width() - 1, rgb.height() - 1),
+        ] {
+            let p = rgb.get_pixel(x, y);
+            let min_channel = p[0].min(p[1]).min(p[2]);
+            assert!(
+                min_channel > 240,
+                "JPEG {name} corner should be near-white after flatten, \
+                 got ({}, {}, {})",
+                p[0],
+                p[1],
+                p[2],
+            );
+        }
+    }
+
+    /** PSNR helper for palette quality tests (opaque pixels only). */
+    fn psnr_opaque(a: &DynamicImage, b: &DynamicImage) -> f64 {
+        let a = a.to_rgba8();
+        let b = b.to_rgba8();
+        let mut mse = 0.0f64;
+        let mut count = 0u64;
+        for (pa, pb) in a.pixels().zip(b.pixels()) {
+            if pa[3] >= 250 && pb[3] >= 250 {
+                for c in 0..3 {
+                    let diff = pa[c] as f64 - pb[c] as f64;
+                    mse += diff * diff;
+                    count += 1;
+                }
+            }
+        }
+        assert!(count > 0, "no opaque pixels to compare");
+        mse /= count as f64;
+        if mse == 0.0 {
+            f64::INFINITY
+        } else {
+            10.0 * (255.0 * 255.0 / mse).log10()
+        }
+    }
+
+    /**
+     * Regression: palette PNG quality must stay above 29 dB PSNR.
+     *
+     * The NeuQuant quantizer was trained with samplefac=10, which samples
+     * only every 10th pixel. For a 100x71 output that is 710 samples to
+     * train 226 palette colors, starving the network and producing
+     * visible banding (measured 27.7 dB against a lossless reference).
+     * Training on every pixel (samplefac=1) lifts this to 31.0 dB.
+     * Cloudflare's own palette PNG for the same source measures 34.4 dB
+     * against our lossless resize, so 29 dB is a safe floor that fails
+     * if sampling is regressed back to 10.
+     */
+    #[test]
+    fn palette_png_quality_stays_above_29db() {
+        let img = ImageReader::open("tests/fixtures/iphone-duo.png")
+            .expect("test fixture exists")
+            .decode()
+            .expect("valid PNG");
+        let (out_w, out_h) = resize_dimensions(img.width(), img.height(), 100, 100);
+        let resized = resize_premul(&img, out_w, out_h, image::imageops::FilterType::Lanczos3);
+
+        /* Lossless reference. */
+        let lossless = encode_output(&resized, OutputFormat::Png, 85, false).unwrap();
+        let lossless_img =
+            image::load_from_memory_with_format(&lossless, image::ImageFormat::Png).unwrap();
+
+        /* Palette-quantized output at explicit quality (the lab default). */
+        let quantized = encode_output(&resized, OutputFormat::Png, 85, true).unwrap();
+        let quantized_img =
+            image::load_from_memory_with_format(&quantized, image::ImageFormat::Png)
+                .unwrap();
+
+        assert_eq!(
+            quantized_img.width(),
+            lossless_img.width(),
+            "palette output must keep dimensions"
+        );
+
+        let psnr = psnr_opaque(&quantized_img, &lossless_img);
+        assert!(
+            psnr >= 29.0,
+            "palette PNG PSNR dropped to {psnr:.2} dB (expected >= 29.0); \
+             NeuQuant sampling may have regressed",
         );
     }
 }
