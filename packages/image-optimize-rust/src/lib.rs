@@ -353,6 +353,54 @@ fn nearest_palette_index(palette: &[u8], px: &[u8]) -> u8 {
 }
 
 /**
+ * Indexed nearest-color lookup with a hard cost bound.
+ *
+ * Scanning the whole palette for every pixel costs
+ * pixels x palette_size distance evaluations, which reaches about 1.87
+ * billion comparisons for a permitted 3840x2160 q85 PNG with its 226
+ * palette entries, and that can exhaust the Cloudflare Worker CPU
+ * budget. The exact answer for the first pixel of each
+ * 5-bit-per-channel RGBA bin (32^4 = 1,048,576 bins) is memoized
+ * instead, so one image performs at most 1,048,576 full scans no
+ * matter its pixel count, which is far below the 8.29M pixels of a
+ * 3840x2160 frame (at most 268M distance evaluations for a 256-entry
+ * palette, about 237M at q85's 226 entries against the 1.87B naive
+ * figure) and every later pixel in a filled bin costs a single probe.
+ * Bin-mates differ by at most 7 per channel, so reusing the first
+ * exact answer stays within the measured floor of the
+ * palette_png_quality_stays_above_33db gate.
+ */
+struct NearestPaletteLookup {
+    /** Per-bin memo, None until the bin's first pixel resolves it. */
+    bin: Vec<Option<u8>>,
+}
+
+impl NearestPaletteLookup {
+    const BINS: usize = 1 << 20;
+
+    fn new() -> Self {
+        Self {
+            bin: vec![None; Self::BINS],
+        }
+    }
+
+    fn index(&mut self, palette: &[u8], px: &[u8]) -> u8 {
+        let key = (usize::from(px[0]) >> 3) << 15
+            | (usize::from(px[1]) >> 3) << 10
+            | (usize::from(px[2]) >> 3) << 5
+            | (usize::from(px[3]) >> 3);
+        match self.bin[key] {
+            Some(idx) => idx,
+            None => {
+                let idx = nearest_palette_index(palette, px);
+                self.bin[key] = Some(idx);
+                idx
+            }
+        }
+    }
+}
+
+/**
  * Choose the AVIF encoder speed (1 = slowest/best, 10 = fastest) for a
  * given pixel count.
  *
@@ -368,7 +416,11 @@ fn nearest_palette_index(palette: &[u8], px: &[u8]) -> u8 {
  */
 fn avif_speed(pixel_count: usize) -> u8 {
     const FAST_SPEED_MAX_PIXELS: usize = 300_000;
-    if pixel_count <= FAST_SPEED_MAX_PIXELS { 4 } else { 6 }
+    if pixel_count <= FAST_SPEED_MAX_PIXELS {
+        4
+    } else {
+        6
+    }
 }
 
 fn encode_png(
@@ -397,8 +449,9 @@ fn encode_png(
      * output, against a lossless ceiling of 36.6 dB. */
     refine_palette(&mut palette, rgba.as_raw(), 3, 150_000);
     let mut indices = Vec::with_capacity(rgba.as_raw().len() / 4);
+    let mut lookup = NearestPaletteLookup::new();
     for pixel in rgba.as_raw().chunks_exact(4) {
-        indices.push(nearest_palette_index(&palette, pixel));
+        indices.push(lookup.index(&palette, pixel));
     }
 
     let mut palette_rgb = Vec::with_capacity(palette.len() / 4 * 3);
@@ -820,8 +873,7 @@ mod tests {
 
         /* Also encode to PNG to verify pixel content via decode */
         let png = encode_output(&resized, OutputFormat::Png, 85, false).unwrap();
-        let decoded =
-            image::load_from_memory_with_format(&png, image::ImageFormat::Png).unwrap();
+        let decoded = image::load_from_memory_with_format(&png, image::ImageFormat::Png).unwrap();
         assert_eq!(decoded.width(), 100);
         assert_eq!(decoded.height(), 71);
 
@@ -904,8 +956,7 @@ mod tests {
         let resized = resize_premul(&img, out_w, out_h, image::imageops::FilterType::Lanczos3);
 
         let jpeg = encode_output(&resized, OutputFormat::Jpeg, 85, true).unwrap();
-        let decoded =
-            image::load_from_memory_with_format(&jpeg, image::ImageFormat::Jpeg).unwrap();
+        let decoded = image::load_from_memory_with_format(&jpeg, image::ImageFormat::Jpeg).unwrap();
         let rgb = decoded.to_rgb8();
 
         for (name, x, y) in [
@@ -981,8 +1032,7 @@ mod tests {
         /* Palette-quantized output at explicit quality (the lab default). */
         let quantized = encode_output(&resized, OutputFormat::Png, 85, true).unwrap();
         let quantized_img =
-            image::load_from_memory_with_format(&quantized, image::ImageFormat::Png)
-                .unwrap();
+            image::load_from_memory_with_format(&quantized, image::ImageFormat::Png).unwrap();
 
         assert_eq!(
             quantized_img.width(),
@@ -1009,7 +1059,11 @@ mod tests {
         let flat = flatten_on_white(&DynamicImage::ImageRgba8(img));
         let rgb = flat.to_rgb8();
         assert_eq!(rgb.get_pixel(0, 0).0, [200, 100, 50], "opaque unchanged");
-        assert_eq!(rgb.get_pixel(1, 0).0, [255, 255, 255], "transparent -> white");
+        assert_eq!(
+            rgb.get_pixel(1, 0).0,
+            [255, 255, 255],
+            "transparent -> white"
+        );
         let half = rgb.get_pixel(2, 0).0;
         /* 0 * 0.502 + 255 * 0.498 ~= 127 */
         assert!(
@@ -1035,11 +1089,47 @@ mod tests {
     /** avif_speed: fast encoder for small outputs, safe speed for large. */
     #[test]
     fn avif_speed_trades_cpu_for_small_outputs() {
-        assert_eq!(avif_speed(100 * 71), 4, "small outputs use fast/better speed");
+        assert_eq!(
+            avif_speed(100 * 71),
+            4,
+            "small outputs use fast/better speed"
+        );
         assert_eq!(avif_speed(512 * 512), 4, "512x512 preset uses speed 4");
         assert_eq!(avif_speed(300_000), 4, "boundary inclusive");
         assert_eq!(avif_speed(300_001), 6, "above boundary falls back");
         assert_eq!(avif_speed(3840 * 2160), 6, "4K never pays speed-4 CPU cost");
+    }
+
+    /**
+     * NearestPaletteLookup: the first pixel of a bin must answer with
+     * the exact nearest-color scan, and repeat visits must stay stable,
+     * pinning the memoization contract behind the bounded remap cost.
+     */
+    #[test]
+    fn nearest_palette_lookup_first_touch_is_exact_and_cached() {
+        let palette: Vec<u8> = (0..=255u8)
+            .flat_map(|i| [i, i.wrapping_mul(3), i ^ 0x5A, 255])
+            .collect();
+        let mut lookup = NearestPaletteLookup::new();
+        let probes: [[u8; 4]; 4] = [
+            [0, 0, 0, 255],
+            [255, 255, 255, 255],
+            [16, 32, 64, 255],
+            [17, 33, 65, 200],
+        ];
+        /* Each probe touches a fresh bin, so every first answer must
+         * match the exact per-pixel scan the cache replaces. */
+        for px in probes {
+            assert_eq!(
+                lookup.index(&palette, &px),
+                nearest_palette_index(&palette, &px),
+                "first touch of a bin must answer with the exact scan",
+            );
+        }
+        /* A repeat visit reuses the memoized slot deterministically. */
+        let first = lookup.index(&palette, &[17, 33, 65, 200]);
+        let again = lookup.index(&palette, &[17, 33, 65, 200]);
+        assert_eq!(first, again, "cached answers must be stable");
     }
 
     /** refine_palette: Lloyd iterations must reduce quantization error. */
@@ -1142,8 +1232,7 @@ mod tests {
             "our JPEG at matched size ({}B) exceeds Cloudflare's {cf}B by more than 15%",
             jpeg.len(),
         );
-        let decoded =
-            image::load_from_memory_with_format(&jpeg, image::ImageFormat::Jpeg).unwrap();
+        let decoded = image::load_from_memory_with_format(&jpeg, image::ImageFormat::Jpeg).unwrap();
         let psnr = psnr_opaque(&decoded, &lossless_img);
         assert!(
             psnr >= 28.8,
@@ -1154,8 +1243,7 @@ mod tests {
         /* The lab default (q=85) must stay clearly above CF's fidelity. */
         let default_jpeg = encode_output(&resized, OutputFormat::Jpeg, 85, true).unwrap();
         let default_img =
-            image::load_from_memory_with_format(&default_jpeg, image::ImageFormat::Jpeg)
-                .unwrap();
+            image::load_from_memory_with_format(&default_jpeg, image::ImageFormat::Jpeg).unwrap();
         let default_psnr = psnr_opaque(&default_img, &lossless_img);
         assert!(
             default_psnr >= 31.0,
@@ -1239,8 +1327,7 @@ mod tests {
         let resized = resize_premul(&img, out_w, out_h, image::imageops::FilterType::Lanczos3);
 
         let webp = encode_output(&resized, OutputFormat::Webp, 85, true).unwrap();
-        let decoded =
-            image::load_from_memory_with_format(&webp, image::ImageFormat::WebP).unwrap();
+        let decoded = image::load_from_memory_with_format(&webp, image::ImageFormat::WebP).unwrap();
 
         assert_eq!(decoded.width(), resized.width());
         assert_eq!(decoded.height(), resized.height());
