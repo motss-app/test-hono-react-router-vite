@@ -16,3 +16,6 @@ conventions, quick commands, and repository rules in this repository.
 
 This file only grants the VS Code-specific toolset (see `tools` in the
 frontmatter); all behavior rules live in `AGENTS.md`.
+
+Cloudflare Workers isolates cap memory at 128 MB. See `AGENTS.md` for the
+full memory rule before allocating large buffers.
