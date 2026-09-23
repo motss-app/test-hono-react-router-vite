@@ -1,8 +1,6 @@
 {
   "allowScripts": {
     "allow": [
-      "npm:@inlang/message-lint-rule-empty-pattern@1.4.8",
-      "npm:@inlang/message-lint-rule-missing-translation@1.4.8",
       "npm:@sentry/cli",
       "npm:core-js@3.50.0",
       "npm:sharp",
@@ -13,7 +11,9 @@
     "deny": [
       "npm:contextify@0.1.15",
       "npm:esbuild@0.28.1",
-      "npm:fsevents@2.3.3"
+      "npm:fsevents@2.3.3",
+      "npm:@inlang/message-lint-rule-empty-pattern@1.4.8",
+      "npm:@inlang/message-lint-rule-missing-translation@1.4.8"
     ]
   },
   "compilerOptions": {
