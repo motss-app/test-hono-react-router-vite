@@ -88,14 +88,20 @@ pub async fn main(req: Request, _env: Env, _ctx: Context) -> Result<Response> {
  * channels with the requested filter, (3) unpremultiplies the result.
  * The interpolation now happens on correctly weighted color values,
  * eliminating color bleed at transparent edges.
+ *
+ * The source is consumed: `into_rgba8()` drops a high-depth (16-bit)
+ * frame as soon as the 8-bit copy exists, so the source never
+ * coexists with the two RGBA8 working buffers below. A borrowed
+ * source plus both frames is 126.6 MiB for a 4K RGBA16 input, which
+ * is over the Cloudflare Worker's 128 MB isolate limit.
  */
 fn resize_premul(
-    image: &DynamicImage,
+    image: DynamicImage,
     out_w: u32,
     out_h: u32,
     filter: image::imageops::FilterType,
 ) -> DynamicImage {
-    let rgba = image.to_rgba8();
+    let rgba = image.into_rgba8();
     let (w, h) = (rgba.width(), rgba.height());
 
     /* Premultiply: store RGB * (alpha / 255). */
@@ -683,8 +689,7 @@ async fn handle_resize(mut req: Request) -> Result<Response> {
         return Response::error("Output pixel count exceeds the 4K limit", 400);
     }
 
-    let resized = resize_premul(&image, out_w, out_h, filter);
-    drop(image);
+    let resized = resize_premul(image, out_w, out_h, filter);
     let output = match encode_output(&resized, format, quality, quality_explicit) {
         Ok(output) => output,
         Err(message) => return Response::error(message, 500),
@@ -812,7 +817,7 @@ mod tests {
             }
         }
         let dyn_img = DynamicImage::ImageRgba8(img);
-        let resized = resize_premul(&dyn_img, 5, 5, image::imageops::FilterType::Lanczos3);
+        let resized = resize_premul(dyn_img, 5, 5, image::imageops::FilterType::Lanczos3);
         let rgba = resized.to_rgba8();
 
         /* The center pixel (2,2) of the 5x5 output should be fully
@@ -826,6 +831,40 @@ mod tests {
         );
         assert_eq!(center[1], 0, "center pixel green should be 0");
         assert_eq!(center[2], 0, "center pixel blue should be 0");
+    }
+
+    /**
+     * High-depth inputs must not keep three full frames alive.
+     *
+     * `resize_premul` consumes the source, so a 16-bit frame is dropped
+     * once the 8-bit copy exists and before the second RGBA8 buffer is
+     * allocated. The old `&DynamicImage` signature kept the source alive
+     * next to both frames: 126.6 MiB for a 4K RGBA16 input, over the
+     * Cloudflare Worker's 128 MB isolate limit.
+     */
+    #[test]
+    fn consumes_high_depth_source() {
+        let src = ImageBuffer::from_pixel(64, 64, Rgba([u16::MAX, 0, 0, u16::MAX]));
+        let resized = resize_premul(
+            DynamicImage::ImageRgba16(src),
+            32,
+            32,
+            image::imageops::FilterType::Triangle,
+        );
+
+        assert!(matches!(resized, DynamicImage::ImageRgba8(_)));
+        assert_eq!(resized.width(), 32);
+        assert_eq!(resized.height(), 32);
+
+        /* Opaque red must survive 16-to-8 conversion and the premul
+         * round-trip: R stays saturated, G and B stay zero, and alpha
+         * stays opaque. */
+        for pixel in resized.to_rgba8().pixels() {
+            assert!(pixel[0] >= 250, "red channel lost: {pixel:?}");
+            assert_eq!(pixel[1], 0, "green must stay 0: {pixel:?}");
+            assert_eq!(pixel[2], 0, "blue must stay 0: {pixel:?}");
+            assert!(pixel[3] >= 254, "alpha must stay opaque: {pixel:?}");
+        }
     }
 
     /**
@@ -855,7 +894,7 @@ mod tests {
         assert_eq!(out_w, 100);
         assert_eq!(out_h, 71);
 
-        let resized = resize_premul(&img, out_w, out_h, image::imageops::FilterType::Lanczos3);
+        let resized = resize_premul(img, out_w, out_h, image::imageops::FilterType::Lanczos3);
         assert_eq!(resized.width(), 100);
         assert_eq!(resized.height(), 71);
 
@@ -953,7 +992,7 @@ mod tests {
             .decode()
             .expect("valid PNG");
         let (out_w, out_h) = resize_dimensions(img.width(), img.height(), 100, 100);
-        let resized = resize_premul(&img, out_w, out_h, image::imageops::FilterType::Lanczos3);
+        let resized = resize_premul(img, out_w, out_h, image::imageops::FilterType::Lanczos3);
 
         let jpeg = encode_output(&resized, OutputFormat::Jpeg, 85, true).unwrap();
         let decoded = image::load_from_memory_with_format(&jpeg, image::ImageFormat::Jpeg).unwrap();
@@ -1022,7 +1061,7 @@ mod tests {
             .decode()
             .expect("valid PNG");
         let (out_w, out_h) = resize_dimensions(img.width(), img.height(), 100, 100);
-        let resized = resize_premul(&img, out_w, out_h, image::imageops::FilterType::Lanczos3);
+        let resized = resize_premul(img, out_w, out_h, image::imageops::FilterType::Lanczos3);
 
         /* Lossless reference. */
         let lossless = encode_output(&resized, OutputFormat::Png, 85, false).unwrap();
@@ -1216,7 +1255,7 @@ mod tests {
             .decode()
             .expect("valid PNG");
         let (out_w, out_h) = resize_dimensions(img.width(), img.height(), 100, 100);
-        let resized = resize_premul(&img, out_w, out_h, image::imageops::FilterType::Lanczos3);
+        let resized = resize_premul(img, out_w, out_h, image::imageops::FilterType::Lanczos3);
 
         let lossless = encode_output(&resized, OutputFormat::Png, 85, false).unwrap();
         let lossless_img =
@@ -1263,7 +1302,7 @@ mod tests {
             .decode()
             .expect("valid PNG");
         let (out_w, out_h) = resize_dimensions(img.width(), img.height(), 100, 100);
-        let resized = resize_premul(&img, out_w, out_h, image::imageops::FilterType::Lanczos3);
+        let resized = resize_premul(img, out_w, out_h, image::imageops::FilterType::Lanczos3);
 
         let avif = encode_output(&resized, OutputFormat::Avif, 85, true).unwrap();
         let cf = std::fs::metadata("tests/fixtures/cf/iphone-duo_100x100.avif")
@@ -1293,7 +1332,7 @@ mod tests {
             .decode()
             .expect("valid PNG");
         let (out_w, out_h) = resize_dimensions(img.width(), img.height(), 100, 100);
-        let resized = resize_premul(&img, out_w, out_h, image::imageops::FilterType::Lanczos3);
+        let resized = resize_premul(img, out_w, out_h, image::imageops::FilterType::Lanczos3);
 
         let png = encode_output(&resized, OutputFormat::Png, 85, true).unwrap();
         let cf = std::fs::metadata("tests/fixtures/cf/iphone-duo_100x100.png")
@@ -1324,7 +1363,7 @@ mod tests {
             .decode()
             .expect("valid PNG");
         let (out_w, out_h) = resize_dimensions(img.width(), img.height(), 100, 100);
-        let resized = resize_premul(&img, out_w, out_h, image::imageops::FilterType::Lanczos3);
+        let resized = resize_premul(img, out_w, out_h, image::imageops::FilterType::Lanczos3);
 
         let webp = encode_output(&resized, OutputFormat::Webp, 85, true).unwrap();
         let decoded = image::load_from_memory_with_format(&webp, image::ImageFormat::WebP).unwrap();
