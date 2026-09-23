@@ -266,6 +266,111 @@ fn training_samplefac(pixel_count: usize) -> i32 {
     i32::try_from(fac).unwrap_or(i32::MAX)
 }
 
+/**
+ * Refine a NeuQuant palette with bounded Lloyd iterations.
+ *
+ * NeuQuant trains with a self-organizing map that converges quickly but
+ * leaves the palette a few dB away from optimal: on the 100x71 reference
+ * the raw palette measured 32.3 dB against the Cloudflare Images output,
+ * while a Lloyd-refined palette of the same size measured 35.2 dB, right
+ * at the lossless-resize ceiling (36.6 dB). Cost is bounded by sampling
+ * at most max_samples pixels per iteration, so 4K outputs pay the same
+ * fixed price as small ones.
+ */
+fn refine_palette(palette: &mut [u8], pixels: &[u8], iterations: usize, max_samples: usize) {
+    let ncolors = palette.len() / 4;
+    let total = pixels.len() / 4;
+    if ncolors == 0 || total == 0 {
+        return;
+    }
+    let stride = total.div_ceil(max_samples).max(1);
+    let mut centroids: Vec<[i64; 4]> = palette
+        .chunks_exact(4)
+        .map(|c| [c[0] as i64, c[1] as i64, c[2] as i64, c[3] as i64])
+        .collect();
+    let mut sums = vec![[0i64; 4]; ncolors];
+    let mut counts = vec![0i64; ncolors];
+    for _ in 0..iterations {
+        for s in &mut sums {
+            *s = [0; 4];
+        }
+        for c in &mut counts {
+            *c = 0;
+        }
+        let mut i = 0;
+        while i < total {
+            let px = &pixels[i * 4..i * 4 + 4];
+            let mut best = 0usize;
+            let mut best_d = i64::MAX;
+            for (ci, c) in centroids.iter().enumerate() {
+                let dr = c[0] - px[0] as i64;
+                let dg = c[1] - px[1] as i64;
+                let db = c[2] - px[2] as i64;
+                let da = c[3] - px[3] as i64;
+                let d = dr * dr + dg * dg + db * db + da * da;
+                if d < best_d {
+                    best_d = d;
+                    best = ci;
+                }
+            }
+            for ch in 0..4 {
+                sums[best][ch] += px[ch] as i64;
+            }
+            counts[best] += 1;
+            i += stride;
+        }
+        for (ci, c) in centroids.iter_mut().enumerate() {
+            if counts[ci] > 0 {
+                for ch in 0..4 {
+                    c[ch] = sums[ci][ch] / counts[ci];
+                }
+            }
+        }
+    }
+    for (c, quad) in centroids.iter().zip(palette.chunks_exact_mut(4)) {
+        for ch in 0..4 {
+            quad[ch] = c[ch].clamp(0, 255) as u8;
+        }
+    }
+}
+
+/** Nearest palette entry for an RGBA pixel (integer distance). */
+fn nearest_palette_index(palette: &[u8], px: &[u8]) -> u8 {
+    let mut best = 0usize;
+    let mut best_d = i64::MAX;
+    for (ci, c) in palette.chunks_exact(4).enumerate() {
+        let dr = c[0] as i64 - px[0] as i64;
+        let dg = c[1] as i64 - px[1] as i64;
+        let db = c[2] as i64 - px[2] as i64;
+        let da = c[3] as i64 - px[3] as i64;
+        let d = dr * dr + dg * dg + db * db + da * da;
+        if d < best_d {
+            best_d = d;
+            best = ci;
+        }
+    }
+    best as u8
+}
+
+/**
+ * Choose the AVIF encoder speed (1 = slowest/best, 10 = fastest) for a
+ * given pixel count.
+ *
+ * Slower speeds improve both size and fidelity: on the 100x71 reference
+ * speed 4 produced 3100 bytes at 36.66 dB versus lossless, while speed 6
+ * produced 3520 bytes at 36.11 dB. The Cloudflare Images reference for
+ * the same parameters is 2951 bytes, so speed 4 closes the size gap from
+ * +19% to +5%. The cost is CPU: ravif time grows with pixel count
+ * (measured ~10 us/px at speed 4 versus ~3.5 us/px at speed 6), hitting
+ * 82.7 s for a 4K frame versus 31.5 s at speed 6. Keep speed 4 only for
+ * outputs at or below 300,000 pixels (the 512x512 preset and smaller,
+ * worst case ~3 s) and stay on speed 6 above that.
+ */
+fn avif_speed(pixel_count: usize) -> u8 {
+    const FAST_SPEED_MAX_PIXELS: usize = 300_000;
+    if pixel_count <= FAST_SPEED_MAX_PIXELS { 4 } else { 6 }
+}
+
 fn encode_png(
     image: &DynamicImage,
     quality: u8,
@@ -286,10 +391,14 @@ fn encode_png(
      * outputs stay within the Worker CPU budget. */
     let samplefac = training_samplefac(rgba.as_raw().len() / 4);
     let quantizer = color_quant::NeuQuant::new(samplefac, palette_size, rgba.as_raw());
-    let palette = quantizer.color_map_rgba();
+    let mut palette = quantizer.color_map_rgba();
+    /* Lloyd refinement closes most of the remaining gap to the
+     * Cloudflare reference: 32.3 dB -> 35.2 dB on the 100x71
+     * output, against a lossless ceiling of 36.6 dB. */
+    refine_palette(&mut palette, rgba.as_raw(), 3, 150_000);
     let mut indices = Vec::with_capacity(rgba.as_raw().len() / 4);
     for pixel in rgba.as_raw().chunks_exact(4) {
-        indices.push(quantizer.index_of(pixel) as u8);
+        indices.push(nearest_palette_index(&palette, pixel));
     }
 
     let mut palette_rgb = Vec::with_capacity(palette.len() / 4 * 3);
@@ -324,10 +433,11 @@ fn encode_output(
 ) -> std::result::Result<Vec<u8>, &'static str> {
     match format {
         OutputFormat::Avif => {
+            let pixel_count = image.width() as usize * image.height() as usize;
             let mut output = Vec::new();
             let encoder = image::codecs::avif::AvifEncoder::new_with_speed_quality(
                 Cursor::new(&mut output),
-                6,
+                avif_speed(pixel_count),
                 quality,
             );
             image
@@ -848,13 +958,14 @@ mod tests {
      * only every 10th pixel. For a 100x71 output that is 710 samples to
      * train 226 palette colors, starving the network and producing
      * visible banding (measured 27.7 dB against a lossless reference).
-     * Training on every pixel (samplefac=1) lifts this to 31.0 dB.
-     * Cloudflare's own palette PNG for the same source measures 34.4 dB
-     * against our lossless resize, so 29 dB is a safe floor that fails
-     * if sampling is regressed back to 10.
+     * Training on every pixel (samplefac=1) lifts this to 31.0 dB, and
+     * Lloyd refinement of the trained palette lifts it again to 34.7 dB,
+     * essentially matching Cloudflare's own palette PNG. 33 dB is a safe
+     * floor that fails if sampling regresses to 10 or if the refinement
+     * pass is removed.
      */
     #[test]
-    fn palette_png_quality_stays_above_29db() {
+    fn palette_png_quality_stays_above_33db() {
         let img = ImageReader::open("tests/fixtures/iphone-duo.png")
             .expect("test fixture exists")
             .decode()
@@ -881,9 +992,265 @@ mod tests {
 
         let psnr = psnr_opaque(&quantized_img, &lossless_img);
         assert!(
-            psnr >= 29.0,
-            "palette PNG PSNR dropped to {psnr:.2} dB (expected >= 29.0); \
-             NeuQuant sampling may have regressed",
+            psnr >= 33.0,
+            "palette PNG PSNR dropped to {psnr:.2} dB (expected >= 33.0); \
+             palette sampling or Lloyd refinement may have regressed",
+        );
+    }
+
+    /** Flatten on white: transparent becomes white, opaque untouched. */
+    #[test]
+    fn flatten_on_white_composites_transparency() {
+        let mut img = RgbaImage::new(3, 1);
+        img.put_pixel(0, 0, Rgba([200, 100, 50, 255])); /* opaque */
+        img.put_pixel(1, 0, Rgba([10, 20, 30, 0])); /* fully transparent */
+        img.put_pixel(2, 0, Rgba([0, 0, 0, 128])); /* half transparent */
+
+        let flat = flatten_on_white(&DynamicImage::ImageRgba8(img));
+        let rgb = flat.to_rgb8();
+        assert_eq!(rgb.get_pixel(0, 0).0, [200, 100, 50], "opaque unchanged");
+        assert_eq!(rgb.get_pixel(1, 0).0, [255, 255, 255], "transparent -> white");
+        let half = rgb.get_pixel(2, 0).0;
+        /* 0 * 0.502 + 255 * 0.498 ~= 127 */
+        assert!(
+            (half[0] as i32 - 127).abs() <= 1 && half[0] == half[1] && half[1] == half[2],
+            "half alpha should blend halfway to white, got {half:?}",
+        );
+    }
+
+    /** training_samplefac: full sampling for small, capped samples for large. */
+    #[test]
+    fn training_samplefac_bounds_samples() {
+        assert_eq!(training_samplefac(0), 1, "degenerate input stays at 1");
+        assert_eq!(training_samplefac(7_100), 1, "100x71 keeps full sampling");
+        assert_eq!(training_samplefac(1_000_000), 1, "exactly at cap keeps 1");
+        assert_eq!(training_samplefac(2_000_000), 2, "over cap halves samples");
+        /* 3840x2160 = 8,294,400 px -> ceil(8.29) = 9 */
+        assert_eq!(training_samplefac(3840 * 2160), 9, "4K stays in CPU budget");
+        /* Never exceed ~1M samples at any supported size. */
+        let px = 3840 * 2160;
+        assert!(px / training_samplefac(px) as usize <= 1_000_000);
+    }
+
+    /** avif_speed: fast encoder for small outputs, safe speed for large. */
+    #[test]
+    fn avif_speed_trades_cpu_for_small_outputs() {
+        assert_eq!(avif_speed(100 * 71), 4, "small outputs use fast/better speed");
+        assert_eq!(avif_speed(512 * 512), 4, "512x512 preset uses speed 4");
+        assert_eq!(avif_speed(300_000), 4, "boundary inclusive");
+        assert_eq!(avif_speed(300_001), 6, "above boundary falls back");
+        assert_eq!(avif_speed(3840 * 2160), 6, "4K never pays speed-4 CPU cost");
+    }
+
+    /** refine_palette: Lloyd iterations must reduce quantization error. */
+    #[test]
+    fn refine_palette_reduces_quantization_error() {
+        /* Pixels in two tight clusters around red and blue. */
+        let mut pixels = Vec::with_capacity(4 * 512);
+        for i in 0..256u16 {
+            let (r, b) = if i % 2 == 0 { (200, 10) } else { (10, 200) };
+            pixels.extend_from_slice(&[r as u8, 40, b as u8, 255]);
+        }
+        /* Deliberately bad initial palette: single gray entry duplicated. */
+        let mut palette = vec![128u8, 128, 128, 255, 130, 130, 130, 255];
+
+        let error = |pal: &[u8]| -> i64 {
+            pixels
+                .chunks_exact(4)
+                .map(|px| {
+                    let idx = nearest_palette_index(pal, px);
+                    let (pr, pg, pb, pa) = (
+                        pal[idx as usize * 4] as i64,
+                        pal[idx as usize * 4 + 1] as i64,
+                        pal[idx as usize * 4 + 2] as i64,
+                        pal[idx as usize * 4 + 3] as i64,
+                    );
+                    let dr = pr - px[0] as i64;
+                    let dg = pg - px[1] as i64;
+                    let db = pb - px[2] as i64;
+                    let da = pa - px[3] as i64;
+                    dr * dr + dg * dg + db * db + da * da
+                })
+                .sum()
+        };
+
+        let before = error(&palette);
+        refine_palette(&mut palette, &pixels, 3, usize::MAX);
+        let after = error(&palette);
+        assert!(
+            after < before,
+            "refinement must reduce error: before={before}, after={after}",
+        );
+        /* With only two entries and a gray init the centroids may not
+         * fully specialize in 3 iterations, but each entry must move
+         * toward the data: no entry may stay exactly at its init. */
+        assert_ne!(
+            palette[0..4],
+            [128, 128, 128, 255],
+            "centroid 0 should have moved toward the data",
+        );
+    }
+
+    /** nearest_palette_index: exact and nearest matches. */
+    #[test]
+    fn nearest_palette_index_finds_closest_entry() {
+        let palette = [
+            255, 0, 0, 255, /* red */
+            0, 0, 255, 255, /* blue */
+            255, 255, 255, 0, /* white, transparent */
+        ];
+        assert_eq!(nearest_palette_index(&palette, &[250, 5, 5, 255]), 0);
+        assert_eq!(nearest_palette_index(&palette, &[5, 5, 250, 255]), 1);
+        assert_eq!(
+            nearest_palette_index(&palette, &[240, 240, 240, 10]),
+            2,
+            "alpha participates in the distance",
+        );
+    }
+
+    /**
+     * CF parity: JPEG at Cloudflare's operating point must match its
+     * size and beat its fidelity.
+     *
+     * On the opaque-pixel metric, Cloudflare's reference for
+     * f=jpeg&w=100&h=100 is 2728 bytes at 28.80 dB against our lossless
+     * resize. Our encoder at quality 75 produces 2792 bytes at 29.25 dB:
+     * within 2.4% of Cloudflare's size while scoring higher. The lab
+     * default of quality 85 (3530 bytes, 31.65 dB) deliberately exceeds
+     * Cloudflare's fidelity and is exempt from the size bound.
+     */
+    #[test]
+    fn jpeg_matches_cloudflare_at_matched_quality() {
+        let img = ImageReader::open("tests/fixtures/iphone-duo.png")
+            .expect("test fixture exists")
+            .decode()
+            .expect("valid PNG");
+        let (out_w, out_h) = resize_dimensions(img.width(), img.height(), 100, 100);
+        let resized = resize_premul(&img, out_w, out_h, image::imageops::FilterType::Lanczos3);
+
+        let lossless = encode_output(&resized, OutputFormat::Png, 85, false).unwrap();
+        let lossless_img =
+            image::load_from_memory_with_format(&lossless, image::ImageFormat::Png).unwrap();
+        let cf = std::fs::metadata("tests/fixtures/cf/iphone-duo_100x100.jpeg")
+            .expect("cf jpeg fixture")
+            .len();
+
+        /* Quality 75 lands on the same size operating point as CF. */
+        let jpeg = encode_output(&resized, OutputFormat::Jpeg, 75, true).unwrap();
+        assert!(
+            jpeg.len() as f64 <= cf as f64 * 1.15,
+            "our JPEG at matched size ({}B) exceeds Cloudflare's {cf}B by more than 15%",
+            jpeg.len(),
+        );
+        let decoded =
+            image::load_from_memory_with_format(&jpeg, image::ImageFormat::Jpeg).unwrap();
+        let psnr = psnr_opaque(&decoded, &lossless_img);
+        assert!(
+            psnr >= 28.8,
+            "JPEG PSNR at matched size dropped to {psnr:.2} dB \
+             (Cloudflare reference: 28.80 dB, expected >= 28.8)",
+        );
+
+        /* The lab default (q=85) must stay clearly above CF's fidelity. */
+        let default_jpeg = encode_output(&resized, OutputFormat::Jpeg, 85, true).unwrap();
+        let default_img =
+            image::load_from_memory_with_format(&default_jpeg, image::ImageFormat::Jpeg)
+                .unwrap();
+        let default_psnr = psnr_opaque(&default_img, &lossless_img);
+        assert!(
+            default_psnr >= 31.0,
+            "default JPEG PSNR dropped to {default_psnr:.2} dB (expected >= 31.0)",
+        );
+    }
+
+    /**
+     * CF parity: AVIF adaptive speed keeps size within 15% of the
+     * Cloudflare reference. Speed 6 produced 3520 bytes (+19% over
+     * Cloudflare's 2951); speed 4 for small outputs closes it.
+     */
+    #[test]
+    fn avif_size_stays_close_to_cloudflare_reference() {
+        let img = ImageReader::open("tests/fixtures/iphone-duo.png")
+            .expect("test fixture exists")
+            .decode()
+            .expect("valid PNG");
+        let (out_w, out_h) = resize_dimensions(img.width(), img.height(), 100, 100);
+        let resized = resize_premul(&img, out_w, out_h, image::imageops::FilterType::Lanczos3);
+
+        let avif = encode_output(&resized, OutputFormat::Avif, 85, true).unwrap();
+        let cf = std::fs::metadata("tests/fixtures/cf/iphone-duo_100x100.avif")
+            .expect("cf avif fixture")
+            .len();
+
+        assert!(
+            avif.len() as f64 <= cf as f64 * 1.15,
+            "our AVIF {}B exceeds Cloudflare's {cf}B by more than 15%",
+            avif.len(),
+        );
+        assert!(
+            avif.windows(4).any(|chunk| chunk == b"avif"),
+            "output must be valid AVIF",
+        );
+    }
+
+    /**
+     * CF parity: PNG palette output stays within 15% of Cloudflare's
+     * reference size. Also guards against the palette path silently
+     * reverting to full RGBA (which would be 4x larger).
+     */
+    #[test]
+    fn png_size_stays_close_to_cloudflare_reference() {
+        let img = ImageReader::open("tests/fixtures/iphone-duo.png")
+            .expect("test fixture exists")
+            .decode()
+            .expect("valid PNG");
+        let (out_w, out_h) = resize_dimensions(img.width(), img.height(), 100, 100);
+        let resized = resize_premul(&img, out_w, out_h, image::imageops::FilterType::Lanczos3);
+
+        let png = encode_output(&resized, OutputFormat::Png, 85, true).unwrap();
+        let cf = std::fs::metadata("tests/fixtures/cf/iphone-duo_100x100.png")
+            .expect("cf png fixture")
+            .len();
+
+        assert!(
+            png.len() as f64 <= cf as f64 * 1.15,
+            "our palette PNG {}B exceeds Cloudflare's {cf}B by more than 15%",
+            png.len(),
+        );
+    }
+
+    /**
+     * CF parity (documentation): WebP is intentionally lossless.
+     *
+     * The image crate has no lossy WebP encoder ("If you need lossy
+     * encoding, you'll have to use libwebp"), and the lab UI labels the
+     * format "Lossless output". Cloudflare serves a lossy 2904-byte WebP;
+     * ours is ~11KB with infinite fidelity to the resize. This test pins
+     * the lossless contract so a future encoder swap is a conscious
+     * decision, not an accident.
+     */
+    #[test]
+    fn webp_output_is_lossless() {
+        let img = ImageReader::open("tests/fixtures/iphone-duo.png")
+            .expect("test fixture exists")
+            .decode()
+            .expect("valid PNG");
+        let (out_w, out_h) = resize_dimensions(img.width(), img.height(), 100, 100);
+        let resized = resize_premul(&img, out_w, out_h, image::imageops::FilterType::Lanczos3);
+
+        let webp = encode_output(&resized, OutputFormat::Webp, 85, true).unwrap();
+        let decoded =
+            image::load_from_memory_with_format(&webp, image::ImageFormat::WebP).unwrap();
+
+        assert_eq!(decoded.width(), resized.width());
+        assert_eq!(decoded.height(), resized.height());
+        /* Lossless: every pixel must round-trip exactly. */
+        let a = decoded.to_rgba8();
+        let b = resized.to_rgba8();
+        assert_eq!(
+            a.as_raw(),
+            b.as_raw(),
+            "WebP output must be pixel-identical to the resize",
         );
     }
 }

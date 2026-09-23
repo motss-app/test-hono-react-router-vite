@@ -125,7 +125,7 @@ export const ctaSecondary = style({
 export const inner = style({
   marginInline: 'auto',
   maxWidth: '84rem',
-  padding: '4rem 1rem 0',
+  padding: '4rem 1rem 3rem',
 });
 export const workspace = style({
   '@media': {
@@ -351,9 +351,9 @@ export const error = style({
   },
 });
 export const errorIcon = style({
+  blockSize: '1.1rem',
   flexShrink: 0,
-  fontSize: '1.05rem',
-  lineHeight: 1.5,
+  inlineSize: '1.1rem',
   selectors: {
     ':root[data-theme="dark"] &': {
       color: '#fca5a5',
@@ -361,7 +361,9 @@ export const errorIcon = style({
   },
 });
 export const errorText = style({
+  flex: 1,
   lineHeight: 1.5,
+  minInlineSize: 0,
   overflowWrap: 'anywhere',
 });
 export const resultColumn = style({
@@ -552,6 +554,7 @@ export const filterRecommended = style({
   fontSize: '0.65rem',
   fontWeight: 700,
   lineHeight: 1,
+  marginInlineStart: '0.5rem',
   padding: '0.2rem 0.5rem',
   selectors: {
     ':root[data-theme="dark"] &': {

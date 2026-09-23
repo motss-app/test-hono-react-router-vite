@@ -39,5 +39,9 @@
       "send",
       "consume"
     ]
-  }
+  },
+  "vitest.configSearchPatternExclude": "{**/node_modules/**,**/vendor/**,**/.*/**,**/*.d.ts,**/vite.config.ts*,**/*.timestamp-*.mjs}",
+  "vitest.runtime": "deno",
+  "vitest.showImportsDuration": true,
+  "vitest.showInlineConsoleLog": true
 }
