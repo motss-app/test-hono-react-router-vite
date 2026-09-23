@@ -1,13 +1,14 @@
 # Vite+ Integration
 
-Vite+ (`vp` 0.3.0) is integrated for **testing and commit hooks only**.
-See the "What was NOT adopted" table below for the full fit assessment.
+Vite+ (`vite-plus@0.3.2`) supplies config helpers and test API imports.
+Frontend tasks run pinned Vitest directly with Deno so `-A` reaches the runner.
+Vite+ also powers commit hooks.
 
 ## What was adopted
 
 | Capability | Command | Notes |
 |---|---|---|
-| Tests (unit + browser) | `vp test run` / `deno task --cwd=packages/frontend test` | Two named projects: `unit` (node), `browser` (Playwright Chromium, headless) |
+| Tests (unit + browser) | `deno task --cwd=packages/frontend test` | Runs `vitest@4.1.11` directly with `deno run -A`. Root `deno task test` delegates across BFF, frontend, and gateway. |
 | Commit hooks | `vp hooks enable` / `vp staged` | `staged` block in root `vite.config.ts` (Biome on staged files) + project-owned `.vite-hooks/pre-commit` |
 
 ## What was NOT adopted (and why)
@@ -21,40 +22,44 @@ See the "What was NOT adopted" table below for the full fit assessment.
 | `vp pack` | ❌ Not needed | No npm libraries are published. |
 | `vp migrate` | ❌ Avoided | Would rewrite manifests toward pnpm/npm, breaking Deno-first setup. |
 
-- The **global `vp` CLI** is installed (official installer, `v0.3.0`) — restart
-  the shell after installing.
-- `vite-plus@0.3.0` is also a pinned devDependency (via `deno install --dev`);
-  deno tasks invoke it through `deno x vp` so CI works without the global CLI.
-- `packages/frontend/vitest.config.ts` uses `defineConfig` from `vite-plus` with
-  two named projects (`unit`, `browser`).
+- `vite-plus@0.3.2` is pinned as a devDependency and supplies `defineConfig`
+  and `vite-plus/test`.
+- Frontend test tasks use the pinned Vitest CLI directly. Running `vp test`
+  through `deno x` started Vitest as a Deno child without permission flags and
+  failed while reading `FORCE_TTY`.
+- Root `vitest.config.ts` discovers `packages/*/vitest.config.*.ts`, so each
+  package can add independently named Vitest projects.
+- `packages/frontend/vitest.config.ts` aggregates the `frontend-unit` and
+  `frontend-browser` configs for package-local Deno tasks.
+- The unit project uses the threads pool so workers inherit Deno's `-A`
+  permissions instead of starting permissionless Deno child processes.
+- The direct `vitest@4.1.11` dependency matches the `vite-plus/test` API version.
 - Test files import from `vite-plus/test` (re-export of upstream `vitest`).
 
 ## Test file conventions
 
 | Suffix | Project | Environment | Notes |
 |---|---|---|---|
-| `*.unit.test.ts` | `unit` | node | `describe/expect/it` from `vite-plus/test` |
-| `*.browser.test.ts` | `browser` | Playwright Chromium (headless) | Same imports; runs in Playwright-managed Chromium via `vitest browser` |
+| `*.unit.test.ts` | `frontend-unit` | node | `describe/expect/it` from `vite-plus/test` |
+| `*.browser.test.ts` | `frontend-browser` | Playwright Chromium (headless) | Same imports; runs in Playwright-managed Chromium via `vitest browser` |
 
 ## Command guidance
 
-- **Repo tasks** (build, lint, check, bench): `deno task` — tasks live in
-  `deno.json`. `vp run` is not wired (no `package.json` scripts).
-- **Package installs**: `deno install` (pinned versions) only.
+- Repo tasks (build, lint, check, bench): `deno task`. Tasks live in
+  `deno.json`. `vp run` is not wired because there are no `package.json`
+  scripts.
+- Package installs: `deno install` with pinned versions only.
   `vp install` is not wired (no `packageManager` field, conflicts with
   Deno dependency management).
-- **Testing from root**: `deno task test` delegates to
-  `deno task --cwd=packages/frontend test` which runs `deno x vp test run`.
-  `deno x vp test run` from root does NOT work — vitest can't resolve nested
-  `test.projects` inside workspace project configs.
+- Testing from root: `deno task test` runs the BFF, frontend, and gateway
+  tasks. BFF and gateway currently have no tests.
 
 (Section moved to "What was NOT adopted" table above.)
 
 ## Setup notes
 
-- Global CLI: `curl -fsSL https://vite.plus | bash` (already done on this machine).
-- Playwright browsers must match the pinned `playwright@1.62.1`:
-  `deno run -A npm:playwright@1.62.1 install chromium`
+- Playwright browsers must match the pinned `playwright@1.63.0`:
+  `deno run -A npm:playwright@1.63.0 install chromium`
 - Browser tests use Playwright-managed Chromium (headless), not system Chrome.
   Run the Playwright install command above before running browser tests.
 - CI: `.github/actions/setup-deno` pins Deno 2.9.6 (matches local).

@@ -93,6 +93,7 @@ Selection rules:
 - Prefer exporting at declaration sites instead of trailing `export { ... }` blocks.
 - Use `import.meta.env` for environment variables.
 - Use `//` for single-line comments and `/** */` for multi-line comments/JSDoc.
+- Cloudflare Workers isolates cap memory at 128 MB. Count buffers alive at the same moment, not just the largest single buffer, and consume or release a large source before allocating its working buffers. See `resize_premul` in `packages/image-optimize-rust` for the pattern.
 
 ## Code Comment Style
 

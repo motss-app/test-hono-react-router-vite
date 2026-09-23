@@ -14,6 +14,17 @@ const reveal = keyframes({
   },
 });
 
+const errorPop = keyframes({
+  '0%': {
+    opacity: 0,
+    transform: 'translateX(-0.5rem) scale(0.98)',
+  },
+  '100%': {
+    opacity: 1,
+    transform: 'translateX(0) scale(1)',
+  },
+});
+
 const spin = keyframes({
   '0%': {
     transform: 'rotate(0deg)',
@@ -114,7 +125,7 @@ export const ctaSecondary = style({
 export const inner = style({
   marginInline: 'auto',
   maxWidth: '84rem',
-  padding: '4rem 1rem 0',
+  padding: '4rem 1rem 3rem',
 });
 export const workspace = style({
   '@media': {
@@ -269,7 +280,7 @@ export const actionRow = style({
   display: 'flex',
   flexDirection: 'row',
   gap: '0.8rem',
-  marginBlockStart: '1rem',
+  marginBlock: '1rem 1.5rem',
 });
 export const action = style({
   backgroundColor: '#1e40af',
@@ -318,17 +329,42 @@ export const subtleAction = style({
   },
 });
 export const error = style({
+  alignItems: 'flex-start',
+  animation: `${errorPop} 280ms cubic-bezier(0.22, 1, 0.36, 1) both`,
   backgroundColor: '#fef2f2',
+  border: '1px solid #fecaca',
   borderInlineStart: '3px solid #dc2626',
+  borderRadius: radiusTokens.radiusMd,
+  boxShadow: '0 4px 12px rgba(220, 38, 38, 0.12)',
   color: '#991b1b',
+  display: 'flex',
+  gap: '0.65rem',
   marginBlockStart: '1rem',
   padding: '0.9rem 1rem',
   selectors: {
     ':root[data-theme="dark"] &': {
       backgroundColor: '#32191c',
+      borderColor: '#7f1d1d',
+      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.35)',
       color: '#fecaca',
     },
   },
+});
+export const errorIcon = style({
+  blockSize: '1.1rem',
+  flexShrink: 0,
+  inlineSize: '1.1rem',
+  selectors: {
+    ':root[data-theme="dark"] &': {
+      color: '#fca5a5',
+    },
+  },
+});
+export const errorText = style({
+  flex: 1,
+  lineHeight: 1.5,
+  minInlineSize: 0,
+  overflowWrap: 'anywhere',
 });
 export const resultColumn = style({
   animation: `${reveal} 600ms 100ms cubic-bezier(0.22, 1, 0.36, 1) both`,
@@ -518,6 +554,7 @@ export const filterRecommended = style({
   fontSize: '0.65rem',
   fontWeight: 700,
   lineHeight: 1,
+  marginInlineStart: '0.5rem',
   padding: '0.2rem 0.5rem',
   selectors: {
     ':root[data-theme="dark"] &': {

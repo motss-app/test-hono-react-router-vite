@@ -1,62 +1,31 @@
 import { defineConfig } from 'vite-plus';
-import { playwright } from 'vite-plus/test/browser-playwright';
 
 /**
  * Vitest config powered by Vite+ (`vite-plus` bundles Vitest 4.1.11).
  *
- * Two named projects:
- * - `unit`: `*.unit.test.ts` files, node environment.
- * - `browser`: `*.browser.test.ts` files, executed in Playwright-bundled
- *   Chromium via Vitest browser mode with the Playwright provider.
+ * The package config aggregates the frontend projects for package-local CLI
+ * runs. The root Vitest config discovers the individual projects across the
+ * monorepo.
  *
  * Run with `deno task test` (both), or filter with
  * `deno task --cwd=packages/frontend test:unit` / `test:browser`.
  */
 export default defineConfig({
   test: {
+    clearMocks: true,
     coverage: {
+      clean: true,
+      cleanOnRerun: true,
       enabled: true,
+      provider: 'v8',
       thresholds: {
         autoUpdate: true,
       },
     },
+    mockReset: true,
     projects: [
-      {
-        test: {
-          environment: 'node',
-          include: [
-            'app/**/*.unit.test.ts',
-          ],
-          name: 'unit',
-        },
-      },
-      {
-        test: {
-          browser: {
-            enabled: true,
-            headless: true,
-            instances: [
-              {
-                browser: 'chromium',
-                experimental: {
-                  fsModuleCache: true,
-                  nodeLoader: true,
-                  openTelemetry: {
-                    enabled: true,
-                  },
-                  preParse: true,
-                  viteModuleRunner: true,
-                },
-              },
-            ],
-            provider: playwright(),
-          },
-          include: [
-            'app/**/*.browser.test.ts',
-          ],
-          name: 'browser',
-        },
-      },
+      './vitest.config.unit.ts',
+      './vitest.config.browser.ts',
     ],
     reporters: [
       'github-actions',
