@@ -36,7 +36,7 @@
     "npm:@vanilla-extract/dynamic@2.1.5": "2.1.5",
     "npm:@vanilla-extract/vite-plugin@5.2.6": "5.2.6_vite@8.3.0",
     "npm:@vitest/browser-playwright@4.1.11": "4.1.11_playwright@1.63.0_vitest@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-v8@4.1.11_typescript@7.0.2_@voidzero-dev+vite-plus-core@0.3.2",
-    "npm:@vitest/coverage-v8@4.1.11": "4.1.11_@vitest+browser@4.1.11_vitest@4.1.11_playwright@1.63.0",
+    "npm:@vitest/coverage-v8@4.1.11": "4.1.11_@vitest+browser@4.1.11_vitest@4.1.11_@vitest+coverage-istanbul@4.1.11_playwright@1.63.0",
     "npm:clsx@*": "2.1.1",
     "npm:clsx@2.1.1": "2.1.1",
     "npm:hono-problem-details@0.11.0": "0.11.0_@opentelemetry+api@1.9.1_hono@4.13.8",
@@ -52,9 +52,11 @@
     "npm:react-router@8.4.0": "8.4.0_react@19.3.0_react-dom@19.3.0",
     "npm:react@19.3.0": "19.3.0",
     "npm:typescript@7.0.2": "7.0.2",
-    "npm:vite-plus@0.3.2": "0.3.2_@vitest+browser-playwright@4.1.11__playwright@1.63.0__vitest@4.1.11__@vitest+browser-preview@4.1.11__@vitest+coverage-v8@4.1.11__typescript@7.0.2__@voidzero-dev+vite-plus-core@0.3.2_@vitest+coverage-v8@4.1.11__@vitest+browser@4.1.11__vitest@4.1.11__@vitest+browser-playwright@4.1.11__@vitest+browser-preview@4.1.11__@voidzero-dev+vite-plus-core@0.3.2_playwright@1.63.0_typescript@7.0.2",
+    "npm:vite-plus@0.3.2": "0.3.2_@vitest+browser-playwright@4.1.11__playwright@1.63.0__vitest@4.1.11__@vitest+browser-preview@4.1.11__@vitest+coverage-v8@4.1.11__typescript@7.0.2__@voidzero-dev+vite-plus-core@0.3.2_@vitest+coverage-v8@4.1.11__@vitest+browser@4.1.11__vitest@4.1.11__@vitest+browser-playwright@4.1.11__@vitest+browser-preview@4.1.11__@vitest+coverage-istanbul@4.1.11__@voidzero-dev+vite-plus-core@0.3.2_playwright@1.63.0_typescript@7.0.2",
     "npm:vite@*": "8.3.0_jiti@2.7.0",
     "npm:vite@8.3.0": "8.3.0_jiti@2.7.0",
+    "npm:vitest@*": "4.1.11_@vitest+browser-playwright@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-istanbul@4.1.11_@vitest+coverage-v8@4.1.11_@voidzero-dev+vite-plus-core@0.3.2_playwright@1.63.0",
+    "npm:vitest@4.1.11": "4.1.11_@vitest+browser-playwright@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-istanbul@4.1.11_@vitest+coverage-v8@4.1.11_@voidzero-dev+vite-plus-core@0.3.2_playwright@1.63.0",
     "npm:wrangler@*": "4.129.0_@cloudflare+workers-types@5.20260906.1",
     "npm:wrangler@4.129.0": "4.129.0_@cloudflare+workers-types@5.20260906.1"
   },
@@ -1043,6 +1045,9 @@
         "@inlang/language-tag"
       ],
       "deprecated": true
+    },
+    "@istanbuljs/schema@0.1.6": {
+      "integrity": "sha512-+Sg6GCR/wy1oSmQDFq4LQDAhm3ETKnorxN+y5nbLULOR3P0c14f2Wurzj3/xqPXtasLFfHd5iRFQ7AJt4KH2cw=="
     },
     "@jridgewell/gen-mapping@0.3.13": {
       "integrity": "sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==",
@@ -2217,36 +2222,36 @@
       "integrity": "sha512-riLBxPqwnJ0lWs2DN2WeUfYeKLoAjbP2Xx8cLQdSddzMi20sksIa6K2mPz79DyMZKKVKH2ksOC2yJvtNcZg8cg==",
       "dependencies": [
         "@vitest/browser",
-        "@vitest/mocker@4.1.11_vite@8.3.0",
+        "@vitest/mocker",
         "playwright",
         "tinyrainbow",
-        "vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-v8@4.1.11_vite@8.3.0_@vitest+browser@4.1.11_playwright@1.63.0"
+        "vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+coverage-istanbul@4.1.11_@vitest+coverage-v8@4.1.11_vite@8.3.0_playwright@1.63.0"
       ]
     },
-    "@vitest/browser-playwright@4.1.11_playwright@1.63.0_vitest@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-v8@4.1.11_vite@8.3.0": {
+    "@vitest/browser-playwright@4.1.11_playwright@1.63.0_vitest@4.1.11_@vitest+coverage-istanbul@4.1.11": {
       "integrity": "sha512-riLBxPqwnJ0lWs2DN2WeUfYeKLoAjbP2Xx8cLQdSddzMi20sksIa6K2mPz79DyMZKKVKH2ksOC2yJvtNcZg8cg==",
       "dependencies": [
         "@vitest/browser",
-        "@vitest/mocker@4.1.11_vite@8.3.0",
+        "@vitest/mocker",
         "playwright",
         "tinyrainbow",
-        "vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-v8@4.1.11_vite@8.3.0_@vitest+browser@4.1.11_playwright@1.63.0"
+        "vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+coverage-istanbul@4.1.11_@vitest+coverage-v8@4.1.11_vite@8.3.0_playwright@1.63.0"
       ]
     },
-    "@vitest/browser-preview@4.1.11_vitest@4.1.11_playwright@1.63.0": {
+    "@vitest/browser-preview@4.1.11_vitest@4.1.11_@vitest+coverage-istanbul@4.1.11_playwright@1.63.0": {
       "integrity": "sha512-iPKSE6Ibayey6HFgK1V1/aHgyhx7HSRk1YMi+lnBZGmlIiNV5Uc7xRkD9Su8RDylTxDECK23t7kTHdRKoqSYDQ==",
       "dependencies": [
         "@testing-library/dom",
         "@testing-library/user-event",
         "@vitest/browser",
-        "vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-v8@4.1.11_@voidzero-dev+vite-plus-core@0.3.2_@vitest+browser@4.1.11_playwright@1.63.0_typescript@7.0.2"
+        "vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-istanbul@4.1.11_@vitest+coverage-v8@4.1.11_@voidzero-dev+vite-plus-core@0.3.2_playwright@1.63.0"
       ]
     },
     "@vitest/browser@4.1.11_vitest@4.1.11_@vitest+browser-preview@4.1.11_playwright@1.63.0": {
       "integrity": "sha512-bwMovvAeuTFOK5kIFevw4VEf+1gVEICv4SYK4k3knJOxl6b1zEWud8mYKD73e1B0odAn174h1MofURy2TPWf3w==",
       "dependencies": [
         "@blazediff/core",
-        "@vitest/mocker@4.1.11_vite@8.3.0",
+        "@vitest/mocker",
         "@vitest/utils",
         "magic-string",
         "pngjs",
@@ -2256,7 +2261,39 @@
         "ws"
       ]
     },
-    "@vitest/coverage-v8@4.1.11_@vitest+browser@4.1.11_vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+browser-preview@4.1.11_@voidzero-dev+vite-plus-core@0.3.2": {
+    "@vitest/coverage-istanbul@4.1.11_vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-v8@4.1.11_@voidzero-dev+vite-plus-core@0.3.2": {
+      "integrity": "sha512-pK9LJtOS534bmUwdwLpGD9qL52DeqVWSInrXFMNqrvWLbbAhuIPAlRup3UbsjFOMqCC/p3MmmX7uXV7ZTkcFfQ==",
+      "dependencies": [
+        "@babel/core",
+        "@istanbuljs/schema",
+        "@jridgewell/gen-mapping",
+        "@jridgewell/trace-mapping@0.3.31",
+        "istanbul-lib-coverage",
+        "istanbul-lib-report",
+        "istanbul-reports",
+        "magicast",
+        "obug",
+        "tinyrainbow",
+        "vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-istanbul@4.1.11_@vitest+coverage-v8@4.1.11_@voidzero-dev+vite-plus-core@0.3.2_playwright@1.63.0"
+      ]
+    },
+    "@vitest/coverage-istanbul@4.1.11_vitest@4.1.11_playwright@1.63.0": {
+      "integrity": "sha512-pK9LJtOS534bmUwdwLpGD9qL52DeqVWSInrXFMNqrvWLbbAhuIPAlRup3UbsjFOMqCC/p3MmmX7uXV7ZTkcFfQ==",
+      "dependencies": [
+        "@babel/core",
+        "@istanbuljs/schema",
+        "@jridgewell/gen-mapping",
+        "@jridgewell/trace-mapping@0.3.31",
+        "istanbul-lib-coverage",
+        "istanbul-lib-report",
+        "istanbul-reports",
+        "magicast",
+        "obug",
+        "tinyrainbow",
+        "vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-istanbul@4.1.11_@vitest+coverage-v8@4.1.11_@voidzero-dev+vite-plus-core@0.3.2_playwright@1.63.0"
+      ]
+    },
+    "@vitest/coverage-v8@4.1.11_@vitest+browser@4.1.11_vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-istanbul@4.1.11_@voidzero-dev+vite-plus-core@0.3.2": {
       "integrity": "sha512-8MVGEFnJIcdGjcbfKmeq8z0pZHH0JlVtoVZH9Q/qwUp6wyFnEJUBMrw9DCaj+ra3vShGmhavjalMIhPNxZAUcw==",
       "dependencies": [
         "@bcoe/v8-coverage",
@@ -2270,13 +2307,13 @@
         "obug",
         "std-env",
         "tinyrainbow",
-        "vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-v8@4.1.11_@voidzero-dev+vite-plus-core@0.3.2_@vitest+browser@4.1.11_playwright@1.63.0_typescript@7.0.2"
+        "vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-istanbul@4.1.11_@vitest+coverage-v8@4.1.11_@voidzero-dev+vite-plus-core@0.3.2_playwright@1.63.0"
       ],
       "optionalPeers": [
         "@vitest/browser"
       ]
     },
-    "@vitest/coverage-v8@4.1.11_@vitest+browser@4.1.11_vitest@4.1.11_playwright@1.63.0": {
+    "@vitest/coverage-v8@4.1.11_@vitest+browser@4.1.11_vitest@4.1.11_@vitest+coverage-istanbul@4.1.11_playwright@1.63.0": {
       "integrity": "sha512-8MVGEFnJIcdGjcbfKmeq8z0pZHH0JlVtoVZH9Q/qwUp6wyFnEJUBMrw9DCaj+ra3vShGmhavjalMIhPNxZAUcw==",
       "dependencies": [
         "@bcoe/v8-coverage",
@@ -2290,7 +2327,7 @@
         "obug",
         "std-env",
         "tinyrainbow",
-        "vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-v8@4.1.11_@voidzero-dev+vite-plus-core@0.3.2_@vitest+browser@4.1.11_playwright@1.63.0_typescript@7.0.2"
+        "vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-istanbul@4.1.11_@vitest+coverage-v8@4.1.11_@voidzero-dev+vite-plus-core@0.3.2_playwright@1.63.0"
       ],
       "optionalPeers": [
         "@vitest/browser"
@@ -2305,18 +2342,6 @@
         "@vitest/utils",
         "chai",
         "tinyrainbow"
-      ]
-    },
-    "@vitest/mocker@4.1.11_@voidzero-dev+vite-plus-core@0.3.2_typescript@7.0.2": {
-      "integrity": "sha512-2XJVD55d1o5AZous5CCGKS74g/riOj9odEt2bQpCVZeblHyHdnMeFl4jl0XjU21stf4mbjUkew2eXQZt65g5CQ==",
-      "dependencies": [
-        "@vitest/spy",
-        "estree-walker",
-        "magic-string",
-        "vite@npm:@voidzero-dev/vite-plus-core@0.3.2_typescript@7.0.2"
-      ],
-      "optionalPeers": [
-        "vite@npm:@voidzero-dev/vite-plus-core@0.3.2_typescript@7.0.2"
       ]
     },
     "@vitest/mocker@4.1.11_vite@8.3.0": {
@@ -3352,11 +3377,11 @@
         "@oxc-minify/binding-win32-x64-msvc"
       ]
     },
-    "oxfmt@0.67.0_vite-plus@0.3.2_@vitest+browser-playwright@4.1.11__playwright@1.63.0__vitest@4.1.11__@vitest+browser-preview@4.1.11__@vitest+coverage-v8@4.1.11__vite@8.3.0": {
+    "oxfmt@0.67.0_vite-plus@0.3.2__@vitest+browser-playwright@4.1.11___playwright@1.63.0___vitest@4.1.11___@vitest+browser-preview@4.1.11___@vitest+coverage-v8@4.1.11___typescript@7.0.2___@voidzero-dev+vite-plus-core@0.3.2__@vitest+coverage-v8@4.1.11___@vitest+browser@4.1.11___vitest@4.1.11___@vitest+browser-playwright@4.1.11___@vitest+browser-preview@4.1.11___@vitest+coverage-istanbul@4.1.11___@voidzero-dev+vite-plus-core@0.3.2__playwright@1.63.0__typescript@7.0.2_@vitest+browser-playwright@4.1.11__playwright@1.63.0__vitest@4.1.11__@vitest+coverage-istanbul@4.1.11": {
       "integrity": "sha512-vV7sSiPsaO0mSxdoUdayipVDFPzW/UQ+hrezEHa20+Tx1dnMdZLSRHMT0PdS67FFbhd74M1n08asW21aLGeCrA==",
       "dependencies": [
         "tinypool",
-        "vite-plus"
+        "vite-plus@0.3.2_@vitest+browser-playwright@4.1.11__playwright@1.63.0__vitest@4.1.11__@vitest+coverage-istanbul@4.1.11_@vitest+coverage-istanbul@4.1.11__vitest@4.1.11__@vitest+browser-playwright@4.1.11__@vitest+browser-preview@4.1.11__@vitest+coverage-v8@4.1.11__@voidzero-dev+vite-plus-core@0.3.2_playwright@1.63.0"
       ],
       "optionalDependencies": [
         "@oxfmt/binding-android-arm-eabi",
@@ -3380,7 +3405,7 @@
         "@oxfmt/binding-win32-x64-msvc"
       ],
       "optionalPeers": [
-        "vite-plus"
+        "vite-plus@0.3.2_@vitest+browser-playwright@4.1.11__playwright@1.63.0__vitest@4.1.11__@vitest+coverage-istanbul@4.1.11_@vitest+coverage-istanbul@4.1.11__vitest@4.1.11__@vitest+browser-playwright@4.1.11__@vitest+browser-preview@4.1.11__@vitest+coverage-v8@4.1.11__@voidzero-dev+vite-plus-core@0.3.2_playwright@1.63.0"
       ],
       "bin": true
     },
@@ -3396,11 +3421,11 @@
       ],
       "bin": true
     },
-    "oxlint@1.82.0_oxlint-tsgolint@7.0.2001_vite-plus@0.3.2_@vitest+browser-playwright@4.1.11__playwright@1.63.0__vitest@4.1.11__@vitest+browser-preview@4.1.11__@vitest+coverage-v8@4.1.11__vite@8.3.0": {
+    "oxlint@1.82.0_oxlint-tsgolint@7.0.2001_vite-plus@0.3.2__@vitest+browser-playwright@4.1.11___playwright@1.63.0___vitest@4.1.11___@vitest+browser-preview@4.1.11___@vitest+coverage-v8@4.1.11___typescript@7.0.2___@voidzero-dev+vite-plus-core@0.3.2__@vitest+coverage-v8@4.1.11___@vitest+browser@4.1.11___vitest@4.1.11___@vitest+browser-playwright@4.1.11___@vitest+browser-preview@4.1.11___@vitest+coverage-istanbul@4.1.11___@voidzero-dev+vite-plus-core@0.3.2__playwright@1.63.0__typescript@7.0.2_@vitest+browser-playwright@4.1.11__playwright@1.63.0__vitest@4.1.11__@vitest+coverage-istanbul@4.1.11": {
       "integrity": "sha512-+iFM1BGw1ntYJt3QngbJmjbrGxPaKMUADOXOijpWGnYcBPq8YZnQftSS1C+pVcDYy9YxqDVJKQqQkTazTQMboQ==",
       "dependencies": [
         "oxlint-tsgolint",
-        "vite-plus"
+        "vite-plus@0.3.2_@vitest+browser-playwright@4.1.11__playwright@1.63.0__vitest@4.1.11__@vitest+browser-preview@4.1.11__@vitest+coverage-v8@4.1.11__typescript@7.0.2__@voidzero-dev+vite-plus-core@0.3.2_@vitest+coverage-v8@4.1.11__@vitest+browser@4.1.11__vitest@4.1.11__@vitest+browser-playwright@4.1.11__@vitest+browser-preview@4.1.11__@vitest+coverage-istanbul@4.1.11__@voidzero-dev+vite-plus-core@0.3.2_playwright@1.63.0_typescript@7.0.2"
       ],
       "optionalDependencies": [
         "@oxlint/binding-android-arm-eabi",
@@ -3425,7 +3450,7 @@
       ],
       "optionalPeers": [
         "oxlint-tsgolint",
-        "vite-plus"
+        "vite-plus@0.3.2_@vitest+browser-playwright@4.1.11__playwright@1.63.0__vitest@4.1.11__@vitest+browser-preview@4.1.11__@vitest+coverage-v8@4.1.11__typescript@7.0.2__@voidzero-dev+vite-plus-core@0.3.2_@vitest+coverage-v8@4.1.11__@vitest+browser@4.1.11__vitest@4.1.11__@vitest+browser-playwright@4.1.11__@vitest+browser-preview@4.1.11__@vitest+coverage-istanbul@4.1.11__@voidzero-dev+vite-plus-core@0.3.2_playwright@1.63.0_typescript@7.0.2"
       ],
       "bin": true
     },
@@ -3915,16 +3940,16 @@
       ],
       "bin": true
     },
-    "vite-plus@0.3.2_@vitest+browser-playwright@4.1.11__playwright@1.63.0__vitest@4.1.11__@vitest+browser-preview@4.1.11__@vitest+coverage-v8@4.1.11__typescript@7.0.2__@voidzero-dev+vite-plus-core@0.3.2_@vitest+coverage-v8@4.1.11__@vitest+browser@4.1.11__vitest@4.1.11__@vitest+browser-playwright@4.1.11__@vitest+browser-preview@4.1.11__@voidzero-dev+vite-plus-core@0.3.2_playwright@1.63.0_typescript@7.0.2": {
+    "vite-plus@0.3.2_@vitest+browser-playwright@4.1.11__playwright@1.63.0__vitest@4.1.11__@vitest+browser-preview@4.1.11__@vitest+coverage-v8@4.1.11__typescript@7.0.2__@voidzero-dev+vite-plus-core@0.3.2_@vitest+coverage-v8@4.1.11__@vitest+browser@4.1.11__vitest@4.1.11__@vitest+browser-playwright@4.1.11__@vitest+browser-preview@4.1.11__@vitest+coverage-istanbul@4.1.11__@voidzero-dev+vite-plus-core@0.3.2_playwright@1.63.0_typescript@7.0.2": {
       "integrity": "sha512-mCUZaRlFEFBWlwaDjk81mkD2WX9KQKBboHX+uJPMb41JHaDfzjxnxgmiViuQJm2B+FL4prDkDYYYZtHP422jDA==",
       "dependencies": [
         "@oxc-project/types@0.149.0",
         "@oxlint/plugins",
         "@vitest/browser",
-        "@vitest/browser-playwright@4.1.11_playwright@1.63.0_vitest@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-v8@4.1.11_vite@8.3.0",
+        "@vitest/browser-playwright@4.1.11_playwright@1.63.0_vitest@4.1.11_@vitest+coverage-istanbul@4.1.11",
         "@vitest/browser-preview",
         "@vitest/expect",
-        "@vitest/mocker@4.1.11_@voidzero-dev+vite-plus-core@0.3.2_typescript@7.0.2",
+        "@vitest/mocker",
         "@vitest/pretty-format",
         "@vitest/runner",
         "@vitest/snapshot",
@@ -3934,7 +3959,7 @@
         "oxlint",
         "oxlint-tsgolint",
         "vite@npm:@voidzero-dev/vite-plus-core@0.3.2_typescript@7.0.2",
-        "vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-v8@4.1.11_@voidzero-dev+vite-plus-core@0.3.2_@vitest+browser@4.1.11_playwright@1.63.0_typescript@7.0.2"
+        "vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-istanbul@4.1.11_@vitest+coverage-v8@4.1.11_@voidzero-dev+vite-plus-core@0.3.2_playwright@1.63.0"
       ],
       "optionalDependencies": [
         "@voidzero-dev/vite-plus-darwin-arm64",
@@ -3947,7 +3972,43 @@
         "@voidzero-dev/vite-plus-win32-x64-msvc"
       ],
       "optionalPeers": [
-        "@vitest/browser-playwright@4.1.11_playwright@1.63.0_vitest@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-v8@4.1.11_vite@8.3.0"
+        "@vitest/browser-playwright@4.1.11_playwright@1.63.0_vitest@4.1.11_@vitest+coverage-istanbul@4.1.11"
+      ],
+      "bin": true
+    },
+    "vite-plus@0.3.2_@vitest+browser-playwright@4.1.11__playwright@1.63.0__vitest@4.1.11__@vitest+coverage-istanbul@4.1.11_@vitest+coverage-istanbul@4.1.11__vitest@4.1.11__@vitest+browser-playwright@4.1.11__@vitest+browser-preview@4.1.11__@vitest+coverage-v8@4.1.11__@voidzero-dev+vite-plus-core@0.3.2_playwright@1.63.0": {
+      "integrity": "sha512-mCUZaRlFEFBWlwaDjk81mkD2WX9KQKBboHX+uJPMb41JHaDfzjxnxgmiViuQJm2B+FL4prDkDYYYZtHP422jDA==",
+      "dependencies": [
+        "@oxc-project/types@0.149.0",
+        "@oxlint/plugins",
+        "@vitest/browser",
+        "@vitest/browser-playwright@4.1.11_playwright@1.63.0_vitest@4.1.11_@vitest+coverage-istanbul@4.1.11",
+        "@vitest/browser-preview",
+        "@vitest/expect",
+        "@vitest/mocker",
+        "@vitest/pretty-format",
+        "@vitest/runner",
+        "@vitest/snapshot",
+        "@vitest/spy",
+        "@vitest/utils",
+        "oxfmt",
+        "oxlint",
+        "oxlint-tsgolint",
+        "vite@npm:@voidzero-dev/vite-plus-core@0.3.2_typescript@7.0.2",
+        "vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-istanbul@4.1.11_@vitest+coverage-v8@4.1.11_@voidzero-dev+vite-plus-core@0.3.2_playwright@1.63.0"
+      ],
+      "optionalDependencies": [
+        "@voidzero-dev/vite-plus-darwin-arm64",
+        "@voidzero-dev/vite-plus-darwin-x64",
+        "@voidzero-dev/vite-plus-linux-arm64-gnu",
+        "@voidzero-dev/vite-plus-linux-arm64-musl",
+        "@voidzero-dev/vite-plus-linux-x64-gnu",
+        "@voidzero-dev/vite-plus-linux-x64-musl",
+        "@voidzero-dev/vite-plus-win32-arm64-msvc",
+        "@voidzero-dev/vite-plus-win32-x64-msvc"
+      ],
+      "optionalPeers": [
+        "@vitest/browser-playwright@4.1.11_playwright@1.63.0_vitest@4.1.11_@vitest+coverage-istanbul@4.1.11"
       ],
       "bin": true
     },
@@ -3969,14 +4030,15 @@
       ],
       "bin": true
     },
-    "vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-v8@4.1.11_@voidzero-dev+vite-plus-core@0.3.2_@vitest+browser@4.1.11_playwright@1.63.0_typescript@7.0.2": {
+    "vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-istanbul@4.1.11_@vitest+coverage-v8@4.1.11_@voidzero-dev+vite-plus-core@0.3.2_playwright@1.63.0": {
       "integrity": "sha512-fhACrNXUidIbGSBr5FlbuBkO7VWC1ZyLl0DO4CU2DrQoAPxX84Ysxs+HeGQpii5lZWV1Q4gBZTTu49mF+A6Edw==",
       "dependencies": [
-        "@vitest/browser-playwright@4.1.11_playwright@1.63.0_vitest@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-v8@4.1.11_vite@8.3.0",
+        "@vitest/browser-playwright@4.1.11_playwright@1.63.0_vitest@4.1.11_@vitest+coverage-istanbul@4.1.11",
         "@vitest/browser-preview",
-        "@vitest/coverage-v8@4.1.11_@vitest+browser@4.1.11_vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+browser-preview@4.1.11_@voidzero-dev+vite-plus-core@0.3.2",
+        "@vitest/coverage-istanbul@4.1.11_vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-v8@4.1.11_@voidzero-dev+vite-plus-core@0.3.2",
+        "@vitest/coverage-v8@4.1.11_@vitest+browser@4.1.11_vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-istanbul@4.1.11_@voidzero-dev+vite-plus-core@0.3.2",
         "@vitest/expect",
-        "@vitest/mocker@4.1.11_@voidzero-dev+vite-plus-core@0.3.2_typescript@7.0.2",
+        "@vitest/mocker",
         "@vitest/pretty-format",
         "@vitest/runner",
         "@vitest/snapshot",
@@ -3997,20 +4059,21 @@
         "why-is-node-running"
       ],
       "optionalPeers": [
-        "@vitest/browser-playwright@4.1.11_playwright@1.63.0_vitest@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-v8@4.1.11_vite@8.3.0",
+        "@vitest/browser-playwright@4.1.11_playwright@1.63.0_vitest@4.1.11_@vitest+coverage-istanbul@4.1.11",
         "@vitest/browser-preview",
-        "@vitest/coverage-v8@4.1.11_@vitest+browser@4.1.11_vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+browser-preview@4.1.11_@voidzero-dev+vite-plus-core@0.3.2"
+        "@vitest/coverage-istanbul@4.1.11_vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-v8@4.1.11_@voidzero-dev+vite-plus-core@0.3.2",
+        "@vitest/coverage-v8@4.1.11_@vitest+browser@4.1.11_vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-istanbul@4.1.11_@voidzero-dev+vite-plus-core@0.3.2"
       ],
       "bin": true
     },
     "vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-v8@4.1.11_vite@8.3.0_@vitest+browser@4.1.11_playwright@1.63.0": {
       "integrity": "sha512-fhACrNXUidIbGSBr5FlbuBkO7VWC1ZyLl0DO4CU2DrQoAPxX84Ysxs+HeGQpii5lZWV1Q4gBZTTu49mF+A6Edw==",
       "dependencies": [
-        "@vitest/browser-playwright@4.1.11_playwright@1.63.0_vitest@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-v8@4.1.11_vite@8.3.0",
+        "@vitest/browser-playwright@4.1.11_playwright@1.63.0_vitest@4.1.11_@vitest+coverage-istanbul@4.1.11",
         "@vitest/browser-preview",
-        "@vitest/coverage-v8@4.1.11_@vitest+browser@4.1.11_vitest@4.1.11_playwright@1.63.0",
+        "@vitest/coverage-v8@4.1.11_@vitest+browser@4.1.11_vitest@4.1.11_@vitest+coverage-istanbul@4.1.11_playwright@1.63.0",
         "@vitest/expect",
-        "@vitest/mocker@4.1.11_vite@8.3.0",
+        "@vitest/mocker",
         "@vitest/pretty-format",
         "@vitest/runner",
         "@vitest/snapshot",
@@ -4031,9 +4094,45 @@
         "why-is-node-running"
       ],
       "optionalPeers": [
-        "@vitest/browser-playwright@4.1.11_playwright@1.63.0_vitest@4.1.11_@vitest+browser-preview@4.1.11_@vitest+coverage-v8@4.1.11_vite@8.3.0",
+        "@vitest/browser-playwright@4.1.11_playwright@1.63.0_vitest@4.1.11_@vitest+coverage-istanbul@4.1.11",
         "@vitest/browser-preview",
-        "@vitest/coverage-v8@4.1.11_@vitest+browser@4.1.11_vitest@4.1.11_playwright@1.63.0"
+        "@vitest/coverage-v8@4.1.11_@vitest+browser@4.1.11_vitest@4.1.11_@vitest+coverage-istanbul@4.1.11_playwright@1.63.0"
+      ],
+      "bin": true
+    },
+    "vitest@4.1.11_@vitest+browser-playwright@4.1.11_@vitest+coverage-istanbul@4.1.11_@vitest+coverage-v8@4.1.11_vite@8.3.0_playwright@1.63.0": {
+      "integrity": "sha512-fhACrNXUidIbGSBr5FlbuBkO7VWC1ZyLl0DO4CU2DrQoAPxX84Ysxs+HeGQpii5lZWV1Q4gBZTTu49mF+A6Edw==",
+      "dependencies": [
+        "@vitest/browser-playwright@4.1.11_playwright@1.63.0_vitest@4.1.11_@vitest+coverage-istanbul@4.1.11",
+        "@vitest/browser-preview",
+        "@vitest/coverage-istanbul@4.1.11_vitest@4.1.11_playwright@1.63.0",
+        "@vitest/coverage-v8@4.1.11_@vitest+browser@4.1.11_vitest@4.1.11_@vitest+coverage-istanbul@4.1.11_playwright@1.63.0",
+        "@vitest/expect",
+        "@vitest/mocker",
+        "@vitest/pretty-format",
+        "@vitest/runner",
+        "@vitest/snapshot",
+        "@vitest/spy",
+        "@vitest/utils",
+        "es-module-lexer@2.3.2",
+        "expect-type",
+        "magic-string",
+        "obug",
+        "pathe",
+        "picomatch",
+        "std-env",
+        "tinybench",
+        "tinyexec",
+        "tinyglobby",
+        "tinyrainbow",
+        "vite",
+        "why-is-node-running"
+      ],
+      "optionalPeers": [
+        "@vitest/browser-playwright@4.1.11_playwright@1.63.0_vitest@4.1.11_@vitest+coverage-istanbul@4.1.11",
+        "@vitest/browser-preview",
+        "@vitest/coverage-istanbul@4.1.11_vitest@4.1.11_playwright@1.63.0",
+        "@vitest/coverage-v8@4.1.11_@vitest+browser@4.1.11_vitest@4.1.11_@vitest+coverage-istanbul@4.1.11_playwright@1.63.0"
       ],
       "bin": true
     },
@@ -4263,6 +4362,7 @@
         "npm:typescript@7.0.2",
         "npm:vite-plus@0.3.2",
         "npm:vite@8.3.0",
+        "npm:vitest@4.1.11",
         "npm:wrangler@4.129.0"
       ]
     },

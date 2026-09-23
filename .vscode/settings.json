@@ -26,7 +26,6 @@
   "js/ts.experimental.useTsgo": true,
   "js/ts.preferences.importModuleSpecifier": "relative",
   "js/ts.suggest.autoImports": true,
-  "js/ts.tsdk.path": "node_modules/typescript/lib",
   "js/ts.tsserver.experimental.enableProjectDiagnostics": false,
   "poirot.defaultLocale": "en-US",
   "rust-analyzer.linkedProjects": [
@@ -40,7 +39,7 @@
       "consume"
     ]
   },
-  "vitest.configSearchPatternExclude": "{**/node_modules/**,**/vendor/**,**/.*/**,**/*.d.ts,**/vite.config.ts*,**/*.timestamp-*.mjs}",
+  "vitest.rootConfig": "vitest.config.ts",
   "vitest.runtime": "deno",
   "vitest.showImportsDuration": true,
   "vitest.showInlineConsoleLog": true

@@ -1,11 +1,21 @@
 {
-  "allowScripts": [
-    "npm:@sentry/cli",
-    "npm:sharp",
-    "npm:sharp@0.33.5",
-    "npm:workerd",
-    "npm:workerd@1.20251202.0"
-  ],
+  "allowScripts": {
+    "allow": [
+      "npm:@inlang/message-lint-rule-empty-pattern@1.4.8",
+      "npm:@inlang/message-lint-rule-missing-translation@1.4.8",
+      "npm:@sentry/cli",
+      "npm:core-js@3.50.0",
+      "npm:sharp",
+      "npm:sharp@0.33.5",
+      "npm:workerd",
+      "npm:workerd@1.20251202.0"
+    ],
+    "deny": [
+      "npm:contextify@0.1.15",
+      "npm:esbuild@0.28.1",
+      "npm:fsevents@2.3.3"
+    ]
+  },
   "compilerOptions": {
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
