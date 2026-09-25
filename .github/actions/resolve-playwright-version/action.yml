@@ -1,5 +1,5 @@
 name: Resolve Playwright version
-description: Resolve the locked Playwright version with Deno info
+description: Resolve locked Playwright version
 
 outputs:
   version:
