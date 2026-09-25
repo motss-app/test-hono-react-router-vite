@@ -1,5 +1,5 @@
 name: Resolve Playwright version
-description: Resolve the pinned Playwright version from deno.json
+description: Resolve the locked Playwright version with Deno info
 
 outputs:
   version:
@@ -9,9 +9,9 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Read Playwright version from deno.json
+    - name: Read resolved Playwright version from Deno
       id: resolve
       shell: bash
       run: |
-        PLAYWRIGHT_VERSION=$(deno eval --quiet 'const config = JSON.parse(await Deno.readTextFile("deno.json")); const spec = config.imports?.playwright; const version = typeof spec === "string" ? spec.match(/^npm:playwright@(.+)$/)?.[1] : undefined; if (!version) throw new Error("deno.json imports.playwright must be npm:playwright@<version>"); console.log(version);')
+        PLAYWRIGHT_VERSION=$(deno info --frozen-lockfile --json playwright | jq -er '[.npmPackages[] | select(.name == "playwright") | .version] | unique | if length == 1 then .[0] else error("expected one resolved Playwright version") end')
         printf 'version=%s\n' "$PLAYWRIGHT_VERSION" >> "$GITHUB_OUTPUT"
