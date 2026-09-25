@@ -3,10 +3,10 @@ import { playwright } from 'vite-plus/test/browser-playwright';
 
 export default defineConfig({
   test: {
+    api: {
+      host: '127.0.0.1',
+    },
     browser: {
-      api: {
-        host: '127.0.0.1',
-      },
       enabled: true,
       headless: true,
       instances: [
@@ -14,7 +14,6 @@ export default defineConfig({
           browser: 'chromium',
           clearMocks: true,
           experimental: {
-            fsModuleCache: true,
             nodeLoader: true,
             openTelemetry: {
               enabled: true,
@@ -27,6 +26,7 @@ export default defineConfig({
       ],
       provider: playwright(),
     },
+    fsModuleCache: true,
     include: [
       'app/**/*.browser.test.ts',
     ],

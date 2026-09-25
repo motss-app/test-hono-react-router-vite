@@ -22,7 +22,7 @@ import {
   wrapSentryHandleRequest,
 } from '@sentry/react-router/cloudflare';
 import { isbot } from 'isbot';
-import { renderToReadableStream } from 'react-dom/server';
+import { renderToReadableStream } from 'react-dom/server.edge';
 import type { EntryContext, HandleErrorFunction } from 'react-router';
 import { ServerRouter } from 'react-router';
 

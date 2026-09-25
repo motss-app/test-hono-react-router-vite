@@ -1,6 +1,6 @@
 # Vite+ Integration
 
-Vite+ (`vite-plus@0.3.2`) supplies config helpers and test API imports.
+Vite+ (`vite-plus@1.0.0-rc.0`) supplies config helpers and test API imports.
 Frontend tasks run pinned Vitest directly with Deno so `-A` reaches the runner.
 Vite+ also powers commit hooks.
 
@@ -8,7 +8,7 @@ Vite+ also powers commit hooks.
 
 | Capability | Command | Notes |
 |---|---|---|
-| Tests (unit + browser) | `deno task --cwd=packages/frontend test` | Runs `vitest@4.1.11` directly with `deno run -A`. Root `deno task test` delegates across BFF, frontend, and gateway. |
+| Tests (unit + browser) | `deno task --cwd=packages/frontend test` | Runs `vitest@5.0.1` directly with `deno run -A`. Root `deno task test` delegates across BFF, frontend, and gateway. |
 | Commit hooks | `vp hooks enable` / `vp staged` | `staged` block in root `vite.config.ts` (Biome on staged files) + project-owned `.vite-hooks/pre-commit` |
 
 ## What was NOT adopted (and why)
@@ -22,7 +22,7 @@ Vite+ also powers commit hooks.
 | `vp pack` | ❌ Not needed | No npm libraries are published. |
 | `vp migrate` | ❌ Avoided | Would rewrite manifests toward pnpm/npm, breaking Deno-first setup. |
 
-- `vite-plus@0.3.2` is pinned as a devDependency and supplies `defineConfig`
+- `vite-plus@1.0.0-rc.0` is pinned as a devDependency and supplies `defineConfig`
   and `vite-plus/test`.
 - Frontend test tasks use the pinned Vitest CLI directly. Running `vp test`
   through `deno x` started Vitest as a Deno child without permission flags and
@@ -33,7 +33,7 @@ Vite+ also powers commit hooks.
   `frontend-browser` configs for package-local Deno tasks.
 - The unit project uses the threads pool so workers inherit Deno's `-A`
   permissions instead of starting permissionless Deno child processes.
-- The direct `vitest@4.1.11` dependency matches the `vite-plus/test` API version.
+- The direct `vitest@5.0.1` dependency matches the `vite-plus/test` API version.
 - Test files import from `vite-plus/test` (re-export of upstream `vitest`).
 
 ## Test file conventions
