@@ -11,7 +11,7 @@ Always work inside this directory (`/Users/rongsen/motss/test-hono-react-router-
 Before editing:
 
 - Do not create or use a linked Git worktree unless the user explicitly requests one for this task.
-- Use `main` by default. If the current branch is not `main`, ask the user whether to continue on the current branch or switch to `main`. Do not switch branches until the user decides.
+- Default to `main` for all new changes, regardless of file. On another branch, ask once per task: "Use `<current-branch>` for these changes? `go`/`yes` to continue, `switch`/`no` for `main`." Wait before editing or committing and honor any existing choice.
 - Before editing, ensure `main` or the approved current working branch is up to date with its configured upstream. After checking the worktree, use a fast-forward-only pull for the selected branch. If the branch has no upstream, has uncommitted changes, or it is unclear whether pulling is safe or desired, prompt the user before pulling.
 - After an authorized branch switch, complete this update before editing.
 
