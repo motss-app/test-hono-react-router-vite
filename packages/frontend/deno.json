@@ -34,8 +34,9 @@
     "./worker": "./worker.ts"
   },
   "imports": {
-    "posthog-js": "npm:posthog-js@1.427.2",
-    "posthog-node": "npm:posthog-node@5.51.6"
+    "posthog-js": "catalog:",
+    "posthog-node": "catalog:",
+    "react-dom": "catalog:"
   },
   "name": "@motss-app/frontend",
   "permissions": {

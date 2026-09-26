@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite-plus';
 
 /**
- * Vitest config powered by Vite+ (`vite-plus` bundles Vitest 4.1.11).
+ * Vitest config powered by Vite+ (`vite-plus` bundles Vitest 5.0.1).
  *
  * The package config aggregates the frontend projects for package-local CLI
  * runs. The root Vitest config discovers the individual projects across the
