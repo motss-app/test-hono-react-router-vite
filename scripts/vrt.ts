@@ -118,6 +118,41 @@ async function screenshot(
     });
   }
 
+  /*
+   * Wait for every finite CSS animation and transition to finish before
+   * capturing.
+   *
+   * The reveal keyframes used by the lab pages animate
+   * `transform: translateY(1rem)` to `translateY(0)`. A running transform
+   * promotes the element to its own compositing layer, so a capture taken
+   * mid-animation rasterises the antialiased edge of a rounded corner a
+   * subpixel away from its final position. That showed up as six pixels
+   * changing by one or two levels out of 3.3 million on the dominant-color
+   * pages, which is enough for a byte comparison to fail.
+   *
+   * `animations: 'disabled'` alone is not enough because it only settles
+   * animations that already exist at capture time, and whether a given
+   * entry animation has started is itself a race.
+   *
+   * Infinite animations must be excluded, because their `finished` promise
+   * never settles. The spec reports an infinite iteration count as `null`
+   * rather than `Infinity`, so a plain `!== Infinity` test silently lets
+   * the 18s artworkDrift loop through and changes what the homepage, about
+   * and errors pages capture. The screenshot option below still cancels
+   * those back to their first frame.
+   */
+  await playwrightPage.evaluate(() =>
+    Promise.all(
+      document
+        .getAnimations()
+        .filter(animation => {
+          const iterations = animation.effect?.getComputedTiming().iterations;
+          return iterations !== null && Number.isFinite(iterations);
+        })
+        .map(animation => animation.finished.catch(() => undefined))
+    )
+  );
+
   const path = `${OUTPUT_DIR}/${page.name}-${viewportName}-${theme}.png`;
   await playwrightPage.screenshot({
     // Fast-forwards finite animations to their final state and cancels
@@ -126,6 +161,21 @@ async function screenshot(
     // animation frame and VRT reports false diffs.
     animations: 'disabled',
     fullPage: true,
+    /*
+     * Mask every element the app tagged `data-vrt-volatile`. Those hold
+     * wall-clock measurements (the Mandelbrot render time, the edge render
+     * time, the JS/WASM/GPU race), which differ on every single run. They
+     * used to make Sentry report changed snapshots on PRs that touched no
+     * UI at all, because the readiness gate above waits for the measured
+     * value to be painted before capturing.
+     *
+     * Readiness still keys off the real value via `data-vrt-ready`, so
+     * masking never lets a half-rendered region into a baseline. Pages
+     * without the attribute simply match nothing and are left untouched.
+     */
+    mask: [
+      playwrightPage.locator('[data-vrt-volatile]'),
+    ],
     path,
   });
 
@@ -138,6 +188,24 @@ async function capturePages(browser: Browser, pages: readonly Page[]): Promise<v
       for (const theme of THEMES) {
         const context = await browser.newContext({
           colorScheme: theme,
+          /*
+           * Emulate `prefers-reduced-motion: reduce`.
+           *
+           * Every animated rule on these pages ships a reduced-motion
+           * override that collapses the duration to 1ms for a single
+           * iteration, including the infinite 18s artworkDrift loop. The
+           * page therefore reaches its final state immediately and
+           * identically on every run, which removes the whole class of
+           * capture-versus-animation races instead of patching them.
+           *
+           * This matters because the alternative loses. A one-shot wait for
+           * `animation.finished` cannot help when the entry animation has
+           * not been created yet: on a cold first pass the hero artwork was
+           * photographed mid-reveal, at roughly a seventh of its real
+           * contrast, which moved 16% of the pixels on the zh-TW errors
+           * page.
+           */
+          reducedMotion: 'reduce',
           viewport,
         });
 
