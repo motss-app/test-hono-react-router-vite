@@ -11,6 +11,7 @@ worker = "0.8.5"
 image = { version = "0.25.10", default-features = false, features = ["avif", "bmp", "gif", "jpeg", "png", "tiff", "webp"] }
 color_quant = "=2.0.0"
 png = "=0.18.1"
+webp-rust = "=0.3.2"
 
 [profile.release]
 lto = true
