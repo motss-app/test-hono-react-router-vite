@@ -345,7 +345,6 @@
   "image_optimize_preset_square": "Square (512×512)",
   "image_optimize_preset_thumb": "Thumbnail (256×256)",
   "image_optimize_preset_title": "Quick presets",
-  "image_optimize_quality_lossless": "Lossless output",
   "image_optimize_quality_title": "Quality",
   "image_optimize_reset": "Reset",
   "image_optimize_width_placeholder": "Width",

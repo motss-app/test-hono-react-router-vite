@@ -72,10 +72,10 @@
       "route": "/labs-dominant-color"
     },
     {
-      "gzipBytes": 299241,
-      "ownGzipBytes": 7211,
-      "ownRawBytes": 24102,
-      "rawBytes": 895120,
+      "gzipBytes": 299128,
+      "ownGzipBytes": 7098,
+      "ownRawBytes": 23781,
+      "rawBytes": 894799,
       "route": "/labs-image-optimize"
     },
     {
