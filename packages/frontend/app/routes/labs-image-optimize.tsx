@@ -208,9 +208,7 @@ function ResultMetadata({ result }: { result: ResizeResult }): JSX.Element {
       </div>
       <div className={c.metadataRow}>
         <span className={c.metadataLabel}>{m.image_optimize_quality_title()}</span>
-        <span className={c.metadataValue}>
-          {result.format === 'webp' ? m.image_optimize_quality_lossless() : String(result.quality)}
-        </span>
+        <span className={c.metadataValue}>{String(result.quality)}</span>
       </div>
       <div className={c.metadataRow}>
         <span className={c.metadataLabel}>{m.image_optimize_label_total_time()}</span>
@@ -431,7 +429,7 @@ function useImageOptimize() {
       if (targetHeight > 0) params.set('h', String(targetHeight));
       params.set('f', format);
       params.set('fit', 'scale-down');
-      if (format !== 'webp') params.set('q', String(quality));
+      params.set('q', String(quality));
       params.set('filter', filter);
 
       const response = await fetch(`/api/rust/image-optimize/resize?${params}`, {
@@ -662,17 +660,14 @@ export default function ImageOptimizeLab(): JSX.Element {
             </div>
 
             {/* Output quality */}
-            <div className={format === 'webp' ? c.qualityControlDisabled : undefined}>
+            <div>
               <div className={c.qualityHeader}>
                 <p className={c.sectionLabel}>{m.image_optimize_quality_title()}</p>
-                <span className={c.qualityValue}>
-                  {format === 'webp' ? m.image_optimize_quality_lossless() : String(quality)}
-                </span>
+                <span className={c.qualityValue}>{String(quality)}</span>
               </div>
               <input
                 aria-label={m.image_optimize_quality_title()}
                 className={c.qualityInput}
-                disabled={format === 'webp'}
                 max={100}
                 min={1}
                 onChange={onQualityChange}

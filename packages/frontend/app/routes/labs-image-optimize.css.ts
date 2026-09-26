@@ -604,9 +604,6 @@ export const qualityHeader = style({
   display: 'flex',
   justifyContent: 'space-between',
 });
-export const qualityControlDisabled = style({
-  opacity: 0.45,
-});
 export const qualityInput = style({
   accentColor: '#3b82f6',
   display: 'block',

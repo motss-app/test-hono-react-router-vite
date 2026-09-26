@@ -6,7 +6,7 @@
  */
 
 use image::{DynamicImage, ImageBuffer, ImageReader, Rgba};
-use std::{collections::HashMap, io::Cursor};
+use std::{borrow::Cow, collections::HashMap, io::Cursor};
 use worker::*;
 
 const MAX_UPLOAD_BYTES: usize = 32 * 1024 * 1024;
@@ -523,12 +523,37 @@ fn encode_output(
         }
         OutputFormat::Png => encode_png(image, quality, quality_explicit),
         OutputFormat::Webp => {
-            let mut output = Vec::new();
-            let encoder = image::codecs::webp::WebPEncoder::new_lossless(Cursor::new(&mut output));
-            image
-                .write_with_encoder(encoder)
-                .map_err(|_| "WebP encoding failed")?;
-            Ok(output)
+            /*
+             * Borrow the resize buffer. The encoder already copies RGBA for
+             * YUV conversion, so another full frame wastes the Worker budget.
+             * webp-rust 0.3.2 includes the saturated-chroma rounding fix.
+             */
+            let rgba = match image.as_rgba8() {
+                Some(rgba) => Cow::Borrowed(rgba),
+                None => Cow::Owned(image.to_rgba8()),
+            };
+            let config = webp_rust::LossyEncodingConfig {
+                quality: f32::from(quality),
+                alpha_quality: 100,
+                /*
+                 * Compressed alpha runs a second lossless encoder with
+                 * multiple full-frame working buffers. Use raw exact alpha
+                 * above 300K pixels to stay within the Worker memory budget.
+                 */
+                alpha_method: if u64::from(rgba.width()) * u64::from(rgba.height()) > 300_000 {
+                    0
+                } else {
+                    1
+                },
+                ..Default::default()
+            };
+            webp_rust::encoder::encode_lossy_rgba_to_webp_with_config(
+                rgba.width() as usize,
+                rgba.height() as usize,
+                rgba.as_raw(),
+                &config,
+            )
+            .map_err(|_| "WebP encoding failed")
         }
     }
 }
@@ -581,6 +606,9 @@ fn set_resize_headers(
     response.headers().set("x-image-fit", FIT_SCALE_DOWN)?;
     response.headers().set("x-image-format", format.name())?;
     response.headers().set("x-image-quality", &quality)?;
+    if format == OutputFormat::Webp {
+        response.headers().set("x-image-encoding", "lossy")?;
+    }
     response
         .headers()
         .set("x-image-compression-ratio", compression_ratio)?;
@@ -1346,37 +1374,101 @@ mod tests {
         );
     }
 
-    /**
-     * CF parity (documentation): WebP is intentionally lossless.
-     *
-     * The image crate has no lossy WebP encoder ("If you need lossy
-     * encoding, you'll have to use libwebp"), and the lab UI labels the
-     * format "Lossless output". Cloudflare serves a lossy 2904-byte WebP;
-     * ours is ~11KB with infinite fidelity to the resize. This test pins
-     * the lossless contract so a future encoder swap is a conscious
-     * decision, not an accident.
-     */
     #[test]
-    fn webp_output_is_lossless() {
+    fn webp_preserves_saturated_colors() {
+        for color in [[255, 0, 0, 255], [0, 255, 0, 255], [0, 0, 255, 255]] {
+            for (width, height) in [(16, 16), (17, 19), (1, 1)] {
+                let image =
+                    DynamicImage::ImageRgba8(RgbaImage::from_pixel(width, height, Rgba(color)));
+                let webp = encode_output(&image, OutputFormat::Webp, 85, true).unwrap();
+                let decoded = image::load_from_memory_with_format(&webp, image::ImageFormat::WebP)
+                    .unwrap()
+                    .to_rgba8();
+                assert_eq!(decoded.dimensions(), (width, height));
+                for pixel in decoded.pixels() {
+                    for channel in 0..3 {
+                        assert!(
+                            pixel[channel].abs_diff(color[channel]) <= 16,
+                            "saturated {color:?} decoded as {pixel:?}"
+                        );
+                    }
+                    assert_eq!(pixel[3], 255);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn webp_preserves_alpha_at_quality_extremes() {
+        let rgba = RgbaImage::from_fn(17, 19, |x, y| {
+            Rgba([220, 40, 80, ((x + y * 17) % 256) as u8])
+        });
+        let image = DynamicImage::ImageRgba8(rgba.clone());
+        for quality in [1, 85, 100] {
+            let webp = encode_output(&image, OutputFormat::Webp, quality, true).unwrap();
+            let decoded = image::load_from_memory_with_format(&webp, image::ImageFormat::WebP)
+                .unwrap()
+                .to_rgba8();
+            assert_eq!(decoded.dimensions(), rgba.dimensions());
+            for (actual, expected) in decoded.pixels().zip(rgba.pixels()) {
+                assert_eq!(actual[3], expected[3], "WebP alpha must remain exact");
+            }
+        }
+    }
+
+    #[test]
+    fn webp_preserves_large_alpha() {
+        let image = DynamicImage::ImageRgba8(RgbaImage::from_fn(640, 480, |x, y| {
+            Rgba([220, 40, 80, ((x + y) % 256) as u8])
+        }));
+        let webp = encode_output(&image, OutputFormat::Webp, 85, true).unwrap();
+        let decoded = image::load_from_memory_with_format(&webp, image::ImageFormat::WebP)
+            .unwrap()
+            .to_rgba8();
+        assert_eq!(decoded.dimensions(), (640, 480));
+        for (x, y, pixel) in decoded.enumerate_pixels() {
+            assert_eq!(pixel[3], ((x + y) % 256) as u8);
+        }
+    }
+
+    #[test]
+    fn webp_quality_controls_size_and_fidelity() {
         let img = ImageReader::open("tests/fixtures/iphone-duo.png")
-            .expect("test fixture exists")
+            .unwrap()
             .decode()
-            .expect("valid PNG");
+            .unwrap();
         let (out_w, out_h) = resize_dimensions(img.width(), img.height(), 100, 100);
         let resized = resize_premul(img, out_w, out_h, image::imageops::FilterType::Lanczos3);
-
-        let webp = encode_output(&resized, OutputFormat::Webp, 85, true).unwrap();
-        let decoded = image::load_from_memory_with_format(&webp, image::ImageFormat::WebP).unwrap();
-
-        assert_eq!(decoded.width(), resized.width());
-        assert_eq!(decoded.height(), resized.height());
-        /* Lossless: every pixel must round-trip exactly. */
-        let a = decoded.to_rgba8();
-        let b = resized.to_rgba8();
-        assert_eq!(
-            a.as_raw(),
-            b.as_raw(),
-            "WebP output must be pixel-identical to the resize",
+        let low = encode_output(&resized, OutputFormat::Webp, 20, true).unwrap();
+        let high = encode_output(&resized, OutputFormat::Webp, 85, true).unwrap();
+        let default = encode_output(&resized, OutputFormat::Webp, DEFAULT_QUALITY, false).unwrap();
+        assert_eq!(default, high, "omitting q must use lossy quality 85");
+        assert!(high.windows(4).any(|chunk| chunk == b"VP8 "));
+        let low_img = image::load_from_memory_with_format(&low, image::ImageFormat::WebP).unwrap();
+        let high_img =
+            image::load_from_memory_with_format(&high, image::ImageFormat::WebP).unwrap();
+        let low_psnr = psnr_opaque(&low_img, &resized);
+        let high_psnr = psnr_opaque(&high_img, &resized);
+        eprintln!(
+            "WebP q20: {} B, {low_psnr:.2} dB. q85: {} B, {high_psnr:.2} dB",
+            low.len(),
+            high.len()
+        );
+        assert!(low.len() < high.len(), "quality must affect fixture size");
+        assert!(high_psnr > low_psnr + 3.0, "quality must improve fidelity");
+        assert!(
+            high_psnr >= 28.0,
+            "default WebP fidelity regressed: {high_psnr:.2}"
+        );
+        let mut lossless = Vec::new();
+        resized
+            .write_with_encoder(image::codecs::webp::WebPEncoder::new_lossless(Cursor::new(
+                &mut lossless,
+            )))
+            .unwrap();
+        assert!(
+            high.len() < lossless.len(),
+            "lossy WebP must shrink this fixture"
         );
     }
 }
