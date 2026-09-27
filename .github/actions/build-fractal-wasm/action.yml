@@ -16,7 +16,10 @@ runs:
 
     - name: Install wasm-bindgen CLI
       shell: bash
-      run: cargo install wasm-bindgen-cli --version 0.2.128 --locked
+      # Must match `wasm-bindgen` in packages/fractal-wasm/Cargo.toml exactly.
+      # `cargo install` is a no-op when the hosted runner already ships this
+      # version, so keep both pins in lockstep when either one is bumped.
+      run: cargo install wasm-bindgen-cli --version 0.2.129 --locked
 
     - name: Install binaryen (wasm-opt)
       uses: ./.github/actions/install-binaryen
