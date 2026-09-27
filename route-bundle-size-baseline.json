@@ -72,17 +72,17 @@
       "route": "/labs-dominant-color"
     },
     {
-      "gzipBytes": 299128,
-      "ownGzipBytes": 7098,
-      "ownRawBytes": 23781,
-      "rawBytes": 894799,
+      "gzipBytes": 299148,
+      "ownGzipBytes": 7118,
+      "ownRawBytes": 23804,
+      "rawBytes": 894822,
       "route": "/labs-image-optimize"
     },
     {
-      "gzipBytes": 304614,
-      "ownGzipBytes": 12584,
-      "ownRawBytes": 35010,
-      "rawBytes": 906028,
+      "gzipBytes": 304638,
+      "ownGzipBytes": 12608,
+      "ownRawBytes": 35096,
+      "rawBytes": 906114,
       "route": "/labs-mandelbrot"
     },
     {
