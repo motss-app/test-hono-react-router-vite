@@ -504,6 +504,20 @@ async function main() {
     Deno.exit(1);
   }
 
+  /*
+   * Create the output directory up front.
+   *
+   * `__screenshots__` is gitignored, so it does not exist in a fresh CI
+   * checkout. Playwright used to create it implicitly, because
+   * `page.screenshot({ path })` makes any missing parent directories.
+   * Capturing to a buffer and writing the bytes with `Deno.writeFile`
+   * does not, and the first capture died on ENOENT before writing
+   * anything. Creating it once here keeps that invariant in one place.
+   */
+  await Deno.mkdir(OUTPUT_DIR, {
+    recursive: true,
+  });
+
   const managedStack = state === 'down';
   if (managedStack) {
     /*
