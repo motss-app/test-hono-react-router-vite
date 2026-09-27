@@ -7,12 +7,12 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-worker = "0.8.5"
-serde = { version = "1", features = ["derive"] }
-js-sys = "0.3"
+worker = "=0.8.7"
+serde = { version = "=1.0.229", features = ["derive"] }
+js-sys = "=0.3.106"
 # Shared Mandelbrot kernel also compiled into the browser-facing WASM module.
 fractal-wasm = { path = "../fractal-wasm" }
-png = "0.18.1"
+png = "=0.18.1"
 
 [profile.release]
 # `strip = true` breaks wasm-bindgen ("externref table required for catch
