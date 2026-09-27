@@ -212,7 +212,16 @@ function ResultMetadata({ result }: { result: ResizeResult }): JSX.Element {
       </div>
       <div className={c.metadataRow}>
         <span className={c.metadataLabel}>{m.image_optimize_label_total_time()}</span>
-        <span className={c.metadataValue}>
+        {/*
+         * Server-side wall-clock measurement, so it varies per run.
+         * `data-vrt-volatile` lets scripts/vrt.ts mask it. The row only
+         * renders after a file is chosen, which the current VRT pass never
+         * does, so this is future-proofing rather than an active diff source.
+         */}
+        <span
+          className={c.metadataValue}
+          data-vrt-volatile=""
+        >
           {result.total_ms === null ? 'Unavailable' : `${result.total_ms.toFixed(1)} ms`}
         </span>
       </div>

@@ -273,7 +273,19 @@ function ViewStatusBar({
               ? m.labs_mandelbrot_label_render_ms_js()
               : m.labs_mandelbrot_label_render_ms()}
         </p>
-        <p className={c.statusValue}>{renderMs === null ? '-' : formatMs(renderMs)}</p>
+        {/*
+         * Render time is a wall-clock measurement, so it differs on every
+         * run. `data-vrt-volatile` tells scripts/vrt.ts to mask this value so
+         * the screenshot stays byte-stable. The readiness gate below still
+         * waits on the real `renderMs`, so masking never captures a
+         * half-rendered canvas.
+         */}
+        <p
+          className={c.statusValue}
+          data-vrt-volatile=""
+        >
+          {renderMs === null ? '-' : formatMs(renderMs)}
+        </p>
       </div>
       <div className={c.statusItem}>
         <p className={c.statusLabel}>{m.labs_mandelbrot_label_resolution()}</p>
@@ -300,7 +312,12 @@ function RaceResults({ race }: { race: RaceResult }): JSX.Element {
   const speedupOf = (ms: number): string => (ms > 0 ? ` (${(race.jsMs / ms).toFixed(1)}×)` : '');
 
   return (
-    <div>
+    /*
+     * Every bar width is a ratio of measured runtimes, so the whole panel is
+     * volatile. Mask the wrapper rather than the individual values so the
+     * bars are covered too.
+     */
+    <div data-vrt-volatile="">
       <div className={c.raceRow}>
         <span className={c.raceName}>{m.labs_mandelbrot_label_javascript()}</span>
         <div className={c.raceTrack}>
@@ -360,7 +377,12 @@ function EdgeResultView({ edge }: { edge: EdgeResult }): JSX.Element {
       <div className={c.edgeMeta}>
         <div className={c.statusItem}>
           <p className={c.statusLabel}>{m.labs_mandelbrot_label_edge_time()}</p>
-          <p className={c.statusValue}>{formatMs(edge.ms)}</p>
+          <p
+            className={c.statusValue}
+            data-vrt-volatile=""
+          >
+            {formatMs(edge.ms)}
+          </p>
         </div>
         <div className={c.statusItem}>
           <p className={c.statusLabel}>{m.labs_mandelbrot_label_file_size()}</p>
@@ -618,8 +640,24 @@ function CanvasPanel({
   return (
     <div
       className={c.canvasShell}
+      /*
+       * VRT readiness needs to cover every async signal on the page, not
+       * just the canvas. `renderMs` alone is not enough: the WebGL2 engine
+       * paints before the WASM module resolves, so the capture could land
+       * while the "Run the race" button is still in its disabled loading
+       * style. That produced a different button colour and a different
+       * page height on roughly half of the runs. Waiting for the module to
+       * settle as well makes the whole page quiescent before capture.
+       *
+       * A failed module load is also a settled state, and in that case the
+       * canvas never renders, so the `engine === 'wasm'` branch keeps the
+       * gate from hanging forever.
+       */
       data-vrt-ready={
-        renderMs !== null || (engine === 'wasm' && wasmStatus === 'error') ? 'true' : 'false'
+        wasmStatus !== 'loading' &&
+        (renderMs !== null || (engine === 'wasm' && wasmStatus === 'error'))
+          ? 'true'
+          : 'false'
       }
       ref={shellRef}
     >
