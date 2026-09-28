@@ -17,7 +17,12 @@
  */
 
 import { expect } from '@playwright/test';
-import { type Browser, type BrowserContext, chromium } from 'playwright';
+import {
+  type Browser,
+  type BrowserContext,
+  chromium,
+  type Page as PlaywrightPage,
+} from 'playwright';
 
 import { discoverPrerenderRoutes } from '../vite-utils/route-discovery.ts';
 import { clearPorts } from './dev-ports.ts';
@@ -27,6 +32,169 @@ const FRONTEND_DIR = new URL('../packages/frontend', import.meta.url).pathname;
 const GATEWAY_DIR = new URL('../packages/gateway', import.meta.url).pathname;
 const OUTPUT_DIR = new URL('../__screenshots__/', import.meta.url).pathname;
 const BROWSER_COUNT = 2;
+
+/*
+ * How many consecutive captures must match before the frame is accepted,
+ * and how far apart they are sampled.
+ *
+ * A single capture is taken at an arbitrary instant, so any paint that
+ * lands after the waits below is baked into the file. Sentry compares
+ * snapshots byte for byte, so those one-off differences surface as
+ * changed snapshots on PRs that touch no UI at all. Two identical
+ * captures in a row prove the frame has settled.
+ *
+ * The gap between attempts is what makes this work. Capturing twice in
+ * quick succession can match while the page is still mid-transition,
+ * because nothing changed during those few milliseconds. The footer
+ * LocaleSwitcher alone sits in a Suspense fallback for roughly 400ms
+ * during hydration, so back-to-back captures happily agreed on the
+ * wrong frame. Spacing the samples wider than that window turns the
+ * check into a real observation of stability.
+ */
+const SCREENSHOT_STABILITY_ATTEMPTS = 6;
+const SCREENSHOT_SETTLE_INTERVAL_MS = 500;
+
+/*
+ * How long to wait for the page to stop making network requests. The
+ * hydration blink is caused by a React.lazy chunk, so going quiet is the
+ * signal that the chunk has landed.
+ */
+const NETWORK_IDLE_TIMEOUT_MS = 10_000;
+
+/*
+ * Block until everything the page paints from the network has decoded.
+ *
+ * `document.fonts.ready` only covers web fonts. It says nothing about
+ * CSS `background-image` artwork, which every hero on this site uses
+ * (`/assets/*-hero-{dark,light}.svg` behind `heroMedia`). Those decode
+ * on their own schedule, so a capture taken early leaves a bare gradient
+ * where the artwork belongs.
+ *
+ * This did not cause the flake investigated in the same change as the
+ * settle loop, which turned out to be the hydration blink below. It stays
+ * because a background image that has not painted is exactly the kind of
+ * late arrival the settle loop is meant to catch, and on a cold runner
+ * that timing is not guaranteed.
+ */
+async function waitForPaint(page: PlaywrightPage) {
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+
+    await Promise.all(
+      Array.from(document.images)
+        .filter(image => !image.complete)
+        .map(image => image.decode().catch(() => undefined))
+    );
+
+    /*
+     * Read the resolved `background-image` off every element rather than
+     * the stylesheet source, so a media-gated variant contributes only
+     * the one the current color scheme actually applies. Otherwise a
+     * light capture would also wait on the dark asset and vice versa.
+     */
+    const sources = new Set<string>();
+    for (const element of document.querySelectorAll('*')) {
+      const { backgroundImage } = getComputedStyle(element);
+      for (const [, , value] of backgroundImage.matchAll(/url\((['"]?)(.*?)\1\)/g)) {
+        if (value && !value.startsWith('data:')) {
+          sources.add(new URL(value, document.baseURI).href);
+        }
+      }
+    }
+
+    await Promise.all(
+      Array.from(
+        sources,
+        src =>
+          new Promise<void>(resolve => {
+            const image = new Image();
+            image.src = src;
+            /*
+             * `decode()` rejects for anything that fails to load. That
+             * must not abort the capture, because the page still renders
+             * with the background simply absent, and a timeout on one
+             * asset should not fail the whole run.
+             */
+            image.decode().then(resolve, resolve);
+          })
+      )
+    );
+  });
+
+  /*
+   * Normalize scroll position. The gates above can leave the page
+   * scrolled, and a scroll-triggered reveal that has already fired would
+   * otherwise be captured in a different state than one that has not.
+   */
+  await page.evaluate(() => window.scrollTo(0, 0));
+
+  /*
+   * Wait for the page to go quiet.
+   *
+   * The footer LocaleSwitcher is a React.lazy chunk. Hydration replaces
+   * the server-rendered trigger with the Suspense fallback while that
+   * chunk is in flight, shrinking the footer from 83px to 70px and the
+   * page by 13px, then restoring it once the chunk lands. Any capture
+   * inside that window records a page 13px shorter than the real one.
+   *
+   * Waiting for the network to settle puts the capture after the chunk
+   * has arrived. A page that never goes quiet, such as one holding a
+   * long-lived analytics connection, must not fail the run, so a timeout
+   * falls through to the settle loop in the capture step.
+   */
+  try {
+    await page.waitForLoadState('networkidle', {
+      timeout: NETWORK_IDLE_TIMEOUT_MS,
+    });
+  } catch {
+    // Never went idle. The settle loop still guarantees a consistent frame.
+  }
+}
+
+/*
+ * Capture until the frame stops changing, then hand back the bytes.
+ *
+ * Returns the first pair of byte-identical captures. When the page never
+ * settles inside the attempt budget the last capture is returned and a
+ * warning naming the page is logged, so a genuinely unstable page is
+ * visible instead of silently writing whichever frame happened to be
+ * first.
+ */
+async function captureStableScreenshot(
+  page: PlaywrightPage,
+  label: string,
+  options: Parameters<PlaywrightPage['screenshot']>[0]
+): Promise<Uint8Array> {
+  const digest = async (bytes: Uint8Array) => {
+    /*
+     * Copy into a freshly allocated buffer first. Playwright hands back a
+     * `Uint8Array<ArrayBufferLike>`, which `BufferSource` rejects because
+     * it may be backed by a SharedArrayBuffer.
+     */
+    const copy = new Uint8Array(bytes.byteLength);
+    copy.set(bytes);
+
+    const hash = await crypto.subtle.digest('SHA-256', copy);
+    return Array.from(new Uint8Array(hash), byte => byte.toString(16).padStart(2, '0')).join('');
+  };
+
+  let previous: Uint8Array = await page.screenshot(options);
+
+  for (let attempt = 1; attempt < SCREENSHOT_STABILITY_ATTEMPTS; attempt += 1) {
+    await page.waitForTimeout(SCREENSHOT_SETTLE_INTERVAL_MS);
+
+    const current: Uint8Array = await page.screenshot(options);
+    if ((await digest(current)) === (await digest(previous))) {
+      return current;
+    }
+    previous = current;
+  }
+
+  console.warn(
+    `${label} did not settle after ${SCREENSHOT_STABILITY_ATTEMPTS} attempts, keeping the last capture.`
+  );
+  return previous;
+}
 
 /**
  * Viewport definitions based on real-world devices.
@@ -77,20 +245,25 @@ async function screenshot(
   theme: string
 ) {
   const playwrightPage = await context.newPage();
-  await playwrightPage.goto(`${BASE_URL}${page.path}`, {
-    waitUntil: 'domcontentloaded',
-  });
 
-  // Wait for web fonts so text rendering is deterministic.
-  await playwrightPage.evaluate(() => document.fonts.ready);
+  /*
+   * Navigate to `load` rather than `domcontentloaded`. The hero artwork
+   * is a CSS `background-image`, and `domcontentloaded` resolves as soon
+   * as the HTML parses, long before the stylesheet has been applied and
+   * the image requested.
+   */
+  await playwrightPage.goto(`${BASE_URL}${page.path}`, {
+    timeout: 60_000,
+    waitUntil: 'load',
+  });
 
   /*
    * Wait for the lazy-loaded LocaleSwitcher to finish rendering. The
    * footer wraps LocaleSwitcherInner in React.lazy + Suspense. While
    * the chunk downloads, a plain "..." fallback is shown. On slow or
    * variable networks (like GHA runners) the chunk may not have arrived
-   * by the time fonts finish loading, so the screenshot captures the
-   * fallback text instead of the real locale selector.
+   * by the time the paint gates below finish, so the screenshot captures
+   * the fallback text instead of the real locale selector.
    *
    * Detect the locale switcher via the Suspense fallback element
    * (.locale-switcher-fallback), which exists while the lazy chunk
@@ -117,6 +290,14 @@ async function screenshot(
       state: 'attached',
     });
   }
+
+  /*
+   * Everything the page paints from the network is decoded before
+   * capturing. This runs after the readiness gates above rather than
+   * right after navigation, because a lazy chunk that has not resolved
+   * yet can still introduce images and backgrounds of its own.
+   */
+  await waitForPaint(playwrightPage);
 
   /*
    * Wait for every finite CSS animation and transition to finish before
@@ -154,30 +335,42 @@ async function screenshot(
   );
 
   const path = `${OUTPUT_DIR}/${page.name}-${viewportName}-${theme}.png`;
-  await playwrightPage.screenshot({
-    // Fast-forwards finite animations to their final state and cancels
-    // infinite ones (such as the homepage artworkDrift hero animation) back
-    // to their initial state. Without this, every run captures a different
-    // animation frame and VRT reports false diffs.
-    animations: 'disabled',
-    fullPage: true,
-    /*
-     * Mask every element the app tagged `data-vrt-volatile`. Those hold
-     * wall-clock measurements (the Mandelbrot render time, the edge render
-     * time, the JS/WASM/GPU race), which differ on every single run. They
-     * used to make Sentry report changed snapshots on PRs that touched no
-     * UI at all, because the readiness gate above waits for the measured
-     * value to be painted before capturing.
-     *
-     * Readiness still keys off the real value via `data-vrt-ready`, so
-     * masking never lets a half-rendered region into a baseline. Pages
-     * without the attribute simply match nothing and are left untouched.
-     */
-    mask: [
-      playwrightPage.locator('[data-vrt-volatile]'),
-    ],
-    path,
-  });
+  const image = await captureStableScreenshot(
+    playwrightPage,
+    `${page.path} (${viewportName}, ${theme})`,
+    {
+      // Fast-forwards finite animations to their final state and cancels
+      // infinite ones (such as the homepage artworkDrift hero animation) back
+      // to their initial state. Without this, every run captures a different
+      // animation frame and VRT reports false diffs.
+      animations: 'disabled',
+      // Hides the text caret in a focused control, which is otherwise drawn
+      // or not depending on whether the field happened to hold focus.
+      caret: 'hide',
+      fullPage: true,
+      /*
+       * Mask every element the app tagged `data-vrt-volatile`. Those hold
+       * wall-clock measurements (the Mandelbrot render time, the edge render
+       * time, the JS/WASM/GPU race), which differ on every single run. They
+       * used to make Sentry report changed snapshots on PRs that touched no
+       * UI at all, because the readiness gate above waits for the measured
+       * value to be painted before capturing.
+       *
+       * Readiness still keys off the real value via `data-vrt-ready`, so
+       * masking never lets a half-rendered region into a baseline. Pages
+       * without the attribute simply match nothing and are left untouched.
+       */
+      mask: [
+        playwrightPage.locator('[data-vrt-volatile]'),
+      ],
+    }
+  );
+
+  /*
+   * Written only after the frame settled, so a half-painted capture
+   * never reaches the baseline.
+   */
+  await Deno.writeFile(path, image);
 
   await playwrightPage.close();
 }
@@ -310,6 +503,20 @@ async function main() {
     );
     Deno.exit(1);
   }
+
+  /*
+   * Create the output directory up front.
+   *
+   * `__screenshots__` is gitignored, so it does not exist in a fresh CI
+   * checkout. Playwright used to create it implicitly, because
+   * `page.screenshot({ path })` makes any missing parent directories.
+   * Capturing to a buffer and writing the bytes with `Deno.writeFile`
+   * does not, and the first capture died on ENOENT before writing
+   * anything. Creating it once here keeps that invariant in one place.
+   */
+  await Deno.mkdir(OUTPUT_DIR, {
+    recursive: true,
+  });
 
   const managedStack = state === 'down';
   if (managedStack) {
