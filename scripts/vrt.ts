@@ -126,7 +126,7 @@ async function waitForPaint(page: PlaywrightPage) {
    * scrolled, and a scroll-triggered reveal that has already fired would
    * otherwise be captured in a different state than one that has not.
    */
-  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.evaluate(() => globalThis.scrollTo(0, 0));
 
   /*
    * Wait for the page to go quiet.
