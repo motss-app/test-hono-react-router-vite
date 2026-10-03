@@ -1,109 +1,109 @@
 {
   "entry": {
-    "gzipBytes": 271740,
-    "rawBytes": 816112
+    "gzipBytes": 272950,
+    "rawBytes": 820204
   },
   "rootLayout": {
-    "gzipBytes": 20465,
+    "gzipBytes": 20467,
     "rawBytes": 55324
   },
   "routes": [
     {
-      "gzipBytes": 292976,
+      "gzipBytes": 294188,
       "ownGzipBytes": 771,
       "ownRawBytes": 1544,
-      "rawBytes": 872980,
+      "rawBytes": 877072,
       "route": "/$"
     },
     {
-      "gzipBytes": 300043,
-      "ownGzipBytes": 7838,
+      "gzipBytes": 301258,
+      "ownGzipBytes": 7841,
       "ownRawBytes": 21758,
-      "rawBytes": 893194,
+      "rawBytes": 897286,
       "route": "/about"
     },
     {
-      "gzipBytes": 302560,
-      "ownGzipBytes": 10355,
+      "gzipBytes": 303777,
+      "ownGzipBytes": 10360,
       "ownRawBytes": 27872,
-      "rawBytes": 899308,
+      "rawBytes": 903400,
       "route": "/errors"
     },
     {
-      "gzipBytes": 303445,
-      "ownGzipBytes": 11240,
+      "gzipBytes": 304662,
+      "ownGzipBytes": 11245,
       "ownRawBytes": 33193,
-      "rawBytes": 904629,
+      "rawBytes": 908721,
       "route": "/errors.$code"
     },
     {
-      "gzipBytes": 298805,
-      "ownGzipBytes": 6600,
+      "gzipBytes": 300018,
+      "ownGzipBytes": 6601,
       "ownRawBytes": 18723,
-      "rawBytes": 890159,
+      "rawBytes": 894251,
       "route": "/holy-grail"
     },
     {
-      "gzipBytes": 298344,
+      "gzipBytes": 299556,
       "ownGzipBytes": 6139,
       "ownRawBytes": 15104,
-      "rawBytes": 886540,
+      "rawBytes": 890632,
       "route": "/home"
     },
     {
-      "gzipBytes": 301869,
-      "ownGzipBytes": 9664,
+      "gzipBytes": 303084,
+      "ownGzipBytes": 9667,
       "ownRawBytes": 26310,
-      "rawBytes": 897746,
+      "rawBytes": 901838,
       "route": "/hono-rpc"
     },
     {
-      "gzipBytes": 297130,
-      "ownGzipBytes": 4925,
+      "gzipBytes": 298344,
+      "ownGzipBytes": 4927,
       "ownRawBytes": 11236,
-      "rawBytes": 882672,
+      "rawBytes": 886764,
       "route": "/labs"
     },
     {
-      "gzipBytes": 309680,
-      "ownGzipBytes": 17475,
+      "gzipBytes": 310895,
+      "ownGzipBytes": 17478,
       "ownRawBytes": 53777,
-      "rawBytes": 925213,
+      "rawBytes": 929305,
       "route": "/labs-dominant-color"
     },
     {
-      "gzipBytes": 299323,
-      "ownGzipBytes": 7118,
+      "gzipBytes": 300536,
+      "ownGzipBytes": 7119,
       "ownRawBytes": 23804,
-      "rawBytes": 895240,
+      "rawBytes": 899332,
       "route": "/labs-image-optimize"
     },
     {
-      "gzipBytes": 304814,
-      "ownGzipBytes": 12609,
+      "gzipBytes": 306029,
+      "ownGzipBytes": 12612,
       "ownRawBytes": 35096,
-      "rawBytes": 906532,
+      "rawBytes": 910624,
       "route": "/labs-mandelbrot"
     },
     {
-      "gzipBytes": 292386,
+      "gzipBytes": 293598,
       "ownGzipBytes": 181,
       "ownRawBytes": 197,
-      "rawBytes": 871633,
+      "rawBytes": 875725,
       "route": "/page-layout"
     },
     {
-      "gzipBytes": 298293,
-      "ownGzipBytes": 6088,
+      "gzipBytes": 299508,
+      "ownGzipBytes": 6091,
       "ownRawBytes": 16473,
-      "rawBytes": 887909,
+      "rawBytes": 892001,
       "route": "/ssr"
     }
   ],
   "summary": {
     "maxRoute": "/labs-dominant-color",
-    "maxRouteRawBytes": 925213,
+    "maxRouteRawBytes": 929305,
     "minRoute": "/page-layout",
-    "minRouteRawBytes": 871633
+    "minRouteRawBytes": 875725
   }
 }
