@@ -361,8 +361,11 @@
       "linter": {
         "rules": {
           "correctness": {
+            "noSolidDestructuredProps": "off",
             "noUndeclaredDependencies": "off",
-            "noUnresolvedImports": "off"
+            "noUnresolvedImports": "off",
+            "useImageSize": "off",
+            "useQwikValidLexicalScope": "off"
           },
           "style": {
             "noImplicitBoolean": "off",

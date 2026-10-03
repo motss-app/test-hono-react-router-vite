@@ -91,7 +91,7 @@ jobs:
         with:
           workspaces: packages/${{ matrix.package }} -> target
       - name: Install worker-build
-        run: cargo install worker-build --version 0.8.5 --locked
+        run: cargo install worker-build --version 0.8.7 --locked
       - name: Build ${{ matrix.package }} worker
         working-directory: packages/${{ matrix.package }}
         run: |
