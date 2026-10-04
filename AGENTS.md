@@ -17,10 +17,11 @@ Before editing:
 
 ## Skill Selection
 
-- Load `frontend-skill` when the task is primarily about visual direction, layout, landing pages, demos, or premium UI polish.
-- Load `skill-vite-plugin-creation` when the task is about creating or updating a Vite plugin that watches a TypeScript entry and emits a JavaScript artifact.
-- Load `commit-push-once` when the user explicitly invokes the commit-push-once trigger and wants the current staged changes committed and pushed exactly once. Treat that invocation as one-time permission only. Do not reuse it until the user says so again.
-- Load `remix` skill only when the user is migrating away from this repo to a new Remix 3 project, or asks explicitly about Remix 3 patterns. This repo itself uses React Router v7, not Remix 3, so do not auto-load this skill for in-repo work.
+Skills live in `.agents/skills/<name>/SKILL.md`. Each one states when to use it in its frontmatter `description`. Read that description to decide, so do not maintain a list of skills here. New skills take effect as soon as they are added.
+
+At the start of a task, read the `description` of every skill in `.agents/skills/` and load each one that matches. The user is not expected to name skills.
+
+Most skills are model-invocable, so the skill tool loads them directly. `commit-push-once` sets `disable-model-invocation: true`, which hides it, because it grants commit and push authority and must stay opt-in. For that one, open the `SKILL.md` file and follow it by hand. Check that frontmatter field when a skill seems missing from the tool.
 
 ## Default Workflow
 
