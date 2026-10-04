@@ -6,7 +6,7 @@ Status: ✅ done | ➕ added | 🟢 no action needed | ⏭️ opted out | ❌ do
 
 Us: ✅ we hit it | ❌ we do not | ❓ unknown
 
-On the skips: only 7 of 40 need code I chose not to write. Another 10 are APIs this repo never used, and 8 already work or need no code. Full list under [Skipped](#skipped).
+On the skips: 5 of 40 are deferred or dropped by choice. Another 6 are APIs this repo never used, 6 need no action, and 1 is blocked upstream. Full list under [Skipped](#skipped).
 
 ## 💥 Breaking (21)
 
@@ -56,28 +56,28 @@ On the skips: only 7 of 40 need code I chose not to write. Another 10 are APIs t
 | 32 | RPC session spans | ✨ | ✅ | 🟢 | Already on |
 | 33 | Custom Dashboards | ✨ | ✅ | 🟢 | Dashboard task |
 | 34 | Release annotations | ✨ | ✅ | 🟢 | No code needed |
-| 23 | `@sentry/hono` available | ✨ | ✅ | ⏭️ | New package, own PR |
-| 31 | Cloudflare custom spans | ✨ | ✅ | ⏭️ | Would duplicate Sentry |
-| 27 | Workers profiling | ✨ | ❌ | ⏭️ | Costs money, see [pricing](https://sentry.io/pricing/) |
-| 28 | Workers session replay | ✨ | ❌ | ⏭️ | Costs money |
-| 35 | `cf` CLI beta | ✨ | ❌ | ⏭️ | Beta, see #74 |
+| 23 | `@sentry/hono` available | ✨ | ✅ | ⏭️ | New package, own PR, see #94 |
+| 31 | Cloudflare custom spans | ✨ | ✅ | ⏭️ | Three systems overlap, see #96 |
+| 35 | `cf` CLI beta | ✨ | ❌ | ⏭️ | Beta, see #95 |
+| 27 | Sentry session replay on Workers | ✨ | ❌ | ⏭️ | Not wanted, see Skipped |
+| 28 | Sentry profiling on Workers | ✨ | ❌ | ⏭️ | Not wanted, see Skipped |
 | 37 | Workflows, Basin, OAuth | ✨ | ❌ | ❌ | Not applicable |
 
 ## Skipped
 
-Only these 7 needed code I chose not to write:
+Only these 5 needed code I chose not to write:
 
 | Item | Why | To enable |
 |---|---|---|
-| `@sentry/hono` | New package, changes route names | Own PR |
-| Workers profiling | Costs money, [pricing](https://sentry.io/pricing/) | Add option |
-| Workers replay | Costs money | Add option |
-| Cloudflare custom spans | Duplicates Sentry | Only if Sentry dropped |
-| `cf` CLI | Beta, Build Output may change | After stable, see #74 |
+| `@sentry/hono` | New package, changes route names | Own PR, see #94 |
+| Cloudflare custom spans | Three systems already overlap, see #96 | Only if Sentry is dropped |
+| `cf` CLI | Beta, Build Output may change | After stable, see #95 |
 | Spotlight UI | Upstream bug, not ours | Wait for fix |
 | Sampling tune | Needs real traffic | Watch bill |
 
-The other skips need nothing: 10 are APIs this repo never imported, and 8 are already correct or need no code.
+Dropped as not wanted: Sentry profiling on Workers (see [pricing](https://sentry.io/pricing/)) and Sentry session replay on Workers, since browser replay is already on.
+
+The other skips need nothing: 12 are APIs this repo never imported, and 8 are already correct or need no code.
 
 ## Verified
 
