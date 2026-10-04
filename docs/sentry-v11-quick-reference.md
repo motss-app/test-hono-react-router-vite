@@ -58,7 +58,7 @@ On the skips: only 7 of 40 need code I chose not to write. Another 10 are APIs t
 | 34 | Release annotations | ✨ | ✅ | 🟢 | No code needed |
 | 23 | `@sentry/hono` available | ✨ | ✅ | ⏭️ | New package, own PR |
 | 31 | Cloudflare custom spans | ✨ | ✅ | ⏭️ | Would duplicate Sentry |
-| 27 | Workers profiling | ✨ | ❌ | ⏭️ | Costs money |
+| 27 | Workers profiling | ✨ | ❌ | ⏭️ | Costs money, see [pricing](https://sentry.io/pricing/) |
 | 28 | Workers session replay | ✨ | ❌ | ⏭️ | Costs money |
 | 35 | `cf` CLI beta | ✨ | ❌ | ⏭️ | Beta, see #74 |
 | 37 | Workflows, Basin, OAuth | ✨ | ❌ | ❌ | Not applicable |
@@ -70,7 +70,7 @@ Only these 7 needed code I chose not to write:
 | Item | Why | To enable |
 |---|---|---|
 | `@sentry/hono` | New package, changes route names | Own PR |
-| Workers profiling | Costs money | Add option |
+| Workers profiling | Costs money, [pricing](https://sentry.io/pricing/) | Add option |
 | Workers replay | Costs money | Add option |
 | Cloudflare custom spans | Duplicates Sentry | Only if Sentry dropped |
 | `cf` CLI | Beta, Build Output may change | After stable, see #74 |
