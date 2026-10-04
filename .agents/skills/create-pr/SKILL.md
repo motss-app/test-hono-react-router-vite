@@ -2,7 +2,6 @@
 name: create-pr
 description: "Use when the user wants to create a PR for the current branch. Auto-assigns labels, assigns to branch creator, generates PR description with issue links, blast radius, and verification summary."
 argument-hint: "create a pr for this branch"
-disable-model-invocation: true
 ---
 
 # Create PR
