@@ -16,7 +16,7 @@ pnpm add @sentry/cloudflare
 
 Configuration should happen as early as possible in your application's lifecycle.
 
-To use the SDK, you'll need to set either the `nodejs_compat` or `nodejs_als` compatibility flags in your `wrangler.json`/`wrangler.toml`. This is because the SDK needs access to the `AsyncLocalStorage` API to work correctly.
+To use the SDK, you'll need the `nodejs_compat` compatibility flag in your `wrangler.json`/`wrangler.toml`. This is because the SDK needs access to the `AsyncLocalStorage` API to work correctly. Since Sentry v11, `nodejs_als` alone is no longer enough, and Workers enable `nodejs_compat` by default from a `compatibility_date` of `2026-08-04`, so on earlier dates the flag must stay listed explicitly.
 
 ```json
 // wrangler.json

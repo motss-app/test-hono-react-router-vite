@@ -15,7 +15,7 @@
  *    full content immediately.
  */
 
-import { getIsolationScope, logger } from '@sentry/cloudflare/nodejs_compat';
+import { getIsolationScope, logger } from '@sentry/cloudflare';
 import {
   captureException,
   injectTraceMetaTags,

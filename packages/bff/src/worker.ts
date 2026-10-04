@@ -1,4 +1,4 @@
-import { withSentry } from '@sentry/cloudflare/nodejs_compat';
+import { withSentry } from '@sentry/cloudflare';
 import { Hono } from 'hono';
 import { problemDetailsHandler } from 'hono-problem-details';
 
@@ -24,8 +24,8 @@ export default withSentry<BffBindings>(
       import.meta.env.MODE,
       env.SENTRY_DSN,
       import.meta.env.SENTRY_RELEASE,
-      // The BFF is an RPC receiver (continuing traces via `enableRpcTracePropagation`) but has no
-      // Sentry-instrumented bindings of its own, so it propagates to nothing.
+      // The BFF is an RPC receiver, so it continues incoming traces automatically, but it
+      // has no Sentry-instrumented bindings of its own, so it propagates to nothing.
       []
     ),
   {

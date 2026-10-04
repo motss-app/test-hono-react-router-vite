@@ -1,4 +1,5 @@
-import type { SentryReactRouterBuildOptions } from '@sentry/react-router';
+// v11 moved the React Router build options to the `/vite` subpath.
+import type { SentryReactRouterBuildOptions } from '@sentry/react-router/vite';
 import type { SentryVitePluginOptions } from '@sentry/vite-plugin';
 
 import { readRequiredEnv } from './get-required-env.ts';
@@ -79,10 +80,10 @@ export function createSentryBuildOptions(
     reactComponentAnnotation: {
       enabled: true,
     },
-    unstable_sentryVitePluginOptions: {
-      release: {
-        dist,
-      },
+    // v11 removed the `unstable_sentryVitePluginOptions` wrapper. `release` is now a top-level
+    // build option, so the same `dist` value is passed directly.
+    release: {
+      dist,
     },
   };
 }
