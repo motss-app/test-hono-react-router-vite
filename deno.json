@@ -140,6 +140,7 @@
     "dev:gateway": "deno task --cwd=packages/gateway dev",
     "format": "deno run -P=format npm:@biomejs/biome format --write .",
     "format:check": "deno run -P=format npm:@biomejs/biome format .",
+    "icons:sync": "deno run --allow-read --allow-write=.vscode/iconify-aliases.json scripts/generate-iconify-aliases.ts",
     "kill-ports": "deno run -A scripts/kill-ports.ts",
     "kill-ports:all": "deno run -A scripts/kill-ports.ts 5173 8787 3000 --verbose",
     "lint": "deno lint && deno run -P=lint npm:@biomejs/biome check .",
