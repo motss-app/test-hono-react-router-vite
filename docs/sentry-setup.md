@@ -209,7 +209,11 @@ cloudflare subpath re-exports the browser-facing helpers needed by those modules
 Important details:
 
 - for Cloudflare Worker deploys, do not use the Node-only React Router server helpers such as
-  `createSentryHandleError({})` or `createSentryServerInstrumentation()`
+  `createSentryHandleError({})`
+- `createSentryServerInstrumentation()` is the exception, and it is required. It is exported from
+  `@sentry/react-router/cloudflare` from 11.5.0 onward, and `app/entry.server.tsx` exports it as
+  `instrumentations` so loader and action spans are emitted through React Router's instrumentation
+  API. Without it, loader and action work produces no spans
 - do not create a separate Node preload file like `instrument.server.mjs` for the Worker path
 - `/api/*`, `/ssr`, document/data requests, and `__manifest` all still enter the Worker first
 - server/runtime ownership on the deployed Worker stays with `@sentry/cloudflare`
