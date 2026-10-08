@@ -14,7 +14,7 @@ const replaysOnErrorSampleRate = 1.0;
 const localhostTracePropagationTarget = /^https?:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?(?:\/|$)/;
 const motssFyiTracePropagationTarget = /^https?:\/\/(?:[a-z0-9-]+\.)*motss\.fyi(?:\/|$)/i;
 /*
- * The gateway forwards local envelopes to `/api/tunnel`; if we keep spans for that route, the app
+ * The gateway forwards local envelopes to `/api/tunnel`. If we keep spans for that route, the app
  * starts tracing the act of reporting traces, which quickly becomes recursive noise. Span filtering
  * runs at span start in stream mode, and `url.path` is already populated then, so we match on the
  * attribute instead of the span name (which is method-only until a route is resolved).

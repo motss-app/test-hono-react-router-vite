@@ -120,15 +120,22 @@ factory and the stale comments in all three Workers were updated.
 ### 10. The Cloudflare Vite plugin `_experimental` block was removed
 
 All three Vite configs passed `_experimental.autoInstrumentation` and
-`_experimental.useDiagnosticsChannelInjection`. Both became top level options that default to
-`true`.
+`_experimental.useDiagnosticsChannelInjection`. Both became top-level options that default to
+`true`, so the explicit block was dropped and the configs now call `sentryCloudflareVitePlugin()`
+with no options.
 
-They were replaced with an explicit `autoInstrumentation: false` rather than relying on the new
-default, for two reasons. The Workers in this repository are instrumented manually through
-`withSentry`, and the plugin also merges auto-detected bindings into
-`rpcTracePropagationBindings`. Opting out keeps the gateway's hand-written allow list
-authoritative instead of letting the plugin widen it. Leaving it on also produced a startup warning,
-because the plugin could not parse the wrangler config and therefore disabled instrumentation anyway.
+Two things are therefore enabled by default rather than opted out:
+
+- `buildTimeInstrumentation` injects `diagnostics_channel.tracingChannel` calls into bundled
+  dependencies so the SDK can trace them without monkey-patching. This repository has no database
+  client or other instrumented dependency, so it currently has no effect.
+- The plugin wraps the Worker entry with `Sentry.withSentry()` and adds this worker's own Durable
+  Objects and self service bindings to `rpcTracePropagationBindings`. Already-wrapped entries are
+  left alone, so the manual `withSentry` wrapping in the three Workers is not double-wrapped.
+
+The plugin only adds self bindings and this worker's own Durable Objects. Bindings to other workers
+stay opt-in, so the gateway's hand-written `['FRONTEND', 'BFF']` allow list is not widened by the
+plugin.
 
 ### 11. `sentryReactRouter` and the build options moved to the `/vite` subpath
 
