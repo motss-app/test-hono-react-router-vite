@@ -50,8 +50,10 @@ All three Workers listed both flags. `nodejs_compat` was already present, so the
 `nodejs_als` entry was removed from `packages/frontend/wrangler.jsonc`,
 `packages/gateway/wrangler.jsonc`, and `packages/bff/wrangler.jsonc`.
 
-The flag must stay explicit here. Workers only enable `nodejs_compat` by default from a
-`compatibility_date` of `2026-08-04`, and this repository uses `2026-05-13`.
+The same commit also raised `compatibility_date` from `2026-05-13` to `2026-10-01`. That crosses the
+`2026-08-04` threshold at which Workers enable `nodejs_compat` by default, so the explicit flag is
+now redundant rather than required. It is kept because it documents the dependency and survives a
+future `compatibility_date` rollback, but it is no longer load bearing.
 
 ### 3. Span streaming replaced transactions
 
