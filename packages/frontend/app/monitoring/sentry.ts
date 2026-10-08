@@ -7,14 +7,18 @@ const tracesSampleRate = 1.0;
 const profileSessionSampleRate = 1.0;
 const replaysSessionSampleRate = 0.1;
 const replaysOnErrorSampleRate = 1.0;
-// Browser tracing should follow same-origin relative URLs, any localhost/127.0.0.1 dev origin
-// topology as well as the public domains used outside local development.
+/*
+ * Browser tracing should follow same-origin relative URLs, any localhost/127.0.0.1 dev origin
+ * topology as well as the public domains used outside local development.
+ */
 const localhostTracePropagationTarget = /^https?:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?(?:\/|$)/;
 const motssFyiTracePropagationTarget = /^https?:\/\/(?:[a-z0-9-]+\.)*motss\.fyi(?:\/|$)/i;
-// The gateway forwards local envelopes to `/api/tunnel`; if we keep spans for that route, the app
-// starts tracing the act of reporting traces, which quickly becomes recursive noise. Span filtering
-// runs at span start in stream mode, and `url.path` is already populated then, so we match on the
-// attribute instead of the span name (which is method-only until a route is resolved).
+/*
+ * The gateway forwards local envelopes to `/api/tunnel`; if we keep spans for that route, the app
+ * starts tracing the act of reporting traces, which quickly becomes recursive noise. Span filtering
+ * runs at span start in stream mode, and `url.path` is already populated then, so we match on the
+ * attribute instead of the span name (which is method-only until a route is resolved).
+ */
 const sentryIgnoredDevTunnelSpanPaths: NonNullable<CloudflareOptions['ignoreSpans']> = [
   {
     attributes: {
@@ -149,14 +153,16 @@ function createBaseOptions(mode: RuntimeMode, dsn?: string) {
         }
       : {}),
     beforeSendSpan: createBeforeSendSpan(),
-    // v11 removed `sendDefaultPii` and replaced it with `dataCollection`. Leaving `dataCollection`
-    // unset now collects *more* than the old `sendDefaultPii: true` did, because cookies and full
-    // request/response bodies become the default. This app issues an `app_session_id` cookie and
-    // accepts POST bodies on `/api/*`, so those two categories are pinned off deliberately.
-    //
-    // Scrubbing in v11 is best effort and matches on key name only, so a credential stored under an
-    // innocuous field name would still be transmitted. Everything disabled here is a category this
-    // repo does not use for debugging, so nothing is lost.
+    /*
+     * v11 removed `sendDefaultPii` and replaced it with `dataCollection`. Leaving `dataCollection`
+     * unset now collects *more* than the old `sendDefaultPii: true` did, because cookies and full
+     * request/response bodies become the default. This app issues an `app_session_id` cookie and
+     * accepts POST bodies on `/api/*`, so those two categories are pinned off deliberately.
+     *
+     * Scrubbing in v11 is best effort and matches on key name only, so a credential stored under an
+     * innocuous field name would still be transmitted. Everything disabled here is a category this
+     * repo does not use for debugging, so nothing is lost.
+     */
     dataCollection: {
       cookies: false,
       databaseQueryData: false,
@@ -173,8 +179,10 @@ function createBaseOptions(mode: RuntimeMode, dsn?: string) {
       },
       // An empty array disables body collection. Sizes are still recorded on spans.
       httpBodies: [],
-      // Headers stay on because upstream correlation headers are useful, but values whose key looks
-      // sensitive are still filtered by the SDK.
+      /*
+       * Headers stay on because upstream correlation headers are useful, but values whose key looks
+       * sensitive are still filtered by the SDK.
+       */
       httpHeaders: {
         request: true,
         response: true,
@@ -187,12 +195,16 @@ function createBaseOptions(mode: RuntimeMode, dsn?: string) {
     debug: isDevelopmentSentryMode(mode),
     dist: getSentryDist(mode),
     environment: getSentryEnvironment(mode),
-    // Stream mode is already the v11 default. Pinning it documents the intent and guards against a
-    // future default change. The alternative, `static`, restores transaction mode but is documented
-    // as backwards compatibility only and scheduled for removal.
+    /*
+     * Stream mode is already the v11 default. Pinning it documents the intent and guards against a
+     * future default change. The alternative, `static`, restores transaction mode but is documented
+     * as backwards compatibility only and scheduled for removal.
+     */
     traceLifecycle: 'stream' as const,
-    // Load tests disable tracing entirely to keep instrumentation overhead near zero. In v11 this
-    // replaces the old `beforeSendTransaction` bail-out, which no longer receives transactions.
+    /*
+     * Load tests disable tracing entirely to keep instrumentation overhead near zero. In v11 this
+     * replaces the old `beforeSendTransaction` bail-out, which no longer receives transactions.
+     */
     tracesSampleRate: isLoadTestMode ? 0 : tracesSampleRate,
   };
 }
@@ -225,9 +237,11 @@ export function createCloudflareSentryOptions(
 
   return {
     ...createBaseOptions(mode, dsn),
-    // v11 removed `enableRpcTracePropagation`. Callers now propagate only to the bindings listed in
-    // `rpcTracePropagationBindings`, and instrumented receivers pick up incoming trace context
-    // automatically, so the old receiver-side opt-in flag is simply dropped.
+    /*
+     * v11 removed `enableRpcTracePropagation`. Callers now propagate only to the bindings listed in
+     * `rpcTracePropagationBindings`, and instrumented receivers pick up incoming trace context
+     * automatically, so the old receiver-side opt-in flag is simply dropped.
+     */
     ...(rpcTracePropagationBindings
       ? {
           rpcTracePropagationBindings,

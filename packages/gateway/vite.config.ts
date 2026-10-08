@@ -107,9 +107,11 @@ export default defineConfig(({ command }) => {
           : {}),
         configPath: './wrangler.jsonc',
       }),
-      // The entry is already wrapped with `withSentry`, and the plugin leaves already-wrapped entries
-      // alone, so this is safe. Verified: no double-wrapping and tracing still works. The gateway's
-      // hand-written `rpcTracePropagationBindings` allow list is unaffected.
+      /*
+       * The entry is already wrapped with `withSentry`, and the plugin leaves already-wrapped entries
+       * alone, so this is safe. Verified: no double-wrapping and tracing still works. The gateway's
+       * hand-written `rpcTracePropagationBindings` allow list is unaffected.
+       */
       sentryCloudflareVitePlugin(),
     ],
     preview: {

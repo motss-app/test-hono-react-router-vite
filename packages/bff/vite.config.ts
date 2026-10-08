@@ -19,8 +19,10 @@ export default defineConfig(() => {
       cloudflare({
         configPath: './wrangler.jsonc',
       }),
-      // The entry is already wrapped with `withSentry`, and the plugin leaves already-wrapped entries
-      // alone, so this is safe. Verified: no double-wrapping and tracing still works.
+      /*
+       * The entry is already wrapped with `withSentry`, and the plugin leaves already-wrapped entries
+       * alone, so this is safe. Verified: no double-wrapping and tracing still works.
+       */
       sentryCloudflareVitePlugin(),
     ],
   };

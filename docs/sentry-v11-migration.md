@@ -2,17 +2,17 @@
 
 For a scannable summary table first, see [sentry-v11-quick-reference.md](./sentry-v11-quick-reference.md). This document is the long-form version.
 
-This document records the upgrade of the Sentry JavaScript SDK from `10.75.2` to `11.4.0` for this
+This document records the upgrade of the Sentry JavaScript SDK from `10.75.2` to `11.5.0` for this
 repository. It is based on the official migration guide at
 <https://docs.sentry.io/platforms/javascript/guides/cloudflare/migration/v10-to-v11/>, cross-checked
-against the actual installed `11.4.0` type definitions and runtime code.
+against the actual installed `11.5.0` type definitions and runtime code.
 
 Scope of the upgrade:
 
-- `@sentry/browser` `10.75.2` to `11.4.0`
-- `@sentry/cloudflare` `10.75.2` to `11.4.0`
-- `@sentry/react-router` `10.75.2` to `11.4.0`
-- `@sentry/vite-plugin` stays at `5.4.0`, which is already the latest published version
+- `@sentry/browser` `10.75.2` to `11.5.0`
+- `@sentry/cloudflare` `10.75.2` to `11.5.0`
+- `@sentry/react-router` `10.75.2` to `11.5.0`
+- `@sentry/vite-plugin` `5.4.0` to `5.4.1`
 
 ## Version support prerequisites
 
@@ -81,7 +81,7 @@ Important detail worth remembering: in stream mode `ignoreSpans` is evaluated at
 is set before the span starts, while the span name is only the HTTP method until a route resolves,
 so the filters match on the `url.path` attribute.
 
-### 4. The `beforeSendSpan` payload shape changed
+### 6. The `beforeSendSpan` payload shape changed
 
 Field renames applied to `applyAppSessionIdToSpan` in
 `packages/frontend/app/monitoring/app-session.ts`, which previously wrote to `span.data`:
@@ -99,25 +99,25 @@ The local constraint type was widened to `Record<string, unknown>` because
 is `unknown`. A narrower constraint silently downgraded the return type and broke the
 `withSentry` options contract.
 
-### 5. `sendDefaultPii` was removed in favor of `dataCollection`
+### 7. `sendDefaultPii` was removed in favor of `dataCollection`
 
 `packages/frontend/app/monitoring/sentry.ts` set `sendDefaultPii: true`. The guide states that the
 v11 default already matches that behavior, so the option was simply removed. See the privacy
 section below before changing this.
 
-### 6. `enableLogs` was removed
+### 8. `enableLogs` was removed
 
 Logs and metrics are now captured whenever their APIs are used, such as the existing `logger.info`
 calls, or when a logging integration is added. `enableLogs: true` was removed.
 
-### 7. `enableRpcTracePropagation` was removed
+### 9. `enableRpcTracePropagation` was removed
 
 Callers now propagate only to bindings named in `rpcTracePropagationBindings`, and instrumented
 receivers read incoming trace context automatically. The gateway already passed an explicit
 `['FRONTEND', 'BFF']` allow list, so the receiver-side flag was dropped from the shared options
 factory and the stale comments in all three Workers were updated.
 
-### 8. The Cloudflare Vite plugin `_experimental` block was removed
+### 10. The Cloudflare Vite plugin `_experimental` block was removed
 
 All three Vite configs passed `_experimental.autoInstrumentation` and
 `_experimental.useDiagnosticsChannelInjection`. Both became top level options that default to
@@ -130,17 +130,17 @@ default, for two reasons. The Workers in this repository are instrumented manual
 authoritative instead of letting the plugin widen it. Leaving it on also produced a startup warning,
 because the plugin could not parse the wrangler config and therefore disabled instrumentation anyway.
 
-### 9. `sentryReactRouter` and the build options moved to the `/vite` subpath
+### 11. `sentryReactRouter` and the build options moved to the `/vite` subpath
 
 `sentryReactRouter` is no longer exported from the package root, and `SentryReactRouterBuildOptions`
 moved with it. Updated in `packages/frontend/vite.config.ts` and `vite-utils/sentry-build.ts`.
 
-### 10. `unstable_sentryVitePluginOptions` was removed
+### 12. `unstable_sentryVitePluginOptions` was removed
 
 `release` is now a top-level build option. The wrapper was dropped in `vite-utils/sentry-build.ts`
 while keeping the same `dist` value, so source map upload release naming is unchanged.
 
-### 11. `captureMessage` events now attach a stack trace
+### 13. `captureMessage` events now attach a stack trace
 
 This was the most subtle change. `captureMessage` events and non-`Error` values passed to
 `captureException` now attach a synthetic stack trace pointing at the call site. Events with a stack
@@ -188,17 +188,52 @@ method-only service span name into `METHOD /path` so that Spotlight shows a read
 route instead of a bare `GET`. This trades a small amount of cardinality for readability in local
 development. Consider removing it if high-cardinality route names ever become a problem in Sentry.
 
-### Data collection is broader by default
+### 4. Server loaders and actions need the instrumentation API
+
+`@sentry/react-router` is out of beta in v11 and fully relies on React Router's instrumentation API.
+The deprecated `wrapServerLoader` and `wrapServerAction` wrappers were removed, so loader and action
+spans are only emitted when `entry.server.tsx` exports an `instrumentations` array built with
+`createSentryServerInstrumentation()`. `wrapSentryHandleRequest` still covers rendering, but it does
+not add the route hooks.
+
+`packages/frontend/app/entry.server.tsx` now exports:
+
+```ts
+export const instrumentations: ServerInstrumentation[] = [createSentryServerInstrumentation()];
+```
+
+Without it, loader and action work in routes such as `root.tsx`, `ssr.tsx`, and `errors.$code.tsx`
+would silently disappear from server traces.
+
+The export is imported from `@sentry/react-router/cloudflare`, which only re-exports
+`createSentryServerInstrumentation` from `11.5.0` onward. On `11.4.0` the symbol exists only on the
+root and `/server` entries, and neither resolves under the conditions this repository's builds use,
+so the version bump to `11.5.0` is a hard prerequisite for this fix. Verified by building: on
+`11.4.0` the prerender step fails with `The requested module '@sentry/react-router/cloudflare' does
+not provide an export named 'createSentryServerInstrumentation'`.
+
+### 5. Browser sessions default to one session per page load
+
+The default `lifecycle` of `browserSessionIntegration` changed from `'route'` to `'page'`. In `'page'`
+mode a session is created once when the page loads and is not renewed on navigation. Because this app
+navigates client side through React Router, users visiting several routes without a reload would
+contribute only one session, shifting session counts and the crash-free denominator.
+
+`packages/frontend/app/entry.client.tsx` now registers
+`browserSessionIntegration({ lifecycle: 'route' })` to preserve the v10 behavior.
+
+### 6. Data collection is broader by default
 
 An unset `dataCollection` in v11 collects more than v10 did with `sendDefaultPii: true`, most
 notably cookies and full request and response bodies. Sensitive value scrubbing matches on key name
 and is best effort, so a credential stored under an innocuous key would still be transmitted.
 
-This repository deliberately removed `sendDefaultPii` because the official guide states the v11
-default matches it. Before the next production deploy, review
-[docs/sentry-setup.md](./sentry-setup.md) and consider pinning an explicit `dataCollection`
-baseline, or at minimum confirming that sending request and response bodies is acceptable for this
-workload.
+This repository removed `sendDefaultPii` and pinned an explicit `dataCollection` baseline in
+`createBaseOptions`, so the broader v11 default does not apply here. Cookies and HTTP bodies are off,
+which matters because this app issues an `app_session_id` cookie and accepts POST bodies on `/api/*`.
+Headers, user info, query params, and stack frame variables stay on because they are used for
+debugging. Every category disabled is one this repo has no integration for, so nothing is lost.
+`frameContextLines` is set to 7 to restore the v10 default.
 
 ### Dedupe now compares errors across requests
 
@@ -219,7 +254,7 @@ These are opportunities, not changes applied by this migration.
 ### 1. Add `@sentry/hono` middleware
 
 `honoIntegration` was removed from `@sentry/cloudflare`, and the replacement is a separate
-`@sentry/hono` package, which is also published at `11.4.0`. This repository runs Hono in all three
+`@sentry/hono` package, which is also published at `11.5.0`. This repository runs Hono in all three
 Workers. The middleware would add Hono-specific span naming and request context that the generic
 `http.server` integration cannot provide, and it would be the natural way to get meaningful route
 names in place of the local `normalizeServiceSpanName` workaround.
@@ -267,7 +302,7 @@ introduced, since they would then need their own explicit instrumentation.
 
 Runtime verification against the local dev stack:
 
-- the gateway, frontend worker, BFF, and browser all reported SDK version `11.4.0`
+- the gateway, frontend worker, BFF, and browser all reported SDK version `11.5.0`
 - the `SpanStreaming` integration installed, confirming stream mode is active
 - a page load produced a 155 span trace with no transaction cap
 - the captured span payload used the v11 shape, with `name`, `attributes`, `is_segment`,
@@ -298,12 +333,17 @@ unverified and blocked until the upstream packaging bug is fixed.
 
 ## Residual risks and follow-ups
 
-1. Decide on an explicit `dataCollection` baseline before the next production deploy. This is the
-   highest priority follow-up because the v11 default transmits request and response bodies.
-2. Update any Sentry dashboards, alerts, or saved searches that reference old transaction names or
+The `dataCollection` baseline is implemented. `createBaseOptions` in
+`packages/frontend/app/monitoring/sentry.ts` sets `cookies: false` and `httpBodies: []`, so this
+app does not transmit cookies or request and response bodies. The remaining items are:
+
+1. Update any Sentry dashboards, alerts, or saved searches that reference old transaction names or
    the `GET /*` naming described above.
-3. Check whether any external tooling, such as the Sentry CLI upload step in CI, depends on
+2. Check whether any external tooling, such as the Sentry CLI upload step in CI, depends on
    `unstable_sentryVitePluginOptions` semantics that moved.
-4. Re-enable the benchmark task if performance needs re-baselining. Stream mode removes per
+3. Re-enable the benchmark task if performance needs re-baselining. Stream mode removes per
    transaction batching, so overhead characteristics differ from v10.
-5. Revisit the local Spotlight packaging bug so `deno task dev` gives a working UI again.
+4. Revisit the local Spotlight packaging bug so `deno task dev` gives a working UI again.
+5. Scrubbing remains best effort and matches on key name only, so review
+   [`dataCollection`](https://docs.sentry.io/platforms/javascript/guides/cloudflare/configuration/options/#dataCollection)
+   if a new category is ever enabled.

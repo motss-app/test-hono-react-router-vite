@@ -18,12 +18,13 @@
 import { getIsolationScope, logger } from '@sentry/cloudflare';
 import {
   captureException,
+  createSentryServerInstrumentation,
   injectTraceMetaTags,
   wrapSentryHandleRequest,
 } from '@sentry/react-router/cloudflare';
 import { isbot } from 'isbot';
 import { renderToReadableStream } from 'react-dom/server.edge';
-import type { EntryContext, HandleErrorFunction } from 'react-router';
+import type { EntryContext, HandleErrorFunction, ServerInstrumentation } from 'react-router';
 import { ServerRouter } from 'react-router';
 
 import { openSansFontPreloadHrefs } from './font-preloads.ts';
@@ -33,6 +34,15 @@ import { csp } from './utils/csp.ts';
 
 const HTTP_STATUS_INTERNAL_SERVER_ERROR = 500;
 const runtimeDemoErrorPrefix = 'Runtime error for code:';
+
+/**
+ * v11 dropped the per-loader and per-action wrappers, so server loader and action spans are only
+ * emitted through React Router's instrumentation API. Without this export, route work in loaders
+ * such as `root.tsx`, `ssr.tsx`, and `errors.$code.tsx` would disappear from server traces.
+ */
+export const instrumentations: ServerInstrumentation[] = [
+  createSentryServerInstrumentation(),
+];
 
 function appendStylesheetPreloadLinks(responseHeaders: Headers, routerContext: EntryContext): void {
   const stylesheetHrefs = new Set<string>();

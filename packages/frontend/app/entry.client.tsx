@@ -1,4 +1,4 @@
-import { elementTimingIntegration } from '@sentry/browser';
+import { browserSessionIntegration, elementTimingIntegration } from '@sentry/browser';
 import {
   addIntegration,
   flush,
@@ -99,13 +99,24 @@ init({
     //     'debug',
     //   ],
     // }),
+    /*
+     * v11 changed the default browser session lifecycle from `route` to `page`, so a session is
+     * now created once per page load instead of once per navigation. This app navigates client
+     * side through React Router, so pinning `route` keeps Release Health session counts and the
+     * crash-free denominator at their v10 behavior.
+     */
+    browserSessionIntegration({
+      lifecycle: 'route',
+    }),
     tracing,
     elementTimingIntegration(),
   ],
 });
 
-// Scope tags no longer reach spans in v11, so the app session is set as both a tag (for errors)
-// and an attribute (for spans, logs, and metrics).
+/*
+ * Scope tags no longer reach spans in v11, so the app session is set as both a tag (for errors)
+ * and an attribute (for spans, logs, and metrics).
+ */
 if (appSessionId) {
   setTag(appSessionIdTagName, appSessionId);
   setAttribute(appSessionIdTagName, appSessionId);

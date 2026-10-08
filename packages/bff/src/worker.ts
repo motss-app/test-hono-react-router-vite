@@ -24,8 +24,10 @@ export default withSentry<BffBindings>(
       import.meta.env.MODE,
       env.SENTRY_DSN,
       import.meta.env.SENTRY_RELEASE,
-      // The BFF is an RPC receiver, so it continues incoming traces automatically, but it
-      // has no Sentry-instrumented bindings of its own, so it propagates to nothing.
+      /*
+       * The BFF is an RPC receiver, so it continues incoming traces automatically, but it
+       * has no Sentry-instrumented bindings of its own, so it propagates to nothing.
+       */
       []
     ),
   {

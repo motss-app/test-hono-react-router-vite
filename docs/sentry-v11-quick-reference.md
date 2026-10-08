@@ -6,9 +6,9 @@ Status: ✅ done | ➕ added | 🟢 no action needed | ⏭️ opted out | ❌ do
 
 Us: ✅ we hit it | ❌ we do not | ❓ unknown
 
-On the skips: 5 of 40 are deferred or dropped by choice. Another 6 are APIs this repo never used, 6 need no action, and 1 is blocked upstream. Full list under [Skipped](#skipped).
+On the skips: 5 of 42 are deferred or dropped by choice. Another 6 are APIs this repo never used, 6 need no action, and 1 is blocked upstream. Full list under [Skipped](#skipped).
 
-## 💥 Breaking (21)
+## 💥 Breaking (23)
 
 | # | Change | Impact | Us | Status | What I did |
 |---|---|---|---|---|---|
@@ -26,7 +26,9 @@ On the skips: 5 of 40 are deferred or dropped by choice. Another 6 are APIs this
 | 12 | `unstable_sentryVitePluginOptions` gone | 💥 | ✅ | ✅ | `release` to top level |
 | 13 | `captureMessage` errors session | 💥 | ✅ | ✅ | Removed, `logger.info` existed |
 | 14 | Scope `tags` miss spans | 💥 | ✅ | ✅ | Added `setAttribute` |
-| 22 | 10.75.2 to 11.4.0 | 💥 | ✅ | ✅ | 3 packages bumped |
+| 15 | Loader/action wrappers removed | 💥 | ✅ | ✅ | Exported `instrumentations` |
+| 16 | Browser session is per page | 💥 | ✅ | ✅ | Pinned `lifecycle: route` |
+| 22 | 10.75.2 to 11.5.0 | 💥 | ✅ | ✅ | 4 packages bumped |
 | 18 | `honoIntegration` removed | 💥 | ❌ | ❌ | Never used |
 | 19 | D1, DO, span envelopes removed | 💥 | ❌ | ❌ | Never used |
 | 20 | `@sentry/types` unpublished | 💥 | ❌ | ❌ | Never imported |
@@ -81,6 +83,6 @@ The other skips need nothing: 12 are APIs this repo never imported, and 8 are al
 
 ## Verified
 
-Typecheck, lint 167 files, 4 tests, build, 3 dry-run deploys, all URLs in `docs/dev-urls.md` 200 except stale `/api/test`. CI green on 10 Actions checks, all 7 Workers deployed to canary. SDK 11.4.0 live, 155-span trace, multi-hop RPC, dev spans dropped.
+Typecheck, lint 167 files, 4 tests, build, 3 dry-run deploys, all URLs in `docs/dev-urls.md` 200 except stale `/api/test`. CI green on 10 Actions checks, all 7 Workers deployed to canary. SDK 11.5.0 live, 155-span trace, multi-hop RPC, dev spans dropped.
 
 Full detail: [sentry-v11-migration.md](./sentry-v11-migration.md). Guide: [Sentry v11](https://docs.sentry.io/platforms/javascript/guides/cloudflare/migration/v10-to-v11/)

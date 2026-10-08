@@ -84,8 +84,10 @@ export default defineConfig(async config => {
                 name: 'ssr',
               },
             }),
-            // The entry is already wrapped with `withSentry`, and the plugin leaves already-wrapped entries
-            // alone, so this is safe. Verified: no double-wrapping and tracing still works.
+            /*
+             * The entry is already wrapped with `withSentry`, and the plugin leaves already-wrapped
+             * entries alone, so this is safe. Verified: no double-wrapping and tracing still works.
+             */
             sentryCloudflareVitePlugin(),
             themeBuildPlugin({
               rootDir: repoRootPath,
