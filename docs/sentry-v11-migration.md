@@ -215,12 +215,28 @@ not provide an export named 'createSentryServerInstrumentation'`.
 ### 5. Browser sessions default to one session per page load
 
 The default `lifecycle` of `browserSessionIntegration` changed from `'route'` to `'page'`. In `'page'`
-mode a session is created once when the page loads and is not renewed on navigation. Because this app
-navigates client side through React Router, users visiting several routes without a reload would
-contribute only one session, shifting session counts and the crash-free denominator.
+mode a session is created once when the page loads and is not renewed on navigation. In `'route'`
+mode a new session is also started on every history change where the URL actually changed.
 
-`packages/frontend/app/entry.client.tsx` now registers
-`browserSessionIntegration({ lifecycle: 'route' })` to preserve the v10 behavior.
+The new default is the better definition, and this repository accepts it rather than pinning the old
+one. A session is meant to approximate one app usage, and for a client-side routed app one page load
+is one usage. Navigating between routes is continued use of the same app instance, not a new usage.
+Under `'route'` the session count becomes a navigation counter, so a user who clicks through twenty
+routes contributes twenty sessions and session volume stops meaning "how many people used the app".
+
+`'route'` also dilutes the crash signal. A user who hits an error on the third of twenty routes marks
+one of twenty sessions errored, which reads as 95% crash-free even though that user had a broken
+experience. Under `'page'` the single session is errored, which reads as 0% for that user.
+
+The old behavior was also an artifact of the transaction model. v10 created a new pageload
+transaction per client-side navigation and coupled sessions to transactions, so one session per
+navigation fell out for free. v11 replaced transactions with span streaming and soft navigations,
+which broke that coupling, so `'route'` is now legacy residue rather than a deliberate design.
+
+`browserSessionIntegration` remains auto-registered as a default integration, so sessions are still
+collected with no explicit configuration. The only change is the lifecycle. The consequence is that
+session counts and the crash-free denominator will drop relative to v10, so any dashboard, alert, or
+saved search that reads absolute session counts needs rebaselining after this upgrade.
 
 ### 6. Data collection is broader by default
 

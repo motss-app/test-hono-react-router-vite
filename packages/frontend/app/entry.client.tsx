@@ -1,4 +1,4 @@
-import { browserSessionIntegration, elementTimingIntegration } from '@sentry/browser';
+import { elementTimingIntegration } from '@sentry/browser';
 import {
   addIntegration,
   flush,
@@ -99,15 +99,6 @@ init({
     //     'debug',
     //   ],
     // }),
-    /*
-     * v11 changed the default browser session lifecycle from `route` to `page`, so a session is
-     * now created once per page load instead of once per navigation. This app navigates client
-     * side through React Router, so pinning `route` keeps Release Health session counts and the
-     * crash-free denominator at their v10 behavior.
-     */
-    browserSessionIntegration({
-      lifecycle: 'route',
-    }),
     tracing,
     elementTimingIntegration(),
   ],

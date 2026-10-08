@@ -6,7 +6,7 @@ Status: ✅ done | ➕ added | 🟢 no action needed | ⏭️ opted out | ❌ do
 
 Us: ✅ we hit it | ❌ we do not | ❓ unknown
 
-On the skips: 5 of 42 are deferred or dropped by choice. Another 6 are APIs this repo never used, 6 need no action, and 1 is blocked upstream. Full list under [Skipped](#skipped).
+On the skips: 5 of 42 are deferred or dropped by choice. Another 6 are APIs this repo never used, 7 need no action, and 1 is blocked upstream. Full list under [Skipped](#skipped).
 
 ## 💥 Breaking (23)
 
@@ -27,7 +27,7 @@ On the skips: 5 of 42 are deferred or dropped by choice. Another 6 are APIs this
 | 13 | `captureMessage` errors session | 💥 | ✅ | ✅ | Removed, `logger.info` existed |
 | 14 | Scope `tags` miss spans | 💥 | ✅ | ✅ | Added `setAttribute` |
 | 15 | Loader/action wrappers removed | 💥 | ✅ | ✅ | Exported `instrumentations` |
-| 16 | Browser session is per page | 💥 | ✅ | ✅ | Pinned `lifecycle: route` |
+| 16 | Browser session is per page | 💥 | ✅ | 🟢 | Accepted new default |
 | 22 | 10.75.2 to 11.5.0 | 💥 | ✅ | ✅ | 4 packages bumped |
 | 18 | `honoIntegration` removed | 💥 | ❌ | ❌ | Never used |
 | 19 | D1, DO, span envelopes removed | 💥 | ❌ | ❌ | Never used |
