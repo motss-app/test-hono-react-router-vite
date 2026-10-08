@@ -209,7 +209,11 @@ cloudflare subpath re-exports the browser-facing helpers needed by those modules
 Important details:
 
 - for Cloudflare Worker deploys, do not use the Node-only React Router server helpers such as
-  `createSentryHandleError({})` or `createSentryServerInstrumentation()`
+  `createSentryHandleError({})`
+- `createSentryServerInstrumentation()` is the exception, and it is required. It is exported from
+  `@sentry/react-router/cloudflare` from 11.5.0 onward, and `app/entry.server.tsx` exports it as
+  `instrumentations` so loader and action spans are emitted through React Router's instrumentation
+  API. Without it, loader and action work produces no spans
 - do not create a separate Node preload file like `instrument.server.mjs` for the Worker path
 - `/api/*`, `/ssr`, document/data requests, and `__manifest` all still enter the Worker first
 - server/runtime ownership on the deployed Worker stays with `@sentry/cloudflare`
@@ -234,8 +238,9 @@ Current behavior:
 
 ### Local Spotlight trace shaping
 
-The current local development stack is intentionally opinionated about which transactions should be
-visible in Spotlight.
+The current local development stack is intentionally opinionated about which spans should be
+visible in Spotlight. Since the v11 upgrade the SDK streams spans instead of emitting transaction
+events, so shaping works on spans rather than transactions.
 
 Why this exists:
 
@@ -245,30 +250,34 @@ Why this exists:
 
 Without any shaping, Spotlight becomes noisy in two ways:
 
-- every Vite-served asset/module request can appear as its own top-level server transaction
-- React Router catch-all handlers can show up as generic `GET /*` transaction names even when the
+- every Vite-served asset/module request can appear as its own top-level server span
+- React Router catch-all handlers can show up as a bare method name such as `GET` even when the
   real request was something concrete like `/hono-rpc`
 
-The shared rules in `app/monitoring/sentry.ts` now do three things in local development:
+The shared rules in `app/monitoring/sentry.ts` now do two things in local development:
 
-1. drop standalone top-level dev transactions for noisy asset/module requests such as:
+1. drop server spans for noisy asset/module requests through `ignoreSpans`, matching on the
+   `url.path` attribute rather than the span name, for paths such as:
   - `@fs/...`
   - `@id/...`
   - `node_modules/...`
   - `__manifest`
   - `.js`, `.ts`, `.tsx`, `.css`, `.map`, `.woff2`, and similar asset URLs
-2. rename kept catch-all transactions from `GET /*` to the actual request path by reading the
-  request URL before the transaction is sent
-3. keep the envelope-reporting route itself (`POST /api/tunnel`) out of the trace list so the app
+2. keep the envelope-reporting route itself (`POST /api/tunnel`) out of the trace list so the app
   does not trace the act of tracing itself
 
-Important nuance:
+On top of that, `beforeSendSpan` renames a kept catch-all service span from a bare method such as
+`GET` to the real request path, so top-level routes stay readable.
 
-- the `beforeSendTransaction` path returns `null` only in development
-- that is intentional because `return null` means “discard this transaction entirely”
+Important nuances:
+
+- `ignoreSpans` is the only place stream mode can drop a span, and it is evaluated at span start
+  rather than when the span ends. Matching therefore relies on `url.path`, which the SDK populates
+  before the span starts.
+- `beforeSendSpan` can rename a span but cannot drop it, which is why dropping lives in `ignoreSpans`.
 - the ignored-path patterns are broad and optimized for local Vite/worker noise, not for deployed traffic
-- outside development we would rather keep the transaction and only normalize catch-all names such as `GET /*`
-  than risk hiding legitimate canary/production requests that happen to match a broad asset/path rule
+- outside development we prefer to keep those spans and only normalize catch-all names, rather than
+  risk hiding legitimate canary or production requests that happen to match a broad asset/path rule
 
 That means the Spotlight trace list stays focused on meaningful browser-facing requests such as:
 
@@ -276,11 +285,10 @@ That means the Spotlight trace list stays focused on meaningful browser-facing r
 - `GET /ssr`
 - `GET /api/rpc/hello`
 
-instead of showing one top-level server trace for every dev asset fetch.
+instead of showing one top-level server span for every dev asset fetch.
 
-This shaping also prevents confusing orphan `GET /*` traces. Those happened when a generic
-catch-all transaction survived, but the real parent asset/module transaction had already been
-filtered out.
+This shaping also prevents confusing orphan traces. Those happened when a generic catch-all span
+survived, but the real parent asset/module span had already been filtered out.
 
 ### Trace propagation targets
 

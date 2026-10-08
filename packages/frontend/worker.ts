@@ -2,9 +2,10 @@ import {
   getIsolationScope,
   logger,
   metrics,
+  setAttribute,
   setTag,
   withSentry,
-} from '@sentry/cloudflare/nodejs_compat';
+} from '@sentry/cloudflare';
 import { Hono } from 'hono';
 import { timing } from 'hono/timing';
 
@@ -78,7 +79,12 @@ function handleWorkerAppRequest({
   request: Request;
   shouldSetAppSessionCookie: boolean;
 }): Promise<Response> {
+  /*
+   * Scope tags no longer reach spans in v11, so the app session is set as both a tag (for errors)
+   * and an attribute (for spans, logs, and metrics).
+   */
   setTag(appSessionIdTagName, appSessionId);
+  setAttribute(appSessionIdTagName, appSessionId);
 
   return PromiseFrom(app.fetch(request, env, executionContext)).then(response => {
     // Skip Set-Cookie on redirects to keep them cacheable at the edge.
@@ -185,19 +191,30 @@ export default withSentry<HonoEnv['Bindings']>(
       logger.info('[packages/frontend/worker.ts] Sentry env snapshot', workerEnvSnapshot);
     }
 
+    const sentryOptions = createCloudflareSentryOptions(
+      import.meta.env.MODE,
+      env.SENTRY_DSN,
+      import.meta.env.SENTRY_RELEASE,
+      /*
+       * The frontend worker is an RPC receiver, so it continues incoming traces
+       * automatically, but it only has the static ASSETS binding and therefore
+       * propagates to nothing.
+       */
+      []
+    );
+
     return {
-      ...createCloudflareSentryOptions(
-        import.meta.env.MODE,
-        env.SENTRY_DSN,
-        import.meta.env.SENTRY_RELEASE,
-        // The frontend worker is an RPC receiver (continuing traces via `enableRpcTracePropagation`)
-        // but only has the static ASSETS binding, so it propagates to nothing.
-        []
-      ),
+      ...sentryOptions,
+      /*
+       * Compose rather than replace. `sentryOptions.beforeSendSpan` renames
+       * service spans that fall back to a bare method name, so overwriting it
+       * would leave frontend spans named `GET` while gateway and BFF spans
+       * keep readable route names.
+       */
       beforeSendSpan: span =>
         applyAppSessionIdToSpan(
-          span,
-          getIsolationScope().getScopeData().tags[appSessionIdTagName] as string | undefined
+          sentryOptions.beforeSendSpan?.(span) ?? span,
+          getIsolationScope().getScopeData().attributes[appSessionIdTagName] as string | undefined
         ),
     };
   },

@@ -68,7 +68,7 @@ The deployment build configs minify in Vite, and `packages/frontend/wrangler.jso
 
 The browser trace now also includes a short-lived `Client bootstrap` span around hydration, plus a `Lazy browser integrations` span for the deferred profiling/replay setup work, so startup gaps show up in Sentry instead of remaining as `No Instrumentation`.
 
-For the full stack-specific setup guide, see [`docs/sentry-setup.md`](docs/sentry-setup.md).
+For the full stack-specific setup guide, see [`docs/sentry-setup.md`](docs/sentry-setup.md). For the SDK 10.x to 11.x upgrade notes, see [`docs/sentry-v11-migration.md`](docs/sentry-v11-migration.md).
 For the Worker-specific React Router split, see [`docs/SENTRY_REACT_ROUTER_SETUP.md`](docs/SENTRY_REACT_ROUTER_SETUP.md).
 
 On Cloudflare Workers, the deployed server/runtime owner is `@sentry/cloudflare` in `packages/frontend/worker.ts`.

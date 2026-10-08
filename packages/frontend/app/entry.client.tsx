@@ -1,12 +1,12 @@
 import { elementTimingIntegration } from '@sentry/browser';
 import {
   addIntegration,
-  captureMessage,
   flush,
   init,
   logger,
   reactRouterTracingIntegration,
   sentryOnError,
+  setAttribute,
   setTag,
   startInactiveSpan,
   startSpan,
@@ -85,6 +85,9 @@ init({
   ...(appSessionId
     ? {
         initialScope: {
+          attributes: {
+            [appSessionIdTagName]: appSessionId,
+          },
           tags: {
             [appSessionIdTagName]: appSessionId,
           },
@@ -101,9 +104,13 @@ init({
   ],
 });
 
-// Set the app session ID tag on the active Sentry scope after initialization
+/*
+ * Scope tags no longer reach spans in v11, so the app session is set as both a tag (for errors)
+ * and an attribute (for spans, logs, and metrics).
+ */
 if (appSessionId) {
   setTag(appSessionIdTagName, appSessionId);
+  setAttribute(appSessionIdTagName, appSessionId);
 }
 
 if (isDevSentryMode) {
@@ -122,9 +129,6 @@ if (isDevSentryMode) {
     initializedAt,
     runtime: 'browser',
     tunnel: browserTunnel,
-  });
-  captureMessage('entry.client initialized', {
-    level: 'info',
   });
 
   flush(2000);

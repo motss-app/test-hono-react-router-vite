@@ -1,14 +1,12 @@
 const appSessionIdCookieName = 'app_session_id';
 
-type AppSessionSpanDataValue =
-  | (boolean | null | number | string | undefined)[]
-  | boolean
-  | number
-  | string
-  | undefined;
-
+/**
+ * Minimal shape of the v11 `StreamedSpanJSON` payload that this module needs. Its `attributes` map
+ * is `RawAttributes<Record<string, unknown>>`, so the constraint stays `unknown`-valued and only the
+ * helper itself narrows the one key it writes.
+ */
 interface AppSessionSpanLike {
-  data: Record<string, AppSessionSpanDataValue>;
+  attributes: Record<string, unknown>;
 }
 
 interface BrowserAppSessionGlobal {
@@ -21,14 +19,14 @@ export function applyAppSessionIdToSpan<T extends AppSessionSpanLike>(
   span: T,
   appSessionId?: string
 ): T {
-  if (!appSessionId || span.data[appSessionIdTagName] === appSessionId) {
+  if (!appSessionId || span.attributes[appSessionIdTagName] === appSessionId) {
     return span;
   }
 
   return {
     ...span,
-    data: {
-      ...span.data,
+    attributes: {
+      ...span.attributes,
       [appSessionIdTagName]: appSessionId,
     },
   };

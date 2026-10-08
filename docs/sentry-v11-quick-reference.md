@@ -1,0 +1,88 @@
+# Sentry v11 + Cloudflare: all changes
+
+Sorted by impact first (💥, ⚠️, ✨), then by status (✅, ➕, 🟢, ⏭️, ❌, ⚠️ blocked, ❓ unverified).
+
+Status: ✅ done | ➕ added | 🟢 no action needed | ⏭️ opted out | ❌ does not apply | ⚠️ blocked | ❓ unverified
+
+Us: ✅ we hit it | ❌ we do not | ❓ unknown
+
+On the skips: 5 of 42 are deferred or dropped by choice. Another 6 are APIs this repo never used, 7 need no action, and 1 is blocked upstream. Full list under [Skipped](#skipped).
+
+## 💥 Breaking (23)
+
+| # | Change | Impact | Us | Status | What I did |
+|---|---|---|---|---|---|
+| 1 | `nodejs_compat` import removed | 💥 | ✅ | ✅ | 6 imports to `@sentry/cloudflare` |
+| 2 | `nodejs_als` flag dropped | 💥 | ✅ | ✅ | Removed, kept `nodejs_compat` |
+| 3 | Span streaming is default | 💥 | ✅ | ✅ | Filtering to `ignoreSpans` |
+| 4 | `beforeSendTransaction` ignored | 💥 | ✅ | ✅ | Moved to `beforeSendSpan` |
+| 5 | `ignoreTransactions` ignored | 💥 | ✅ | ✅ | Replaced with `ignoreSpans` |
+| 6 | Span fields renamed | 💥 | ✅ | ✅ | `data` to `attributes` |
+| 7 | `sendDefaultPii` removed | 💥 | ✅ | ✅ | Pinned `dataCollection` |
+| 8 | `enableLogs` removed | 💥 | ✅ | ✅ | Removed, `logger.*` works |
+| 9 | `enableRpcTracePropagation` removed | 💥 | ✅ | ✅ | Kept the allow list |
+| 10 | Vite `_experimental` removed | 💥 | ✅ | ✅ | Used top-level options |
+| 11 | `sentryReactRouter` to `/vite` | 💥 | ✅ | ✅ | Updated import |
+| 12 | `unstable_sentryVitePluginOptions` gone | 💥 | ✅ | ✅ | `release` to top level |
+| 13 | `captureMessage` errors session | 💥 | ✅ | ✅ | Removed, `logger.info` existed |
+| 14 | Scope `tags` miss spans | 💥 | ✅ | ✅ | Added `setAttribute` |
+| 15 | Loader/action wrappers removed | 💥 | ✅ | ✅ | Exported `instrumentations` |
+| 16 | Browser session is per page | 💥 | ✅ | 🟢 | Accepted new default |
+| 22 | 10.75.2 to 11.5.0 | 💥 | ✅ | ✅ | 4 packages bumped |
+| 18 | `honoIntegration` removed | 💥 | ❌ | ❌ | Never used |
+| 19 | D1, DO, span envelopes removed | 💥 | ❌ | ❌ | Never used |
+| 20 | `@sentry/types` unpublished | 💥 | ❌ | ❌ | Never imported |
+| 21 | AI and OTel changes | 💥 | ❌ | ❌ | No such code |
+| 36 | Miniflare v5 | 💥 | ❌ | ❌ | Not used directly |
+| 38 | Spotlight UI 500s | 💥 | ✅ | ⚠️ | Blocked upstream, see Skipped |
+
+## ⚠️ Behavior change (8)
+
+| # | Change | Impact | Us | Status | What I did |
+|---|---|---|---|---|---|
+| 15 | Span names lower cardinality | ⚠️ | ✅ | ✅ | Kept names readable |
+| 29 | Sampling defaults to 1 | ⚠️ | ✅ | ✅ | Left at 100% by choice |
+| 30 | `compatibility_date` stale | ⚠️ | ✅ | ✅ | All 7 to `2026-10-01` |
+| 10b | `useDiagnosticsChannelInjection` renamed | ⚠️ | ✅ | 🟢 | Now `buildTimeInstrumentation`, default `true` |
+| 16 | Dedupe crosses requests | ⚠️ | ✅ | 🟢 | No code needed |
+| 17 | Trace matching case-insensitive | ⚠️ | ❌ | 🟢 | Already anchored |
+| 39 | RR hook spans unverified | ⚠️ | ❓ | ❓ | Not observed, documented only |
+
+## ✨ New feature (11)
+
+| # | Change | Impact | Us | Status | What I did |
+|---|---|---|---|---|---|
+| 24 | `traceLifecycle` option | ✨ | ✅ | ➕ | Pinned to `stream` |
+| 25 | `dataCollection` control | ✨ | ✅ | ➕ | Cookies and bodies off |
+| 26 | Attribute-based `ignoreSpans` | ✨ | ✅ | ➕ | Used `url.path` |
+| 32 | RPC session spans | ✨ | ✅ | 🟢 | Already on |
+| 33 | Custom Dashboards | ✨ | ✅ | 🟢 | Dashboard task |
+| 34 | Release annotations | ✨ | ✅ | 🟢 | No code needed |
+| 23 | `@sentry/hono` available | ✨ | ✅ | ⏭️ | New package, own PR, see #94 |
+| 31 | Cloudflare custom spans | ✨ | ✅ | ⏭️ | Three systems overlap, see #96 |
+| 35 | `cf` CLI beta | ✨ | ❌ | ⏭️ | Beta, see #95 |
+| 27 | Sentry session replay on Workers | ✨ | ❌ | ⏭️ | Not wanted, see Skipped |
+| 28 | Sentry profiling on Workers | ✨ | ❌ | ⏭️ | Not wanted, see Skipped |
+| 37 | Workflows, Basin, OAuth | ✨ | ❌ | ❌ | Not applicable |
+
+## Skipped
+
+Only these 5 needed code I chose not to write:
+
+| Item | Why | To enable |
+|---|---|---|
+| `@sentry/hono` | New package, changes route names | Own PR, see #94 |
+| Cloudflare custom spans | Three systems already overlap, see #96 | Only if Sentry is dropped |
+| `cf` CLI | Beta, Build Output may change | After stable, see #95 |
+| Spotlight UI | Upstream bug, not ours | Wait for fix |
+| Sampling tune | Needs real traffic | Watch bill |
+
+Dropped as not wanted: Sentry profiling on Workers (see [pricing](https://sentry.io/pricing/)) and Sentry session replay on Workers. Browser replay is also disabled, because the `replayIntegration` loader in `packages/frontend/app/entry.client.tsx` is commented out, so this application currently records no replays at all.
+
+The other skips need nothing: 12 are APIs this repo never imported, and 8 are already correct or need no code.
+
+## Verified
+
+Typecheck, lint 167 files, 4 tests, build, 3 dry-run deploys, all URLs in `docs/dev-urls.md` 200 except stale `/api/test`. CI green on 10 Actions checks, all 7 Workers deployed to canary. SDK 11.5.0 live, 155-span trace, multi-hop RPC, dev spans dropped.
+
+Full detail: [sentry-v11-migration.md](./sentry-v11-migration.md). Guide: [Sentry v11](https://docs.sentry.io/platforms/javascript/guides/cloudflare/migration/v10-to-v11/)

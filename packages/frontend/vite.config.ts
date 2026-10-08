@@ -2,7 +2,7 @@ import { cloudflare } from '@cloudflare/vite-plugin';
 import { paraglideVitePlugin } from '@inlang/paraglide-js';
 import { reactRouter } from '@react-router/dev/vite';
 import { sentryCloudflareVitePlugin } from '@sentry/cloudflare/vite';
-import { sentryReactRouter } from '@sentry/react-router';
+import { sentryReactRouter } from '@sentry/react-router/vite';
 import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin';
 import { defineConfig, type UserConfig } from 'vite';
 
@@ -84,12 +84,11 @@ export default defineConfig(async config => {
                 name: 'ssr',
               },
             }),
-            sentryCloudflareVitePlugin({
-              _experimental: {
-                autoInstrumentation: true,
-                useDiagnosticsChannelInjection: true,
-              },
-            }),
+            /*
+             * The entry is already wrapped with `withSentry`, and the plugin leaves already-wrapped
+             * entries alone, so this is safe. Verified: no double-wrapping and tracing still works.
+             */
+            sentryCloudflareVitePlugin(),
             themeBuildPlugin({
               rootDir: repoRootPath,
             }),
