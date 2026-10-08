@@ -77,7 +77,7 @@ Only these 5 needed code I chose not to write:
 | Spotlight UI | Upstream bug, not ours | Wait for fix |
 | Sampling tune | Needs real traffic | Watch bill |
 
-Dropped as not wanted: Sentry profiling on Workers (see [pricing](https://sentry.io/pricing/)) and Sentry session replay on Workers, since browser replay is already on.
+Dropped as not wanted: Sentry profiling on Workers (see [pricing](https://sentry.io/pricing/)) and Sentry session replay on Workers. Browser replay is also disabled, because the `replayIntegration` loader in `packages/frontend/app/entry.client.tsx` is commented out, so this application currently records no replays at all.
 
 The other skips need nothing: 12 are APIs this repo never imported, and 8 are already correct or need no code.
 

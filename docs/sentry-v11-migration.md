@@ -247,16 +247,19 @@ saved search that reads absolute session counts needs rebaselining after this up
 
 ### 6. Data collection is broader by default
 
-An unset `dataCollection` in v11 collects more than v10 did with `sendDefaultPii: true`, most
-notably cookies and full request and response bodies. Sensitive value scrubbing matches on key name
-and is best effort, so a credential stored under an innocuous key would still be transmitted.
+An unset `dataCollection` in v11 matches v10 `sendDefaultPii: true`, so the v11 default is more
+permissive than v10 with `sendDefaultPii` unset. The categories that change are cookies, HTTP
+request and response bodies, user info, GenAI inputs and outputs, database query data, and queues.
+Sensitive value scrubbing matches on key name and is best effort, so a credential stored under an
+innocuous key would still be transmitted.
 
 This repository removed `sendDefaultPii` and pinned an explicit `dataCollection` baseline in
-`createBaseOptions`, so the broader v11 default does not apply here. Cookies and HTTP bodies are off,
-which matters because this app issues an `app_session_id` cookie and accepts POST bodies on `/api/*`.
-Headers, user info, query params, and stack frame variables stay on because they are used for
-debugging. Every category disabled is one this repo has no integration for, so nothing is lost.
-`frameContextLines` is set to 7 to restore the v10 default.
+`createBaseOptions`. That baseline is intentionally stricter than the v11 default rather than a
+preservation of v10 behavior: cookies and HTTP bodies are off, which matters because this app issues
+an `app_session_id` cookie and accepts POST bodies on `/api/*`. Headers, user info, query params, and
+stack frame variables stay on because they are used for debugging. Every category disabled is one this
+repo has no integration for, so nothing is lost. `frameContextLines` is set to 7 to restore the v10
+default, since v11 dropped it to 5.
 
 ### Dedupe now compares errors across requests
 
@@ -296,9 +299,10 @@ on `http.route` would be both lower cardinality and independent of URL shape.
 
 ### 4. Add session replay or profiling to the Workers
 
-`profileLifecycle: 'trace'` and replay sample rates are already configured for the browser.
-`@sentry/cloudflare` v11 supports continuous profiling on Workers through the Vite plugin, which is
-not currently enabled.
+`profileLifecycle: 'trace'` is configured for the browser. Replay sample rates are also set for the
+browser, but the `replayIntegration` loader in `packages/frontend/app/entry.client.tsx` is commented
+out, so no browser replays are recorded today. `@sentry/cloudflare` v11 supports continuous profiling
+on Workers through the Vite plugin, which is not currently enabled.
 
 ### 5. Review `dataCollection` categories individually
 
