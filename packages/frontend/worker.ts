@@ -79,8 +79,10 @@ function handleWorkerAppRequest({
   request: Request;
   shouldSetAppSessionCookie: boolean;
 }): Promise<Response> {
-  // Scope tags no longer reach spans in v11, so the app session is set as both a tag (for errors)
-  // and an attribute (for spans, logs, and metrics).
+  /*
+   * Scope tags no longer reach spans in v11, so the app session is set as both a tag (for errors)
+   * and an attribute (for spans, logs, and metrics).
+   */
   setTag(appSessionIdTagName, appSessionId);
   setAttribute(appSessionIdTagName, appSessionId);
 

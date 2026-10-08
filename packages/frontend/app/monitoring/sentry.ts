@@ -166,9 +166,13 @@ function createBaseOptions(mode: RuntimeMode, dsn?: string) {
     dataCollection: {
       cookies: false,
       databaseQueryData: false,
-      // v10 defaulted to 7 context lines. v11 dropped the default to 5, so restore it for parity.
+      /*
+       * v10 defaulted to 7 context lines. v11 dropped the default to 5, so restore it for parity.
+       */
       frameContextLines: 7,
-      // No AI or database integrations in this repo, so these cost nothing to disable.
+      /*
+       * No AI or database integrations in this repo, so these cost nothing to disable.
+       */
       genAI: {
         inputs: false,
         outputs: false,
@@ -177,7 +181,9 @@ function createBaseOptions(mode: RuntimeMode, dsn?: string) {
         document: false,
         variables: false,
       },
-      // An empty array disables body collection. Sizes are still recorded on spans.
+      /*
+       * An empty array disables body collection. Sizes are still recorded on spans.
+       */
       httpBodies: [],
       /*
        * Headers stay on because upstream correlation headers are useful, but values whose key looks
