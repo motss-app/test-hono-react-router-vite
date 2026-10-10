@@ -4,6 +4,7 @@ packages:
   - 'packages/gateway'
 
 pmOnFail: ignore
+runtimeOnFail: ignore
 
 allowBuilds:
   '@inlang/message-lint-rule-empty-pattern': false

@@ -76,7 +76,8 @@ Selection rules:
 
 ## Project Structure
 
-- Runtime: Node.js 27 for task orchestration and builds, Cloudflare Workers for app runtime.
+- Runtime: Node.js 26 for task orchestration and builds, Cloudflare Workers for app runtime.
+- Environment: Vite+ manages Node.js and pnpm through the `vp` shims. `package.json#devEngines.runtime` pins the exact Node.js version and `package.json#packageManager` pins pnpm, so `node` and `pnpm` resolve to those versions in new shells. Update the pins with `vp env pin <node-version>` and `vp env pin pnpm@<version>`, then run `vp env doctor` to verify the environment.
 - Entry Points:
   - `packages/frontend/worker.ts`: Frontend Cloudflare Worker entry point used by local dev and production builds.
   - `packages/gateway/src/worker.ts`: Gateway Cloudflare Worker entry point.
