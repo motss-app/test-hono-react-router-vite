@@ -6,6 +6,6 @@ import { defineConfig } from 'vite-plus';
  */
 export default defineConfig({
   staged: {
-    '**/*.{js,jsx,ts,tsx,json}': 'deno run -P=lint npm:@biomejs/biome check --write',
+    '**/*.{js,jsx,ts,tsx,json}': 'biome check --write',
   },
 });

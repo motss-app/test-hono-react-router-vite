@@ -74,8 +74,8 @@ Runs the gateway worker and attaches the BFF worker as an auxiliary worker durin
 
 ## Testing
 
-- **Dev**: `deno task dev` → gateway + frontend worker + BFF + Spotlight on http://localhost:8787
-- **Prod**: `deno task build && deno task start` → preview the built worker stack locally
+- **Dev**: `pnpm dev` → gateway + frontend worker + BFF + Spotlight on http://localhost:8787
+- **Prod**: `pnpm build && pnpm start` → preview the built worker stack locally
 - **API**: Visit `/api/test` in both modes
 
 ## Success Criteria

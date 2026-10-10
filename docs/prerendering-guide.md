@@ -67,9 +67,9 @@ export default function Contact() {
 ## Testing
 
 ```bash
-deno task build
+pnpm build
 ls build/client/  # Check generated HTML files
-deno task start        # Test in production
+pnpm start        # Test in production
 ```
 
 Visit prerendered routes - should load instantly!

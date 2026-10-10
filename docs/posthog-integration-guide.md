@@ -98,7 +98,7 @@ sequenceDiagram
 ## Installation
 
 ```sh
-deno install npm:posthog-js@1.404.1 npm:@posthog/react@1.10.3
+pnpm install npm:posthog-js@1.404.1 npm:@posthog/react@1.10.3
 ```
 
 ## Files to create / modify
@@ -365,8 +365,8 @@ import { PostHogCaptureOnViewed } from '@posthog/react';
 
 ## Verification checklist
 
-- [ ] `deno task check` passes without errors.
-- [ ] `deno task dev` starts without PostHog errors.
+- [ ] `pnpm check` passes without errors.
+- [ ] `pnpm dev` starts without PostHog errors.
 - [ ] A `$pageview` appears in PostHog on first load.
 - [ ] Navigating between routes fires a new `$pageview` for each URL.
 - [ ] Web vitals (`$web_vitals` events) appear after page load.

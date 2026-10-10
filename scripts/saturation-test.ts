@@ -1,25 +1,59 @@
-#!/usr/bin/env -S deno run -A
+#!/usr/bin/env node
+import { execFile as execFileCallback } from 'node:child_process';
+import { readFile, rm, stat, writeFile } from 'node:fs/promises';
+import process from 'node:process';
 
 /**
  * Saturation test: runs k6 at specified CCU levels and reports
  * RPS + latency at each level so you can see exactly where the server
  * saturates.
  *
- * Usage: deno run -A scripts/saturation-test.ts [ccu1,ccu2,...]
- * Example: deno run -A scripts/saturation-test.ts 500,1000,3000,5000
+ * Usage: node scripts/saturation-test.ts [ccu1,ccu2,...]
+ * Example: node scripts/saturation-test.ts 500,1000,3000,5000
  */
 
-const BASE_URL = Deno.env.get('BASE_URL') ?? 'http://127.0.0.1:9999';
+const BASE_URL = process.env.BASE_URL ?? 'http://127.0.0.1:9999';
 // Accept either a single comma-separated arg (`500,5000`) or multiple
 // positional args (`500 5000`); env var `CCU_LEVELS` also works.
+const cliArgs = process.argv.slice(2);
 const CCU_LEVELS = (
-  Deno.args.length > 0 ? Deno.args.join(',') : (Deno.env.get('CCU_LEVELS') ?? '500,1000,3000,5000')
+  cliArgs.length > 0 ? cliArgs.join(',') : (process.env.CCU_LEVELS ?? '500,1000,3000,5000')
 )
   .split(',')
   .map(Number)
   .filter(n => !Number.isNaN(n) && n > 0);
-const STEADY_S = parseInt(Deno.env.get('STEADY_S') ?? '10', 10);
-const K6 = Deno.env.get('K6_BINARY') ?? 'k6';
+const STEADY_S = parseInt(process.env.STEADY_S ?? '10', 10);
+const K6 = process.env.K6_BINARY ?? 'k6';
+
+/** Run a command capturing stdout and stderr. */
+function execFileCapture(
+  command: string,
+  args: string[]
+): Promise<{
+  stderr: string;
+  stdout: string;
+}> {
+  return new Promise((resolve, reject) => {
+    execFileCallback(
+      command,
+      args,
+      {
+        encoding: 'utf8',
+        maxBuffer: 64 * 1024 * 1024,
+      },
+      (error, stdout, stderr) => {
+        if (error && typeof error.code !== 'number') {
+          reject(error);
+          return;
+        }
+        resolve({
+          stderr,
+          stdout,
+        });
+      }
+    );
+  });
+}
 
 interface Result {
   ccu: number;
@@ -66,34 +100,26 @@ export function handleSummary(data) {
 }
 `;
 
-  await Deno.writeTextFile(scriptPath, script);
+  await writeFile(scriptPath, script, 'utf8');
 
   // Verify file exists before running k6
   try {
-    await Deno.stat(scriptPath);
+    await stat(scriptPath);
   } catch {
     continue;
   }
 
-  const cmd = new Deno.Command(K6, {
-    args: [
-      'run',
-      scriptPath,
-    ],
-    stderr: 'piped',
-    stdout: 'piped',
-  });
-
-  const output = await cmd.output();
+  const output = await execFileCapture(K6, [
+    'run',
+    scriptPath,
+  ]);
 
   // Prefer the JSON written by handleSummary; fall back to parsing stdout.
   let jsonText: string | null = null;
   try {
-    jsonText = await Deno.readTextFile(summaryPath);
+    jsonText = await readFile(summaryPath, 'utf8');
   } catch {
-    const stdout = new TextDecoder().decode(output.stdout);
-    const stderr = new TextDecoder().decode(output.stderr);
-    jsonText = extractMetricsJson(stdout + stderr);
+    jsonText = extractMetricsJson(output.stdout + output.stderr);
     if (!jsonText) {
       // Metrics JSON missing from output; skip this sample.
     }
@@ -118,8 +144,12 @@ export function handleSummary(data) {
     }
   }
 
-  await Deno.remove(scriptPath);
-  await Deno.remove(summaryPath);
+  await rm(scriptPath, {
+    force: true,
+  });
+  await rm(summaryPath, {
+    force: true,
+  });
 }
 
 /**

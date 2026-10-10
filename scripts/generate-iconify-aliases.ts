@@ -1,10 +1,12 @@
+import { readFile, writeFile } from 'node:fs/promises';
+
 /**
  * Generate VS Code Iconify aliases from the installed solid-icon exports.
  * Names follow Icon + PascalCase, such as arrow-left becoming IconArrowLeft.
- * Run deno task icons:sync after upgrading the icon package.
+ * Run pnpm icons:sync after upgrading the icon package.
  */
 const manifestUrl = new URL(import.meta.resolve('@iconify-react/fa7-solid/package.json'));
-const manifest = JSON.parse(await Deno.readTextFile(manifestUrl)) as {
+const manifest = JSON.parse(await readFile(manifestUrl, 'utf8')) as {
   exports: Record<
     string,
     | string
@@ -66,5 +68,5 @@ const sortedAliases = Object.fromEntries(
 );
 const outputUrl = new URL('../.vscode/iconify-aliases.json', import.meta.url);
 
-await Deno.writeTextFile(outputUrl, `${JSON.stringify(sortedAliases, null, 2)}\n`);
+await writeFile(outputUrl, `${JSON.stringify(sortedAliases, null, 2)}\n`, 'utf8');
 console.log(`Generated ${Object.keys(aliases).length} aliases in .vscode/iconify-aliases.json`);

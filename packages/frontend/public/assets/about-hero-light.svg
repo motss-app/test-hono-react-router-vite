@@ -54,7 +54,7 @@
   <text x="900" y="486" fill="#334155" fill-opacity="0.52" font-family="'Open Sans', sans-serif" font-size="18">Hono handlers and typed request boundaries</text>
 
   <text x="900" y="666" fill="#0F172A" fill-opacity="0.42" font-family="'Open Sans', sans-serif" font-size="30" font-weight="700">RUNTIME</text>
-  <text x="900" y="704" fill="#334155" fill-opacity="0.5" font-family="'Open Sans', sans-serif" font-size="18">Deno-first local flow and Cloudflare Workers target</text>
+  <text x="900" y="704" fill="#334155" fill-opacity="0.5" font-family="'Open Sans', sans-serif" font-size="18">Node.js local flow and Cloudflare Workers target</text>
 
   <text x="900" y="884" fill="#0F172A" fill-opacity="0.42" font-family="'Open Sans', sans-serif" font-size="30" font-weight="700">QUALITY</text>
   <text x="900" y="922" fill="#334155" fill-opacity="0.5" font-family="'Open Sans', sans-serif" font-size="18">type safety, responsiveness, and fast iteration</text>

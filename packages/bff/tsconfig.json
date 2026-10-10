@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "noEmit": true,
+    "types": [
+      "@cloudflare/workers-types",
+      "node",
+      "vite/client"
+    ]
+  },
+  "extends": "../../tsconfig.node.json",
+  "include": [
+    "src/**/*.ts",
+    "build-env.ts",
+    "vite.config.ts",
+    "../frontend/app/types/vite-env.d.ts"
+  ]
+}

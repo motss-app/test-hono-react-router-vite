@@ -196,7 +196,7 @@ cargo test --target aarch64-apple-darwin
 
 For the Worker and Chrome integration regression, first build this package
 with `worker-build --release`, then start the frontend and gateway dev
-servers. From the workspace root run `deno task test:image-optimize`.
+servers. From the workspace root run `pnpm test:image-optimize`.
 It uses a fresh installed Chrome session and checks the actual Worker
 response, browser-decoded saturated colors and alpha, query validation,
 and the enabled slider submitting quality 40. Set

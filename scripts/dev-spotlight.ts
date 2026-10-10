@@ -1,7 +1,12 @@
+import type { ChildProcess } from 'node:child_process';
+import { once } from 'node:events';
+import process from 'node:process';
+
 import { clearPorts } from './dev-ports.ts';
+import { spawnCommand } from './run-command.ts';
 
 interface ManagedProcess {
-  child: Deno.ChildProcess;
+  child: ChildProcess;
   name: string;
 }
 
@@ -9,8 +14,8 @@ function getSpotlightLaunchCommand(): {
   cmd: string;
   args: string[];
 } {
-  const binary = Deno.env.get('SPOTLIGHT_BINARY');
-  const useMcp = Deno.env.get('SPOTLIGHT_MCP') ?? '1';
+  const binary = process.env.SPOTLIGHT_BINARY;
+  const useMcp = process.env.SPOTLIGHT_MCP ?? '1';
 
   if (binary) {
     return {
@@ -27,7 +32,7 @@ function getSpotlightLaunchCommand(): {
   return {
     args: [
       'dlx',
-      '@spotlightjs/spotlight',
+      '@spotlightjs/spotlight@4.12.0',
       ...(useMcp === '1' || useMcp.toLowerCase() === 'true'
         ? [
             'mcp',
@@ -39,10 +44,9 @@ function getSpotlightLaunchCommand(): {
 }
 
 const processes: ManagedProcess[] = [];
-const textEncoder = new TextEncoder();
 
 function logWarning(message: string): void {
-  Deno.stderr.writeSync(textEncoder.encode(`${message}\n`));
+  process.stderr.write(`${message}\n`);
 }
 
 let spotlightProcess: ManagedProcess | undefined;
@@ -57,22 +61,19 @@ try {
   const launch = getSpotlightLaunchCommand();
 
   spotlightProcess = {
-    child: new Deno.Command(launch.cmd, {
-      args: launch.args,
-      stderr: 'inherit',
-      stdin: 'inherit',
-      stdout: 'inherit',
-    }).spawn(),
+    child: spawnCommand(launch.cmd, launch.args, {
+      stdio: 'inherit',
+    }),
     name: 'Spotlight',
   };
 
   processes.push(spotlightProcess);
 
-  spotlightProcess.child.status
-    .then(status => {
-      if (!status.success) {
+  once(spotlightProcess.child, 'close')
+    .then(([code]) => {
+      if (code !== 0) {
         logWarning(
-          `Spotlight process exited with code ${status.code ?? 'unknown'}. continuing without sidecar.`
+          `Spotlight process exited with code ${code ?? 'unknown'}. continuing without sidecar.`
         );
       }
     })
@@ -84,30 +85,30 @@ try {
 }
 
 const appProcess: ManagedProcess = {
-  child: new Deno.Command('deno', {
-    args: [
-      'task',
+  child: spawnCommand(
+    'pnpm',
+    [
       'dev:app',
     ],
-    stderr: 'inherit',
-    stdin: 'inherit',
-    stdout: 'inherit',
-  }).spawn(),
+    {
+      stdio: 'inherit',
+    }
+  ),
   name: 'App',
 };
 
 processes.push(appProcess);
 
 const gatewayProcess: ManagedProcess = {
-  child: new Deno.Command('deno', {
-    args: [
-      'task',
+  child: spawnCommand(
+    'pnpm',
+    [
       'dev:gateway',
     ],
-    stderr: 'inherit',
-    stdin: 'inherit',
-    stdout: 'inherit',
-  }).spawn(),
+    {
+      stdio: 'inherit',
+    }
+  ),
   name: 'Gateway',
 };
 
@@ -115,23 +116,23 @@ processes.push(gatewayProcess);
 
 let isShuttingDown = false;
 
-function stopProcesses(signal: Deno.Signal): void {
+function stopProcesses(signal: NodeJS.Signals): void {
   if (isShuttingDown) {
     return;
   }
 
   isShuttingDown = true;
 
-  for (const process of processes) {
+  for (const entry of processes) {
     try {
-      process.child.kill(signal);
+      entry.child.kill(signal);
     } catch {
       // Process may already be exited.
     }
   }
 }
 
-const signalListeners = new Map<Deno.Signal, () => void>();
+const signalListeners = new Map<NodeJS.Signals, () => void>();
 
 for (const signal of [
   'SIGINT',
@@ -142,17 +143,17 @@ for (const signal of [
   };
 
   signalListeners.set(signal, listener);
-  Deno.addSignalListener(signal, listener);
+  process.on(signal, listener);
 }
 
 const exitResult = await Promise.race([
-  appProcess.child.status.then(status => ({
+  once(appProcess.child, 'close').then(([code]) => ({
+    code,
     name: appProcess.name,
-    status,
   })),
-  gatewayProcess.child.status.then(status => ({
+  once(gatewayProcess.child, 'close').then(([code]) => ({
+    code,
     name: gatewayProcess.name,
-    status,
   })),
 ]);
 
@@ -165,16 +166,16 @@ for (const signal of [
   const listener = signalListeners.get(signal);
 
   if (listener) {
-    Deno.removeSignalListener(signal, listener);
+    process.off(signal, listener);
   }
 }
 
-if (!exitResult.status.success) {
-  const exitCode = exitResult.status.code ?? -1;
+if (exitResult.code !== 0) {
+  const exitCode = exitResult.code ?? -1;
 
   if (exitCode === 130 || exitCode === 143) {
-    Deno.exit(0);
+    process.exit(0);
   }
 
-  throw new Error(`${exitResult.name} exited with code ${exitResult.status.code ?? 'unknown'}`);
+  throw new Error(`${exitResult.name} exited with code ${exitResult.code ?? 'unknown'}`);
 }

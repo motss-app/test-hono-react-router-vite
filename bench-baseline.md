@@ -6,4 +6,4 @@
 Route | RPS | p99
 |------|-----|-----
 
-_Placeholder baseline. Run `deno task bench:all` to populate with real data._
+_Placeholder baseline. Run `pnpm bench:all` to populate with real data._

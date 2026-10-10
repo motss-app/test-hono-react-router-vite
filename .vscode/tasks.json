@@ -10,10 +10,9 @@
     },
     {
       "args": [
-        "task",
         "lint"
       ],
-      "command": "deno",
+      "command": "pnpm",
       "label": "Biome: Check",
       "presentation": {
         "echo": true,
@@ -27,10 +26,9 @@
     },
     {
       "args": [
-        "task",
         "lint:fix"
       ],
-      "command": "deno",
+      "command": "pnpm",
       "label": "Biome: Check and Fix",
       "presentation": {
         "echo": true,
@@ -41,10 +39,9 @@
     },
     {
       "args": [
-        "task",
         "format"
       ],
-      "command": "deno",
+      "command": "pnpm",
       "label": "Biome: Format",
       "presentation": {
         "echo": true,
@@ -55,10 +52,9 @@
     },
     {
       "args": [
-        "task",
         "format:check"
       ],
-      "command": "deno",
+      "command": "pnpm",
       "label": "Biome: Format Check",
       "presentation": {
         "echo": true,

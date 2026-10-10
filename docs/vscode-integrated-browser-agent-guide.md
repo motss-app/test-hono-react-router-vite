@@ -173,6 +173,6 @@ but avoid publishing unrelated editor or chat content. A displayed screenshot
 does not imply a screenshot file was saved.
 
 Manual browser inspection is separate from automated VRT. It does not prove that
-`deno task test:visual` passed or that fresh files exist under `__screenshots__/`.
+`pnpm test:visual` passed or that fresh files exist under `__screenshots__/`.
 Resolve any conflict between the current VRT runner and AGENTS.md's browser
 restrictions before running it. Report blocked checks explicitly.

@@ -9,6 +9,7 @@ import { defineConfig, type UserConfig } from 'vite';
 import { themeBuildPlugin } from '../../vite-plugins/theme-bootstrap/plugin.ts';
 import { veCssTextPlugin } from '../../vite-plugins/ve-css-text/plugin.ts';
 import { loadConfigEnvironment } from '../../vite-utils/load-env.ts';
+import { getEnv } from '../../vite-utils/runtime-env.ts';
 import { createSentryBuildOptions } from '../../vite-utils/sentry-build.ts';
 import { logBuildSentryEnvSnapshot } from '../../vite-utils/sentry-build-env-log.ts';
 
@@ -57,7 +58,7 @@ function vanillaExtractSsrFixPlugin() {
 export default defineConfig(async config => {
   const { mode } = config;
   const isDev = mode === 'development';
-  const isVrt = Deno.env.get('VRT') === 'true';
+  const isVrt = getEnv('VRT') === 'true';
 
   loadConfigEnvironment(mode, repoRootPath);
   logBuildSentryEnvSnapshot('packages/frontend/vite.config.ts', mode);

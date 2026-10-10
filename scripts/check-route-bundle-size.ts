@@ -1,4 +1,6 @@
-#!/usr/bin/env -S deno run --allow-read --allow-write
+#!/usr/bin/env node
+import { readFile, writeFile } from 'node:fs/promises';
+import process from 'node:process';
 
 /**
  * Compare current route bundle sizes against a baseline.
@@ -7,7 +9,7 @@
  * Outputs a markdown comment suitable for GitHub PR comments.
  *
  * Usage:
- *   deno run -A scripts/check-route-bundle-size.ts <current.json> --baseline <baseline.json> [--budget 10] [--output <file>]
+ *   node scripts/check-route-bundle-size.ts <current.json> --baseline <baseline.json> [--budget 10] [--output <file>]
  */
 
 const BUDGET_DEFAULT = 10;
@@ -15,7 +17,7 @@ const BUDGET_DEFAULT = 10;
 // ---------------------------------------------------------------------------
 // Parse args
 // ---------------------------------------------------------------------------
-const args = Deno.args;
+const args = process.argv.slice(2);
 let currentPath = '';
 let baselinePath = '';
 let budget = BUDGET_DEFAULT;
@@ -39,7 +41,7 @@ if (!currentPath || !baselinePath) {
   console.error(
     'Usage: check-route-bundle-size.ts <current.json> --baseline <baseline.json> [--budget 10] [--output <file>]'
   );
-  Deno.exit(1);
+  process.exit(1);
 }
 
 // ---------------------------------------------------------------------------
@@ -65,8 +67,8 @@ interface BundleSizeReport {
   routes: RouteSize[];
 }
 
-const current = JSON.parse(await Deno.readTextFile(currentPath)) as BundleSizeReport;
-const baseline = JSON.parse(await Deno.readTextFile(baselinePath)) as BundleSizeReport;
+const current = JSON.parse(await readFile(currentPath, 'utf8')) as BundleSizeReport;
+const baseline = JSON.parse(await readFile(baselinePath, 'utf8')) as BundleSizeReport;
 
 // ---------------------------------------------------------------------------
 // Compare
@@ -223,7 +225,7 @@ if (failures.length > 0) {
   lines.push('');
   lines.push('To fix: reduce JS bundle size for the failing routes, or bump the baseline:');
   lines.push('```bash');
-  lines.push('deno task route-bundle-size --json > route-bundle-size-baseline.json');
+  lines.push('pnpm route-bundle-size --json > route-bundle-size-baseline.json');
   lines.push('```');
   lines.push('');
 }
@@ -234,7 +236,7 @@ if (failures.length > 0) {
 const markdown = lines.join('\n');
 
 if (outputPath) {
-  await Deno.writeTextFile(outputPath, markdown);
+  await writeFile(outputPath, markdown, 'utf8');
   console.info(`Comment written to ${outputPath}`);
 } else {
   console.info(markdown);
@@ -242,5 +244,5 @@ if (outputPath) {
 
 // Exit with error if any failures
 if (failures.length > 0) {
-  Deno.exit(1);
+  process.exit(1);
 }

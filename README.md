@@ -28,7 +28,7 @@ A modern, production-ready template for building full-stack React applications u
 Install the dependencies:
 
 ```bash
-deno install
+pnpm install
 ```
 
 ### Development
@@ -36,7 +36,7 @@ deno install
 Start the development stack with HMR, API, and Spotlight:
 
 ```bash
-deno task dev
+pnpm dev
 ```
 
 Your application will be available at `http://localhost:5173`.
@@ -46,7 +46,7 @@ Your application will be available at `http://localhost:5173`.
 Create a production build:
 
 ```bash
-deno task build
+pnpm build
 ```
 
 ### Sentry
@@ -54,11 +54,11 @@ deno task build
 This project now ships with Sentry wired for:
 
 - React Router client error monitoring, tracing, session replay, browser profiling, and logs
-- Deno server error monitoring, tracing, logs, and metrics
+- Server error monitoring, tracing, logs, and metrics
 - Cloudflare Worker error monitoring, tracing, logs, and metrics
 - build-time source map upload when Sentry build credentials are configured
 
-For deployment builds, the React Router and Deno/Hono configs keep legacy sourcemap upload with explicit glob patterns, while the Worker config opts into modern Debug-ID upload via `useModernDebugIdUpload: true` and keeps `./build/assets/**/*.map` plus `./build/worker.js.map` only in `filesToDeleteAfterUpload`. Each build config passes its own explicit Sentry `dist` into `vite-utils/sentry-build.ts` (`react-router-dev`, `react-router`, `hono`, and `worker`), so release attribution stays stable and predictable across build modes. The Worker deploy also keeps `base_dir: "./build"`, `find_additional_modules: true`, and an `ESModule` rule for `assets/**/*.js` so the generated chunk graph ships with `worker.js`.
+For deployment builds, the React Router and Hono configs keep legacy sourcemap upload with explicit glob patterns, while the Worker config opts into modern Debug-ID upload via `useModernDebugIdUpload: true` and keeps `./build/assets/**/*.map` plus `./build/worker.js.map` only in `filesToDeleteAfterUpload`. Each build config passes its own explicit Sentry `dist` into `vite-utils/sentry-build.ts` (`react-router-dev`, `react-router`, `hono`, and `worker`), so release attribution stays stable and predictable across build modes. The Worker deploy also keeps `base_dir: "./build"`, `find_additional_modules: true`, and an `ESModule` rule for `assets/**/*.js` so the generated chunk graph ships with `worker.js`.
 
 For Worker Debug-ID symbolication, source maps alone are not sufficient: Sentry needs both the built
 source artifacts (`worker.js` and emitted `assets/**/*.js` chunks with Debug IDs) and their matching
@@ -78,18 +78,18 @@ the React Router SSR branch instead of initializing a second server SDK.
 so the Worker build stays on the Worker-safe entrypoint, while `app/entry.client.tsx` continues to
 use `@sentry/react-router` for browser tracing, replay, profiling, and logs.
 
-In local development, the browser SDK sends envelopes to same-origin `/api/tunnel`, and the BFF forwards those envelopes to the local Spotlight sidecar on `8969`. `deno task dev` starts the Spotlight sidecar first and then launches the frontend and gateway dev tasks, so you do not need to launch the sidecar separately unless you want it on its own.
+In local development, the browser SDK sends envelopes to same-origin `/api/tunnel`, and the BFF forwards those envelopes to the local Spotlight sidecar on `8969`. `pnpm dev` starts the Spotlight sidecar first and then launches the frontend and gateway dev tasks, so you do not need to launch the sidecar separately unless you want it on its own.
 
 Start the app, API, and Spotlight together with:
 
 ```bash
-deno task dev
+pnpm dev
 ```
 
 If you only want the Spotlight sidecar:
 
 ```bash
-deno task spotlight
+pnpm spotlight
 ```
 
 Recommended local setup:
@@ -100,9 +100,9 @@ Create `.env.local` for app runtime and dev mode add build-only credentials if y
 SENTRY_DSN=https://8dcd1f24afff2f432f13332d6e2837a1@o237444.ingest.us.sentry.io/4511078663782400
 ```
 
-If you are only running `deno task dev`, you can omit `SENTRY_AUTH_TOKEN` and `SENTRY_RELEASE`.
+If you are only running `pnpm dev`, you can omit `SENTRY_AUTH_TOKEN` and `SENTRY_RELEASE`.
 
-The browser and Worker build configs now share the same `SENTRY_DSN` env name, so `deno task dev` and `deno task build` both see the same DSN value when you set it locally.
+The browser and Worker build configs now share the same `SENTRY_DSN` env name, so `pnpm dev` and `pnpm build` both see the same DSN value when you set it locally.
 
 The theme bootstrap plugin is also part of the dev/build wiring:
 
@@ -121,15 +121,15 @@ Worker runtime setup:
 - `packages/frontend/wrangler.jsonc` keeps `"no_bundle": true`, `"preserve_file_names": true`, `"find_additional_modules": true`, `base_dir: "../../build"`, and an `ESModule` rule for `assets/**/*.js` so the deployed Worker stays aligned with the Vite-built `build/worker.js`
 - the React Router SSR branch in `app/entry.server.tsx` uses `@sentry/react-router/cloudflare`
   helpers such as `wrapSentryHandleRequest()` and `injectTraceMetaTags()`
-- local Deno dev uses `.env`
+- local dev uses `.env`
 - source map upload still needs local/CI env vars because Wrangler runtime vars are not available to the Vite/React Router build step
 
 If you are running a local build, add `SENTRY_AUTH_TOKEN` and `SENTRY_RELEASE` to `.env.local` or export them in your shell dev-only runs can omit them.
 
 Cloudflare Worker local parity workflow (follow-up):
 
-- use `deno task preview:worker` when you want to exercise the app and API inside local `workerd` instead of the Deno dev server it uses a bundled Wrangler `preview` env so local module resolution works, while deploys still keep `no_bundle: true`
-- use `deno task dev` when you want the app/gateway stack plus Spotlight together use `deno task spotlight` only if you want the sidecar on its own
+- use `pnpm preview:worker` when you want to exercise the app and API inside local `workerd` instead of the Vite dev server it uses a bundled Wrangler `preview` env so local module resolution works, while deploys still keep `no_bundle: true`
+- use `pnpm dev` when you want the app/gateway stack plus Spotlight together use `pnpm spotlight` only if you want the sidecar on its own
 - keep Worker runtime env in Wrangler config or local Wrangler env files rather than `.env`
 - browser-side Spotlight is already wired today
 - worker-side Spotlight routing is not wired yet that is the next follow-up if you want local Worker runtime parity without sending dev worker telemetry to your normal Sentry project
@@ -137,8 +137,8 @@ Cloudflare Worker local parity workflow (follow-up):
 Example future-local workflow:
 
 ```bash
-deno task dev
-deno task preview:worker
+pnpm dev
+pnpm preview:worker
 ```
 
 Build-time source map upload uses:
@@ -151,7 +151,7 @@ SENTRY_RELEASE=your-release-name
 
 For the temporary setup, keep the auth token and release in `.env.local` when you are building locally that file is ignored by git.
 
-Browser profiling is enabled. Server-side profiling is not configured because this app runs on Deno and Cloudflare Workers rather than Node's profiling integration.
+Browser profiling is enabled. Server-side profiling is not configured because the server runs on Cloudflare Workers rather than through Node's profiling integration.
 
 ## Deployment
 
@@ -164,7 +164,7 @@ Use these artifacts and configs as the deployment source of truth:
 - `packages/gateway/wrangler.jsonc` for the public gateway worker
 - `build/worker.js` plus `build/assets/**` for the frontend worker artifact set
 
-For local production-like previewing, run `deno task build` followed by `deno task start`.
+For local production-like previewing, run `pnpm build` followed by `pnpm start`.
 
 ## Styling
 

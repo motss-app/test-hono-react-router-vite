@@ -1,4 +1,7 @@
-#!/usr/bin/env -S deno run -A
+#!/usr/bin/env node
+import { execFile as execFileCallback } from 'node:child_process';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import process from 'node:process';
 
 /**
  * Benchmark comparison script.
@@ -83,9 +86,38 @@ function parseLatency(value: string): number {
   return 0;
 }
 
+/** Run a command and resolve with its exit code and stdout. */
+function execFile(
+  command: string,
+  args: string[]
+): Promise<{
+  code: number;
+  stdout: string;
+}> {
+  return new Promise((resolve, reject) => {
+    execFileCallback(
+      command,
+      args,
+      {
+        encoding: 'utf8',
+      },
+      (error, stdout) => {
+        if (error && typeof error.code !== 'number') {
+          reject(error);
+          return;
+        }
+        resolve({
+          code: error ? (error.code as number) : 0,
+          stdout,
+        });
+      }
+    );
+  });
+}
+
 async function loadBaseline(path: string): Promise<BenchmarkResult[]> {
   try {
-    return parseMarkdownTable(await Deno.readTextFile(path));
+    return parseMarkdownTable(await readFile(path, 'utf8'));
   } catch {
     return [];
   }
@@ -203,7 +235,7 @@ function parseArgs(): {
   commitSha: string;
   outputDir: string;
 } {
-  const args = Deno.args;
+  const args = process.argv.slice(2);
   return {
     baselinePath: args.find(a => a.startsWith('--baseline='))?.split('=')[1] ?? 'bench-baseline.md',
     commitSha: args.find(a => a.startsWith('--commit='))?.split('=')[1] ?? 'unknown',
@@ -212,20 +244,13 @@ function parseArgs(): {
 }
 
 async function runBenchmark(): Promise<string> {
-  const cmd = new Deno.Command('deno', {
-    args: [
-      'run',
-      '-A',
-      'scripts/bench-all.ts',
-    ],
-    stderr: 'piped',
-    stdout: 'piped',
-  });
-  const { code, stdout } = await cmd.output();
+  const { code, stdout } = await execFile(process.execPath, [
+    'scripts/bench-all.ts',
+  ]);
   if (code !== 0) {
-    Deno.exit(2);
+    process.exit(2);
   }
-  return new TextDecoder().decode(stdout);
+  return stdout;
 }
 
 function classifyComparisons(comparisons: ComparisonResult[]): {
@@ -255,27 +280,28 @@ async function saveResults(
   summary: Summary,
   current: BenchmarkResult[]
 ): Promise<void> {
-  await Deno.mkdir(outputDir, {
+  await mkdir(outputDir, {
     recursive: true,
   });
-  await Deno.writeTextFile(`${outputDir}/benchmark-report.md`, generateMarkdownReport(summary));
-  await Deno.writeTextFile(
+  await writeFile(`${outputDir}/benchmark-report.md`, generateMarkdownReport(summary), 'utf8');
+  await writeFile(
     `${outputDir}/benchmark-results.md`,
-    generateBaselineMarkdown(current, summary.commitSha)
+    generateBaselineMarkdown(current, summary.commitSha),
+    'utf8'
   );
-  await Deno.writeTextFile(`${outputDir}/benchmark-summary.json`, JSON.stringify(summary, null, 2));
+  await writeFile(`${outputDir}/benchmark-summary.json`, JSON.stringify(summary, null, 2), 'utf8');
 }
 
 async function main(): Promise<void> {
   const { baselinePath, commitSha, outputDir } = parseArgs();
   const baseline = await loadBaseline(baselinePath);
   if (baseline.length === 0) {
-    Deno.exit(2);
+    process.exit(2);
   }
   const output = await runBenchmark();
   const current = parseMarkdownTable(output);
   if (current.length === 0) {
-    Deno.exit(2);
+    process.exit(2);
   }
   const comparisons = compareResults(baseline, current);
   const { regressions, improvements, unchanged } = classifyComparisons(comparisons);
@@ -290,13 +316,13 @@ async function main(): Promise<void> {
     unchanged,
   };
   await saveResults(outputDir, summary, current);
-  if (status === 'regression') Deno.exit(1);
+  if (status === 'regression') process.exit(1);
 }
 
 if (import.meta.main) {
   try {
     await main();
   } catch (_err) {
-    Deno.exit(2);
+    process.exit(2);
   }
 }

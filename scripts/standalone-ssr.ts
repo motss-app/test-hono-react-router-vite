@@ -1,14 +1,16 @@
-#!/usr/bin/env -S deno run -A
-// deno-lint-ignore-file no-explicit-any
+#!/usr/bin/env node
+import { readFile } from 'node:fs/promises';
+import process from 'node:process';
+import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 import type { RouterContext, ServerBuild } from 'react-router';
 import { createRequestHandler, RouterContextProvider } from 'react-router';
 
 import type { HonoEnv } from '../packages/frontend/app/types/hono.types.ts';
 
-const clientDir = Deno.env.get('FE_CLIENT_DIR') ?? 'build/client';
-const port = Number(Deno.env.get('PORT') ?? 5175);
-const hostname = Deno.env.get('HOST') ?? '127.0.0.1';
+const clientDir = process.env.FE_CLIENT_DIR ?? 'build/client';
+const port = Number(process.env.PORT ?? 5175);
+const hostname = process.env.HOST ?? '127.0.0.1';
 
 // biome-ignore lint/suspicious/noExplicitAny: dynamic server build import has no types
 const build = (await import('../build/server/index.js')) as any as ServerBuild;
@@ -34,7 +36,7 @@ const mime: Record<string, string> = {
 app.get('/assets/*', async c => {
   const filePath = `${clientDir}/${c.req.path}`;
   try {
-    const content = await Deno.readFile(filePath);
+    const content = await readFile(filePath);
     const ext = filePath.split('.').pop() ?? '';
     return c.body(content, 200, {
       'Cache-Control': 'public, max-age=31536000, immutable',
@@ -75,10 +77,8 @@ app.get('*', async c => {
   });
 });
 
-Deno.serve(
-  {
-    hostname,
-    port,
-  },
-  app.fetch
-);
+serve({
+  fetch: app.fetch,
+  hostname,
+  port,
+});

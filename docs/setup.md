@@ -72,10 +72,10 @@ https://<gateway-domain>/ssr       → Gateway → frontend worker SSR
 ## Scripts
 
 ```bash
-deno task dev      # Gateway + frontend worker + BFF + Spotlight
-deno task build    # Production build
-deno task start    # Preview the built worker stack locally
-deno task preview  # Preview build locally
+pnpm dev      # Gateway + frontend worker + BFF + Spotlight
+pnpm build    # Production build
+pnpm start    # Preview the built worker stack locally
+pnpm preview  # Preview build locally
 ```
 
 ## Adding Routes
@@ -107,11 +107,11 @@ Add to `prerender()` array in `react-router.config.ts`
 1. **Edit components** → Instant HMR updates
 2. **Edit API routes** → Refresh browser
 3. **Edit config** → Restart dev server
-4. **Test production** → `deno task build && deno task start`
+4. **Test production** → `pnpm build && pnpm start`
 
 ## Troubleshooting
 
 - **Dev server won't start**: Check ports 8787, 5173, and 8969
 - **API not working**: Use `/api/*` prefix
-- **Build fails**: Run `deno check`
+- **Build fails**: Run `pnpm check`
 - **HMR not working**: Check for TypeScript errors

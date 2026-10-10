@@ -1,0 +1,22 @@
+{
+  "name": "@motss-app/frontend",
+  "private": true,
+  "scripts": {
+    "build": "pnpm build:react-router && pnpm build:worker",
+    "build:canary": "pnpm build:react-router:canary && pnpm build:worker:canary",
+    "build:react-router": "react-router build --config ./vite.react-router.config.ts",
+    "build:react-router:canary": "react-router build --config ./vite.react-router.config.ts --mode canary",
+    "build:worker": "vite build --config ./vite.worker.config.ts",
+    "build:worker:canary": "vite build --config ./vite.worker.config.ts --mode canary",
+    "dev": "CLOUDFLARE_ENV=dev node ../../scripts/run-with-cleared-ports.ts 5173 -- vite",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:browser": "vitest run --project frontend-browser",
+    "test:browser:watch": "vitest --project frontend-browser",
+    "test:unit": "vitest run --project frontend-unit",
+    "test:unit:watch": "vitest --project frontend-unit",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "type": "module",
+  "version": "0.1.0"
+}

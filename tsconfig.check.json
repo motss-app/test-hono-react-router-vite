@@ -1,0 +1,46 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "noEmit": true,
+    "rootDirs": [
+      ".",
+      ".react-router/types"
+    ],
+    "types": [
+      "node",
+      "vite/client",
+      "@cloudflare/workers-types"
+    ]
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "coverage",
+    ".tmp",
+    ".wrangler",
+    ".react-router",
+    "packages/*/build",
+    "packages/*/target",
+    "packages/*/dist",
+    "packages/frontend/app/paraglide",
+    "packages/frontend/app/labs-wasm",
+    "packages/*-rust",
+    "packages/*-wasm",
+    "__screenshots__"
+  ],
+  "extends": "./tsconfig.node.json",
+  "include": [
+    "./*.ts",
+    "scripts/**/*.ts",
+    "vite-plugins/**/*.ts",
+    "vite-utils/**/*.ts",
+    "packages/bff/src/**/*.ts",
+    "packages/frontend/**/*.ts",
+    "packages/frontend/**/*.tsx",
+    "packages/gateway/src/**/*.ts",
+    ".github/actions/**/*.ts",
+    "packages/frontend/app/types/vite-env.d.ts"
+  ]
+}

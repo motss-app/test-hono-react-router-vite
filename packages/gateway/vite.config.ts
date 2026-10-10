@@ -1,15 +1,17 @@
+import { statSync } from 'node:fs';
 import { cloudflare } from '@cloudflare/vite-plugin';
 import { sentryCloudflareVitePlugin } from '@sentry/cloudflare/vite';
 import { defineConfig } from 'vite';
 
 import { readRequiredEnv } from '../../vite-utils/get-required-env.ts';
 import { createImportMetaEnvDefine } from '../../vite-utils/import-meta-env.ts';
+import { getEnv } from '../../vite-utils/runtime-env.ts';
 
 const packageRootPath = new URL('./', import.meta.url).pathname;
 
 function isHealthzRustBuilt(): boolean {
   try {
-    return Deno.statSync(new URL('../healthz-rust/build/worker/shim.mjs', import.meta.url)).isFile;
+    return statSync(new URL('../healthz-rust/build/worker/shim.mjs', import.meta.url)).isFile();
   } catch {
     return false;
   }
@@ -17,7 +19,7 @@ function isHealthzRustBuilt(): boolean {
 
 function isFractalRustBuilt(): boolean {
   try {
-    return Deno.statSync(new URL('../fractal-rust/build/worker/shim.mjs', import.meta.url)).isFile;
+    return statSync(new URL('../fractal-rust/build/worker/shim.mjs', import.meta.url)).isFile();
   } catch {
     return false;
   }
@@ -25,7 +27,7 @@ function isFractalRustBuilt(): boolean {
 
 function isColorRustBuilt(): boolean {
   try {
-    return Deno.statSync(new URL('../color-rust/build/worker/shim.mjs', import.meta.url)).isFile;
+    return statSync(new URL('../color-rust/build/worker/shim.mjs', import.meta.url)).isFile();
   } catch {
     return false;
   }
@@ -33,8 +35,9 @@ function isColorRustBuilt(): boolean {
 
 function isImageOptimizeRustBuilt(): boolean {
   try {
-    return Deno.statSync(new URL('../image-optimize-rust/build/worker/shim.mjs', import.meta.url))
-      .isFile;
+    return statSync(
+      new URL('../image-optimize-rust/build/worker/shim.mjs', import.meta.url)
+    ).isFile();
   } catch {
     return false;
   }
@@ -42,8 +45,8 @@ function isImageOptimizeRustBuilt(): boolean {
 
 export default defineConfig(({ command }) => {
   const isDev = command === 'serve';
-  const isVrt = Deno.env.get('VRT') === 'true';
-  const isDeploymentBuild = Deno.env.get('DEPLOYMENT_BUILD') === 'true';
+  const isVrt = getEnv('VRT') === 'true';
+  const isDeploymentBuild = getEnv('DEPLOYMENT_BUILD') === 'true';
 
   return {
     cacheDir: `${packageRootPath}node_modules/.vite`,
@@ -52,7 +55,7 @@ export default defineConfig(({ command }) => {
         ? readRequiredEnv('SENTRY_RELEASE', {
             source: 'packages/gateway/vite.config.ts',
           })
-        : (Deno.env.get('SENTRY_RELEASE') ?? 'local'),
+        : (getEnv('SENTRY_RELEASE') ?? 'local'),
     }),
     plugins: [
       cloudflare({

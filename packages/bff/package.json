@@ -1,0 +1,12 @@
+{
+  "name": "@motss-app/bff",
+  "private": true,
+  "scripts": {
+    "build": "vite build",
+    "build:canary": "vite build --mode canary",
+    "test": "echo \"No tests yet\"",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "type": "module",
+  "version": "0.1.0"
+}

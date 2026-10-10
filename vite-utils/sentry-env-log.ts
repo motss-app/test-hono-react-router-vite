@@ -16,7 +16,7 @@ interface SentryEnvSnapshotValues {
 export interface SentryEnvSnapshot {
   deploymentBuild?: boolean;
   mode: string | undefined;
-  phase: 'build' | 'browser' | 'deno' | 'ssr' | 'worker';
+  phase: 'build' | 'browser' | 'ssr' | 'worker';
   source: string;
   values: SentryEnvSnapshotValues;
 }

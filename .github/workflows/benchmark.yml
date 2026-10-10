@@ -11,8 +11,9 @@ on:
   #     - 'vite-utils/**'
   #     - 'scripts/bench-all.ts'
   #     - 'scripts/standalone-*.ts'
-  #     - 'deno.json'
-  #     - 'deno.lock'
+  #     - 'package.json'
+  #     - 'pnpm-lock.yaml'
+  #     - 'pnpm-workspace.yaml'
   #     - 'biome.jsonc'
   #     - 'tsconfig.json'
   #     - 'react-router.config.ts'
@@ -36,14 +37,15 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
-      - uses: ./.github/actions/setup-deno
+      - uses: ./.github/actions/setup-node
 
       - name: Log system info
         run: |
           echo "**OS:** $(uname -srm)"
           echo "**CPUs:** $(nproc) logical cores"
           echo "**Memory:** $(free -h | awk '/^Mem:/ {print $2}') total"
-          echo "**Deno:** $(deno --version | head -1)"
+          echo "**Node:** $(node --version)"
+          echo "**pnpm:** $(pnpm --version)"
           echo "**Runner:** ${{ runner.name }} (${{ runner.os }})"
 
       # actions/cache v6.1.0
@@ -64,7 +66,7 @@ jobs:
         uses: ./.github/actions/build-fractal-wasm
 
       - name: Build
-        run: deno task build
+        run: pnpm build
 
       - name: Run benchmark (direct servers only)
         env:
@@ -73,7 +75,7 @@ jobs:
           BENCH_DURATION: 30s
         run: |
           set -eo pipefail
-          deno run -A scripts/bench-all.ts 2>&1 | tee /tmp/bench-output.txt
+          node scripts/bench-all.ts 2>&1 | tee /tmp/bench-output.txt
 
       - name: Fetch baseline from main (PR only)
         if: github.event_name == 'pull_request'
@@ -85,7 +87,7 @@ jobs:
         id: compare
         if: github.event_name == 'pull_request'
         run: |
-          deno run -A scripts/update-baseline.ts /tmp/bench-output.txt --baseline /tmp/baseline.md --output /tmp/bench-comment.md
+          node scripts/update-baseline.ts /tmp/bench-output.txt --baseline /tmp/baseline.md --output /tmp/bench-comment.md
           if grep -q "regression detected" /tmp/bench-comment.md; then
             echo "regression=true" >> "$GITHUB_OUTPUT"
           fi
@@ -107,7 +109,7 @@ jobs:
       - name: Update baseline on main
         if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
         run: |
-          deno run -A scripts/update-baseline.ts /tmp/bench-output.txt
+          node scripts/update-baseline.ts /tmp/bench-output.txt
           BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"

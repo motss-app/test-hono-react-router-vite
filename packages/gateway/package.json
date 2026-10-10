@@ -1,0 +1,14 @@
+{
+  "name": "@motss-app/gateway",
+  "private": true,
+  "scripts": {
+    "build": "vite build",
+    "build:canary": "vite build --mode canary",
+    "dev": "CLOUDFLARE_ENV=dev node ../../scripts/run-with-cleared-ports.ts 8787 -- vite",
+    "preview": "vite preview",
+    "test": "echo \"No tests yet\"",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "type": "module",
+  "version": "0.1.0"
+}

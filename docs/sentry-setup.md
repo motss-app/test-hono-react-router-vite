@@ -5,7 +5,7 @@ This document is the source of truth for the Sentry setup used by this project's
 - Hono
 - Vite
 - React Router v7
-- Deno
+- Node.js
 - Cloudflare Workers
 - Spotlight
 
@@ -376,7 +376,7 @@ Current deployment-build behavior:
 
 ### Why the canary build log looks noisy
 
-The `deno run build:worker:canary` output mixes several different kinds of messages:
+The `pnpm build:worker:canary` output mixes several different kinds of messages:
 
 - **Sentry plugin info logs**: upload progress, bundle summaries, and telemetry notices from `sentry-vite-plugin`
 - **build-tool warnings**: deprecation notices from React Router/Vite and plugin timing warnings from the bundler
@@ -425,7 +425,7 @@ What each one is used for:
 
 | Variable | Used by | Purpose |
 | --- | --- | --- |
-| `SENTRY_DSN` | browser build/runtime / Deno server runtime / Worker runtime / BFF tunnel proxy | shared browser + server SDK config and tunnel allowlist |
+| `SENTRY_DSN` | browser build/runtime / local server runtime / Worker runtime / BFF tunnel proxy | shared browser + server SDK config and tunnel allowlist |
 | `SENTRY_AUTH_TOKEN` | Vite Sentry plugins | source map upload during builds |
 | `SENTRY_RELEASE` | build/runtime | release name for source map upload, runtime release tagging outside development, and CSP security-report attribution |
 
@@ -487,7 +487,7 @@ This covers the current build/deploy requirements for:
 Useful commands for the current setup:
 
 ```bash
-deno task dev
+pnpm dev
 ```
 
 Starts the normal local dev stack. This uses:
@@ -498,7 +498,7 @@ Starts the normal local dev stack. This uses:
 - deployed environments -> same-origin `/api/tunnel` relay to Sentry ingest
 
 ```bash
-deno task spotlight
+pnpm spotlight
 ```
 
 Starts Spotlight by itself (MCP mode) if you want the sidecar on its own.
@@ -506,21 +506,21 @@ Starts Spotlight by itself (MCP mode) if you want the sidecar on its own.
 For local native Spotlight or blocked npm registry environments:
 
 ```bash
-SPOTLIGHT_BINARY=spotlight SPOTLIGHT_MCP=1 deno task spotlight
+SPOTLIGHT_BINARY=spotlight SPOTLIGHT_MCP=1 pnpm spotlight
 ```
 
 ```bash
-deno task preview:worker
+pnpm preview:worker
 ```
 
 Builds the Worker and runs local Wrangler dev using a bundled Wrangler `preview` env so the generated chunk graph can resolve locally. Production deploys still keep `wrangler.jsonc` on `no_bundle: true`, plus explicit module rules for the generated Worker chunks.
 
 ```bash
-deno task build
-deno task build:worker
+pnpm build
+pnpm build:worker
 ```
 
-Build the Deno server or Worker targets with Sentry source map upload enabled when the build credentials are present.
+Build the server or Worker targets with Sentry source map upload enabled when the build credentials are present.
 
 ## What the setup should look like for this stack
 
@@ -529,7 +529,7 @@ For this project, the intended setup is:
 1. Browser app uses `@sentry/react-router`.
 2. React Router SSR on Workers uses `@sentry/react-router/cloudflare` helpers only.
 3. Cloudflare Worker runtime uses `@sentry/cloudflare` as the single initialized server SDK for the frontend worker.
-4. Browser and local Worker dev telemetry both use same-origin/public `/api/tunnel`, and the BFF forwards that tunnel traffic to the Spotlight sidecar that `deno task dev` starts before launching the frontend and gateway dev tasks.
+4. Browser and local Worker dev telemetry both use same-origin/public `/api/tunnel`, and the BFF forwards that tunnel traffic to the Spotlight sidecar that `pnpm dev` starts before launching the frontend and gateway dev tasks.
 5. Worker runtime uses Wrangler runtime vars and sends to real Sentry.
 6. Build-time source maps are uploaded by Sentry Vite plugins when credentials exist.
 
@@ -625,16 +625,16 @@ Explicit `optimizeDeps.include` entries in `vite.config.ts` were needed to stabi
 
 Use this checklist when changing the setup:
 
-- `deno task check`
+- `pnpm check`
 - targeted Biome checks for touched files
-- `deno task dev` starts with Spotlight
+- `pnpm dev` starts with Spotlight
 - browser events appear in Spotlight without fake `https://local/...` requests
-- SSR, browser, Deno API, and Worker traces can be filtered by the same `app.session_id` value
+- SSR, browser, API, and Worker traces can be filtered by the same `app.session_id` value
 - child spans like browser `http.client` also carry `app.session_id` in sent span data
 - `/ssr` still emits a clean server transaction
-- `/api/rpc/hello` emits a Deno server transaction in Spotlight
-- `deno task build` works when build env vars are configured
-- `deno task build:worker` works when build env vars are configured
+- `/api/rpc/hello` emits a server transaction in Spotlight
+- `pnpm build` works when build env vars are configured
+- `pnpm build:worker` works when build env vars are configured
 - Cloudflare Worker runtime has `SENTRY_DSN`
 
 ## Current status summary
@@ -643,7 +643,7 @@ As of the current setup:
 
 - browser dev -> Spotlight through `/api/tunnel`
 - browser non-dev -> real Sentry
-- Deno dev `/api/*` routes -> explicit server transactions in Spotlight
+- Dev `/api/*` routes -> explicit server transactions in Spotlight
 - Worker runtime -> real Sentry with `app_session_id` correlation
 - Worker SSR branch -> `@sentry/react-router/cloudflare` helper wrapping inside the same Worker request
 - build-time source maps -> uploaded when Sentry build credentials are present

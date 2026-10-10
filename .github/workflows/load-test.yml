@@ -25,7 +25,7 @@ jobs:
       # actions/checkout v7.0.0
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
-      - uses: ./.github/actions/setup-deno
+      - uses: ./.github/actions/setup-node
 
       # actions/cache v6.1.0
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -45,16 +45,16 @@ jobs:
         uses: ./.github/actions/build-fractal-wasm
 
       - name: Build
-        run: deno task build
+        run: pnpm build
 
       - name: Start standalone SSR
         run: |
-          deno run -A scripts/standalone-ssr.ts &
+          node scripts/standalone-ssr.ts &
           echo "ssr_pid=$!" >> "$GITHUB_ENV"
 
       - name: Start standalone BFF
         run: |
-          deno run -A scripts/standalone-bff.ts &
+          node scripts/standalone-bff.ts &
           echo "bff_pid=$!" >> "$GITHUB_ENV"
 
       - name: Wait for servers

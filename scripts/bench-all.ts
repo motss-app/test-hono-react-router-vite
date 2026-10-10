@@ -1,6 +1,11 @@
-#!/usr/bin/env -S deno run -A
+#!/usr/bin/env node
+
+import type { ChildProcess } from 'node:child_process';
+import { statSync } from 'node:fs';
+import process from 'node:process';
 
 import { clearPorts } from './dev-ports.ts';
+import { runCommand, spawnCommand } from './run-command.ts';
 
 interface BenchmarkResult {
   route: string;
@@ -50,10 +55,10 @@ interface RouteDef {
 }
 
 function getConfig() {
-  const baseUrl = Deno.env.get('BENCH_BASE_URL') ?? 'http://127.0.0.1:8787';
-  const concurrency = Number(Deno.env.get('BENCH_CONCURRENCY') ?? 128);
-  const duration = Deno.env.get('BENCH_DURATION') ?? '20s';
-  const warmupDuration = Deno.env.get('BENCH_WARMUP') ?? '3s';
+  const baseUrl = process.env.BENCH_BASE_URL ?? 'http://127.0.0.1:8787';
+  const concurrency = Number(process.env.BENCH_CONCURRENCY ?? 128);
+  const duration = process.env.BENCH_DURATION ?? '20s';
+  const warmupDuration = process.env.BENCH_WARMUP ?? '3s';
   return {
     baseUrl,
     concurrency,
@@ -186,7 +191,7 @@ const ROUTES: RouteDef[] = [
 ];
 
 function getOhaPath(): string {
-  const fromEnv = Deno.env.get('OHA_BINARY');
+  const fromEnv = process.env.OHA_BINARY;
   if (fromEnv) return fromEnv;
   const candidates = [
     'oha',
@@ -196,7 +201,7 @@ function getOhaPath(): string {
   ];
   for (const c of candidates) {
     try {
-      Deno.statSync(c);
+      statSync(c);
       return c;
     } catch {
       // not found at this path
@@ -207,31 +212,23 @@ function getOhaPath(): string {
 
 async function runOha(url: string, duration: string, concurrency: number): Promise<OhaOutput> {
   const ohaBin = getOhaPath();
-  const cmd = new Deno.Command(ohaBin, {
-    args: [
-      '-z',
-      duration,
-      '-c',
-      String(concurrency),
-      '--latency-correction',
-      '--no-tui',
-      '--output-format',
-      'json',
-      url,
-    ],
-    stderr: 'piped',
-    stdout: 'piped',
-  });
-
-  const { code, stdout, stderr } = await cmd.output();
+  const { code, stdout, stderr } = await runCommand(ohaBin, [
+    '-z',
+    duration,
+    '-c',
+    String(concurrency),
+    '--latency-correction',
+    '--no-tui',
+    '--output-format',
+    'json',
+    url,
+  ]);
 
   if (code !== 0) {
-    const errText = new TextDecoder().decode(stderr).trim();
-    throw new Error(`oha exited with code ${code}: ${errText}`);
+    throw new Error(`oha exited with code ${code}: ${stderr.trim()}`);
   }
 
-  const text = new TextDecoder().decode(stdout);
-  return JSON.parse(text) as OhaOutput;
+  return JSON.parse(stdout) as OhaOutput;
 }
 
 async function waitForServer(url: string, timeoutMs?: number): Promise<void> {
@@ -279,7 +276,7 @@ async function benchmarkRoute(
 }
 
 function writeLine(line: string): void {
-  Deno.stdout.writeSync(new TextEncoder().encode(`${line}\n`));
+  process.stdout.write(`${line}\n`);
 }
 
 function printSeparator(length: number): void {
@@ -354,14 +351,13 @@ function printShortSummary(results: BenchmarkResult[]): void {
 }
 
 interface ManagedProcess {
-  child: Deno.ChildProcess;
+  child: ChildProcess;
   name: string;
 }
 
 const managedProcesses: ManagedProcess[] = [];
 
-function cleanup(signal?: Deno.Signal): void {
-  signal = signal ?? 'SIGTERM';
+function cleanup(signal: NodeJS.Signals = 'SIGTERM'): void {
   for (const p of managedProcesses) {
     try {
       p.child.kill(signal);
@@ -374,40 +370,33 @@ function cleanup(signal?: Deno.Signal): void {
 async function runBuildCommand(task: string, cwd?: string): Promise<void> {
   const args = cwd
     ? [
-        'task',
-        `--cwd=${cwd}`,
+        '--dir',
+        cwd,
         task,
       ]
     : [
-        'task',
         task,
       ];
-  const command = new Deno.Command('deno', {
-    args,
-    env: {
-      ...Deno.env.toObject(),
-    },
-    stderr: 'inherit',
-    stdout: 'inherit',
-  }).spawn();
-  const { code } = await command.output();
+  const { code } = await runCommand('pnpm', args, {
+    env: process.env,
+    stdio: 'inherit',
+  });
   if (code !== 0) throw new Error(`Build failed: ${task}`);
 }
 
 function startStandaloneProcess(name: string, script: string, env: Record<string, string>): void {
-  const child = new Deno.Command('deno', {
-    args: [
-      'run',
-      '-A',
+  const child = spawnCommand(
+    process.execPath,
+    [
       script,
     ],
-    env: {
-      ...Deno.env.toObject(),
-      ...env,
-    },
-    stderr: 'null',
-    stdout: 'null',
-  }).spawn();
+    {
+      env: {
+        ...process.env,
+        ...env,
+      },
+    }
+  );
   managedProcesses.push({
     child,
     name,
@@ -415,11 +404,9 @@ function startStandaloneProcess(name: string, script: string, env: Record<string
 }
 
 function startWranglerWorker(name: string, cwd: string, port: string, inspectorPort: string): void {
-  const child = new Deno.Command('deno', {
-    args: [
-      'run',
-      '-A',
-      'npm:wrangler',
+  const child = spawnCommand(
+    'wrangler',
+    [
       'dev',
       '--env',
       'production',
@@ -428,14 +415,14 @@ function startWranglerWorker(name: string, cwd: string, port: string, inspectorP
       '--inspector-port',
       inspectorPort,
     ],
-    cwd,
-    env: {
-      SENTRY_RELEASE: 'local',
-      ...Deno.env.toObject(),
-    },
-    stderr: 'null',
-    stdout: 'null',
-  }).spawn();
+    {
+      cwd,
+      env: {
+        SENTRY_RELEASE: 'local',
+        ...process.env,
+      },
+    }
+  );
   managedProcesses.push({
     child,
     name,
@@ -500,12 +487,12 @@ async function runBenchmarks(
   concurrency: number
 ): Promise<BenchmarkResult[]> {
   const results: BenchmarkResult[] = [];
-  const activeRoutes = Deno.env.get('DIRECT_ONLY')
+  const activeRoutes = process.env.DIRECT_ONLY
     ? ROUTES.filter(r => r.baseUrl !== undefined)
     : ROUTES;
 
   for (const route of activeRoutes) {
-    Deno.stdout.writeSync(new TextEncoder().encode(`  ${route.name.padEnd(20)} ... `));
+    process.stdout.write(`  ${route.name.padEnd(20)} ... `);
 
     try {
       const routeBaseUrl = route.baseUrl ?? baseUrl;
@@ -522,7 +509,7 @@ async function runBenchmarks(
 async function main(): Promise<void> {
   const overallStart = performance.now();
   const { baseUrl, concurrency, duration, warmupDuration } = getConfig();
-  const startServers = Deno.env.get('BENCH_NO_START') !== '1';
+  const startServers = process.env.BENCH_NO_START !== '1';
   const servicePort = new URL(baseUrl).port || '8787';
 
   if (startServers) {
@@ -557,27 +544,23 @@ async function main(): Promise<void> {
   }
 
   if (results.some(r => r.successRate < 0.95)) {
-    Deno.exit(1);
+    process.exit(1);
   }
 }
 
 if (import.meta.main) {
-  const signals: Deno.Signal[] = [
+  const signals: NodeJS.Signals[] = [
     'SIGINT',
     'SIGTERM',
   ];
-  for (const s of signals) {
-    try {
-      Deno.addSignalListener(s, () => cleanup('SIGKILL'));
-    } catch {
-      /* ignore */
-    }
+  for (const signal of signals) {
+    process.on(signal, () => cleanup('SIGKILL'));
   }
 
   try {
     await main();
   } catch (_err) {
     cleanup('SIGKILL');
-    Deno.exit(1);
+    process.exit(1);
   }
 }

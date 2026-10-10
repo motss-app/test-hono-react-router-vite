@@ -35,7 +35,7 @@ jobs:
           git config --global user.name "${{ env.AUTHOR_NAME }}"
           git config --global user.email "${{ env.AUTHOR_EMAIL }}"
 
-      - uses: ./.github/actions/setup-deno
+      - uses: ./.github/actions/setup-node
 
       - name: Resolve Playwright version
         id: playwright-version
@@ -58,10 +58,10 @@ jobs:
 
       - name: Install Playwright browsers
         if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: deno run -A npm:playwright@${{ steps.playwright-version.outputs.version }} install chromium --with-deps
+        run: pnpm exec playwright install chromium --with-deps
 
       - name: Generate screenshots
-        run: deno task test:visual
+        run: pnpm test:visual
 
       - name: Check for changes
         id: check_changes

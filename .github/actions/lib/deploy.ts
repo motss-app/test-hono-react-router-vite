@@ -1,5 +1,15 @@
+import type { ChildProcess } from 'node:child_process';
+import { once } from 'node:events';
+import { existsSync } from 'node:fs';
+import { appendFile } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
+import process from 'node:process';
+import { fileURLToPath } from 'node:url';
+
+import { spawnCommand } from '../../../scripts/run-command.ts';
+
 export function writeLine(message: string): void {
-  Deno.stdout.writeSync(new TextEncoder().encode(`${message}\n`));
+  process.stdout.write(`${message}\n`);
 }
 
 export async function withLogGroup<T>(title: string, fn: () => Promise<T> | T): Promise<T> {
@@ -10,6 +20,13 @@ export async function withLogGroup<T>(title: string, fn: () => Promise<T> | T): 
   } finally {
     writeLine('::endgroup::');
   }
+}
+
+const repoRootDir = dirname(fileURLToPath(new URL('../../../package.json', import.meta.url)));
+
+function localBinPathIfExists(name: string): string | undefined {
+  const binPath = join(repoRootDir, 'node_modules', '.bin', name);
+  return existsSync(binPath) ? binPath : undefined;
 }
 
 const RETRY_DELAY_MS = 2000;
@@ -26,46 +43,52 @@ type CommandCapture = {
   stdout: string;
 };
 
+/**
+ * Resolve a workspace-installed binary to an absolute path.
+ *
+ * Composite action steps inherit a `PATH` that does not include the repo's
+ * `node_modules/.bin`, so a bare `wrangler` would not be found. Anything not
+ * installed locally, such as `pnpm`, falls back to the ambient `PATH`.
+ */
+function resolveExecutable(command: string): string {
+  const localPath = localBinPathIfExists(command);
+  return localPath ?? command;
+}
+
 function createCommand(
   cmd: string[],
   opts: CommandOptions | undefined,
   captureOutput: boolean
-): Deno.Command {
+): ChildProcess {
   const [command, ...args] = cmd;
 
   if (!command) {
     throw new Error('Command is required');
   }
 
-  const commandOptions = {
-    args,
+  return spawnCommand(resolveExecutable(command), args, {
     ...(opts?.cwd
       ? {
           cwd: opts.cwd,
         }
       : {}),
-    ...(opts?.env
+    env: opts?.env
       ? {
-          env: {
-            ...Deno.env.toObject(),
-            ...opts.env,
-          },
+          ...process.env,
+          ...opts.env,
         }
-      : {}),
-    stderr: captureOutput ? 'piped' : 'inherit',
-    stdout: captureOutput ? 'piped' : 'inherit',
-  } satisfies Deno.CommandOptions;
-
-  return new Deno.Command(command, commandOptions);
+      : process.env,
+    stdio: captureOutput ? 'pipe' : 'inherit',
+  });
 }
 
-function writeCapturedOutput(stdout: Uint8Array, stderr: Uint8Array): void {
+function writeCapturedOutput(stdout: Buffer, stderr: Buffer): void {
   if (stdout.length > 0) {
-    Deno.stdout.writeSync(stdout);
+    process.stdout.write(stdout);
   }
 
   if (stderr.length > 0) {
-    Deno.stderr.writeSync(stderr);
+    process.stderr.write(stderr);
   }
 }
 
@@ -74,32 +97,33 @@ async function executeCommand(
   opts: CommandOptions | undefined,
   captureOutput: boolean
 ): Promise<CommandCapture> {
-  const proc = createCommand(cmd, opts, captureOutput).spawn();
+  const proc = createCommand(cmd, opts, captureOutput);
 
   if (!captureOutput) {
-    const { code } = await proc.status;
+    const [code] = await once(proc, 'close');
     return {
-      code,
+      code: code ?? 1,
       stderr: '' as const,
       stdout: '' as const,
     };
   }
 
-  const { code, stderr, stdout } = await proc.output();
-  const stdoutText = decode(stdout);
-  const stderrText = decode(stderr);
+  const stdoutChunks: Buffer[] = [];
+  const stderrChunks: Buffer[] = [];
+  proc.stdout?.on('data', (chunk: Buffer) => stdoutChunks.push(chunk));
+  proc.stderr?.on('data', (chunk: Buffer) => stderrChunks.push(chunk));
+
+  const [code] = await once(proc, 'close');
+  const stdout = Buffer.concat(stdoutChunks);
+  const stderr = Buffer.concat(stderrChunks);
 
   writeCapturedOutput(stdout, stderr);
 
   return {
-    code,
-    stderr: stderrText,
-    stdout: stdoutText,
+    code: code ?? 1,
+    stderr: stderr.toString('utf8'),
+    stdout: stdout.toString('utf8'),
   };
-}
-
-function decode(bytes: Uint8Array): string {
-  return new TextDecoder().decode(bytes);
 }
 
 function sleep(ms: number): Promise<void> {
@@ -107,7 +131,7 @@ function sleep(ms: number): Promise<void> {
 }
 
 export function readEnv(name: string): string {
-  const value = Deno.env.get(name);
+  const value = process.env[name];
   if (!value) throw new Error(`Missing env: ${name}`);
   return value;
 }
@@ -125,7 +149,7 @@ export async function runOrDie(cmd: string[], opts?: CommandOptions): Promise<vo
   const code = await run(cmd, opts);
   if (code !== 0) {
     writeLine(`Failed: ${cmd.join(' ')} (exit ${code})`);
-    Deno.exit(code);
+    process.exit(code);
   }
 }
 
@@ -175,7 +199,7 @@ export function retry(maxRetries: number): (cmd: string[], opts?: CommandOptions
     }
 
     writeLine(`Failed: ${commandLabel} after ${maxRetries + 1} attempts`);
-    Deno.exit(1);
+    process.exit(1);
   };
 }
 
@@ -186,9 +210,7 @@ export function extractUrls(text: string): string[] {
 }
 
 export async function appendSummary(lines: string[]): Promise<void> {
-  const path = Deno.env.get('GITHUB_STEP_SUMMARY');
+  const path = process.env.GITHUB_STEP_SUMMARY;
   if (!path) return;
-  await Deno.writeTextFile(path, `${lines.join('\n')}\n`, {
-    append: true,
-  });
+  await appendFile(path, `${lines.join('\n')}\n`, 'utf8');
 }

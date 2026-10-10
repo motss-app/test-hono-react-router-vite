@@ -42,15 +42,15 @@ That is why the browser-facing flow still uses two public local ports in develop
 | Gateway | `edge-gateway` | `8787` | `9230` | Browser-facing entrypoint the only worker that keeps public custom domain, workers.dev, and preview URL exposure |
 | Frontend app | `frontend-app` | `5173` | `9232` | Private frontend worker deployed from `packages/frontend/wrangler.jsonc` locally served by `packages/frontend/vite.config.ts` for the page shell, SSR, and HMR |
 | BFF API | `bff-api` | none | `9231` | Private Cloudflare worker deployed independently reached through the gateway `BFF` binding |
-| Spotlight | dev telemetry sidecar | `8969` | n/a | Optional local telemetry helper started by `deno task dev` |
+| Spotlight | dev telemetry sidecar | `8969` | n/a | Optional local telemetry helper started by `pnpm dev` |
 
 ## Local development
 
-`deno task dev` starts the full local stack by launching the package-local frontend task and the gateway task.
+`pnpm dev` starts the full local stack by launching the package-local frontend task and the gateway task.
 
 When the gateway and frontend tasks run with `CLOUDFLARE_ENV=dev`, Wrangler registers the local workers with a `-dev` suffix, so the dev bindings resolve to names like `edge-gateway-dev`, `frontend-app-dev`, and `bff-api-dev`. Deployed environment workers use the same suffixing convention (`frontend-app-canary`, `bff-api-canary`, `edge-gateway-canary`), so the service bindings in `packages/gateway/wrangler.jsonc` must target the environment-suffixed worker names.
 
-`deno task build` runs the package frontend build first and then the gateway build, so the production artifact set is assembled from the package-local build steps instead of a single root Vite config.
+`pnpm build` runs the package frontend build first and then the gateway build, so the production artifact set is assembled from the package-local build steps instead of a single root Vite config.
 
 The frontend dev server now uses the Cloudflare Vite plugin so Vite can run the frontend worker inside `workerd` while still serving HMR and route updates during local development.
 
@@ -69,7 +69,7 @@ Request flow:
 3. The frontend worker from `packages/frontend/vite.config.ts` runs through `packages/frontend/worker.ts` and the Cloudflare Vite plugin, so the page shell, SSR, and static assets all use the Worker runtime during local development.
 4. The gateway forwards `/api/*` to the `BFF` service binding.
 5. The BFF worker mounts the API under `/api`, so `/api/rpc/hello` and `/api/test` match the browser-facing contract.
-6. Spotlight runs on `8969` when enabled, and `deno task dev` starts the sidecar before launching the frontend and gateway dev tasks.
+6. Spotlight runs on `8969` when enabled, and `pnpm dev` starts the sidecar before launching the frontend and gateway dev tasks.
 
 ## Why the frontend is still separate in dev
 
@@ -101,7 +101,7 @@ If the repo ever moves to a more unified Cloudflare Vite dev topology, the likel
 
 That would make local dev look more like the deployed Worker topology, but it would also require a
  real refactor of how the frontend React Router/Vite environment is represented. The current repo
- does not yet do that, which is why `deno task dev` still launches both `dev:gateway` and
+ does not yet do that, which is why `pnpm dev` still launches both `dev:gateway` and
  `dev:app` as separate processes.
 
 ## Deploy topology
@@ -127,21 +127,21 @@ The gateway is the only worker that intentionally keeps public URL exposure on (
 
 - `packages/gateway/vite.config.ts` — Cloudflare Vite plugin setup and auxiliary worker wiring
 - `packages/gateway/src/worker.ts` — gateway request routing
-- `packages/gateway/deno.json` — gateway package tasks and typecheck entrypoint
+- `packages/gateway/package.json` — gateway package tasks and typecheck entrypoint
 - `packages/gateway/wrangler.jsonc` — gateway worker name, bindings, and inspector port
 - `packages/gateway/.wrangler/deploy/config.json` — generated deploy manifest that points at the built gateway artifacts
 - `packages/bff/src/worker.ts` — BFF worker mounted under `/api`
-- `packages/bff/deno.json` — BFF package exports and typecheck entrypoint
+- `packages/bff/package.json` — BFF package exports and typecheck entrypoint
 - `packages/bff/wrangler.jsonc` — BFF worker name and inspector port
 - `packages/shared/src/bindings.ts` — shared gateway binding types used by the gateway worker
 - `packages/shared/deno.json` — shared contract package exports and typecheck entrypoint
-- `packages/frontend/deno.json` — package-local frontend dev/build/preview/typecheck tasks
+- `packages/frontend/package.json` — package-local frontend dev/build/preview/typecheck tasks
 - `packages/frontend/vite.config.ts` — package-local frontend Vite/Hono dev config
 - `packages/frontend/wrangler.jsonc` — private frontend deploy manifest and inspector port
 - `.github/workflows/deploy-fe-canary.yml` — canary deploy for the private frontend worker
 - `.github/workflows/deploy-bff-canary.yml` — canary deploy for the private BFF worker
 - `.github/workflows/deploy-gw-canary.yml` — canary deploy for the public gateway worker
-- `deno.json` — root task entrypoints, including the Spotlight-wrapped dev stack
+- `package.json` — root task entrypoints, including the Spotlight-wrapped dev stack
 
 ## Mental model
 

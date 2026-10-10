@@ -282,7 +282,7 @@ for current user session`.
   each external service. Common offenders to remember: the analytics
   script host, the Sentry ingest host, any CDN that hosts static assets.
 - **After modifying the CSP builder, regenerate `_headers`.** Run
-  `deno task build:frontend` and verify `build/client/_headers` still
+  `pnpm build:frontend` and verify `build/client/_headers` still
   contains a `Content-Security-Policy:` line per prerendered route, plus
   the `Document-Policy: js-profiling` line.
 

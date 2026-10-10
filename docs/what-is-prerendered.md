@@ -25,7 +25,7 @@ prerender() {
 
 ## What Gets Built
 
-After `deno task build`:
+After `pnpm build`:
 
 ```
 build/client/
@@ -73,9 +73,9 @@ build/client/
 ## Testing
 
 ```bash
-deno task build
+pnpm build
 ls build/client/  # Check generated files
-deno task start        # Test in production
+pnpm start        # Test in production
 ```
 
 Visit prerendered routes - they load instantly!
