@@ -3,7 +3,11 @@ import { once } from 'node:events';
 import process from 'node:process';
 
 import { clearPorts } from './dev-ports.ts';
+import { localBinPath } from './local-bin.ts';
 import { spawnCommand } from './run-command.ts';
+
+const FRONTEND_DIR = new URL('../packages/frontend', import.meta.url).pathname;
+const GATEWAY_DIR = new URL('../packages/gateway', import.meta.url).pathname;
 
 interface ManagedProcess {
   child: ChildProcess;
@@ -71,10 +75,12 @@ try {
 
   once(spotlightProcess.child, 'close')
     .then(([code]) => {
-      if (code !== 0) {
-        logWarning(
-          `Spotlight process exited with code ${code ?? 'unknown'}. continuing without sidecar.`
-        );
+      /*
+       * A child stopped by a signal reports a null code, which is the
+       * shutdown path rather than a failure worth warning about.
+       */
+      if (code !== null && code !== 0) {
+        logWarning(`Spotlight process exited with code ${code}. continuing without sidecar.`);
       }
     })
     .catch(error => {
@@ -84,35 +90,38 @@ try {
   logWarning(`Failed to spawn Spotlight process; continuing without Spotlight: ${String(error)}`);
 }
 
+/*
+ * Mirrors `pnpm dev:app` / `pnpm dev:gateway` but spawns the underlying
+ * `vite` process directly, so SIGTERM reliably reaches it. A `pnpm run`
+ * wrapper sits above a shell and a second pnpm, none of which forward the
+ * signal down, so signalling the wrapper alone left the stack running and
+ * Ctrl+C never completed. The ports are already cleared above and vite
+ * reads them from each package's config.
+ */
 const appProcess: ManagedProcess = {
-  child: spawnCommand(
-    'pnpm',
-    [
-      'dev:app',
-    ],
-    {
-      stdio: 'inherit',
-    }
-  ),
+  child: spawnDevWorker(FRONTEND_DIR),
   name: 'App',
 };
 
 processes.push(appProcess);
 
 const gatewayProcess: ManagedProcess = {
-  child: spawnCommand(
-    'pnpm',
-    [
-      'dev:gateway',
-    ],
-    {
-      stdio: 'inherit',
-    }
-  ),
+  child: spawnDevWorker(GATEWAY_DIR),
   name: 'Gateway',
 };
 
 processes.push(gatewayProcess);
+
+function spawnDevWorker(cwd: string): ChildProcess {
+  return spawnCommand(localBinPath('vite'), [], {
+    cwd,
+    env: {
+      ...process.env,
+      CLOUDFLARE_ENV: 'dev',
+    },
+    stdio: 'inherit',
+  });
+}
 
 let isShuttingDown = false;
 
@@ -147,13 +156,15 @@ for (const signal of [
 }
 
 const exitResult = await Promise.race([
-  once(appProcess.child, 'close').then(([code]) => ({
+  once(appProcess.child, 'close').then(([code, signal]) => ({
     code,
     name: appProcess.name,
+    signal,
   })),
-  once(gatewayProcess.child, 'close').then(([code]) => ({
+  once(gatewayProcess.child, 'close').then(([code, signal]) => ({
     code,
     name: gatewayProcess.name,
+    signal,
   })),
 ]);
 
@@ -170,12 +181,22 @@ for (const signal of [
   }
 }
 
-if (exitResult.code !== 0) {
-  const exitCode = exitResult.code ?? -1;
+/*
+ * A child stopped by a signal reports a null code, so the signal is the only
+ * record of why it ended. stopProcesses signalled these children itself as
+ * part of shutdown, which is the ordinary Ctrl+C path, so treat that as a
+ * clean exit rather than a failure.
+ */
+const stoppedByUs = exitResult.signal === 'SIGINT' || exitResult.signal === 'SIGTERM';
+const stoppedCleanly = exitResult.code === 0 || exitResult.code === 130 || exitResult.code === 143;
 
-  if (exitCode === 130 || exitCode === 143) {
-    process.exit(0);
-  }
-
+if (!stoppedCleanly && !stoppedByUs) {
   throw new Error(`${exitResult.name} exited with code ${exitResult.code ?? 'unknown'}`);
 }
+
+/*
+ * Exit explicitly instead of falling off the end. A child that outlives its
+ * signal, such as the Spotlight sidecar, keeps the event loop alive and would
+ * otherwise leave Ctrl+C appearing to hang.
+ */
+process.exit(0);

@@ -5,6 +5,7 @@ import { statSync } from 'node:fs';
 import process from 'node:process';
 
 import { clearPorts } from './dev-ports.ts';
+import { localBinPath } from './local-bin.ts';
 import { runCommand, spawnCommand } from './run-command.ts';
 
 interface BenchmarkResult {
@@ -357,10 +358,12 @@ interface ManagedProcess {
 
 const managedProcesses: ManagedProcess[] = [];
 
-function cleanup(signal: NodeJS.Signals = 'SIGTERM'): void {
+function cleanup(signal?: NodeJS.Signals): void {
+  const targetSignal = signal ?? 'SIGTERM';
+
   for (const p of managedProcesses) {
     try {
-      p.child.kill(signal);
+      p.child.kill(targetSignal);
     } catch {
       /* ignore */
     }
@@ -404,8 +407,13 @@ function startStandaloneProcess(name: string, script: string, env: Record<string
 }
 
 function startWranglerWorker(name: string, cwd: string, port: string, inspectorPort: string): void {
+  /*
+   * The benchmark workflow runs this file with `node scripts/bench-all.ts`
+   * rather than through `pnpm`, so the workspace `node_modules/.bin` is not on
+   * `PATH` and a bare `wrangler` would fail to spawn with ENOENT.
+   */
   const child = spawnCommand(
-    'wrangler',
+    localBinPath('wrangler'),
     [
       'dev',
       '--env',
