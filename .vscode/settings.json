@@ -8,7 +8,6 @@
     "git remote": true,
     "printf": true
   },
-  "deno.enable": true,
   "editor.codeActionsOnSave": {
     "source.addMissingImports.ts": "explicit",
     "source.fixAll.biome": "explicit",
@@ -44,7 +43,7 @@
     ]
   },
   "vitest.rootConfig": "vitest.config.ts",
-  "vitest.runtime": "deno",
+  "vitest.runtime": "node",
   "vitest.showImportsDuration": true,
   "vitest.showInlineConsoleLog": true
 }

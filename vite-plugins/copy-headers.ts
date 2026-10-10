@@ -1,4 +1,7 @@
+import { mkdirSync, statSync } from 'node:fs';
+import { readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
+import process from 'node:process';
 import type { Plugin } from 'vite';
 
 import {
@@ -13,8 +16,10 @@ import {
   inlineScriptPattern,
   inlineStylePattern,
 } from '../packages/frontend/app/utils/csp.ts';
+import { isErrnoException } from '../vite-utils/errors.ts';
 import { readRequiredEnv } from '../vite-utils/get-required-env.ts';
 import { discoverPrerenderRoutes } from '../vite-utils/route-discovery.ts';
+import { writeStderr } from '../vite-utils/runtime-env.ts';
 import { createBuildSentryEnvSnapshot } from '../vite-utils/sentry-build-env-log.ts';
 
 interface HeadersCopyPluginOptions {
@@ -43,10 +48,10 @@ const staticPageCacheControl =
 
 function fileExists(path: string): boolean {
   try {
-    Deno.statSync(path);
+    statSync(path);
     return true;
   } catch (error) {
-    if (error instanceof Deno.errors.NotFound) {
+    if (isErrnoException(error, 'ENOENT')) {
       return false;
     }
     throw error;
@@ -64,10 +69,8 @@ function htmlFilePathFromRoute(clientDir: string, routePath: string): string {
 function createHeadersCopyPluginContext(mode: string): HeadersCopyPluginContext {
   const includeCloudflareAnalyticsStyleHashes = mode !== 'development';
 
-  Deno.stderr.writeSync(
-    new TextEncoder().encode(
-      `[vite-plugins/copy-headers.ts] Sentry env snapshot ${JSON.stringify(createBuildSentryEnvSnapshot('vite-plugins/copy-headers.ts', mode))}\n`
-    )
+  writeStderr(
+    `[vite-plugins/copy-headers.ts] Sentry env snapshot ${JSON.stringify(createBuildSentryEnvSnapshot('vite-plugins/copy-headers.ts', mode))}\n`
   );
 
   const sentryDsn = readRequiredEnv('SENTRY_DSN', {
@@ -162,7 +165,7 @@ async function processStaticRoute({
     return null;
   }
 
-  const html = await Deno.readTextFile(htmlFile);
+  const html = await readFile(htmlFile, 'utf8');
   const preloadLinks = extractPreloadLinks(html);
   const [scriptHashes, styleHashes] = await Promise.all([
     collectInlineHashes(html, inlineScriptPattern),
@@ -185,7 +188,7 @@ async function processStaticRoute({
 }
 
 export function headersCopyPlugin(options: HeadersCopyPluginOptions): Plugin {
-  const rootDir = options.rootDir ?? Deno.cwd();
+  const rootDir = options.rootDir ?? process.cwd();
   const headersDir = resolve(rootDir, options.headersDir);
   const destPath = resolve(rootDir, options.dest);
   const clientDir = dirname(destPath);
@@ -215,11 +218,11 @@ export function headersCopyPlugin(options: HeadersCopyPluginOptions): Plugin {
           this.error(`Unable to find headers for mode '${mode}' (looked for ${src})`);
         }
 
-        Deno.mkdirSync(dirname(destPath), {
+        mkdirSync(dirname(destPath), {
           recursive: true,
         });
 
-        let headersText = await Deno.readTextFile(src);
+        let headersText = await readFile(src, 'utf8');
         const prerenderRoutes = discoverPrerenderRoutes();
         const staticRouteHeadersResults = await Promise.all(
           prerenderRoutes.map(routePath =>
@@ -238,7 +241,7 @@ export function headersCopyPlugin(options: HeadersCopyPluginOptions): Plugin {
 
         headersText = `${headersText.trimEnd()}\n\n${staticRouteHeaders.join('\n\n')}\n`;
 
-        await Deno.writeTextFile(destPath, headersText);
+        await writeFile(destPath, headersText, 'utf8');
 
         this.info(
           `Generated static CSP headers for ${staticRouteHeaders.length} prerendered route(s) at ${destPath}`

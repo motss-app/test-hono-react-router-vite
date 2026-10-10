@@ -29,11 +29,11 @@ Most skills are model-invocable, so the skill tool loads them directly. `commit-
 2. Prefer targeted changes over broad rewrites unless the user explicitly asks for a larger refactor.
 3. Always fix errors whenever possible. When lint, typecheck, or other verification tools report issues, fix them before proceeding.
 4. Follow repository rules in this file even when a skill is loaded, unless the skill gives a more specific instruction for the same area.
-5. After code changes, run `deno task check` unless the task is documentation-only or the user says not to.
+5. After code changes, run `pnpm check` unless the task is documentation-only or the user says not to.
 6. Run Biome check/fix for linting and formatting after code changes.
 7. ~~Run the benchmark after concluded changes to guard against regressions.~~ **TEMPORARILY DISABLED** — benchmarks are skipped until further notice. Re-enable by removing this strikethrough and note.
 8. Use MCP for UI verification by default (see Browser Interaction Rules).
-9. For frontend visual changes, run `deno task test:visual` and verify the expected screenshots under `__screenshots__/`. If the dev stack cannot run or screenshots are not generated, report VRT as blocked and do not claim it passed.
+9. For frontend visual changes, run `pnpm test:visual` and verify the expected screenshots under `__screenshots__/`. If the dev stack cannot run or screenshots are not generated, report VRT as blocked and do not claim it passed.
 10. After verification passes, probe every URL in `docs/dev-urls.md` to ensure all return 200. Run these against the gateway at `localhost:8787` (and `localhost:5173` for direct frontend URLs). If the dev servers are not running, skip this step.
 11. Report what changed, what was verified, the URL probe results, and any remaining risks or blockers.
 
@@ -76,13 +76,16 @@ Selection rules:
 
 ## Project Structure
 
-- Runtime: Deno for task orchestration and builds, Cloudflare Workers for app runtime.
+- Runtime: Node.js 27 for task orchestration and builds, Cloudflare Workers for app runtime.
 - Entry Points:
   - `packages/frontend/worker.ts`: Frontend Cloudflare Worker entry point used by local dev and production builds.
   - `packages/gateway/src/worker.ts`: Gateway Cloudflare Worker entry point.
   - `packages/frontend/app/ssr-handler.ts`: Shared SSR helper used by the frontend worker.
 - Configuration:
-  - `deno.json`: Main configuration for Deno tasks and compiler options.
+  - `package.json`: Dependency manifest and the task scripts that used to live in `deno.json`.
+  - `pnpm-workspace.yaml`: Workspace member list, the shared version catalog, and the build-script allow list.
+  - `tsconfig.node.json`: Compiler options shared by every typecheck project.
+  - `tsconfig.check.json`: The catch-all typecheck project covering `scripts/`, `vite-plugins/`, `vite-utils/`, and `.github/actions/`.
   - `packages/frontend/wrangler.jsonc`: Frontend Cloudflare Worker deploy configuration.
   - `packages/frontend/vite.config.ts`: Frontend Cloudflare Vite dev config. Keep `@vanilla-extract/vite-plugin` and `veCssTextPlugin` here, not in gateway configs.
   - `packages/frontend/vite.react-router.config.ts`: Frontend React Router production build config. This is also allowed to use Vanilla Extract.
@@ -115,10 +118,10 @@ Never use semicolons or em dashes in comments, docs, or user-facing prose. Use p
 
 ## Repository Rules
 
-- Package management: Use `deno install` for dependencies. Do not use `npm install`. Always pin dependency versions. Never install without a version specifier (e.g. `deno install npm:package@1.2.3`, not `deno install npm:package`).
+- Package management: Use `pnpm install` for dependencies. Do not use `npm install`. Always pin dependency versions in `pnpm-workspace.yaml`. Never install without a version specifier.
 - Dependency versions: When adding a new npm dependency, always check the npm registry for the latest available version before pinning. Do not guess or hardcode a version without verifying it is the latest stable release. Run `npm view <package> version` to find the current latest version.
 - Commit descriptions: Non-trivial fix commits must include a body explaining the problem, evidence, rationale, scope, and verification. A title alone is insufficient. For example, `fix(vrt): reduce browser concurrency` must explain the timeout, why concurrency was suspected, why the new value was chosen, and how it was verified.
-- Task execution: Prefer `deno task [script-name]` for project scripts. Do not use `npm run` or `pnpm run` for repo tasks.
+- Task execution: Prefer `pnpm [script-name]` for project scripts. Do not use `npm run` for repo tasks.
 - One-off CLIs: If a one-off external CLI is needed, use `pnpm dlx` instead of `npx`.
 - CLI tools: Prefer Rust-based CLI tools when available (e.g. `rg` over `grep`, `bat` over `cat`, `fd` over `find`, `sd` over `sed`).
 - Styling: Use Vanilla Extract (`@vanilla-extract/css`). Use `@vanilla-extract/dynamic` for runtime CSS variables. Do not create or import global CSS files such as `app.css`.
@@ -132,13 +135,13 @@ Never use semicolons or em dashes in comments, docs, or user-facing prose. Use p
 
 | Command | Description |
 |---------|-------------|
-| `deno task check` | Typecheck the project |
-| `deno run -P=lint npm:@biomejs/biome check .` | Lint check |
-| `deno run -P=lint npm:@biomejs/biome check --write .` | Lint fix |
-| `deno run -P=format npm:@biomejs/biome format --write .` | Format |
-| `BENCH_DURATION=20s deno task bench:all` | Full benchmark (temporarily skipped in workflow) |
-| `deno task test:visual` | Generate visual regression screenshots |
-| `deno task dev` | Start all dev servers |
+| `pnpm check` | Typecheck the project |
+| `pnpm lint` | Lint check |
+| `pnpm lint:fix` | Lint fix |
+| `pnpm format` | Format |
+| `BENCH_DURATION=20s pnpm bench:all` | Full benchmark (temporarily skipped in workflow) |
+| `pnpm test:visual` | Generate visual regression screenshots |
+| `pnpm dev` | Start all dev servers |
 
 ## Related Instruction Files
 

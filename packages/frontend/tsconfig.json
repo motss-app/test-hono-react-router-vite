@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "noEmit": true,
+    "rootDirs": [
+      "../..",
+      "../../.react-router/types"
+    ],
+    "types": [
+      "vite/client",
+      "node",
+      "@cloudflare/workers-types"
+    ]
+  },
+  "extends": "../../tsconfig.node.json",
+  "include": [
+    "worker.ts",
+    "react-router.config.ts",
+    "vite.config.ts",
+    "vite.react-router.config.ts",
+    "vite.worker.config.ts",
+    "app/types/vite-env.d.ts"
+  ]
+}

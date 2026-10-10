@@ -19,7 +19,7 @@ build/
 ## Build Process
 
 ```bash
-deno task build  # Runs frontend and gateway builds
+pnpm build  # Runs frontend and gateway builds
 ```
 
 1. **React Router build**: Creates client + SSR bundles from `packages/frontend/vite.react-router.config.ts`
@@ -70,7 +70,7 @@ For this repo, the browser-facing React Router build keeps legacy sourcemap uplo
 
 ### Production Start
 ```bash
-deno task start  # Alias for deno task preview (Cloudflare Worker preview)
+pnpm start  # Alias for pnpm preview (Cloudflare Worker preview)
 ```
 
 ## Deployment

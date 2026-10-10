@@ -7,7 +7,7 @@ This project combines React Router v7, Hono, and Vite for a modern full-stack we
 ### 🚀 Setup and Configuration
 - **[Setup Guide](setup.md)** - Complete setup for React Router + Hono + Vite integration
 - **[Build Setup](build-setup.md)** - Production build configuration and Docker deployment
-- **[Sentry Setup Guide](sentry-setup.md)** - Sentry, Spotlight, Deno, Cloudflare Worker wiring, shared SSR route-module split, the SRI-safe build flow, and the Worker `no_bundle`/source-map/module-rule alignment
+- **[Sentry Setup Guide](sentry-setup.md)** - Sentry, Spotlight, Cloudflare Worker wiring, shared SSR route-module split, the SRI-safe build flow, and the Worker `no_bundle`/source-map/module-rule alignment
 - [Sentry v11 Migration](sentry-v11-migration.md) - Breaking changes from the SDK 10.x to 11.x upgrade, how each one was migrated here, new features worth enabling, and verification evidence
 - [Sentry v11 Quick Reference](sentry-v11-quick-reference.md) - Scannable tables of every v11 breaking change, whether it hit this repo, and what was done, with details and code kept separate below
 - **[Theme Bootstrap Virtual Module](theme-bootstrap-virtual-module.md)** - How the theme bootstrap virtual module works in dev and production builds, and why `themeBuildPlugin()` must stay enabled
@@ -33,10 +33,10 @@ This project combines React Router v7, Hono, and Vite for a modern full-stack we
 
 ## Quick Start
 
-1. **Install dependencies**: `deno install`
-2. **Start development**: `deno task dev` (gateway + frontend worker + BFF + Spotlight at http://localhost:8787)
+1. **Install dependencies**: `pnpm install`
+2. **Start development**: `pnpm dev` (gateway + frontend worker + BFF + Spotlight at http://localhost:8787)
 3. **Test API**: Visit http://localhost:8787/api/test
-4. **Build for production**: `deno task build && deno task start`
+4. **Build for production**: `pnpm build && pnpm start`
 
 ## Architecture Overview
 
@@ -69,5 +69,5 @@ This project combines React Router v7, Hono, and Vite for a modern full-stack we
 ## Need Help?
 
 - Check the specific guides above
-- Run `deno check` for type errors
-- Use `deno task preview` or `deno task start` to test the built worker stack locally
+- Run `pnpm check` for type errors
+- Use `pnpm preview` or `pnpm start` to test the built worker stack locally

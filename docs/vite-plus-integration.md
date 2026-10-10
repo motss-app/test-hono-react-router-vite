@@ -1,38 +1,37 @@
 # Vite+ Integration
 
 Vite+ (`vite-plus@1.0.0-rc.0`) supplies config helpers and test API imports.
-Frontend tasks run pinned Vitest directly with Deno so `-A` reaches the runner.
+Frontend tasks run pinned Vitest directly through the package script.
 Vite+ also powers commit hooks.
 
 ## What was adopted
 
 | Capability | Command | Notes |
 |---|---|---|
-| Tests (unit + browser) | `deno task --cwd=packages/frontend test` | Runs `vitest@5.0.1` directly with `deno run -A`. Root `deno task test` delegates across BFF, frontend, and gateway. |
+| Tests (unit + browser) | `pnpm --dir packages/frontend test` | Runs `vitest@5.0.1` directly. Root `pnpm test` delegates across BFF, frontend, and gateway. |
 | Commit hooks | `vp hooks enable` / `vp staged` | `staged` block in root `vite.config.ts` (Biome on staged files) + project-owned `.vite-hooks/pre-commit` |
 
 ## What was NOT adopted (and why)
 
 | Capability | Status | Rationale |
 |---|---|---|
-| `vp dev` / `vp build` | ❌ Not wired | `vp` runs Vite under **Node**, but all Vite configs call `Deno.*` APIs (`Deno.env`, `Deno.stderr.writeSync`, `Deno.cwd()`). Would require codebase-wide migration to `process.env`. Phase 2 runtime-agnostic config was reverted — `vp test` doesn't load app configs. |
-| `vp run` | ❌ Not wired | Requires `package.json` `scripts` mirroring `deno.json` tasks. Two sources of truth, no caching benefit, conflicts with "prefer `deno task`" repo rule. |
-| `vp install` | ❌ Not wired | No `packageManager` field in `package.json`. Repo rule mandates `deno install`; pnpm would fight Deno's `node_modules` + `deno.lock`. |
-| `vp check` | ❌ Rejected | Repo rules mandate Biome; `deno check --unstable-tsgo` covers typecheck. |
+| `vp dev` / `vp build` | ❌ Not wired | The repo rule prefers `pnpm [script-name]`, and the scripts in `package.json` already invoke Vite and the React Router CLI directly, so `vp` would only wrap commands that are already reachable. |
+| `vp run` | ❌ Not wired | `package.json` `scripts` is now the single source of truth, so `vp run` would be a second entry point over the same commands with no caching benefit. |
+| `vp install` | ❌ Not wired | `packageManager` is pinned in `package.json` and the repo rule mandates `pnpm install`, so a second installer has nothing to add. |
+| `vp check` | ❌ Rejected | Repo rules mandate Biome; `pnpm check --unstable-tsgo` covers typecheck. |
 | `vp pack` | ❌ Not needed | No npm libraries are published. |
-| `vp migrate` | ❌ Avoided | Would rewrite manifests toward pnpm/npm, breaking Deno-first setup. |
+| `vp migrate` | ❌ Not needed | The manifests are already pnpm (`pnpm-workspace.yaml` plus `package.json` scripts). |
 
 - `vite-plus@1.0.0-rc.0` is pinned as a devDependency and supplies `defineConfig`
   and `vite-plus/test`.
-- Frontend test tasks use the pinned Vitest CLI directly. Running `vp test`
-  through `deno x` started Vitest as a Deno child without permission flags and
-  failed while reading `FORCE_TTY`.
+- Frontend test tasks use the pinned Vitest CLI directly rather than going
+  through `vp test`, which did not pick up the runner's TTY.
 - Root `vitest.config.ts` discovers `packages/*/vitest.config.*.ts`, so each
   package can add independently named Vitest projects.
 - `packages/frontend/vitest.config.ts` aggregates the `frontend-unit` and
-  `frontend-browser` configs for package-local Deno tasks.
-- The unit project uses the threads pool so workers inherit Deno's `-A`
-  permissions instead of starting permissionless Deno child processes.
+  `frontend-browser` configs for package-local tasks.
+- The unit project uses the threads pool instead of spawning one child
+  process per test file.
 - The direct `vitest@5.0.1` dependency matches the `vite-plus/test` API version.
 - Test files import from `vite-plus/test` (re-export of upstream `vitest`).
 
@@ -45,21 +44,22 @@ Vite+ also powers commit hooks.
 
 ## Command guidance
 
-- Repo tasks (build, lint, check, bench): `deno task`. Tasks live in
-  `deno.json`. `vp run` is not wired because there are no `package.json`
-  scripts.
-- Package installs: `deno install` with pinned versions only.
-  `vp install` is not wired (no `packageManager` field, conflicts with
-  Deno dependency management).
-- Testing from root: `deno task test` runs the BFF, frontend, and gateway
+- Repo tasks (build, lint, check, bench): `pnpm`. Tasks live in the
+  `scripts` field of `package.json`.
+- Package installs: `pnpm install` with pinned versions in
+  `pnpm-workspace.yaml`. `vp install` is not wired.
+- Testing from root: `pnpm test` runs the BFF, frontend, and gateway
   tasks. BFF and gateway currently have no tests.
 
 (Section moved to "What was NOT adopted" table above.)
 
 ## Setup notes
 
-- Playwright browsers must match the pinned `playwright@1.63.0`:
-  `deno run -A npm:playwright@1.63.0 install chromium`
+- Playwright browsers must match the pinned `playwright@1.63.0`. `pnpm
+  exec` takes a command name from `node_modules/.bin`, so the version
+  stays out of it and the workspace pin applies:
+  `pnpm exec playwright install chromium`
 - Browser tests use Playwright-managed Chromium (headless), not system Chrome.
   Run the Playwright install command above before running browser tests.
-- CI: `.github/actions/setup-deno` pins Deno 2.9.6 (matches local).
+- CI: `.github/actions/setup-node` installs Node from `package.json`
+  (`engines.node`) and pnpm from `packageManager`, matching local.

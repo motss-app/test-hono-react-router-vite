@@ -1,4 +1,6 @@
-#!/usr/bin/env -S deno run -A
+#!/usr/bin/env node
+import process from 'node:process';
+
 import { clearPorts } from './dev-ports.ts';
 
 const DEFAULT_PORTS = [
@@ -31,7 +33,7 @@ function parseArgs(args: string[]): {
   };
 }
 
-const { ports, verbose } = parseArgs(Deno.args);
+const { ports, verbose } = parseArgs(process.argv.slice(2));
 
 if (verbose) {
   // Verbose logging is not implemented yet.

@@ -162,7 +162,7 @@ Notes:
   raw Cargo row appears below.
 - Only `healthz-rust` and `fractal-wasm` have a committed `build.sh`
   (`healthz-rust`'s skips the `wasm-opt` step when binaryen is missing), and no
-  `deno task` builds `color-rust` or `fractal-rust`, so rebuild these Worker
+  `pnpm` builds `color-rust` or `fractal-rust`, so rebuild these Worker
   artifacts manually after changing their sources.
 
 ### Raw Cargo output (before `wasm-bindgen`)

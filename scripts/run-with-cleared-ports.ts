@@ -1,4 +1,8 @@
+import { once } from 'node:events';
+import process from 'node:process';
+
 import { clearPorts } from './dev-ports.ts';
+import { spawnCommand } from './run-command.ts';
 
 function parseCommandLine(args: string[]): {
   command: string;
@@ -45,25 +49,25 @@ function parseCommandLine(args: string[]): {
   };
 }
 
-const { command, commandArgs, ports } = parseCommandLine(Deno.args);
+const { command, commandArgs, ports } = parseCommandLine(process.argv.slice(2));
 
 await clearPorts(ports);
 
-const child = new Deno.Command(command, {
-  args: commandArgs,
-  stderr: 'inherit',
-  stdin: 'inherit',
-  stdout: 'inherit',
-}).spawn();
+const child = spawnCommand(command, commandArgs, {
+  stdio: 'inherit',
+});
 
-const status = await child.status;
+let exitCode = 1;
 
-if (!status.success) {
-  const exitCode = status.code ?? 1;
-
-  if (exitCode === 130 || exitCode === 143) {
-    Deno.exit(0);
-  }
-
-  Deno.exit(exitCode);
+try {
+  const [code] = await once(child, 'close');
+  exitCode = code ?? 1;
+} catch {
+  exitCode = 1;
 }
+
+if (exitCode === 130 || exitCode === 143) {
+  process.exit(0);
+}
+
+process.exit(exitCode);

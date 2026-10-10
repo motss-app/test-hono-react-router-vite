@@ -6,12 +6,12 @@ runs:
   steps:
     - name: Run Gateway Canary deployment
       shell: bash
-      run: deno run -A "${GITHUB_ACTION_PATH}/run.ts"
+      run: node "${GITHUB_ACTION_PATH}/run.ts"
     - name: Purge Gateway Canary Cache
       continue-on-error: true
       shell: bash
-      run: deno run -A "${GITHUB_ACTION_PATH}/purge.ts"
+      run: node "${GITHUB_ACTION_PATH}/purge.ts"
     - name: Warm Up Gateway Canary
       continue-on-error: true
       shell: bash
-      run: deno run -A "${GITHUB_ACTION_PATH}/warmup.ts"
+      run: node "${GITHUB_ACTION_PATH}/warmup.ts"

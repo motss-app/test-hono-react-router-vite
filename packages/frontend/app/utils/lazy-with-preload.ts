@@ -1,4 +1,3 @@
-// deno-lint-ignore-file no-explicit-any
 /** biome-ignore-all lint/suspicious/noExplicitAny: React's own types (lazy, createElement, LazyExoticComponent, ComponentProps) all require ComponentType<any> in their generic constraints — no way to satisfy them without any */
 
 import {

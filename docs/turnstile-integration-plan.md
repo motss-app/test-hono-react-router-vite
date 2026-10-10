@@ -66,7 +66,7 @@ See [CSP for SSG and SSR](csp-ssg-ssr-guide.md) for general CSP patterns the fol
 - Server rejects missing, expired, and reused tokens
 - Server accepts a valid token
 - SSR and prerendered pages both emit the updated CSP
-- Run `deno task check`
+- Run `pnpm check`
 - Run the relevant lint and build tasks
 
 ## Notes

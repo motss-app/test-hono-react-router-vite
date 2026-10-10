@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
-      - uses: ./.github/actions/setup-deno
+      - uses: ./.github/actions/setup-node
 
       # actions/cache v6.1.0
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -28,7 +28,7 @@ jobs:
 
       - name: Start server
         run: |
-          deno run -A scripts/saturation-test-server.ts &
+          node scripts/saturation-test-server.ts &
           echo "SERVER_PID=$!" >> "$GITHUB_ENV"
           for i in $(seq 1 10); do
             if curl -sf http://127.0.0.1:9999/ > /dev/null 2>&1; then
@@ -44,7 +44,7 @@ jobs:
         run: |
           K6_BINARY=/usr/local/bin/k6 \
           BASE_URL=http://127.0.0.1:9999 \
-          deno run -A scripts/saturation-test.ts 10,50,150,300,500,1000,3000,5000 2>&1 | tee /tmp/saturation-output.txt
+          node scripts/saturation-test.ts 10,50,150,300,500,1000,3000,5000 2>&1 | tee /tmp/saturation-output.txt
 
       - name: Kill server
         if: always()
@@ -63,7 +63,7 @@ jobs:
             echo "- **OS**: $(uname -srm)"
             echo "- **CPUs**: $(nproc) logical cores"
             echo "- **Memory**: $(free -h | awk '/^Mem:/ {print $2}') total"
-            echo "- **Deno**: $(deno --version | head -1)"
+            echo "- **Node**: $(node --version)"
             echo "- **Runner**: ${{ runner.name }} (${{ runner.os }})"
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -81,7 +81,7 @@ jobs:
             echo "- **OS**: $(uname -srm)"
             echo "- **CPUs**: $(nproc) logical cores"
             echo "- **Memory**: $(free -h | awk '/^Mem:/ {print $2}') total"
-            echo "- **Deno**: $(deno --version | head -1)"
+            echo "- **Node**: $(node --version)"
             echo "- **Runner**: ${{ runner.name }} (${{ runner.os }})"
           } > /tmp/saturation-comment.md
 

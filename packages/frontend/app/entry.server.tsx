@@ -7,9 +7,9 @@
  *
  * Why it is needed:
  * 1. Web Standards Support: We use `renderToReadableStream` instead of Node.js's
- *    `renderToPipeableStream`. This is REQUIRED for Cloudflare Workers and Deno,
- *    as they rely on the Web Streams API.
- * 2. Cross-Runtime Compatibility: This single file works for both Deno (local dev/prod)
+ *    `renderToPipeableStream`. This is REQUIRED for Cloudflare Workers, which
+ *    relies on the Web Streams API rather than Node's stream types.
+ * 2. Cross-Environment Compatibility: This single file works for both local dev
  *    and Cloudflare Workers (edge prod) because both support Web Standards.
  * 3. SEO & Performance: It handles bot detection (isbot) to ensure crawlers see the
  *    full content immediately.

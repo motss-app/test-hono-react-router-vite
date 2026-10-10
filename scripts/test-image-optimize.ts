@@ -4,12 +4,15 @@
  * Uses installed Chrome by default. WEBP_BROWSER_CHANNEL=chromium uses the
  * Playwright browser in CI. No deployment or existing browser session is used.
  */
+
 import { Buffer } from 'node:buffer';
+import { readFile } from 'node:fs/promises';
+import process from 'node:process';
 import { expect } from '@playwright/test';
 import { chromium } from 'playwright';
 
-const baseUrl = Deno.env.get('WEBP_TEST_URL') ?? 'http://localhost:8787';
-const channel = Deno.env.get('WEBP_BROWSER_CHANNEL') ?? 'chrome';
+const baseUrl = process.env.WEBP_TEST_URL ?? 'http://localhost:8787';
+const channel = process.env.WEBP_BROWSER_CHANNEL ?? 'chrome';
 const browser = await chromium.launch({
   channel,
 });
@@ -83,7 +86,7 @@ try {
   }
   console.log(`${channel}: saturated RGB survives the Worker WASM and browser decoder`);
 
-  const fixture = await Deno.readFile(
+  const fixture = await readFile(
     new URL('../packages/image-optimize-rust/tests/fixtures/iphone-duo.png', import.meta.url)
   );
   const outputs = new Map<string, Buffer>();
@@ -203,7 +206,7 @@ try {
     )
   );
 
-  if (Deno.env.get('WEBP_API_ONLY') !== 'true') {
+  if (process.env.WEBP_API_ONLY !== 'true') {
     // biome-ignore lint/security/noSecrets: file input selector
     await page.locator('input[type="file"]').setInputFiles({
       buffer: Buffer.from(fixture),

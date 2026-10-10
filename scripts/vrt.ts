@@ -1,4 +1,4 @@
-#!/usr/bin/env -S deno run -A
+#!/usr/bin/env node
 
 /**
  * Visual regression screenshot generator for Sentry Snapshots.
@@ -13,9 +13,12 @@
  * that is already serving on :8787 is reused as-is.
  *
  * Usage:
- *   deno run -A scripts/vrt.ts
+ *   pnpm test:visual
  */
 
+import type { ChildProcess } from 'node:child_process';
+import { mkdir, writeFile } from 'node:fs/promises';
+import process from 'node:process';
 import { expect } from '@playwright/test';
 import {
   type Browser,
@@ -26,6 +29,8 @@ import {
 
 import { discoverPrerenderRoutes } from '../vite-utils/route-discovery.ts';
 import { clearPorts } from './dev-ports.ts';
+import { localBinPath } from './local-bin.ts';
+import { spawnCommand } from './run-command.ts';
 
 const BASE_URL = 'http://localhost:8787';
 const FRONTEND_DIR = new URL('../packages/frontend', import.meta.url).pathname;
@@ -370,7 +375,7 @@ async function screenshot(
    * Written only after the frame settled, so a half-painted capture
    * never reaches the baseline.
    */
-  await Deno.writeFile(path, image);
+  await writeFile(path, image);
 
   await playwrightPage.close();
 }
@@ -410,7 +415,7 @@ async function capturePages(browser: Browser, pages: readonly Page[]): Promise<v
 }
 
 interface ManagedProcess {
-  child: Deno.ChildProcess;
+  child: ChildProcess;
   name: string;
 }
 
@@ -431,26 +436,20 @@ async function probeServer(): Promise<ServerState> {
 
 function spawnDevWorker(name: string, cwd: string): void {
   /*
-   * Mirrors `deno task dev:app` / `dev:gateway` but spawns the underlying
+   * Mirrors `pnpm dev:app` / `dev:gateway` but spawns the underlying
    * `vite` process directly, so SIGTERM reliably reaches it (killing a
-   * `deno task` wrapper would orphan the vite child instead).
+   * `pnpm run` wrapper would orphan the vite child instead).
    */
   console.log(`Starting ${name} (vite dev)...`);
-  const child = new Deno.Command('deno', {
-    args: [
-      'run',
-      '-A',
-      'npm:vite',
-    ],
+  const child = spawnCommand(localBinPath('vite'), [], {
     cwd,
     env: {
-      ...Deno.env.toObject(),
+      ...process.env,
       CLOUDFLARE_ENV: 'dev',
       VRT: 'true',
     },
-    stderr: 'inherit',
-    stdout: 'inherit',
-  }).spawn();
+    stdio: 'inherit',
+  });
   managedProcesses.push({
     child,
     name,
@@ -501,7 +500,7 @@ async function main() {
       `Something is serving on ${BASE_URL} but returns errors (non-OK ` +
         'response). Stop it first, then re-run this script.'
     );
-    Deno.exit(1);
+    process.exit(1);
   }
 
   /*
@@ -510,11 +509,11 @@ async function main() {
    * `__screenshots__` is gitignored, so it does not exist in a fresh CI
    * checkout. Playwright used to create it implicitly, because
    * `page.screenshot({ path })` makes any missing parent directories.
-   * Capturing to a buffer and writing the bytes with `Deno.writeFile`
+   * Capturing to a buffer and writing the bytes with `writeFile`
    * does not, and the first capture died on ENOENT before writing
    * anything. Creating it once here keeps that invariant in one place.
    */
-  await Deno.mkdir(OUTPUT_DIR, {
+  await mkdir(OUTPUT_DIR, {
     recursive: true,
   });
 
@@ -524,13 +523,13 @@ async function main() {
      * Stop the managed stack on Ctrl-C / SIGTERM as well. SIGKILL cannot
      * be intercepted, so the children would keep running in that case.
      */
-    Deno.addSignalListener('SIGINT', () => {
+    process.on('SIGINT', () => {
       stopManagedProcesses();
-      Deno.exit(130);
+      process.exit(130);
     });
-    Deno.addSignalListener('SIGTERM', () => {
+    process.on('SIGTERM', () => {
       stopManagedProcesses();
-      Deno.exit(143);
+      process.exit(143);
     });
 
     await startDevStack();
@@ -569,5 +568,5 @@ try {
 } catch (error) {
   stopManagedProcesses();
   console.error(error instanceof Error ? error.message : error);
-  Deno.exit(1);
+  process.exit(1);
 }

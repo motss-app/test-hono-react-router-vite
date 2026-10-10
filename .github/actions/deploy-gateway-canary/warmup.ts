@@ -1,3 +1,5 @@
+import process from 'node:process';
+
 import { discoverPrerenderRoutes, discoverSsrRoutes } from '../../../vite-utils/route-discovery.ts';
 import { withLogGroup, writeLine } from '../lib/deploy.ts';
 
@@ -43,6 +45,6 @@ async function warmRoutes(base: string, paths: string[]): Promise<void> {
   const failures = results.filter(r => !r).length;
   if (failures > 0) {
     writeLine(`${failures} route(s) failed to warm up`);
-    Deno.exit(1);
+    process.exit(1);
   }
 }

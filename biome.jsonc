@@ -141,7 +141,6 @@
       "trailingCommas": "es5"
     },
     "globals": [
-      "Deno",
       "Bun"
     ]
   },
@@ -251,6 +250,9 @@
               }
             }
           },
+          "correctness": {
+            "noNodejsModules": "off"
+          },
           "style": {
             "noDefaultExport": "off",
             "useNamingConvention": "off"
@@ -261,6 +263,18 @@
     {
       "includes": [
         "vite-plugins/**/*.ts"
+      ],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noNodejsModules": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        ".github/**/*.ts"
       ],
       "linter": {
         "rules": {

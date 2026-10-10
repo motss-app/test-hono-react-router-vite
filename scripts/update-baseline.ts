@@ -1,4 +1,7 @@
-#!/usr/bin/env -S deno run -A
+#!/usr/bin/env node
+import { readFile, writeFile } from 'node:fs/promises';
+import { availableParallelism, release as osRelease } from 'node:os';
+import process from 'node:process';
 
 function fmtMs(s: number): string {
   if (s < 1) return `${(s * 1000).toFixed(2)}µs`;
@@ -164,24 +167,24 @@ function renderComparison(current: Row[], baseline: Row[]): string {
 
 // Args: [bench-output-path] [--baseline baseline.md] [--output comment.md]
 
-const args = Deno.args;
+const args = process.argv.slice(2);
 if (args.length === 0) {
-  Deno.exit(1);
+  process.exit(1);
 }
 
 function getSystemInfo(): string[] {
   const lines: string[] = [];
-  lines.push(`- **OS**: ${Deno.build.os} ${Deno.build.arch}`);
-  lines.push(`- **Deno**: ${Deno.version.deno}`);
-  lines.push(`- **CPUs**: ${navigator.hardwareConcurrency} logical cores`);
-  if (Deno.env.get('CI') === 'true') {
+  lines.push(`- **OS**: ${process.platform} ${process.arch}`);
+  lines.push(`- **Node**: ${process.version}`);
+  lines.push(`- **CPUs**: ${availableParallelism()} logical cores`);
+  if (process.env.CI === 'true') {
     lines.push(
-      `- **Runner**: ${Deno.env.get('RUNNER_NAME') ?? Deno.env.get('RUNNER_OS') ?? 'GitHub Actions'}`
+      `- **Runner**: ${process.env.RUNNER_NAME ?? process.env.RUNNER_OS ?? 'GitHub Actions'}`
     );
-    lines.push(`- **Runner label**: ${Deno.env.get('RUNNER_LABEL') ?? 'unknown'}`);
+    lines.push(`- **Runner label**: ${process.env.RUNNER_LABEL ?? 'unknown'}`);
   } else {
     try {
-      const release = Deno.osRelease();
+      const release = osRelease();
       lines.push(`- **Kernel**: ${release}`);
     } catch {
       // ignore
@@ -196,13 +199,13 @@ const baselinePath = baselineFlagIdx !== -1 ? args[baselineFlagIdx + 1] : undefi
 const outputFlagIdx = args.indexOf('--output');
 const outputPath = outputFlagIdx !== -1 ? args[outputFlagIdx + 1] : undefined;
 
-const benchText = await Deno.readTextFile(benchOutputPath);
+const benchText = await readFile(benchOutputPath, 'utf8');
 const currentRows = parseBenchOutput(benchText);
 
 // Guard: when updating the baseline file (no --baseline flag), abort if empty
 // to prevent committing useless empty tables.
 if (currentRows.length === 0 && !baselinePath) {
-  Deno.exit(1);
+  process.exit(1);
 }
 
 const bffRows = currentRows.filter(r => r.route.startsWith('BFF Direct'));
@@ -239,15 +242,15 @@ baselineLines.push('');
 baselineLines.push(renderBaselineRows(ssrRows));
 baselineLines.push('');
 
-await Deno.writeTextFile('docs/benchmark-baseline.md', baselineLines.join('\n'));
+await writeFile('docs/benchmark-baseline.md', baselineLines.join('\n'), 'utf8');
 
 // Compare if baseline file provided
 if (baselinePath) {
-  const baselineText = await Deno.readTextFile(baselinePath);
+  const baselineText = await readFile(baselinePath, 'utf8');
   const baselineRows = parseBaselineMd(baselineText);
   const comparison = renderComparison(currentRows, baselineRows);
   if (outputPath) {
-    await Deno.writeTextFile(outputPath, comparison);
+    await writeFile(outputPath, comparison, 'utf8');
   } else {
     // No output path given; the comparison is only printed to stdout.
   }

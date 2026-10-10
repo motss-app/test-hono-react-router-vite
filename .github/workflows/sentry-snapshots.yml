@@ -52,7 +52,7 @@ jobs:
         with:
           ref: ${{ steps.main-tip.outputs.sha || github.event.pull_request.head.sha || github.sha }}
 
-      - uses: ./.github/actions/setup-deno
+      - uses: ./.github/actions/setup-node
 
       - name: Resolve Sentry CLI version
         id: sentry-cli-version
@@ -79,11 +79,11 @@ jobs:
         continue-on-error: true
         if: github.event_name != 'workflow_run' || steps.main-tip.outputs.skip != 'true'
         run: |
-          deno eval -A "import { chromium } from 'npm:playwright@${{ steps.playwright-version.outputs.version }}'; const browser = await chromium.launch({ headless: true }); await browser.close();"
+          node --input-type=module -e "import { chromium } from 'playwright'; const browser = await chromium.launch({ headless: true }); await browser.close();"
 
       - name: Install Playwright browsers
         if: steps.playwright-browser.outcome == 'failure' && (github.event_name != 'workflow_run' || steps.main-tip.outputs.skip != 'true')
-        run: deno run -A npm:playwright@${{ steps.playwright-version.outputs.version }} install chromium --with-deps
+        run: pnpm exec playwright install chromium --with-deps
 
       - name: Build fractal WASM
         if: github.event_name != 'workflow_run' || steps.main-tip.outputs.skip != 'true'
@@ -91,7 +91,7 @@ jobs:
 
       - name: Build frontend
         if: github.event_name != 'workflow_run' || steps.main-tip.outputs.skip != 'true'
-        run: deno task --cwd=packages/frontend build:react-router
+        run: pnpm --dir packages/frontend build:react-router
 
       - name: Visual tests
         if: github.event_name != 'workflow_run' || steps.main-tip.outputs.skip != 'true'
@@ -104,9 +104,9 @@ jobs:
           trap cleanup EXIT
 
           echo "Starting production SSR..."
-          PORT=5173 deno run -A scripts/standalone-ssr.ts & ssr_pid=$!
+          PORT=5173 node scripts/standalone-ssr.ts & ssr_pid=$!
           echo "Starting gateway..."
-          deno task dev:gateway & gateway_pid=$!
+          pnpm dev:gateway & gateway_pid=$!
 
           # Phase 1: wait for gateway health endpoint (servers up)
           echo "Waiting for gateway..."
@@ -130,7 +130,7 @@ jobs:
 
           set -e
           echo "Running visual tests..."
-          deno task test:visual
+          pnpm test:visual
 
       - name: Compute merge base SHA
         if: github.event_name == 'pull_request'

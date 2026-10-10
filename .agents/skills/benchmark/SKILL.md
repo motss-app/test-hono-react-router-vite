@@ -23,41 +23,41 @@ Use this skill whenever the task involves performance, load testing, or benchmar
 
 ```bash
 # Quick run (defaults: 100 connections, 15s per route)
-deno task bench:all
+pnpm bench:all
 
 # Longer, more accurate run
-BENCH_DURATION=30s BENCH_CONCURRENCY=500 deno task bench:all
+BENCH_DURATION=30s BENCH_CONCURRENCY=500 pnpm bench:all
 
 # Against an already-running server (skip server management)
-BENCH_NO_START=1 deno task bench:all
+BENCH_NO_START=1 pnpm bench:all
 
 # Against a different base URL
-BENCH_BASE_URL=https://hono-react-router-vite.motss.fyi deno task bench:all
+BENCH_BASE_URL=https://hono-react-router-vite.motss.fyi pnpm bench:all
 
 # Skip saving results
-BENCH_NO_SAVE=1 deno task bench:all
+BENCH_NO_SAVE=1 pnpm bench:all
 
 # Skip comparison with previous results
-BENCH_NO_COMPARE=1 deno task bench:all
+BENCH_NO_COMPARE=1 pnpm bench:all
 
 # Set regression alert threshold (default: 10%)
-BENCH_REGRESSION_PCT=15 deno task bench:all
+BENCH_REGRESSION_PCT=15 pnpm bench:all
 
 # Run just the existing single-endpoint bench (30s, 7999 conns on /api/test)
-deno task bench
+pnpm bench
 ```
 
 ## Kill Ports
 
 ```bash
 # Kill default ports (5173, 8787, 3000)
-deno task kill-ports
+pnpm kill-ports
 
 # Kill specific ports with verbose output
-deno task kill-ports:all
+pnpm kill-ports:all
 
 # Kill custom set of ports
-deno run -A scripts/kill-ports.ts 8080 9090 --verbose
+node scripts/kill-ports.ts 8080 9090 --verbose
 ```
 
 ## Output Format

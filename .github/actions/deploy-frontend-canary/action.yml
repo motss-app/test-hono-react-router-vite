@@ -6,4 +6,4 @@ runs:
   steps:
     - name: Run Frontend Canary deployment
       shell: bash
-      run: deno run -A "${GITHUB_ACTION_PATH}/run.ts"
+      run: node "${GITHUB_ACTION_PATH}/run.ts"

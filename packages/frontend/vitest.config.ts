@@ -7,8 +7,8 @@ import { defineConfig } from 'vite-plus';
  * runs. The root Vitest config discovers the individual projects across the
  * monorepo.
  *
- * Run with `deno task test` (both), or filter with
- * `deno task --cwd=packages/frontend test:unit` / `test:browser`.
+ * Run with `pnpm test` (both), or filter with
+ * `pnpm --dir packages/frontend test:unit` / `test:browser`.
  */
 export default defineConfig({
   test: {

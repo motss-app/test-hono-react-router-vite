@@ -26,8 +26,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-      - name: Set up Deno environment
-        uses: ./.github/actions/setup-deno
+      - name: Set up Node environment
+        uses: ./.github/actions/setup-node
       # The frontend build imports the generated glue (gitignored), so the
       # wasm must be built first, right here.
       - name: Build client WASM
@@ -42,8 +42,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-      - name: Set up Deno environment
-        uses: ./.github/actions/setup-deno
+      - name: Set up Node environment
+        uses: ./.github/actions/setup-node
       - name: Deploy BFF Canary
         uses: ./.github/actions/deploy-bff-canary
 
@@ -56,8 +56,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-      - name: Set up Deno environment
-        uses: ./.github/actions/setup-deno
+      - name: Set up Node environment
+        uses: ./.github/actions/setup-node
       - name: Deploy Gateway Canary
         uses: ./.github/actions/deploy-gateway-canary
 
@@ -80,8 +80,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-      - name: Set up Deno environment
-        uses: ./.github/actions/setup-deno
+      - name: Set up Node environment
+        uses: ./.github/actions/setup-node
       - name: Set up Rust toolchain
         uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c
         with:
@@ -99,4 +99,4 @@ jobs:
           worker-build --release
       - name: Deploy ${{ matrix.package }} (canary)
         working-directory: packages/${{ matrix.package }}
-        run: deno x wrangler deploy --config wrangler.toml --env canary
+        run: pnpm exec wrangler deploy --config wrangler.toml --env canary

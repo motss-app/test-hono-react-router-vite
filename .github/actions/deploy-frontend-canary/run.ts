@@ -3,9 +3,9 @@ import { retry, runOrDie, withLogGroup, writeLine } from '../lib/deploy.ts';
 writeLine('🚀 Building frontend...');
 await retry(20)(
   [
-    'deno',
-    'task',
-    '--cwd=packages/frontend',
+    'pnpm',
+    '--dir',
+    'packages/frontend',
     'build:canary',
   ],
   {
@@ -18,8 +18,6 @@ await retry(20)(
 await withLogGroup('🚀 Deploying private frontend worker', async () => {
   await runOrDie(
     [
-      'deno',
-      'x',
       'wrangler',
       'deploy',
       '--config',

@@ -239,7 +239,7 @@ Both have `custom_domain: true`.
 
 ### `CLOUDFLARE_ENV` during builds
 
-Do NOT set `CLOUDFLARE_ENV` during `deno task build` for workers that use `@cloudflare/vite-plugin` (BFF, gateway). The build must use the top-level config so the plugin can resolve `main: ./src/worker.ts` (which always exists). The `--env` flag is only passed to `wrangler deploy`, which reads the pre-built dist output after Vite has finished.
+Do NOT set `CLOUDFLARE_ENV` during `pnpm build` for workers that use `@cloudflare/vite-plugin` (BFF, gateway). The build must use the top-level config so the plugin can resolve `main: ./src/worker.ts` (which always exists). The `--env` flag is only passed to `wrangler deploy`, which reads the pre-built dist output after Vite has finished.
 
 The CI deploy actions follow this pattern: the build step runs without `CLOUDFLARE_ENV`, and `wrangler deploy --env canary` (or `--env production`) uses the environment-specific `main` and `no_bundle` settings.
 

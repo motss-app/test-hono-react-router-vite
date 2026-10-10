@@ -1,5 +1,5 @@
 name: Resolve Sentry CLI version
-description: Resolve the latest Sentry CLI release with Deno
+description: Resolve the latest Sentry CLI release from the npm registry
 
 outputs:
   version:
@@ -9,10 +9,10 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Read latest Sentry CLI release with deno info
+    - name: Read latest Sentry CLI release from npm
       id: resolve
       shell: bash
       run: |
-        SENTRY_CLI_VERSION=$(deno info npm:@sentry/cli --json | jq -r '.modules[] | select((.npmPackage? // "") | startswith("@sentry/cli@")) | .npmPackage | sub("^@sentry/cli@"; "")' | head -n1)
+        SENTRY_CLI_VERSION=$(npm view @sentry/cli version)
         test -n "$SENTRY_CLI_VERSION"
         printf 'version=%s\n' "$SENTRY_CLI_VERSION" >> "$GITHUB_OUTPUT"

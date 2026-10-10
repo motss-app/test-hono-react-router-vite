@@ -48,7 +48,7 @@ type SentryMetricAttributes = Record<string, boolean | number | string>;
 interface RequestMetricAttributesOptions {
   method: string;
   pathname: string;
-  runtime: 'browser' | 'cloudflare' | 'deno';
+  runtime: 'browser' | 'cloudflare';
   statusCode?: number;
 }
 

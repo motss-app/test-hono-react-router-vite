@@ -1,10 +1,11 @@
 import process from 'node:process';
 
 /**
- * Runtime-agnostic helpers for Vite config and plugin code.
+ * Helpers for reading process state in Vite config and plugin code.
  *
- * These helpers import `process` from `node:process` so they work under
- * both Deno and Node.js without relying on a bare `process` global.
+ * Importing `process` from `node:process` keeps these helpers usable from
+ * config files that run outside a bundler, where a bare `process` global is
+ * not guaranteed.
  *
  * @param name - Environment variable name.
  * @returns The value, or `undefined` when unset.

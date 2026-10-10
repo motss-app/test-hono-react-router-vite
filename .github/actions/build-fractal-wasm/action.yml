@@ -26,4 +26,4 @@ runs:
 
     - name: Build WASM module
       shell: bash
-      run: deno task build:fractal-wasm
+      run: pnpm build:fractal-wasm

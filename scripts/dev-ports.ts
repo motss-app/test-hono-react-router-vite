@@ -1,4 +1,8 @@
-const textDecoder = new TextDecoder();
+import process from 'node:process';
+
+import { isErrnoException } from '../vite-utils/errors.ts';
+import { type RunCommandResult, runCommand } from './run-command.ts';
+
 const whitespacePattern = /\s+/;
 
 function delay(milliseconds: number): Promise<void> {
@@ -13,22 +17,26 @@ function normalizePorts(ports: number[]): number[] {
   ];
 }
 
+function runLsof(args: string[]): Promise<RunCommandResult> {
+  return runCommand('lsof', args);
+}
+
 async function getListeningPids(port: number): Promise<number[]> {
-  let process: Deno.ChildProcess;
+  let result: {
+    code: number;
+    stderr: string;
+    stdout: string;
+  };
 
   try {
-    process = new Deno.Command('lsof', {
-      args: [
-        '-nP',
-        `-iTCP:${port}`,
-        '-sTCP:LISTEN',
-        '-t',
-      ],
-      stderr: 'piped',
-      stdout: 'piped',
-    }).spawn();
+    result = await runLsof([
+      '-nP',
+      `-iTCP:${port}`,
+      '-sTCP:LISTEN',
+      '-t',
+    ]);
   } catch (error) {
-    if (error instanceof Deno.errors.NotFound) {
+    if (isErrnoException(error, 'ENOENT')) {
       writeWarning(`[dev-ports] lsof is not available; skipping port ${port} cleanup`);
       return [];
     }
@@ -36,14 +44,14 @@ async function getListeningPids(port: number): Promise<number[]> {
     throw error;
   }
 
-  const { code, stderr, stdout } = await process.output();
+  const { code, stderr, stdout } = result;
 
   if (code === 1) {
     return [];
   }
 
   if (code !== 0) {
-    const stderrText = textDecoder.decode(stderr).trim();
+    const stderrText = stderr.trim();
     throw new Error(
       stderrText.length > 0
         ? `lsof failed while inspecting port ${port}: ${stderrText}`
@@ -53,8 +61,7 @@ async function getListeningPids(port: number): Promise<number[]> {
 
   return [
     ...new Set(
-      textDecoder
-        .decode(stdout)
+      stdout
         .trim()
         .split(whitespacePattern)
         .map(value => Number(value))
@@ -85,7 +92,7 @@ function waitForPortToBeFree(port: number, timeoutMs: number): Promise<void> {
 }
 
 function writeWarning(message: string): void {
-  Deno.stderr.writeSync(new TextEncoder().encode(`${message}\n`));
+  process.stderr.write(`${message}\n`);
 }
 
 export async function clearPort(port: number): Promise<void> {
@@ -99,9 +106,9 @@ export async function clearPort(port: number): Promise<void> {
 
   for (const pid of listenerPids) {
     try {
-      Deno.kill(pid, 'SIGTERM');
+      process.kill(pid, 'SIGTERM');
     } catch (error) {
-      if (!(error instanceof Deno.errors.NotFound)) {
+      if (!isErrnoException(error, 'ESRCH')) {
         throw error;
       }
     }
@@ -118,9 +125,9 @@ export async function clearPort(port: number): Promise<void> {
 
   for (const pid of remainingPids) {
     try {
-      Deno.kill(pid, 'SIGKILL');
+      process.kill(pid, 'SIGKILL');
     } catch (error) {
-      if (!(error instanceof Deno.errors.NotFound)) {
+      if (!isErrnoException(error, 'ESRCH')) {
         throw error;
       }
     }

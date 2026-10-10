@@ -1,10 +1,13 @@
-#!/usr/bin/env -S deno run -A
+#!/usr/bin/env node
+import { readFile } from 'node:fs/promises';
+import process from 'node:process';
+import { serve } from '@hono/node-server';
 import type { Context } from 'hono';
 import { Hono } from 'hono';
 
-const clientDir = Deno.env.get('FE_CLIENT_DIR') ?? 'build/client';
-const port = Number(Deno.env.get('PORT') ?? 5174);
-const hostname = Deno.env.get('HOST') ?? '127.0.0.1';
+const clientDir = process.env.FE_CLIENT_DIR ?? 'build/client';
+const port = Number(process.env.PORT ?? 5174);
+const hostname = process.env.HOST ?? '127.0.0.1';
 
 const app = new Hono();
 
@@ -22,7 +25,7 @@ for (const dir of staticDirs) {
   app.get(`/${dir}/*`, async (c: Context) => {
     const filePath = `${clientDir}/${c.req.path}`;
     try {
-      const content = await Deno.readFile(filePath);
+      const content = await readFile(filePath);
       const ext = filePath.split('.').pop() ?? '';
       const mime: Record<string, string> = {
         css: 'text/css',
@@ -50,17 +53,15 @@ app.get('/*', async (c: Context) => {
       ? `${clientDir}/index.html`
       : `${clientDir}${c.req.path}/index.html`;
   try {
-    const content = await Deno.readFile(filePath);
-    return c.html(new TextDecoder().decode(content));
+    const content = await readFile(filePath, 'utf8');
+    return c.html(content);
   } catch {
     return c.notFound();
   }
 });
 
-Deno.serve(
-  {
-    hostname,
-    port,
-  },
-  app.fetch
-);
+serve({
+  fetch: app.fetch,
+  hostname,
+  port,
+});

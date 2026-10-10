@@ -1,4 +1,6 @@
-#!/usr/bin/env -S deno run --allow-read --allow-write
+#!/usr/bin/env node
+import { readdir, readFile } from 'node:fs/promises';
+import process from 'node:process';
 
 /**
  * Print per-route JS bundle sizes (raw + gzip) for React Router v7 routes.
@@ -7,8 +9,8 @@
  * both raw and gzip-compressed, and displays a table per route.
  *
  * Usage:
- *   deno task route-bundle-size
- *   deno run -A scripts/route-bundle-size.ts [--json]
+ *   pnpm route-bundle-size
+ *   node scripts/route-bundle-size.ts [--json]
  */
 
 const buildDir = new URL('../build/client', import.meta.url).pathname;
@@ -20,7 +22,9 @@ const assetsDir = new URL('../build/client/assets', import.meta.url).pathname;
 const manifestPattern = /^manifest-[a-f0-9]+\.js$/;
 let manifestPath: string | null = null;
 
-for await (const entry of Deno.readDir(assetsDir)) {
+for (const entry of await readdir(assetsDir, {
+  withFileTypes: true,
+})) {
   if (manifestPattern.test(entry.name)) {
     manifestPath = `${assetsDir}/${entry.name}`;
     break;
@@ -29,10 +33,10 @@ for await (const entry of Deno.readDir(assetsDir)) {
 
 if (!manifestPath) {
   console.error('No React Router manifest found in build/client/assets/');
-  Deno.exit(1);
+  process.exit(1);
 }
 
-const raw = await Deno.readTextFile(manifestPath);
+const raw = await readFile(manifestPath, 'utf8');
 
 // Extract the JSON object from the `window.__reactRouterManifest=...` wrapper
 const jsonStart = raw.indexOf('{');
@@ -76,11 +80,10 @@ async function fileSizeWithGzip(filePath: string): Promise<{
   raw: number;
 }> {
   try {
-    const data = await Deno.readFile(filePath);
+    const data = await readFile(filePath);
     const rawBytes = data.byteLength;
-    const buf = new ArrayBuffer(rawBytes);
-    new Uint8Array(buf).set(data);
-    const gzip = await gzipSize(buf);
+    const buffer = data.buffer.slice(data.byteOffset, data.byteOffset + rawBytes) as ArrayBuffer;
+    const gzip = await gzipSize(buffer);
     return {
       gzip,
       raw: rawBytes,
@@ -225,7 +228,7 @@ entries.sort((a, b) => {
 // 4. Print the output
 // ---------------------------------------------------------------------------
 
-const jsonOutput = Deno.args.includes('--json');
+const jsonOutput = process.argv.slice(2).includes('--json');
 
 if (jsonOutput) {
   const nonRoot = entries.filter(e => !e.isRoot);

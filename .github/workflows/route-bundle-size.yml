@@ -25,19 +25,19 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
-      - uses: ./.github/actions/setup-deno
+      - uses: ./.github/actions/setup-node
 
       - name: Build fractal WASM
         uses: ./.github/actions/build-fractal-wasm
 
       - name: Build
-        run: deno task build
+        run: pnpm build
 
       - name: Measure and summarize bundle sizes
         run: |
-          deno task route-bundle-size --json > /tmp/current-bundle-size.json
+          pnpm route-bundle-size --json > /tmp/current-bundle-size.json
           echo '## Route Bundle Size' >> "$GITHUB_STEP_SUMMARY"
-          deno task route-bundle-size >> "$GITHUB_STEP_SUMMARY"
+          pnpm route-bundle-size >> "$GITHUB_STEP_SUMMARY"
 
       - name: Use PR baseline (PR only)
         if: github.event_name == 'pull_request'
@@ -59,7 +59,7 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           set +e
-          deno run -A scripts/check-route-bundle-size.ts /tmp/current-bundle-size.json --baseline /tmp/baseline-bundle-size.json --budget 50 --output /tmp/bundle-size-comment.md
+          node scripts/check-route-bundle-size.ts /tmp/current-bundle-size.json --baseline /tmp/baseline-bundle-size.json --budget 50 --output /tmp/bundle-size-comment.md
           EXIT_CODE=$?
           set -e
           echo "exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"

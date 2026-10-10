@@ -100,7 +100,7 @@ Closes #<issue-number>
 
 <list all verification steps performed>
 
-- [ ] Typecheck passed (`deno task check`)
+- [ ] Typecheck passed (`pnpm check`)
 - [ ] Biome lint passed
 - [ ] Biome format passed
 - [ ] Dev server probe: all URLs return 200
