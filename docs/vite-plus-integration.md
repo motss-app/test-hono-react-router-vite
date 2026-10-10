@@ -55,8 +55,10 @@ Vite+ also powers commit hooks.
 
 ## Setup notes
 
-- Playwright browsers must match the pinned `playwright@1.63.0`:
-  `pnpm exec playwright@1.63.0 install chromium`
+- Playwright browsers must match the pinned `playwright@1.63.0`. `pnpm
+  exec` takes a command name from `node_modules/.bin`, so the version
+  stays out of it and the workspace pin applies:
+  `pnpm exec playwright install chromium`
 - Browser tests use Playwright-managed Chromium (headless), not system Chrome.
   Run the Playwright install command above before running browser tests.
 - CI: `.github/actions/setup-node` installs Node from `package.json`
