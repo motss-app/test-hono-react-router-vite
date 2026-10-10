@@ -92,8 +92,15 @@
     "vitest": "catalog:",
     "wrangler": "catalog:"
   },
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "onFail": "download",
+      "version": "26.11.1"
+    }
+  },
   "engines": {
-    "node": ">=27.0.0-nightly"
+    "node": ">=26.11.1"
   },
   "name": "test-hono-react-router-vite",
   "packageManager": "pnpm@12.10.1",
