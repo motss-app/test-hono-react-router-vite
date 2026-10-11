@@ -1,6 +1,7 @@
 import { keyframes, style } from '@vanilla-extract/css';
 
 import { colorTokens } from '../styles/color-tokens.contract.css.ts';
+import { mediaQueries } from '../styles/media-queries.ts';
 import { radiusTokens } from '../styles/radius-tokens.contract.css.ts';
 
 const rise = keyframes({
@@ -132,7 +133,7 @@ export const stepDot = style({
 
 export const body = style({
   '@media': {
-    '(max-width: 760px)': {
+    [mediaQueries.maxWidth760]: {
       gridTemplateColumns: '1fr',
     },
   },
@@ -281,7 +282,7 @@ export const markerList = style({
 
 export const markerRow = style({
   '@media': {
-    '(max-width: 520px)': {
+    [mediaQueries.maxWidth520]: {
       gridTemplateColumns: '1.8rem 1fr',
     },
   },
@@ -294,7 +295,7 @@ export const markerRow = style({
 });
 export const markerCalculation = style({
   '@media': {
-    '(max-width: 520px)': {
+    [mediaQueries.maxWidth520]: {
       gridColumn: '1 / -1',
     },
   },
@@ -440,7 +441,7 @@ export const winnerHex = style({
 
 export const side = style({
   '@media': {
-    '(max-width: 760px)': {
+    [mediaQueries.maxWidth760]: {
       borderBlockStart: '1px solid #26333d',
       borderInlineStart: 0,
       minBlockSize: '16rem',
@@ -539,7 +540,7 @@ export const sourceCode = style({
 
 export const reducedMotion = style({
   '@media': {
-    '(prefers-reduced-motion: reduce)': {
+    [mediaQueries.reducedMotion]: {
       animation: 'none',
       transition: 'none',
     },

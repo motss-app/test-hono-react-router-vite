@@ -1,3 +1,7 @@
+import { Breadcrumbs } from './components/breadcrumbs.tsx';
+import * as chrome from './components/page-chrome.css.ts';
+import { PagePreferences, SiteBrand } from './components/page-navigation.tsx';
+import * as m from './paraglide/messages.js';
 import '@fontsource-variable/open-sans/wght.css';
 
 import { CSPProvider } from '@base-ui/react/csp-provider';
@@ -8,6 +12,8 @@ import { isRouteErrorResponse, Link, Outlet, useMatches, useRouteLoaderData } fr
 
 import type { Route } from './+types/root.ts';
 import { errorStyles } from './app.css.ts';
+import * as footerStyles from './components/page-footer.css.ts';
+import { PoweredByTools } from './components/powered-by-tools.tsx';
 import { RootDocumentHead } from './components/root-document-head.tsx';
 import { RootDocumentScripts } from './components/root-document-scripts.tsx';
 import { ScrollToTopButtonShell } from './components/scroll-to-top-button-shell.tsx';
@@ -144,50 +150,91 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): JSX.Element 
   }
 
   return (
-    <main className={errorStyles.main}>
-      <div className={errorStyles.container}>
-        <div
-          className={`${errorStyles.icon} ${
-            statusCode >= serverErrorThreshold
-              ? errorStyles.iconServerError
-              : errorStyles.iconClientError
-          }`}
-        >
-          <IconExclamationTriangle />
+    <>
+      <RootErrorHeader />
+      <main className={errorStyles.main}>
+        <div className={errorStyles.container}>
+          <div
+            className={`${errorStyles.icon} ${
+              statusCode >= serverErrorThreshold
+                ? errorStyles.iconServerError
+                : errorStyles.iconClientError
+            }`}
+          >
+            <IconExclamationTriangle />
+          </div>
+
+          <h1
+            className={`${errorStyles.title} ${
+              statusCode >= serverErrorThreshold
+                ? errorStyles.titleServerError
+                : errorStyles.titleClientError
+            }`}
+          >
+            {message}
+          </h1>
+
+          <p className={errorStyles.details}>{details}</p>
+
+          {stack ? (
+            <details className={errorStyles.stackDetails}>
+              <summary className={errorStyles.stackSummary}>
+                <IconBug />
+                <span>Stack Trace (Development Only)</span>
+              </summary>
+              <pre className={errorStyles.stackPre}>
+                <code>{stack}</code>
+              </pre>
+            </details>
+          ) : null}
+
+          <Link
+            className={errorStyles.link}
+            to="/"
+          >
+            <IconArrowLeft />
+            <span>Go back home</span>
+          </Link>
         </div>
+      </main>
+      <RootErrorFooter />
+    </>
+  );
+}
 
-        <h1
-          className={`${errorStyles.title} ${
-            statusCode >= serverErrorThreshold
-              ? errorStyles.titleServerError
-              : errorStyles.titleClientError
-          }`}
-        >
-          {message}
-        </h1>
-
-        <p className={errorStyles.details}>{details}</p>
-
-        {stack ? (
-          <details className={errorStyles.stackDetails}>
-            <summary className={errorStyles.stackSummary}>
-              <IconBug />
-              <span>Stack Trace (Development Only)</span>
-            </summary>
-            <pre className={errorStyles.stackPre}>
-              <code>{stack}</code>
-            </pre>
-          </details>
-        ) : null}
-
-        <Link
-          className={errorStyles.link}
-          to="/"
-        >
-          <IconArrowLeft />
-          <span>Go back home</span>
-        </Link>
+function RootErrorFooter() {
+  return (
+    <footer className={footerStyles.footer}>
+      <div className={footerStyles.footerInner}>
+        <PoweredByTools />
       </div>
-    </main>
+    </footer>
+  );
+}
+
+function RootErrorHeader() {
+  return (
+    <header className={chrome.header}>
+      <div className={chrome.mobileBrand}>
+        <SiteBrand />
+      </div>
+      <div className={chrome.breadcrumbSlot}>
+        <Breadcrumbs
+          items={[
+            {
+              label: m.holy_grail_nav_home(),
+              to: '/',
+            },
+            {
+              label: m.navigation_application_error(),
+            },
+          ]}
+        />
+      </div>
+      <PagePreferences
+        activePath="/errors"
+        hasSidebar={false}
+      />
+    </header>
   );
 }

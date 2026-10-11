@@ -1,11 +1,12 @@
 import { style } from '@vanilla-extract/css';
 
 import { colorTokens } from '../styles/color-tokens.contract.css.ts';
+import { mediaQueries } from '../styles/media-queries.ts';
 import { radiusTokens } from '../styles/radius-tokens.contract.css.ts';
 
 export const button = style({
   '@media': {
-    '(prefers-reduced-motion: reduce)': {
+    [mediaQueries.reducedMotion]: {
       transition: 'none',
     },
   },

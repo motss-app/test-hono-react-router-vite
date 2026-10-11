@@ -2,6 +2,7 @@ export { default as IconArrowRight } from '@iconify-react/fa7-solid/arrow-right'
 export { default as IconBars } from '@iconify-react/fa7-solid/bars';
 export { default as IconBolt } from '@iconify-react/fa7-solid/bolt';
 export { default as IconCheck } from '@iconify-react/fa7-solid/check';
+export { default as IconChevronRight } from '@iconify-react/fa7-solid/chevron-right';
 export { default as IconCircleInfo } from '@iconify-react/fa7-solid/circle-info';
 export { default as IconCode } from '@iconify-react/fa7-solid/code';
 export { default as IconDesktop } from '@iconify-react/fa7-solid/desktop';

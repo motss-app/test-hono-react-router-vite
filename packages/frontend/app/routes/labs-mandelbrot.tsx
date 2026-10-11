@@ -8,8 +8,12 @@ import {
   useState,
 } from 'react';
 
+import { Breadcrumbs } from '../components/breadcrumbs.tsx';
 import { Link } from '../components/Link.tsx';
-import { PageFooter } from '../components/page-footer.tsx';
+import * as chrome from '../components/page-chrome.css.ts';
+import * as footerStyles from '../components/page-footer.css.ts';
+import { PagePreferences, SiteBrand } from '../components/page-navigation.tsx';
+import { PoweredByTools } from '../components/powered-by-tools.tsx';
 import { Text } from '../components/text.tsx';
 import { IconArrowLeft } from '../icons.ts';
 import * as m from '../paraglide/messages.js';
@@ -1074,108 +1078,151 @@ export default function RustLab(): JSX.Element {
   ]);
 
   return (
-    <main className={c.page}>
-      <RustLabHero />
+    <>
+      <MandelbrotHeader />
+      <main className={c.page}>
+        <RustLabHero />
 
-      <section>
-        <div className={c.labInner}>
-          <SectionHeading
-            intro={m.labs_mandelbrot_canvas_desc()}
-            title={m.labs_mandelbrot_canvas_title()}
-          />
-
-          <div className={c.panel}>
-            <CanvasPanel
-              canvas2dRef={canvas2dRef}
-              canvasGlRef={canvasGlRef}
-              engine={engine}
-              handlePointerDown={handlePointerDown}
-              handlePointerMove={handlePointerMove}
-              handlePointerUp={handlePointerUp}
-              renderMs={renderMs}
-              shellRef={shellRef}
-              wasmStatus={wasmStatus}
+        <section>
+          <div className={c.labInner}>
+            <SectionHeading
+              intro={m.labs_mandelbrot_canvas_desc()}
+              title={m.labs_mandelbrot_canvas_title()}
             />
 
-            <ViewControls
-              engine={engine}
-              maxIter={view.maxIter}
-              onEngineChange={handleEngineChange}
-              onIterationsChange={handleIterationsChange}
-              onPaletteChange={handlePaletteChange}
-              onReset={resetView}
-              onZoomIn={zoomIn}
-              onZoomOut={zoomOut}
-              palette={view.palette}
-              webgl2Available={webgl2Available}
-            />
+            <div className={c.panel}>
+              <CanvasPanel
+                canvas2dRef={canvas2dRef}
+                canvasGlRef={canvasGlRef}
+                engine={engine}
+                handlePointerDown={handlePointerDown}
+                handlePointerMove={handlePointerMove}
+                handlePointerUp={handlePointerUp}
+                renderMs={renderMs}
+                shellRef={shellRef}
+                wasmStatus={wasmStatus}
+              />
 
-            <ViewStatusBar
-              centerX={view.centerX}
-              centerY={view.centerY}
-              engine={engine}
-              renderMs={renderMs}
-              scale={view.scale}
-            />
+              <ViewControls
+                engine={engine}
+                maxIter={view.maxIter}
+                onEngineChange={handleEngineChange}
+                onIterationsChange={handleIterationsChange}
+                onPaletteChange={handlePaletteChange}
+                onReset={resetView}
+                onZoomIn={zoomIn}
+                onZoomOut={zoomOut}
+                palette={view.palette}
+                webgl2Available={webgl2Available}
+              />
 
-            {engine === 'webgl2' ? (
-              <p className={c.gpuNote}>{m.labs_mandelbrot_gpu_note()}</p>
-            ) : null}
-          </div>
+              <ViewStatusBar
+                centerX={view.centerX}
+                centerY={view.centerY}
+                engine={engine}
+                renderMs={renderMs}
+                scale={view.scale}
+              />
 
-          <SectionHeading
-            intro={m.labs_mandelbrot_race_desc()}
-            title={m.labs_mandelbrot_race_title()}
-          />
-
-          <div className={c.panel}>
-            <div className={c.edgeActions}>
-              <button
-                className={`${c.actionButton} ${wasmStatus !== 'ready' ? c.actionButtonLoading : ''}`.trim()}
-                disabled={wasmStatus !== 'ready'}
-                onClick={runRace}
-                type="button"
-              >
-                {m.labs_mandelbrot_action_run_race()}
-              </button>
+              {engine === 'webgl2' ? (
+                <p className={c.gpuNote}>{m.labs_mandelbrot_gpu_note()}</p>
+              ) : null}
             </div>
 
-            {race ? <RaceResults race={race} /> : null}
-          </div>
+            <SectionHeading
+              intro={m.labs_mandelbrot_race_desc()}
+              title={m.labs_mandelbrot_race_title()}
+            />
 
-          <SectionHeading
-            intro={m.labs_mandelbrot_edge_desc()}
-            title={m.labs_mandelbrot_edge_title()}
-          />
+            <div className={c.panel}>
+              <div className={c.edgeActions}>
+                <button
+                  className={`${c.actionButton} ${wasmStatus !== 'ready' ? c.actionButtonLoading : ''}`.trim()}
+                  disabled={wasmStatus !== 'ready'}
+                  onClick={runRace}
+                  type="button"
+                >
+                  {m.labs_mandelbrot_action_run_race()}
+                </button>
+              </div>
 
-          <div className={c.panel}>
-            <div className={c.edgeActions}>
-              <button
-                className={`${c.actionButton} ${edgeStatus === 'loading' ? c.actionButtonLoading : ''}`.trim()}
-                disabled={edgeStatus === 'loading'}
-                onClick={renderOnEdge}
-                type="button"
-              >
-                {m.labs_mandelbrot_action_render_edge()}
-              </button>
+              {race ? <RaceResults race={race} /> : null}
             </div>
 
-            {edgeError ? <div className={c.errorBox}>{edgeError}</div> : null}
+            <SectionHeading
+              intro={m.labs_mandelbrot_edge_desc()}
+              title={m.labs_mandelbrot_edge_title()}
+            />
 
-            {edge ? <EdgeResultView edge={edge} /> : null}
+            <div className={c.panel}>
+              <div className={c.edgeActions}>
+                <button
+                  className={`${c.actionButton} ${edgeStatus === 'loading' ? c.actionButtonLoading : ''}`.trim()}
+                  disabled={edgeStatus === 'loading'}
+                  onClick={renderOnEdge}
+                  type="button"
+                >
+                  {m.labs_mandelbrot_action_render_edge()}
+                </button>
+              </div>
+
+              {edgeError ? <div className={c.errorBox}>{edgeError}</div> : null}
+
+              {edge ? <EdgeResultView edge={edge} /> : null}
+            </div>
+
+            <p className={c.footerNote}>
+              {m.labs_mandelbrot_footer_note_1()}{' '}
+              <span className={c.codeInline}>packages/fractal-wasm</span>
+              {m.labs_mandelbrot_footer_note_2()}{' '}
+              <span className={c.codeInline}>packages/fractal-rust</span>
+              {m.labs_mandelbrot_footer_note_3()}
+            </p>
           </div>
+        </section>
+      </main>
+      <MandelbrotFooter />
+    </>
+  );
+}
 
-          <p className={c.footerNote}>
-            {m.labs_mandelbrot_footer_note_1()}{' '}
-            <span className={c.codeInline}>packages/fractal-wasm</span>
-            {m.labs_mandelbrot_footer_note_2()}{' '}
-            <span className={c.codeInline}>packages/fractal-rust</span>
-            {m.labs_mandelbrot_footer_note_3()}
-          </p>
-        </div>
-      </section>
+function MandelbrotFooter() {
+  return (
+    <footer className={footerStyles.footer}>
+      <div className={footerStyles.footerInner}>
+        <PoweredByTools />
+      </div>
+    </footer>
+  );
+}
 
-      <PageFooter />
-    </main>
+function MandelbrotHeader() {
+  return (
+    <header className={chrome.header}>
+      <div className={chrome.mobileBrand}>
+        <SiteBrand />
+      </div>
+      <div className={chrome.breadcrumbSlot}>
+        <Breadcrumbs
+          items={[
+            {
+              label: m.holy_grail_nav_home(),
+              to: '/',
+            },
+            {
+              label: m.route_labs_title(),
+              to: '/labs',
+            },
+            {
+              label: m.route_labs_mandelbrot_title(),
+            },
+          ]}
+        />
+      </div>
+      <PagePreferences
+        activePath="/labs"
+        hasSidebar={false}
+      />
+    </header>
   );
 }

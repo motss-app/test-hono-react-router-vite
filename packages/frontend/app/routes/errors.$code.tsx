@@ -1,8 +1,12 @@
 import type { JSX } from 'react';
 import { isRouteErrorResponse } from 'react-router';
 
+import { Breadcrumbs } from '../components/breadcrumbs.tsx';
 import { Link } from '../components/Link.tsx';
-import { PageFooter } from '../components/page-footer.tsx';
+import * as chrome from '../components/page-chrome.css.ts';
+import * as footerStyles from '../components/page-footer.css.ts';
+import { PagePreferences, SiteBrand } from '../components/page-navigation.tsx';
+import { PoweredByTools } from '../components/powered-by-tools.tsx';
 import { Text } from '../components/text.tsx';
 import { IconArrowLeft, IconCircleInfo, IconHome } from '../icons.ts';
 import * as m from '../paraglide/messages.js';
@@ -179,197 +183,199 @@ function ErrorIncidentView({
   const translated = scenario ? scenarioTranslations[scenario.code] : undefined;
 
   return (
-    <main className={s.page}>
-      <section className={`${s.hero} ${toneStyles.hero}`}>
-        <div
-          aria-hidden="true"
-          className={`${s.heroMedia} ${toneStyles.heroMedia}`}
-        />
-        <div
-          aria-hidden="true"
-          className={`${s.heroOverlay} ${toneStyles.heroOverlay}`}
-        />
+    <>
+      <ErrorCodeHeader routeCode={routeCode} />
+      <main className={s.page}>
+        <section className={`${s.hero} ${toneStyles.hero}`}>
+          <div
+            aria-hidden="true"
+            className={`${s.heroMedia} ${toneStyles.heroMedia}`}
+          />
+          <div
+            aria-hidden="true"
+            className={`${s.heroOverlay} ${toneStyles.heroOverlay}`}
+          />
 
-        <div className={s.heroInner}>
-          <div className={s.heroCopy}>
-            <p className={`${s.statusLabel} ${toneStyles.statusLabel}`}>
-              {m.error_code_hero_status_label()}
-            </p>
+          <div className={s.heroInner}>
+            <div className={s.heroCopy}>
+              <p className={`${s.statusLabel} ${toneStyles.statusLabel}`}>
+                {m.error_code_hero_status_label()}
+              </p>
 
-            <Text
-              as="h1"
-              className={s.title}
-            >
-              {m.error_code_hero_title_prefix()} {statusCode}
-              <span className={`${s.titleAccent} ${toneStyles.titleAccent}`}>{statusText}</span>
-            </Text>
-
-            <Text
-              as="p"
-              className={`${s.heroLead} ${toneStyles.heroLead}`}
-            >
-              {translated?.summary ?? m.error_code_default_summary()}
-            </Text>
-
-            <p className={`${s.heroBody} ${toneStyles.heroBody}`}>
-              {message}. {translated?.detail ?? m.error_code_default_detail()}
-            </p>
-
-            <div className={s.heroActions}>
-              <Link
-                className={`${s.ctaPrimary} ${toneStyles.ctaPrimary}`}
-                to="/errors"
+              <Text
+                as="h1"
+                className={s.title}
               >
-                <IconArrowLeft className={iconStyles.base} />
-                <span>{m.error_code_cta_back_index()}</span>
-              </Link>
+                {m.error_code_hero_title_prefix()} {statusCode}
+                <span className={`${s.titleAccent} ${toneStyles.titleAccent}`}>{statusText}</span>
+              </Text>
 
-              <Link
-                className={`${s.ctaSecondary} ${toneStyles.ctaSecondary}`}
-                to="/"
+              <Text
+                as="p"
+                className={`${s.heroLead} ${toneStyles.heroLead}`}
               >
-                <IconHome className={iconStyles.base} />
-                <span>{m.error_code_cta_go_home()}</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+                {translated?.summary ?? m.error_code_default_summary()}
+              </Text>
 
-      <section>
-        <div className={s.routesInner}>
-          <Text
-            as="h2"
-            className={s.routesTitle}
-          >
-            {m.error_code_section_title()}
-          </Text>
+              <p className={`${s.heroBody} ${toneStyles.heroBody}`}>
+                {message}. {translated?.detail ?? m.error_code_default_detail()}
+              </p>
 
-          <p className={`${s.routesIntro} ${toneStyles.routesIntro}`}>
-            {m.error_code_section_intro()}
-          </p>
+              <div className={s.heroActions}>
+                <Link
+                  className={`${s.ctaPrimary} ${toneStyles.ctaPrimary}`}
+                  to="/errors"
+                >
+                  <IconArrowLeft className={iconStyles.base} />
+                  <span>{m.error_code_cta_back_index()}</span>
+                </Link>
 
-          <div className={`${s.routesList} ${toneStyles.routesList}`}>
-            <div className={`${s.rowRow} ${toneStyles.rowRow}`}>
-              <div className={s.rowPanel}>
-                <span className={`${s.rowCode} ${toneStyles.rowCode}`}>01</span>
-
-                <div className={s.rowContent}>
-                  <Text
-                    as="h3"
-                    className={s.rowTitle}
-                  >
-                    {m.error_code_row_1_title()}
-                  </Text>
-                  <p className={s.rowBody}>{m.error_code_row_1_body()}</p>
-                </div>
-
-                <dl className={s.dataList}>
-                  <div>
-                    <dt className={s.dataLabel}>{m.error_code_label_status()}</dt>
-                    <dd className={s.dataValue}>{statusCode}</dd>
-                  </div>
-                  <div>
-                    <dt className={s.dataLabel}>{m.error_code_label_status_text()}</dt>
-                    <dd className={s.dataValue}>{statusText}</dd>
-                  </div>
-                  <div>
-                    <dt className={s.dataLabel}>{m.error_code_label_error_type()}</dt>
-                    <dd className={s.dataValue}>{errorType}</dd>
-                  </div>
-                  <div>
-                    <dt className={s.dataLabel}>{m.error_code_label_route_param()}</dt>
-                    <dd className={s.dataValue}>{routeCode ?? scenario?.code ?? '<missing>'}</dd>
-                  </div>
-                </dl>
-              </div>
-            </div>
-
-            <div className={`${s.rowRow} ${toneStyles.rowRow}`}>
-              <div className={s.rowPanel}>
-                <span className={`${s.rowCode} ${toneStyles.rowCode}`}>02</span>
-
-                <div className={s.rowContent}>
-                  <Text
-                    as="h3"
-                    className={s.rowTitle}
-                  >
-                    {m.error_code_row_2_title()}
-                  </Text>
-                  <p className={s.rowBody}>{m.error_code_row_2_body()}</p>
-                </div>
-
-                <dl className={s.dataList}>
-                  <div>
-                    <dt className={s.dataLabel}>{m.error_code_label_thrown_from()}</dt>
-                    <dd className={s.dataValue}>{m.error_code_value_thrown_from()}</dd>
-                  </div>
-                  <div>
-                    <dt className={s.dataLabel}>{m.error_code_label_rendered_by()}</dt>
-                    <dd className={s.dataValue}>{m.error_code_value_rendered_by()}</dd>
-                  </div>
-                  <div>
-                    <dt className={s.dataLabel}>{m.error_code_label_delivery()}</dt>
-                    <dd className={s.dataValue}>{m.error_code_value_delivery()}</dd>
-                  </div>
-                  <div>
-                    <dt className={s.dataLabel}>{m.error_code_label_server_timing()}</dt>
-                    <dd className={s.dataValue}>{m.error_code_value_server_timing()}</dd>
-                  </div>
-                </dl>
-              </div>
-            </div>
-
-            <div className={`${s.rowRow} ${toneStyles.rowRow}`}>
-              <div className={s.rowPanel}>
-                <span className={`${s.rowCode} ${toneStyles.rowCode}`}>03</span>
-
-                <div className={s.rowContent}>
-                  <Text
-                    as="h3"
-                    className={s.rowTitle}
-                  >
-                    {m.error_code_row_3_title()}
-                  </Text>
-                  <p className={s.rowBody}>{m.error_code_row_3_body()}</p>
-                </div>
-
-                <dl className={s.dataList}>
-                  <div>
-                    <dt className={s.dataLabel}>{m.error_code_label_try_next()}</dt>
-                    <dd className={s.dataValue}>
-                      {(routeCode ?? scenario?.code) === 'runtime'
-                        ? '/errors/404'
-                        : '/errors/runtime'}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className={s.dataLabel}>{m.error_code_label_reference_route()}</dt>
-                    <dd className={s.dataValue}>/errors</dd>
-                  </div>
-                  <div>
-                    <dt className={s.dataLabel}>{m.error_code_label_scenario_note()}</dt>
-                    <dd className={s.dataValue}>
-                      {translated?.summary ?? m.error_code_default_scenario_note()}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className={s.dataLabel}>{m.error_code_label_message()}</dt>
-                    <dd className={s.dataValue}>{message}</dd>
-                  </div>
-                </dl>
+                <Link
+                  className={`${s.ctaSecondary} ${toneStyles.ctaSecondary}`}
+                  to="/"
+                >
+                  <IconHome className={iconStyles.base} />
+                  <span>{m.error_code_cta_go_home()}</span>
+                </Link>
               </div>
             </div>
           </div>
+        </section>
 
-          <p className={`${s.routesIntro} ${toneStyles.routesIntro}`}>
-            <IconCircleInfo className={iconStyles.base} /> {m.error_code_footer_note()}
-          </p>
-        </div>
-      </section>
+        <section>
+          <div className={s.routesInner}>
+            <Text
+              as="h2"
+              className={s.routesTitle}
+            >
+              {m.error_code_section_title()}
+            </Text>
 
-      <PageFooter />
-    </main>
+            <p className={`${s.routesIntro} ${toneStyles.routesIntro}`}>
+              {m.error_code_section_intro()}
+            </p>
+
+            <div className={`${s.routesList} ${toneStyles.routesList}`}>
+              <div className={`${s.rowRow} ${toneStyles.rowRow}`}>
+                <div className={s.rowPanel}>
+                  <span className={`${s.rowCode} ${toneStyles.rowCode}`}>01</span>
+
+                  <div className={s.rowContent}>
+                    <Text
+                      as="h3"
+                      className={s.rowTitle}
+                    >
+                      {m.error_code_row_1_title()}
+                    </Text>
+                    <p className={s.rowBody}>{m.error_code_row_1_body()}</p>
+                  </div>
+
+                  <dl className={s.dataList}>
+                    <div>
+                      <dt className={s.dataLabel}>{m.error_code_label_status()}</dt>
+                      <dd className={s.dataValue}>{statusCode}</dd>
+                    </div>
+                    <div>
+                      <dt className={s.dataLabel}>{m.error_code_label_status_text()}</dt>
+                      <dd className={s.dataValue}>{statusText}</dd>
+                    </div>
+                    <div>
+                      <dt className={s.dataLabel}>{m.error_code_label_error_type()}</dt>
+                      <dd className={s.dataValue}>{errorType}</dd>
+                    </div>
+                    <div>
+                      <dt className={s.dataLabel}>{m.error_code_label_route_param()}</dt>
+                      <dd className={s.dataValue}>{routeCode ?? scenario?.code ?? '<missing>'}</dd>
+                    </div>
+                  </dl>
+                </div>
+              </div>
+
+              <div className={`${s.rowRow} ${toneStyles.rowRow}`}>
+                <div className={s.rowPanel}>
+                  <span className={`${s.rowCode} ${toneStyles.rowCode}`}>02</span>
+
+                  <div className={s.rowContent}>
+                    <Text
+                      as="h3"
+                      className={s.rowTitle}
+                    >
+                      {m.error_code_row_2_title()}
+                    </Text>
+                    <p className={s.rowBody}>{m.error_code_row_2_body()}</p>
+                  </div>
+
+                  <dl className={s.dataList}>
+                    <div>
+                      <dt className={s.dataLabel}>{m.error_code_label_thrown_from()}</dt>
+                      <dd className={s.dataValue}>{m.error_code_value_thrown_from()}</dd>
+                    </div>
+                    <div>
+                      <dt className={s.dataLabel}>{m.error_code_label_rendered_by()}</dt>
+                      <dd className={s.dataValue}>{m.error_code_value_rendered_by()}</dd>
+                    </div>
+                    <div>
+                      <dt className={s.dataLabel}>{m.error_code_label_delivery()}</dt>
+                      <dd className={s.dataValue}>{m.error_code_value_delivery()}</dd>
+                    </div>
+                    <div>
+                      <dt className={s.dataLabel}>{m.error_code_label_server_timing()}</dt>
+                      <dd className={s.dataValue}>{m.error_code_value_server_timing()}</dd>
+                    </div>
+                  </dl>
+                </div>
+              </div>
+
+              <div className={`${s.rowRow} ${toneStyles.rowRow}`}>
+                <div className={s.rowPanel}>
+                  <span className={`${s.rowCode} ${toneStyles.rowCode}`}>03</span>
+
+                  <div className={s.rowContent}>
+                    <Text
+                      as="h3"
+                      className={s.rowTitle}
+                    >
+                      {m.error_code_row_3_title()}
+                    </Text>
+                    <p className={s.rowBody}>{m.error_code_row_3_body()}</p>
+                  </div>
+
+                  <dl className={s.dataList}>
+                    <div>
+                      <dt className={s.dataLabel}>{m.error_code_label_try_next()}</dt>
+                      <dd className={s.dataValue}>
+                        {(routeCode ?? scenario?.code) === 'runtime'
+                          ? '/errors/404'
+                          : '/errors/runtime'}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className={s.dataLabel}>{m.error_code_label_reference_route()}</dt>
+                      <dd className={s.dataValue}>/errors</dd>
+                    </div>
+                    <div>
+                      <dt className={s.dataLabel}>{m.error_code_label_scenario_note()}</dt>
+                      <dd className={s.dataValue}>
+                        {translated?.summary ?? m.error_code_default_scenario_note()}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className={s.dataLabel}>{m.error_code_label_message()}</dt>
+                      <dd className={s.dataValue}>{message}</dd>
+                    </div>
+                  </dl>
+                </div>
+              </div>
+            </div>
+
+            <p className={`${s.routesIntro} ${toneStyles.routesIntro}`}>
+              <IconCircleInfo className={iconStyles.base} /> {m.error_code_footer_note()}
+            </p>
+          </div>
+        </section>
+      </main>
+      <ErrorCodeFooter />
+    </>
   );
 }
 
@@ -422,5 +428,49 @@ export default function ErrorCode({ params }: Route.ComponentProps): JSX.Element
       statusCode={500}
       statusText={m.error_code_intentional_status_text()}
     />
+  );
+}
+
+function ErrorCodeHeader({ routeCode }: { routeCode: string | undefined }) {
+  return (
+    <header className={chrome.header}>
+      <div className={chrome.mobileBrand}>
+        <SiteBrand />
+      </div>
+      <div className={chrome.breadcrumbSlot}>
+        <Breadcrumbs
+          items={[
+            {
+              label: m.holy_grail_nav_home(),
+              to: '/',
+            },
+            {
+              label: m.route_errors_title(),
+              to: '/errors',
+            },
+            {
+              label:
+                routeCode === 'runtime'
+                  ? m.navigation_runtime_error()
+                  : (routeCode ?? m.navigation_application_error()),
+            },
+          ]}
+        />
+      </div>
+      <PagePreferences
+        activePath="/errors"
+        hasSidebar={false}
+      />
+    </header>
+  );
+}
+
+function ErrorCodeFooter() {
+  return (
+    <footer className={footerStyles.footer}>
+      <div className={footerStyles.footerInner}>
+        <PoweredByTools />
+      </div>
+    </footer>
   );
 }

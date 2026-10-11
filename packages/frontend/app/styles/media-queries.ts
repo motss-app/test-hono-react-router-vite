@@ -1,0 +1,19 @@
+/** Shared query strings for Vanilla Extract responsive and motion rules. */
+export const mediaQueries = {
+  maxWidth480: '(max-width: 480px)',
+  maxWidth520: '(max-width: 520px)',
+  maxWidth599: '(max-width: 599px)',
+  maxWidth760: '(max-width: 760px)',
+  maxWidth999: '(max-width: 999px)',
+  minWidth40rem: '(min-width: 40rem)',
+  minWidth48rem: '(min-width: 48rem)',
+  minWidth60rem: '(min-width: 60rem)',
+  minWidth600: '(min-width: 600px)',
+  minWidth768: '(min-width: 768px)',
+  minWidth900: '(min-width: 900px)',
+  minWidth960: '(min-width: 960px)',
+  minWidth1000: '(min-width: 1000px)',
+  minWidth1200: '(min-width: 1200px)',
+  reducedMotion: '(prefers-reduced-motion: reduce)',
+  width600To1199: '(min-width: 600px) and (max-width: 1199px)',
+} as const satisfies Record<string, string>;

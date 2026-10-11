@@ -1,6 +1,7 @@
 import { keyframes, style } from '@vanilla-extract/css';
 
 import { colorTokens } from '../styles/color-tokens.contract.css.ts';
+import { mediaQueries } from '../styles/media-queries.ts';
 import { radiusTokens } from '../styles/radius-tokens.contract.css.ts';
 
 const heroReveal = keyframes({
@@ -33,7 +34,7 @@ export const hero = style({
 
 export const heroInner = style({
   '@media': {
-    '(min-width: 768px)': {
+    [mediaQueries.minWidth768]: {
       paddingBottom: 0,
     },
   },
@@ -51,7 +52,7 @@ export const heroInner = style({
 
 export const heroCopy = style({
   '@media': {
-    '(min-width: 768px)': {
+    [mediaQueries.minWidth768]: {
       paddingBottom: '4rem',
     },
   },
@@ -64,7 +65,7 @@ export const heroCopy = style({
 
 export const title = style({
   '@media': {
-    '(min-width: 768px)': {
+    [mediaQueries.minWidth768]: {
       fontSize: '3.4rem',
     },
   },
@@ -94,7 +95,7 @@ export const titleAccent = style({
 
 export const heroLead = style({
   '@media': {
-    '(min-width: 768px)': {
+    [mediaQueries.minWidth768]: {
       fontSize: '1.95rem',
     },
   },
@@ -193,7 +194,7 @@ export const labInner = style({
 
 export const sectionTitle = style({
   '@media': {
-    '(min-width: 768px)': {
+    [mediaQueries.minWidth768]: {
       fontSize: '2.6rem',
     },
   },
@@ -251,7 +252,7 @@ export const toolRow = style({
 
 export const toolPanel = style({
   '@media': {
-    '(min-width: 960px)': {
+    [mediaQueries.minWidth960]: {
       gridTemplateColumns: '5.5rem minmax(0, 1fr) auto',
     },
   },
@@ -281,7 +282,7 @@ export const toolPanel = style({
 
 export const toolNumber = style({
   '@media': {
-    '(min-width: 768px)': {
+    [mediaQueries.minWidth768]: {
       fontSize: '2rem',
     },
   },
@@ -303,7 +304,7 @@ export const toolContent = style({
 
 export const toolTitle = style({
   '@media': {
-    '(min-width: 768px)': {
+    [mediaQueries.minWidth768]: {
       fontSize: '1.35rem',
     },
   },

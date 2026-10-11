@@ -1,4 +1,4 @@
-import type { KeyboardEvent, PropsWithChildren } from 'react';
+import type { KeyboardEvent } from 'react';
 
 import * as m from '../paraglide/messages.js';
 import {
@@ -11,9 +11,9 @@ import {
   IconLayerGroup,
   IconTriangleExclamation,
 } from './expressive.icons.ts';
-import * as s from './expressive-page-shell.css.ts';
 import { Link } from './Link.tsx';
 import { LocaleSwitcher } from './locale-switcher.tsx';
+import * as s from './page-chrome.css.ts';
 import { ThemeSelector } from './theme-selector.tsx';
 
 function closeMenuOnEscape(event: KeyboardEvent<HTMLDetailsElement>) {
@@ -23,7 +23,7 @@ function closeMenuOnEscape(event: KeyboardEvent<HTMLDetailsElement>) {
   }
 }
 
-function Brand() {
+export function SiteBrand() {
   return (
     <Link
       className={s.brand}
@@ -40,7 +40,7 @@ function Brand() {
   );
 }
 
-function Navigation({ activePath }: { activePath: string }) {
+export function SiteNavigation({ activePath }: { activePath: string }) {
   const routes = [
     {
       Icon: IconHouse,
@@ -102,57 +102,46 @@ function Navigation({ activePath }: { activePath: string }) {
   );
 }
 
-export function ExpressivePageShell({
-  children,
-  activePath,
-  mainId,
-}: PropsWithChildren<{
-  activePath: string;
-  mainId: string;
-}>) {
+export function SkipToContent({ mainId }: { mainId: string }) {
   return (
-    <div className={s.shell}>
-      <a
-        className={s.skipLink}
-        href={`#${mainId}`}
+    <a
+      className={s.skipLink}
+      href={`#${mainId}`}
+    >
+      {m.home_skip_content()}
+    </a>
+  );
+}
+
+export function PagePreferences({
+  activePath,
+  hasSidebar,
+}: {
+  activePath: string;
+  hasSidebar?: boolean;
+}) {
+  return (
+    <div className={s.controls}>
+      <LocaleSwitcher />
+      <ThemeSelector />
+      {/*
+       * biome-ignore lint/a11y/noNoninteractiveElementInteractions: Disclosure.
+       * Native disclosure handles Escape from navigation descendants.
+       */}
+      <details
+        className={hasSidebar === false ? s.navigationMenu : s.mobileMenu}
+        onKeyDown={closeMenuOnEscape}
       >
-        {m.home_skip_content()}
-      </a>
-      <aside className={s.sidebar}>
-        <Brand />
-        <Navigation activePath={activePath} />
-      </aside>
-      <div className={s.workspace}>
-        <header className={s.header}>
-          <div className={s.mobileBrand}>
-            <Brand />
-          </div>
-          <span className={s.pageLabel}>{m.holy_grail_nav_home()}</span>
-          <div className={s.controls}>
-            <LocaleSwitcher />
-            <ThemeSelector />
-            {/*
-             * biome-ignore lint/a11y/noNoninteractiveElementInteractions: Disclosure.
-             * Native disclosure handles Escape from navigation descendants.
-             */}
-            <details
-              className={s.mobileMenu}
-              onKeyDown={closeMenuOnEscape}
-            >
-              <summary
-                aria-label={m.home_navigation()}
-                className={s.iconButton}
-              >
-                <IconBars aria-hidden="true" />
-              </summary>
-              <div className={s.mobileMenuPanel}>
-                <Navigation activePath={activePath} />
-              </div>
-            </details>
-          </div>
-        </header>
-        {children}
-      </div>
+        <summary
+          aria-label={m.home_navigation()}
+          className={s.iconButton}
+        >
+          <IconBars aria-hidden="true" />
+        </summary>
+        <div className={s.mobileMenuPanel}>
+          <SiteNavigation activePath={activePath} />
+        </div>
+      </details>
     </div>
   );
 }

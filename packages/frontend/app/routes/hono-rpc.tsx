@@ -5,8 +5,12 @@ import { hc } from 'hono/client';
 import posthog from 'posthog-js';
 import { Fragment, type JSX, type ReactNode, useCallback, useEffect, useState } from 'react';
 
+import { Breadcrumbs } from '../components/breadcrumbs.tsx';
 import { Link } from '../components/Link.tsx';
-import { PageFooter } from '../components/page-footer.tsx';
+import * as chrome from '../components/page-chrome.css.ts';
+import * as footerStyles from '../components/page-footer.css.ts';
+import { PagePreferences, SiteBrand } from '../components/page-navigation.tsx';
+import { PoweredByTools } from '../components/powered-by-tools.tsx';
 import { Skeleton } from '../components/skeleton.tsx';
 import { Text } from '../components/text.tsx';
 import { IconArrowLeft } from '../icons.ts';
@@ -184,206 +188,212 @@ interface HonoRpcViewProps {
 
 function HonoRpcView({ action, isLoading, response }: HonoRpcViewProps): JSX.Element {
   return (
-    <main className={page}>
-      <section className={hero}>
-        <div
-          aria-hidden="true"
-          className={heroMedia}
-        />
-        <div
-          aria-hidden="true"
-          className={heroOverlay}
-        />
+    <>
+      <RpcHeader />
+      <main className={page}>
+        <section className={hero}>
+          <div
+            aria-hidden="true"
+            className={heroMedia}
+          />
+          <div
+            aria-hidden="true"
+            className={heroOverlay}
+          />
 
-        <div className={heroInner}>
-          <div className={heroCopy}>
-            <Text
-              as="h1"
-              className={title}
-            >
-              {m.hono_rpc_title()}
-              <span className={titleAccent}>{m.hono_rpc_title_accent()}</span>
-            </Text>
-
-            <Text
-              as="p"
-              className={heroLead}
-            >
-              {m.hono_rpc_hero_lead()}
-            </Text>
-
-            <p className={heroBody}>{m.hono_rpc_hero_body()}</p>
-
-            <div className={heroActions}>
-              <Link
-                className={ctaSecondary}
-                to="/"
+          <div className={heroInner}>
+            <div className={heroCopy}>
+              <Text
+                as="h1"
+                className={title}
               >
-                <IconArrowLeft className={iconStyles.base} />
-                <span>{m.hono_rpc_cta_back_home()}</span>
-              </Link>
+                {m.hono_rpc_title()}
+                <span className={titleAccent}>{m.hono_rpc_title_accent()}</span>
+              </Text>
 
-              <div className={actionShell}>{action}</div>
-            </div>
-          </div>
-        </div>
-      </section>
+              <Text
+                as="p"
+                className={heroLead}
+              >
+                {m.hono_rpc_hero_lead()}
+              </Text>
 
-      <section>
-        <div className={routesInner}>
-          <Text
-            as="h2"
-            className={routesTitle}
-          >
-            {m.hono_rpc_section_title()}
-          </Text>
+              <p className={heroBody}>{m.hono_rpc_hero_body()}</p>
 
-          <p className={routesIntro}>{m.hono_rpc_section_intro()}</p>
+              <div className={heroActions}>
+                <Link
+                  className={ctaSecondary}
+                  to="/"
+                >
+                  <IconArrowLeft className={iconStyles.base} />
+                  <span>{m.hono_rpc_cta_back_home()}</span>
+                </Link>
 
-          <div className={routesList}>
-            <div className={rowRow}>
-              <div className={rowPanel}>
-                <span className={rowNumber}>01</span>
-
-                <div className={rowContent}>
-                  <Text
-                    as="h3"
-                    className={rowTitle}
-                  >
-                    {m.hono_rpc_row_1_title()}
-                  </Text>
-                  <p className={rowBody}>{m.hono_rpc_row_1_body()}</p>
-                </div>
-
-                <dl className={dataList}>
-                  <Fragment key="message">
-                    <dt className={dataLabel}>{m.hono_rpc_label_message()}</dt>
-                    <dd className={dataValue}>
-                      <Skeleton
-                        className={skeletonMessage}
-                        isLoading={isLoading}
-                      >
-                        {response.message}
-                      </Skeleton>
-                    </dd>
-                  </Fragment>
-
-                  <Fragment key="server">
-                    <dt className={dataLabel}>{m.hono_rpc_label_server()}</dt>
-                    <dd className={dataValue}>
-                      <Skeleton
-                        className={skeletonServer}
-                        isLoading={isLoading}
-                      >
-                        {response.server}
-                      </Skeleton>
-                    </dd>
-                  </Fragment>
-
-                  <Fragment key="timestamp">
-                    <dt className={dataLabel}>{m.hono_rpc_label_timestamp()}</dt>
-                    <dd className={dataValue}>
-                      <Skeleton
-                        className={skeletonTimestamp}
-                        isLoading={isLoading}
-                      >
-                        {response.timestamp}
-                      </Skeleton>
-                    </dd>
-                  </Fragment>
-                </dl>
-              </div>
-            </div>
-
-            <div className={rowRow}>
-              <div className={rowPanel}>
-                <span className={rowNumber}>02</span>
-
-                <div className={rowContent}>
-                  <Text
-                    as="h3"
-                    className={rowTitle}
-                  >
-                    {m.hono_rpc_row_2_title()}
-                  </Text>
-                  <p className={rowBody}>{m.hono_rpc_row_2_body()}</p>
-                </div>
-
-                <dl className={dataList}>
-                  <div>
-                    <dt className={dataLabel}>{m.hono_rpc_label_endpoint()}</dt>
-                    <dd className={dataValue}>{m.hono_rpc_label_endpoint_value()}</dd>
-                  </div>
-                  <div>
-                    <dt className={dataLabel}>{m.hono_rpc_label_implementation()}</dt>
-                    <dd className={dataValue}>{m.hono_rpc_label_implementation_value()}</dd>
-                  </div>
-                  <div>
-                    <dt className={dataLabel}>{m.hono_rpc_label_initial_source()}</dt>
-                    <dd className={dataValue}>{m.hono_rpc_label_initial_source_value()}</dd>
-                  </div>
-                  <div>
-                    <dt className={dataLabel}>{m.hono_rpc_label_refresh_path()}</dt>
-                    <dd className={dataValue}>{m.hono_rpc_label_refresh_path_value()}</dd>
-                  </div>
-                </dl>
-              </div>
-            </div>
-
-            <div className={rowRow}>
-              <div className={rowPanel}>
-                <span className={rowNumber}>03</span>
-
-                <div className={rowContent}>
-                  <Text
-                    as="h3"
-                    className={rowTitle}
-                  >
-                    {m.hono_rpc_row_3_title()}
-                  </Text>
-                  <p className={rowBody}>{m.hono_rpc_row_3_body()}</p>
-                </div>
-
-                <dl className={dataList}>
-                  <div>
-                    <dt className={dataLabel}>{m.hono_rpc_label_prerendered_shell()}</dt>
-                    <dd className={dataValue}>{m.hono_rpc_value_prerendered_shell()}</dd>
-                  </div>
-                  <div>
-                    <dt className={dataLabel}>{m.hono_rpc_label_hydrated_data()}</dt>
-                    <dd className={dataValue}>{m.hono_rpc_value_hydrated_data()}</dd>
-                  </div>
-                  <div>
-                    <dt className={dataLabel}>{m.hono_rpc_label_client_refresh()}</dt>
-                    <dd className={dataValue}>{m.hono_rpc_value_client_refresh()}</dd>
-                  </div>
-                  <div>
-                    <dt className={dataLabel}>{m.hono_rpc_label_typed_boundary()}</dt>
-                    <dd className={dataValue}>{m.hono_rpc_value_typed_boundary()}</dd>
-                  </div>
-                </dl>
+                <div className={actionShell}>{action}</div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <PageFooter />
-    </main>
+        <section>
+          <div className={routesInner}>
+            <Text
+              as="h2"
+              className={routesTitle}
+            >
+              {m.hono_rpc_section_title()}
+            </Text>
+
+            <p className={routesIntro}>{m.hono_rpc_section_intro()}</p>
+
+            <div className={routesList}>
+              <div className={rowRow}>
+                <div className={rowPanel}>
+                  <span className={rowNumber}>01</span>
+
+                  <div className={rowContent}>
+                    <Text
+                      as="h3"
+                      className={rowTitle}
+                    >
+                      {m.hono_rpc_row_1_title()}
+                    </Text>
+                    <p className={rowBody}>{m.hono_rpc_row_1_body()}</p>
+                  </div>
+
+                  <dl className={dataList}>
+                    <Fragment key="message">
+                      <dt className={dataLabel}>{m.hono_rpc_label_message()}</dt>
+                      <dd className={dataValue}>
+                        <Skeleton
+                          className={skeletonMessage}
+                          isLoading={isLoading}
+                        >
+                          {response.message}
+                        </Skeleton>
+                      </dd>
+                    </Fragment>
+
+                    <Fragment key="server">
+                      <dt className={dataLabel}>{m.hono_rpc_label_server()}</dt>
+                      <dd className={dataValue}>
+                        <Skeleton
+                          className={skeletonServer}
+                          isLoading={isLoading}
+                        >
+                          {response.server}
+                        </Skeleton>
+                      </dd>
+                    </Fragment>
+
+                    <Fragment key="timestamp">
+                      <dt className={dataLabel}>{m.hono_rpc_label_timestamp()}</dt>
+                      <dd className={dataValue}>
+                        <Skeleton
+                          className={skeletonTimestamp}
+                          isLoading={isLoading}
+                        >
+                          {response.timestamp}
+                        </Skeleton>
+                      </dd>
+                    </Fragment>
+                  </dl>
+                </div>
+              </div>
+
+              <div className={rowRow}>
+                <div className={rowPanel}>
+                  <span className={rowNumber}>02</span>
+
+                  <div className={rowContent}>
+                    <Text
+                      as="h3"
+                      className={rowTitle}
+                    >
+                      {m.hono_rpc_row_2_title()}
+                    </Text>
+                    <p className={rowBody}>{m.hono_rpc_row_2_body()}</p>
+                  </div>
+
+                  <dl className={dataList}>
+                    <div>
+                      <dt className={dataLabel}>{m.hono_rpc_label_endpoint()}</dt>
+                      <dd className={dataValue}>{m.hono_rpc_label_endpoint_value()}</dd>
+                    </div>
+                    <div>
+                      <dt className={dataLabel}>{m.hono_rpc_label_implementation()}</dt>
+                      <dd className={dataValue}>{m.hono_rpc_label_implementation_value()}</dd>
+                    </div>
+                    <div>
+                      <dt className={dataLabel}>{m.hono_rpc_label_initial_source()}</dt>
+                      <dd className={dataValue}>{m.hono_rpc_label_initial_source_value()}</dd>
+                    </div>
+                    <div>
+                      <dt className={dataLabel}>{m.hono_rpc_label_refresh_path()}</dt>
+                      <dd className={dataValue}>{m.hono_rpc_label_refresh_path_value()}</dd>
+                    </div>
+                  </dl>
+                </div>
+              </div>
+
+              <div className={rowRow}>
+                <div className={rowPanel}>
+                  <span className={rowNumber}>03</span>
+
+                  <div className={rowContent}>
+                    <Text
+                      as="h3"
+                      className={rowTitle}
+                    >
+                      {m.hono_rpc_row_3_title()}
+                    </Text>
+                    <p className={rowBody}>{m.hono_rpc_row_3_body()}</p>
+                  </div>
+
+                  <dl className={dataList}>
+                    <div>
+                      <dt className={dataLabel}>{m.hono_rpc_label_prerendered_shell()}</dt>
+                      <dd className={dataValue}>{m.hono_rpc_value_prerendered_shell()}</dd>
+                    </div>
+                    <div>
+                      <dt className={dataLabel}>{m.hono_rpc_label_hydrated_data()}</dt>
+                      <dd className={dataValue}>{m.hono_rpc_value_hydrated_data()}</dd>
+                    </div>
+                    <div>
+                      <dt className={dataLabel}>{m.hono_rpc_label_client_refresh()}</dt>
+                      <dd className={dataValue}>{m.hono_rpc_value_client_refresh()}</dd>
+                    </div>
+                    <div>
+                      <dt className={dataLabel}>{m.hono_rpc_label_typed_boundary()}</dt>
+                      <dd className={dataValue}>{m.hono_rpc_value_typed_boundary()}</dd>
+                    </div>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+      <RpcFooter />
+    </>
   );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): JSX.Element {
   return (
-    <div className={errorPage}>
-      <div className={errorBox}>
-        <strong>{m.hono_rpc_error_title()}</strong>{' '}
-        {error instanceof Error ? error.message : 'Unknown error'}
+    <>
+      <RpcHeader />
+      <div className={errorPage}>
+        <div className={errorBox}>
+          <strong>{m.hono_rpc_error_title()}</strong>{' '}
+          {error instanceof Error ? error.message : 'Unknown error'}
+        </div>
+        <Text className={routesIntro}>
+          <a href="/hono-rpc">{m.hono_rpc_error_retry()}</a>
+        </Text>
       </div>
-      <Text className={routesIntro}>
-        <a href="/hono-rpc">{m.hono_rpc_error_retry()}</a>
-      </Text>
-    </div>
+      <RpcFooter />
+    </>
   );
 }
 
@@ -452,5 +462,42 @@ export default function HonoRpcDemo({ loaderData }: Route.ComponentProps): JSX.E
       isLoading={isLoading}
       response={response}
     />
+  );
+}
+
+function RpcFooter() {
+  return (
+    <footer className={footerStyles.footer}>
+      <div className={footerStyles.footerInner}>
+        <PoweredByTools />
+      </div>
+    </footer>
+  );
+}
+
+function RpcHeader() {
+  return (
+    <header className={chrome.header}>
+      <div className={chrome.mobileBrand}>
+        <SiteBrand />
+      </div>
+      <div className={chrome.breadcrumbSlot}>
+        <Breadcrumbs
+          items={[
+            {
+              label: m.holy_grail_nav_home(),
+              to: '/',
+            },
+            {
+              label: m.route_hono_rpc_title(),
+            },
+          ]}
+        />
+      </div>
+      <PagePreferences
+        activePath="/hono-rpc"
+        hasSidebar={false}
+      />
+    </header>
   );
 }

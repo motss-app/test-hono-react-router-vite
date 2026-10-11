@@ -2,9 +2,13 @@ import { assignInlineVars } from '@vanilla-extract/dynamic';
 import type { JSX, ChangeEvent as ReactChangeEvent, DragEvent as ReactDragEvent } from 'react';
 import { useCallback, useEffect, useId, useState } from 'react';
 
+import { Breadcrumbs } from '../components/breadcrumbs.tsx';
 import { DominantColorWalkthrough } from '../components/dominant-color-walkthrough.tsx';
 import { Link } from '../components/Link.tsx';
-import { PageFooter } from '../components/page-footer.tsx';
+import * as chrome from '../components/page-chrome.css.ts';
+import * as footerStyles from '../components/page-footer.css.ts';
+import { PagePreferences, SiteBrand } from '../components/page-navigation.tsx';
+import { PoweredByTools } from '../components/powered-by-tools.tsx';
 import { IconArrowLeft } from '../icons.ts';
 import * as m from '../paraglide/messages.js';
 import { iconStyles } from '../styles/icon.css.ts';
@@ -319,184 +323,227 @@ export default function DominantColorLab(): JSX.Element {
   ]);
 
   return (
-    <main className={c.page}>
-      <section className={c.hero}>
-        <div className={c.heroInner}>
-          <div>
-            <div className={c.eyebrow}>{m.dominant_color_hero_eyebrow()}</div>
-            <h1 className={c.title}>{m.dominant_color_title()}</h1>
-            <p className={c.heroLead}>{m.dominant_color_hero_lead()}</p>
-            <div className={c.heroActions}>
-              <Link
-                className={c.ctaSecondary}
-                to="/"
-              >
-                <IconArrowLeft className={iconStyles.base} />
-                <span>{m.labs_cta_back_home()}</span>
-              </Link>
-              <Link
-                className={c.ctaSecondary}
-                to="/labs"
-              >
-                <IconArrowLeft className={iconStyles.base} />
-                <span>{m.labs_mandelbrot_cta_back_home()}</span>
-              </Link>
+    <>
+      <DominantColorHeader />
+      <main className={c.page}>
+        <section className={c.hero}>
+          <div className={c.heroInner}>
+            <div>
+              <div className={c.eyebrow}>{m.dominant_color_hero_eyebrow()}</div>
+              <h1 className={c.title}>{m.dominant_color_title()}</h1>
+              <p className={c.heroLead}>{m.dominant_color_hero_lead()}</p>
+              <div className={c.heroActions}>
+                <Link
+                  className={c.ctaSecondary}
+                  to="/"
+                >
+                  <IconArrowLeft className={iconStyles.base} />
+                  <span>{m.labs_cta_back_home()}</span>
+                </Link>
+                <Link
+                  className={c.ctaSecondary}
+                  to="/labs"
+                >
+                  <IconArrowLeft className={iconStyles.base} />
+                  <span>{m.labs_mandelbrot_cta_back_home()}</span>
+                </Link>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <DominantColorWalkthrough />
+        <DominantColorWalkthrough />
 
-      <section className={c.inner}>
-        <div className={c.workspace}>
-          <div className={c.uploadColumn}>
-            <p className={c.sectionLabel}>{m.dominant_color_input_label()}</p>
-            <h2 className={c.sectionTitle}>{m.dominant_color_input_title()}</h2>
-            <p className={c.sectionBody}>{m.dominant_color_input_desc()}</p>
-            {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: the label is the keyboard-accessible file picker and drag target. */}
-            <label
-              className={`${c.dropzone} ${dragging ? c.dropzoneActive : ''}`.trim()}
-              onDragEnter={onDragEnter}
-              onDragLeave={onDragLeave}
-              onDragOver={onDragOver}
-              onDrop={onDrop}
-            >
-              <input
-                accept={ACCEPT}
-                className={c.input}
-                onChange={onInput}
-                type="file"
-              />
-              {previewUrl ? (
-                <div
-                  className={c.previewWrap}
-                  style={assignInlineVars({
-                    [c.previewBackgroundColor]: result?.css.srgb,
-                  })}
-                >
-                  <img
-                    alt="Selected upload preview"
-                    className={c.preview}
-                    src={previewUrl}
-                  />
-                </div>
-              ) : (
-                <div className={c.dropContent}>
-                  <span className={c.dropIcon}>◌</span>
-                  <p className={c.dropTitle}>{m.dominant_color_drop_title()}</p>
-                  <p className={c.dropNote}>{m.dominant_color_formats()}</p>
-                </div>
-              )}
-            </label>
-            {file ? (
-              <div className={c.actionRow}>
-                <button
-                  className={c.action}
-                  disabled={busy}
-                  onClick={analyze}
-                  type="button"
-                >
-                  {busy ? m.dominant_color_analyzing() : m.dominant_color_analyze()}
-                </button>
-                <span className={c.dropNote}>
-                  {file.name} · {formatBytes(file.size)}
-                </span>
-              </div>
-            ) : null}
-            {error ? (
-              <div
-                className={c.error}
-                role="alert"
+        <section className={c.inner}>
+          <div className={c.workspace}>
+            <div className={c.uploadColumn}>
+              <p className={c.sectionLabel}>{m.dominant_color_input_label()}</p>
+              <h2 className={c.sectionTitle}>{m.dominant_color_input_title()}</h2>
+              <p className={c.sectionBody}>{m.dominant_color_input_desc()}</p>
+              {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: the label is the keyboard-accessible file picker and drag target. */}
+              <label
+                className={`${c.dropzone} ${dragging ? c.dropzoneActive : ''}`.trim()}
+                onDragEnter={onDragEnter}
+                onDragLeave={onDragLeave}
+                onDragOver={onDragOver}
+                onDrop={onDrop}
               >
-                {error}
-              </div>
-            ) : null}
-          </div>
-          <div className={c.resultColumn}>
-            <p className={c.sectionLabel}>{m.dominant_color_output_label()}</p>
-            <h2 className={c.sectionTitle}>{m.dominant_color_output_title()}</h2>
-            <p className={c.sectionBody}>{m.dominant_color_output_desc()}</p>
-            <div className={c.result}>
-              {result ? (
-                <>
-                  <div className={c.resultHeader}>
-                    <div>
-                      <p className={c.resultTitle}>{result.hex}</p>
-                      <div className={c.resultMeta}>
-                        <span>
-                          {result.width} × {result.height} · {result.pixel_count}{' '}
-                          {m.dominant_color_output_pixel_count()} · {m.dominant_color_output_took()}{' '}
-                          {result.time_ms} ms
-                        </span>
-                        <span>
-                          {result.format} · {(result.coverage * 100).toFixed(1)}%{' '}
-                          {m.dominant_color_output_coverage()} · {result.rgba.a}{' '}
-                          {m.dominant_color_output_alpha()}
-                        </span>
-                      </div>
-                    </div>
-                    <span
-                      className={c.swatch}
-                      style={{
-                        backgroundColor: `rgba(${result.rgba.r}, ${result.rgba.g}, ${result.rgba.b}, ${result.rgba.a / 255})`,
-                      }}
+                <input
+                  accept={ACCEPT}
+                  className={c.input}
+                  onChange={onInput}
+                  type="file"
+                />
+                {previewUrl ? (
+                  <div
+                    className={c.previewWrap}
+                    style={assignInlineVars({
+                      [c.previewBackgroundColor]: result?.css.srgb,
+                    })}
+                  >
+                    <img
+                      alt="Selected upload preview"
+                      className={c.preview}
+                      src={previewUrl}
                     />
                   </div>
-                  <div
-                    aria-label={m.dominant_color_output_toggle()}
-                    className={c.outputToggle}
-                    onKeyDown={handleTabKeyDown}
-                    role="tablist"
-                  >
-                    <button
-                      aria-controls={outputPanelId}
-                      aria-selected={outputMode === 'formatted'}
-                      className={`${c.outputTab} ${outputMode === 'formatted' ? c.outputTabActive : ''}`.trim()}
-                      id={formattedTabId}
-                      onClick={showFormattedOutput}
-                      role="tab"
-                      tabIndex={outputMode === 'formatted' ? 0 : -1}
-                      type="button"
-                    >
-                      {m.dominant_color_output_formatted()}
-                    </button>
-                    <button
-                      aria-controls={outputPanelId}
-                      aria-selected={outputMode === 'raw'}
-                      className={`${c.outputTab} ${outputMode === 'raw' ? c.outputTabActive : ''}`.trim()}
-                      id={rawTabId}
-                      onClick={showRawOutput}
-                      role="tab"
-                      tabIndex={outputMode === 'raw' ? 0 : -1}
-                      type="button"
-                    >
-                      {m.dominant_color_output_raw_json()}
-                    </button>
+                ) : (
+                  <div className={c.dropContent}>
+                    <span className={c.dropIcon}>◌</span>
+                    <p className={c.dropTitle}>{m.dominant_color_drop_title()}</p>
+                    <p className={c.dropNote}>{m.dominant_color_formats()}</p>
                   </div>
-                  <div
-                    aria-labelledby={outputMode === 'formatted' ? formattedTabId : rawTabId}
-                    className={c.outputContent}
-                    id={outputPanelId}
-                    role="tabpanel"
+                )}
+              </label>
+              {file ? (
+                <div className={c.actionRow}>
+                  <button
+                    className={c.action}
+                    disabled={busy}
+                    onClick={analyze}
+                    type="button"
                   >
-                    {outputMode === 'formatted' ? (
-                      <FormattedOutput result={result} />
-                    ) : (
-                      <pre className={c.json}>{JSON.stringify(result, null, 2)}</pre>
-                    )}
-                  </div>
-                </>
-              ) : (
-                <div className={c.emptyResult}>{m.dominant_color_empty_result()}</div>
-              )}
+                    {busy ? m.dominant_color_analyzing() : m.dominant_color_analyze()}
+                  </button>
+                  <span className={c.dropNote}>
+                    {file.name} · {formatBytes(file.size)}
+                  </span>
+                </div>
+              ) : null}
+              {error ? (
+                <div
+                  className={c.error}
+                  role="alert"
+                >
+                  {error}
+                </div>
+              ) : null}
+            </div>
+            <div className={c.resultColumn}>
+              <p className={c.sectionLabel}>{m.dominant_color_output_label()}</p>
+              <h2 className={c.sectionTitle}>{m.dominant_color_output_title()}</h2>
+              <p className={c.sectionBody}>{m.dominant_color_output_desc()}</p>
+              <div className={c.result}>
+                {result ? (
+                  <>
+                    <div className={c.resultHeader}>
+                      <div>
+                        <p className={c.resultTitle}>{result.hex}</p>
+                        <div className={c.resultMeta}>
+                          <span>
+                            {result.width} × {result.height} · {result.pixel_count}{' '}
+                            {m.dominant_color_output_pixel_count()} ·{' '}
+                            {m.dominant_color_output_took()} {result.time_ms} ms
+                          </span>
+                          <span>
+                            {result.format} · {(result.coverage * 100).toFixed(1)}%{' '}
+                            {m.dominant_color_output_coverage()} · {result.rgba.a}{' '}
+                            {m.dominant_color_output_alpha()}
+                          </span>
+                        </div>
+                      </div>
+                      <span
+                        className={c.swatch}
+                        style={{
+                          backgroundColor: `rgba(${result.rgba.r}, ${result.rgba.g}, ${result.rgba.b}, ${result.rgba.a / 255})`,
+                        }}
+                      />
+                    </div>
+                    <div
+                      aria-label={m.dominant_color_output_toggle()}
+                      className={c.outputToggle}
+                      onKeyDown={handleTabKeyDown}
+                      role="tablist"
+                    >
+                      <button
+                        aria-controls={outputPanelId}
+                        aria-selected={outputMode === 'formatted'}
+                        className={`${c.outputTab} ${outputMode === 'formatted' ? c.outputTabActive : ''}`.trim()}
+                        id={formattedTabId}
+                        onClick={showFormattedOutput}
+                        role="tab"
+                        tabIndex={outputMode === 'formatted' ? 0 : -1}
+                        type="button"
+                      >
+                        {m.dominant_color_output_formatted()}
+                      </button>
+                      <button
+                        aria-controls={outputPanelId}
+                        aria-selected={outputMode === 'raw'}
+                        className={`${c.outputTab} ${outputMode === 'raw' ? c.outputTabActive : ''}`.trim()}
+                        id={rawTabId}
+                        onClick={showRawOutput}
+                        role="tab"
+                        tabIndex={outputMode === 'raw' ? 0 : -1}
+                        type="button"
+                      >
+                        {m.dominant_color_output_raw_json()}
+                      </button>
+                    </div>
+                    <div
+                      aria-labelledby={outputMode === 'formatted' ? formattedTabId : rawTabId}
+                      className={c.outputContent}
+                      id={outputPanelId}
+                      role="tabpanel"
+                    >
+                      {outputMode === 'formatted' ? (
+                        <FormattedOutput result={result} />
+                      ) : (
+                        <pre className={c.json}>{JSON.stringify(result, null, 2)}</pre>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <div className={c.emptyResult}>{m.dominant_color_empty_result()}</div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-        <p className={c.footer}>{m.dominant_color_footer_note()}</p>
-      </section>
+          <p className={c.footer}>{m.dominant_color_footer_note()}</p>
+        </section>
+      </main>
+      <DominantColorFooter />
+    </>
+  );
+}
 
-      <PageFooter />
-    </main>
+function DominantColorFooter() {
+  return (
+    <footer className={footerStyles.footer}>
+      <div className={footerStyles.footerInner}>
+        <PoweredByTools />
+      </div>
+    </footer>
+  );
+}
+
+function DominantColorHeader() {
+  return (
+    <header className={chrome.header}>
+      <div className={chrome.mobileBrand}>
+        <SiteBrand />
+      </div>
+      <div className={chrome.breadcrumbSlot}>
+        <Breadcrumbs
+          items={[
+            {
+              label: m.holy_grail_nav_home(),
+              to: '/',
+            },
+            {
+              label: m.route_labs_title(),
+              to: '/labs',
+            },
+            {
+              label: m.labs_tool_dominant_color_title(),
+            },
+          ]}
+        />
+      </div>
+      <PagePreferences
+        activePath="/labs"
+        hasSidebar={false}
+      />
+    </header>
   );
 }

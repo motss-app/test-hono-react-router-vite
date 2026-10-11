@@ -1,6 +1,7 @@
 import { createVar, globalStyle, keyframes, style } from '@vanilla-extract/css';
 
 import { expressiveTokens as t } from '../styles/expressive-tokens.css.ts';
+import { mediaQueries } from '../styles/media-queries.ts';
 
 const cardSurface = createVar();
 const cardAccent = createVar();
@@ -25,7 +26,7 @@ const drift = keyframes({
 
 export const page = style({
   '@media': {
-    '(max-width: 599px)': {
+    [mediaQueries.maxWidth599]: {
       minHeight: 'calc(100svh - 72px)',
     },
   },
@@ -37,7 +38,7 @@ export const page = style({
 });
 export const artwork = style({
   '@media': {
-    '(max-width: 599px)': {
+    [mediaQueries.maxWidth599]: {
       backgroundPosition: 'right top',
       backgroundSize: 'auto 680px',
       opacity: 0.36,
@@ -57,7 +58,7 @@ export const artwork = style({
 
 globalStyle(`:root[data-theme="dark"] ${artwork}`, {
   '@media': {
-    '(max-width: 599px)': {
+    [mediaQueries.maxWidth599]: {
       opacity: 0.28,
     },
   },
@@ -72,7 +73,7 @@ export const content = style({
 });
 export const hero = style({
   '@media': {
-    '(max-width: 599px)': {
+    [mediaQueries.maxWidth599]: {
       paddingBlock: '1.5rem 2.5rem',
     },
   },
@@ -89,7 +90,7 @@ export const eyebrow = style({
 });
 export const title = style({
   '@media': {
-    '(max-width: 599px)': {
+    [mediaQueries.maxWidth599]: {
       fontSize: '2.5rem',
       maxWidth: '14ch',
     },
@@ -201,10 +202,10 @@ export const sectionNote = style({
 });
 export const demoGrid = style({
   '@media': {
-    '(min-width: 600px) and (max-width: 1199px)': {
+    [mediaQueries.width600To1199]: {
       gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
     },
-    '(min-width: 1200px)': {
+    [mediaQueries.minWidth1200]: {
       gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
     },
   },
@@ -214,7 +215,7 @@ export const demoGrid = style({
 });
 export const demoCard = style({
   '@media': {
-    '(max-width: 599px)': {
+    [mediaQueries.maxWidth599]: {
       alignItems: 'center',
       display: 'grid',
       gap: '0.375rem 1rem',
@@ -270,7 +271,7 @@ export const errors = style({
 });
 export const demoIcon = style({
   '@media': {
-    '(max-width: 599px)': {
+    [mediaQueries.maxWidth599]: {
       gridColumn: 1,
       gridRow: '1 / 3',
       marginBottom: 0,
@@ -290,7 +291,7 @@ export const demoIcon = style({
 });
 export const demoTitle = style({
   '@media': {
-    '(max-width: 599px)': {
+    [mediaQueries.maxWidth599]: {
       fontSize: '1rem',
       gridColumn: 2,
       margin: 0,
@@ -304,7 +305,7 @@ export const demoTitle = style({
 });
 export const demoDescription = style({
   '@media': {
-    '(max-width: 599px)': {
+    [mediaQueries.maxWidth599]: {
       fontSize: '0.8125rem',
       gridColumn: 2,
       gridRow: 2,
@@ -318,7 +319,7 @@ export const demoDescription = style({
 });
 export const demoAction = style({
   '@media': {
-    '(max-width: 599px)': {
+    [mediaQueries.maxWidth599]: {
       alignSelf: 'center',
       fontSize: 0,
       gridColumn: 3,
@@ -340,62 +341,18 @@ globalStyle(`${demoAction} svg`, {
   flexShrink: 0,
   fontSize: '1rem',
 });
-export const footer = style({
-  borderTop: `1px solid ${t.color.outline}`,
-  marginTop: t.space.extraLarge,
-  paddingBlockStart: t.space.extraLarge,
-});
-export const poweredLabel = style({
-  color: t.color.onSurface,
-  fontSize: '0.75rem',
-  margin: '0 0 0.75rem',
-});
-export const technologies = style({
+
+export const layout = style({
   '@media': {
-    '(max-width: 599px)': {
-      display: 'grid',
-      gap: '1rem',
-      gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    [mediaQueries.minWidth1000]: {
+      gridTemplateColumns: '232px minmax(0, 1fr)',
     },
   },
-  alignItems: 'center',
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: '1rem 2rem',
-  listStyle: 'none',
-  margin: 0,
-  padding: 0,
+  backgroundColor: t.color.surface,
+  color: t.color.onSurface,
+  display: 'grid',
+  minHeight: '100svh',
 });
-globalStyle(`${technologies} li`, {
-  alignItems: 'center',
-  display: 'flex',
-  fontSize: '0.8125rem',
-  fontWeight: 650,
-  gap: '0.5rem',
+export const workspace = style({
   minWidth: 0,
-});
-globalStyle(`${technologies} li > span`, {
-  minWidth: 0,
-  overflowWrap: 'anywhere',
-});
-globalStyle(`${technologies} li img`, {
-  flexShrink: 0,
-  height: '1.5rem',
-  objectFit: 'contain',
-  width: '1.75rem',
-});
-export const lightLogo = style({
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      display: 'none',
-    },
-  },
-});
-export const darkLogo = style({
-  display: 'none',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      display: 'block',
-    },
-  },
 });

@@ -1,6 +1,7 @@
 import { keyframes, style } from '@vanilla-extract/css';
 
 import { colorTokens } from '../styles/color-tokens.contract.css.ts';
+import { mediaQueries } from '../styles/media-queries.ts';
 import { radiusTokens } from '../styles/radius-tokens.contract.css.ts';
 
 const heroReveal = keyframes({
@@ -44,7 +45,7 @@ export const hero = style({
 
 export const heroInner = style({
   '@media': {
-    '(min-width: 768px)': {
+    [mediaQueries.minWidth768]: {
       paddingBottom: 0,
     },
   },
@@ -62,7 +63,7 @@ export const heroInner = style({
 
 export const heroCopy = style({
   '@media': {
-    '(min-width: 768px)': {
+    [mediaQueries.minWidth768]: {
       paddingBottom: '4rem',
     },
   },
@@ -75,7 +76,7 @@ export const heroCopy = style({
 
 export const title = style({
   '@media': {
-    '(min-width: 768px)': {
+    [mediaQueries.minWidth768]: {
       fontSize: '3.4rem',
     },
   },
@@ -105,7 +106,7 @@ export const titleAccent = style({
 
 export const heroLead = style({
   '@media': {
-    '(min-width: 768px)': {
+    [mediaQueries.minWidth768]: {
       fontSize: '1.95rem',
     },
   },
@@ -204,7 +205,7 @@ export const labInner = style({
 
 export const sectionTitle = style({
   '@media': {
-    '(min-width: 768px)': {
+    [mediaQueries.minWidth768]: {
       fontSize: '2.6rem',
     },
   },
@@ -260,7 +261,7 @@ export const panel = style({
 
 export const canvasShell = style({
   '@media': {
-    '(min-width: 768px)': {
+    [mediaQueries.minWidth768]: {
       aspectRatio: '16 / 9',
     },
   },
@@ -304,7 +305,7 @@ export const canvasOverlay = style({
 
 export const controlsRow = style({
   '@media': {
-    '(min-width: 768px)': {
+    [mediaQueries.minWidth768]: {
       gridAutoFlow: 'column',
       justifyContent: 'space-between',
     },
@@ -391,7 +392,7 @@ export const zoomButton = style({
 
 export const statusBar = style({
   '@media': {
-    '(min-width: 768px)': {
+    [mediaQueries.minWidth768]: {
       gridAutoFlow: 'column',
       justifyContent: 'space-between',
     },
@@ -469,7 +470,7 @@ export const actionButtonLoading = style({
 
 export const raceRow = style({
   '@media': {
-    '(min-width: 768px)': {
+    [mediaQueries.minWidth768]: {
       gridTemplateColumns: '9rem minmax(0, 1fr) 8rem',
     },
   },
@@ -580,7 +581,7 @@ export const edgeImage = style({
 
 export const edgeMeta = style({
   '@media': {
-    '(min-width: 768px)': {
+    [mediaQueries.minWidth768]: {
       gridAutoFlow: 'column',
       justifyContent: 'space-between',
     },

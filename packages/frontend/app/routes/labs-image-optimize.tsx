@@ -1,8 +1,12 @@
 import type { JSX, ChangeEvent as ReactChangeEvent } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { Breadcrumbs } from '../components/breadcrumbs.tsx';
 import { Link } from '../components/Link.tsx';
-import { PageFooter } from '../components/page-footer.tsx';
+import * as chrome from '../components/page-chrome.css.ts';
+import * as footerStyles from '../components/page-footer.css.ts';
+import { PagePreferences, SiteBrand } from '../components/page-navigation.tsx';
+import { PoweredByTools } from '../components/powered-by-tools.tsx';
 import { Text } from '../components/text.tsx';
 import { IconArrowLeft, IconTriangleExclamation } from '../icons.ts';
 import * as m from '../paraglide/messages.js';
@@ -561,250 +565,293 @@ export default function ImageOptimizeLab(): JSX.Element {
   } = useImageOptimize();
 
   return (
-    <main className={c.page}>
-      <ImageOptimizeHero />
+    <>
+      <ImageOptimizeHeader />
+      <main className={c.page}>
+        <ImageOptimizeHero />
 
-      <section className={c.inner}>
-        <div className={c.workspace}>
-          <div className={c.uploadColumn}>
-            <p className={c.sectionLabel}>{m.image_optimize_input_label()}</p>
-            <h2 className={c.sectionTitle}>{m.image_optimize_input_title()}</h2>
-            <p className={c.sectionBody}>{m.image_optimize_input_desc()}</p>
+        <section className={c.inner}>
+          <div className={c.workspace}>
+            <div className={c.uploadColumn}>
+              <p className={c.sectionLabel}>{m.image_optimize_input_label()}</p>
+              <h2 className={c.sectionTitle}>{m.image_optimize_input_title()}</h2>
+              <p className={c.sectionBody}>{m.image_optimize_input_desc()}</p>
 
-            {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: the label is the keyboard-accessible file picker and drag target. */}
-            <label
-              className={`${c.dropzone} ${dragging ? c.dropzoneActive : ''}`.trim()}
-              onDragEnter={onDragEnter}
-              onDragLeave={onDragLeave}
-              onDragOver={onDragOver}
-              onDrop={onDrop}
-            >
-              <input
-                accept={ACCEPT}
-                className={c.input}
-                onChange={onInput}
-                ref={fileInputRef}
-                type="file"
-              />
-              {previewUrl ? (
-                <div
-                  className={c.previewWrap}
-                  style={{
-                    backgroundColor: '#111827',
-                  }}
-                >
-                  <img
-                    alt="Selected upload preview"
-                    className={c.preview}
-                    src={previewUrl}
-                  />
+              {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: the label is the keyboard-accessible file picker and drag target. */}
+              <label
+                className={`${c.dropzone} ${dragging ? c.dropzoneActive : ''}`.trim()}
+                onDragEnter={onDragEnter}
+                onDragLeave={onDragLeave}
+                onDragOver={onDragOver}
+                onDrop={onDrop}
+              >
+                <input
+                  accept={ACCEPT}
+                  className={c.input}
+                  onChange={onInput}
+                  ref={fileInputRef}
+                  type="file"
+                />
+                {previewUrl ? (
+                  <div
+                    className={c.previewWrap}
+                    style={{
+                      backgroundColor: '#111827',
+                    }}
+                  >
+                    <img
+                      alt="Selected upload preview"
+                      className={c.preview}
+                      src={previewUrl}
+                    />
+                  </div>
+                ) : (
+                  <div className={c.dropContent}>
+                    <span className={c.dropIcon}>◇</span>
+                    <p className={c.dropTitle}>{m.image_optimize_drop_title()}</p>
+                    <p className={c.dropNote}>{m.image_optimize_formats()}</p>
+                  </div>
+                )}
+              </label>
+
+              {/* Presets */}
+              <p className={c.sectionLabel}>{m.image_optimize_preset_title()}</p>
+              <div className={c.presetGroup}>
+                {PRESETS.map(preset => (
+                  <button
+                    className={`${c.presetChip} ${activePreset === `${preset.width}x${preset.height}` ? c.presetChipActive : ''}`.trim()}
+                    key={`${preset.width}x${preset.height}`}
+                    /* biome-ignore lint/performance/noJsxPropsBind: preset is a stable const, no re-render concern */
+                    onClick={() => selectPreset(preset)}
+                    type="button"
+                  >
+                    {preset.label()}
+                  </button>
+                ))}
+              </div>
+
+              {/* Target dimensions */}
+              <p className={c.sectionLabel}>{m.image_optimize_label_dimensions()}</p>
+              <div className={c.dimensionRow}>
+                <input
+                  className={c.dimensionInput}
+                  min={1}
+                  onChange={onWidthChange}
+                  placeholder={m.image_optimize_width_placeholder()}
+                  type="number"
+                  value={targetWidth || ''}
+                />
+                <span className={c.dimensionSeparator}>×</span>
+                <input
+                  className={c.dimensionInput}
+                  min={1}
+                  onChange={onHeightChange}
+                  placeholder={m.image_optimize_height_placeholder()}
+                  type="number"
+                  value={targetHeight || ''}
+                />
+              </div>
+
+              {/* Output format */}
+              <p className={c.sectionLabel}>{m.image_optimize_format_title()}</p>
+              <div className={c.formatGroup}>
+                {OUTPUT_FORMATS.map(outputFormat => (
+                  <label
+                    className={`${c.filterOption} ${format === outputFormat ? c.filterOptionSelected : ''}`.trim()}
+                    key={outputFormat}
+                  >
+                    <input
+                      checked={format === outputFormat}
+                      className={c.filterRadio}
+                      name="output-format"
+                      /* biome-ignore lint/performance/noJsxPropsBind: format id is a stable const */
+                      onChange={() => invalidateFormat(outputFormat)}
+                      type="radio"
+                      value={outputFormat}
+                    />
+                    <span className={c.filterLabel}>{outputFormat.toUpperCase()}</span>
+                  </label>
+                ))}
+              </div>
+
+              {/* Output quality */}
+              <div>
+                <div className={c.qualityHeader}>
+                  <p className={c.sectionLabel}>{m.image_optimize_quality_title()}</p>
+                  <span className={c.qualityValue}>{String(quality)}</span>
                 </div>
-              ) : (
-                <div className={c.dropContent}>
-                  <span className={c.dropIcon}>◇</span>
-                  <p className={c.dropTitle}>{m.image_optimize_drop_title()}</p>
-                  <p className={c.dropNote}>{m.image_optimize_formats()}</p>
-                </div>
-              )}
-            </label>
+                <input
+                  aria-label={m.image_optimize_quality_title()}
+                  className={c.qualityInput}
+                  max={100}
+                  min={1}
+                  onChange={onQualityChange}
+                  type="range"
+                  value={quality}
+                />
+              </div>
 
-            {/* Presets */}
-            <p className={c.sectionLabel}>{m.image_optimize_preset_title()}</p>
-            <div className={c.presetGroup}>
-              {PRESETS.map(preset => (
+              {/* Filter selection */}
+              <p className={c.sectionLabel}>{m.image_optimize_filter_title()}</p>
+              <div className={c.filterGroup}>
+                {FILTERS.map(f => (
+                  <label
+                    className={`${c.filterOption} ${filter === f.id ? c.filterOptionSelected : ''}`.trim()}
+                    key={f.id}
+                  >
+                    <input
+                      checked={filter === f.id}
+                      className={c.filterRadio}
+                      name="filter"
+                      /* biome-ignore lint/performance/noJsxPropsBind: filter id is a stable const */
+                      onChange={() => invalidateFilter(f.id)}
+                      type="radio"
+                      value={f.id}
+                    />
+                    <span className={c.filterLabel}>
+                      {f.labelKey()}
+                      {f.id === RECOMMENDED_FILTER ? (
+                        <span className={c.filterRecommended}>Recommended</span>
+                      ) : null}
+                    </span>
+                  </label>
+                ))}
+              </div>
+
+              {/* Actions */}
+              <div className={c.actionRow}>
                 <button
-                  className={`${c.presetChip} ${activePreset === `${preset.width}x${preset.height}` ? c.presetChipActive : ''}`.trim()}
-                  key={`${preset.width}x${preset.height}`}
-                  /* biome-ignore lint/performance/noJsxPropsBind: preset is a stable const, no re-render concern */
-                  onClick={() => selectPreset(preset)}
+                  className={c.action}
+                  disabled={!file || busy}
+                  onClick={optimize}
                   type="button"
                 >
-                  {preset.label()}
+                  {busy ? m.image_optimize_analyzing() : m.image_optimize_action_optimize()}
                 </button>
-              ))}
-            </div>
-
-            {/* Target dimensions */}
-            <p className={c.sectionLabel}>{m.image_optimize_label_dimensions()}</p>
-            <div className={c.dimensionRow}>
-              <input
-                className={c.dimensionInput}
-                min={1}
-                onChange={onWidthChange}
-                placeholder={m.image_optimize_width_placeholder()}
-                type="number"
-                value={targetWidth || ''}
-              />
-              <span className={c.dimensionSeparator}>×</span>
-              <input
-                className={c.dimensionInput}
-                min={1}
-                onChange={onHeightChange}
-                placeholder={m.image_optimize_height_placeholder()}
-                type="number"
-                value={targetHeight || ''}
-              />
-            </div>
-
-            {/* Output format */}
-            <p className={c.sectionLabel}>{m.image_optimize_format_title()}</p>
-            <div className={c.formatGroup}>
-              {OUTPUT_FORMATS.map(outputFormat => (
-                <label
-                  className={`${c.filterOption} ${format === outputFormat ? c.filterOptionSelected : ''}`.trim()}
-                  key={outputFormat}
+                <button
+                  className={c.subtleAction}
+                  disabled={!file}
+                  onClick={clearAll}
+                  type="button"
                 >
-                  <input
-                    checked={format === outputFormat}
-                    className={c.filterRadio}
-                    name="output-format"
-                    /* biome-ignore lint/performance/noJsxPropsBind: format id is a stable const */
-                    onChange={() => invalidateFormat(outputFormat)}
-                    type="radio"
-                    value={outputFormat}
-                  />
-                  <span className={c.filterLabel}>{outputFormat.toUpperCase()}</span>
-                </label>
-              ))}
-            </div>
-
-            {/* Output quality */}
-            <div>
-              <div className={c.qualityHeader}>
-                <p className={c.sectionLabel}>{m.image_optimize_quality_title()}</p>
-                <span className={c.qualityValue}>{String(quality)}</span>
-              </div>
-              <input
-                aria-label={m.image_optimize_quality_title()}
-                className={c.qualityInput}
-                max={100}
-                min={1}
-                onChange={onQualityChange}
-                type="range"
-                value={quality}
-              />
-            </div>
-
-            {/* Filter selection */}
-            <p className={c.sectionLabel}>{m.image_optimize_filter_title()}</p>
-            <div className={c.filterGroup}>
-              {FILTERS.map(f => (
-                <label
-                  className={`${c.filterOption} ${filter === f.id ? c.filterOptionSelected : ''}`.trim()}
-                  key={f.id}
-                >
-                  <input
-                    checked={filter === f.id}
-                    className={c.filterRadio}
-                    name="filter"
-                    /* biome-ignore lint/performance/noJsxPropsBind: filter id is a stable const */
-                    onChange={() => invalidateFilter(f.id)}
-                    type="radio"
-                    value={f.id}
-                  />
-                  <span className={c.filterLabel}>
-                    {f.labelKey()}
-                    {f.id === RECOMMENDED_FILTER ? (
-                      <span className={c.filterRecommended}>Recommended</span>
-                    ) : null}
-                  </span>
-                </label>
-              ))}
-            </div>
-
-            {/* Actions */}
-            <div className={c.actionRow}>
-              <button
-                className={c.action}
-                disabled={!file || busy}
-                onClick={optimize}
-                type="button"
-              >
-                {busy ? m.image_optimize_analyzing() : m.image_optimize_action_optimize()}
-              </button>
-              <button
-                className={c.subtleAction}
-                disabled={!file}
-                onClick={clearAll}
-                type="button"
-              >
-                {m.image_optimize_reset()}
-              </button>
-            </div>
-
-            {error ? (
-              <div
-                aria-live="polite"
-                className={c.error}
-                role="alert"
-              >
-                <IconTriangleExclamation className={c.errorIcon} />
-                <span className={c.errorText}>{error}</span>
-              </div>
-            ) : null}
-          </div>
-
-          {/* Result column */}
-          <div className={c.resultColumn}>
-            <div className={c.result}>
-              <div className={c.resultHeader}>
-                <Text
-                  as="h3"
-                  className={c.resultTitle}
-                >
-                  {busy
-                    ? m.image_optimize_analyzing()
-                    : result
-                      ? m.image_optimize_optimized_title()
-                      : m.image_optimize_empty_result()}
-                </Text>
+                  {m.image_optimize_reset()}
+                </button>
               </div>
 
-              {busy ? (
+              {error ? (
                 <div
                   aria-live="polite"
-                  className={c.loadingResult}
-                  role="status"
+                  className={c.error}
+                  role="alert"
                 >
-                  {placeholderUrl ? (
-                    <img
-                      alt=""
-                      className={c.loadingPlaceholder}
-                      src={placeholderUrl}
-                    />
-                  ) : (
-                    <div className={c.loadingPlaceholderFallback} />
-                  )}
-                  <div className={c.loadingOverlay}>
-                    <span
-                      aria-hidden="true"
-                      className={c.loadingSpinner}
-                    />
-                    <span>{m.image_optimize_analyzing()}</span>
+                  <IconTriangleExclamation className={c.errorIcon} />
+                  <span className={c.errorText}>{error}</span>
+                </div>
+              ) : null}
+            </div>
+
+            {/* Result column */}
+            <div className={c.resultColumn}>
+              <div className={c.result}>
+                <div className={c.resultHeader}>
+                  <Text
+                    as="h3"
+                    className={c.resultTitle}
+                  >
+                    {busy
+                      ? m.image_optimize_analyzing()
+                      : result
+                        ? m.image_optimize_optimized_title()
+                        : m.image_optimize_empty_result()}
+                  </Text>
+                </div>
+
+                {busy ? (
+                  <div
+                    aria-live="polite"
+                    className={c.loadingResult}
+                    role="status"
+                  >
+                    {placeholderUrl ? (
+                      <img
+                        alt=""
+                        className={c.loadingPlaceholder}
+                        src={placeholderUrl}
+                      />
+                    ) : (
+                      <div className={c.loadingPlaceholderFallback} />
+                    )}
+                    <div className={c.loadingOverlay}>
+                      <span
+                        aria-hidden="true"
+                        className={c.loadingSpinner}
+                      />
+                      <span>{m.image_optimize_analyzing()}</span>
+                    </div>
                   </div>
-                </div>
-              ) : result ? (
-                <>
-                  {optimizedSrc ? (
-                    <img
-                      alt="Resized output"
-                      className={c.optimizedImage}
-                      src={optimizedSrc}
-                    />
-                  ) : null}
-                  <ResultMetadata result={result} />
-                </>
-              ) : (
-                <div className={c.emptyResult}>
-                  <p>{m.image_optimize_empty_result()}</p>
-                </div>
-              )}
+                ) : result ? (
+                  <>
+                    {optimizedSrc ? (
+                      <img
+                        alt="Resized output"
+                        className={c.optimizedImage}
+                        src={optimizedSrc}
+                      />
+                    ) : null}
+                    <ResultMetadata result={result} />
+                  </>
+                ) : (
+                  <div className={c.emptyResult}>
+                    <p>{m.image_optimize_empty_result()}</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </main>
+      <ImageOptimizeFooter />
+    </>
+  );
+}
 
-      <PageFooter />
-    </main>
+function ImageOptimizeFooter() {
+  return (
+    <footer className={footerStyles.footer}>
+      <div className={footerStyles.footerInner}>
+        <PoweredByTools />
+      </div>
+    </footer>
+  );
+}
+
+function ImageOptimizeHeader() {
+  return (
+    <header className={chrome.header}>
+      <div className={chrome.mobileBrand}>
+        <SiteBrand />
+      </div>
+      <div className={chrome.breadcrumbSlot}>
+        <Breadcrumbs
+          items={[
+            {
+              label: m.holy_grail_nav_home(),
+              to: '/',
+            },
+            {
+              label: m.route_labs_title(),
+              to: '/labs',
+            },
+            {
+              label: m.labs_tool_image_optimize_title(),
+            },
+          ]}
+        />
+      </div>
+      <PagePreferences
+        activePath="/labs"
+        hasSidebar={false}
+      />
+    </header>
   );
 }

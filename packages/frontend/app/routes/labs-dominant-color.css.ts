@@ -1,6 +1,7 @@
 import { createVar, keyframes, style } from '@vanilla-extract/css';
 
 import { colorTokens } from '../styles/color-tokens.contract.css.ts';
+import { mediaQueries } from '../styles/media-queries.ts';
 import { radiusTokens } from '../styles/radius-tokens.contract.css.ts';
 
 const reveal = keyframes({
@@ -65,7 +66,7 @@ export const backLink = style({
 });
 export const heroActions = style({
   '@media': {
-    '(max-width: 480px)': {
+    [mediaQueries.maxWidth480]: {
       gridAutoFlow: 'row',
     },
   },
@@ -116,7 +117,7 @@ export const inner = style({
 });
 export const workspace = style({
   '@media': {
-    '(min-width: 900px)': {
+    [mediaQueries.minWidth900]: {
       gridTemplateColumns: 'minmax(0, 1.05fr) minmax(20rem, 0.95fr)',
     },
   },

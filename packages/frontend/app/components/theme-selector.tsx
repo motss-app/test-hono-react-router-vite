@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import * as m from '../paraglide/messages.js';
 import { IconCheck, IconDesktop, IconMoon, IconSun } from './expressive.icons.ts';
-import * as shell from './expressive-page-shell.css.ts';
+import * as shell from './page-chrome.css.ts';
 import * as s from './theme-selector.css.ts';
 
 type ThemePreference = 'light' | 'dark' | 'system';

@@ -1,20 +1,11 @@
 import { globalStyle, style } from '@vanilla-extract/css';
 
 import { expressiveTokens as t } from '../styles/expressive-tokens.css.ts';
+import { mediaQueries } from '../styles/media-queries.ts';
 
-export const shell = style({
-  '@media': {
-    '(min-width: 1000px)': {
-      gridTemplateColumns: '232px minmax(0, 1fr)',
-    },
-  },
-  backgroundColor: t.color.surface,
-  color: t.color.onSurface,
-  display: 'grid',
-  minHeight: '100svh',
-});
+export const interactiveScope = style({});
 
-globalStyle(`${shell} svg`, {
+globalStyle(`${interactiveScope} svg`, {
   flexShrink: 0,
   height: '1em',
   width: '1em',
@@ -37,7 +28,7 @@ export const skipLink = style({
 });
 export const sidebar = style({
   '@media': {
-    '(min-width: 1000px)': {
+    [mediaQueries.minWidth1000]: {
       backgroundColor: t.color.surfaceContainer,
       boxSizing: 'border-box',
       display: 'flex',
@@ -73,7 +64,7 @@ export const brandMark = style({
 });
 export const brandCaption = style({
   '@media': {
-    '(max-width: 999px)': {
+    [mediaQueries.maxWidth999]: {
       display: 'none',
     },
   },
@@ -120,18 +111,17 @@ export const navLink = style({
   textDecoration: 'none',
   transition: `background-color ${t.motion.duration} ${t.motion.easing}, color ${t.motion.duration} ${t.motion.easing}`,
 });
-export const workspace = style({
-  minWidth: 0,
-});
 export const header = style({
   '@media': {
-    '(max-width: 599px)': {
+    [mediaQueries.maxWidth599]: {
       minHeight: '72px',
       padding: '0.75rem 1rem',
     },
   },
   alignItems: 'center',
+  backgroundColor: t.color.surface,
   boxSizing: 'border-box',
+  color: t.color.onSurface,
   display: 'flex',
   flexWrap: 'wrap',
   gap: t.space.small,
@@ -141,19 +131,32 @@ export const header = style({
   position: 'relative',
   zIndex: 5,
 });
-export const pageLabel = style({
+export const breadcrumbSlot = style({
   '@media': {
-    '(max-width: 999px)': {
-      display: 'none',
+    [mediaQueries.maxWidth999]: {
+      flexBasis: '100%',
+      order: 2,
     },
   },
-  color: t.color.onSurfaceVariant,
-  fontSize: t.type.label,
-  fontWeight: 600,
+  flex: '1 1 0',
+  minWidth: 0,
+});
+globalStyle(`${header} svg`, {
+  flexShrink: 0,
+  height: '1em',
+  width: '1em',
+});
+globalStyle(`${header} *`, {
+  '@media': {
+    [mediaQueries.reducedMotion]: {
+      animation: 'none !important',
+      transition: 'none !important',
+    },
+  },
 });
 export const mobileBrand = style({
   '@media': {
-    '(min-width: 1000px)': {
+    [mediaQueries.minWidth1000]: {
       display: 'none',
     },
   },
@@ -167,6 +170,7 @@ export const controls = style({
   justifyContent: 'flex-end',
   marginInlineStart: 'auto',
   maxWidth: '100%',
+  order: 1,
 });
 export const iconButton = style({
   alignItems: 'center',
@@ -195,9 +199,10 @@ export const iconButton = style({
   transition: `background-color ${t.motion.duration} ${t.motion.easing}`,
   width: '44px',
 });
+export const navigationMenu = style({});
 export const mobileMenu = style({
   '@media': {
-    '(min-width: 1000px)': {
+    [mediaQueries.minWidth1000]: {
       display: 'none',
     },
   },
@@ -254,9 +259,9 @@ globalStyle(`${brand}:focus-visible`, {
   outline: `3px solid ${t.color.primary}`,
   outlineOffset: '3px',
 });
-globalStyle(`${shell} *`, {
+globalStyle(`${interactiveScope} *`, {
   '@media': {
-    '(prefers-reduced-motion: reduce)': {
+    [mediaQueries.reducedMotion]: {
       animation: 'none !important',
       scrollBehavior: 'auto',
       transition: 'none !important',

@@ -1,7 +1,11 @@
 import type { JSX } from 'react';
 
+import { Breadcrumbs } from '../components/breadcrumbs.tsx';
 import { Link } from '../components/Link.tsx';
-import { PageFooter } from '../components/page-footer.tsx';
+import * as chrome from '../components/page-chrome.css.ts';
+import * as footerStyles from '../components/page-footer.css.ts';
+import { PagePreferences, SiteBrand } from '../components/page-navigation.tsx';
+import { PoweredByTools } from '../components/powered-by-tools.tsx';
 import { Text } from '../components/text.tsx';
 import { IconArrowLeft } from '../icons.ts';
 import * as m from '../paraglide/messages.js';
@@ -57,83 +61,122 @@ export default function Labs(): JSX.Element {
   const tools = getTools();
 
   return (
-    <main className={c.page}>
-      <section className={c.hero}>
-        <div className={c.heroInner}>
-          <div className={c.heroCopy}>
-            <Text
-              as="h1"
-              className={c.title}
-            >
-              {m.labs_title()}
-              <span className={c.titleAccent}>{m.labs_title_accent()}</span>
-            </Text>
-
-            <Text
-              as="p"
-              className={c.heroLead}
-            >
-              {m.labs_hero_lead()}
-            </Text>
-
-            <p className={c.heroBody}>{m.labs_hero_body()}</p>
-
-            <div className={c.heroActions}>
-              <Link
-                className={c.ctaSecondary}
-                to="/"
+    <>
+      <LabsHeader />
+      <main className={c.page}>
+        <section className={c.hero}>
+          <div className={c.heroInner}>
+            <div className={c.heroCopy}>
+              <Text
+                as="h1"
+                className={c.title}
               >
-                <IconArrowLeft className={iconStyles.base} />
-                <span>{m.labs_cta_back_home()}</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+                {m.labs_title()}
+                <span className={c.titleAccent}>{m.labs_title_accent()}</span>
+              </Text>
 
-      <section>
-        <div className={c.labInner}>
-          <Text
-            as="h2"
-            className={c.sectionTitle}
-          >
-            {m.labs_section_title()}
-          </Text>
-          <p className={c.sectionIntro}>{m.labs_section_intro()}</p>
-
-          <div className={c.toolList}>
-            {tools.map(tool => (
-              <div
-                className={c.toolRow}
-                key={tool.to}
+              <Text
+                as="p"
+                className={c.heroLead}
               >
+                {m.labs_hero_lead()}
+              </Text>
+
+              <p className={c.heroBody}>{m.labs_hero_body()}</p>
+
+              <div className={c.heroActions}>
                 <Link
-                  className={c.toolPanel}
-                  to={tool.to}
+                  className={c.ctaSecondary}
+                  to="/"
                 >
-                  <span className={c.toolNumber}>{tool.number}</span>
-
-                  <div className={c.toolContent}>
-                    <Text
-                      as="h3"
-                      className={c.toolTitle}
-                    >
-                      {tool.title}
-                    </Text>
-                    <p className={c.toolBody}>{tool.description}</p>
-                  </div>
-
-                  <span className={c.toolAction}>{m.route_open_action()}</span>
+                  <IconArrowLeft className={iconStyles.base} />
+                  <span>{m.labs_cta_back_home()}</span>
                 </Link>
               </div>
-            ))}
+            </div>
           </div>
+        </section>
 
-          <p className={c.footerNote}>{m.labs_more_note()}</p>
-        </div>
-      </section>
+        <section>
+          <div className={c.labInner}>
+            <Text
+              as="h2"
+              className={c.sectionTitle}
+            >
+              {m.labs_section_title()}
+            </Text>
+            <p className={c.sectionIntro}>{m.labs_section_intro()}</p>
 
-      <PageFooter />
-    </main>
+            <div className={c.toolList}>
+              {tools.map(tool => (
+                <div
+                  className={c.toolRow}
+                  key={tool.to}
+                >
+                  <Link
+                    className={c.toolPanel}
+                    to={tool.to}
+                  >
+                    <span className={c.toolNumber}>{tool.number}</span>
+
+                    <div className={c.toolContent}>
+                      <Text
+                        as="h3"
+                        className={c.toolTitle}
+                      >
+                        {tool.title}
+                      </Text>
+                      <p className={c.toolBody}>{tool.description}</p>
+                    </div>
+
+                    <span className={c.toolAction}>{m.route_open_action()}</span>
+                  </Link>
+                </div>
+              ))}
+            </div>
+
+            <p className={c.footerNote}>{m.labs_more_note()}</p>
+          </div>
+        </section>
+      </main>
+      <LabsFooter />
+    </>
+  );
+}
+
+function LabsFooter() {
+  return (
+    <footer className={footerStyles.footer}>
+      <div className={footerStyles.footerInner}>
+        <PoweredByTools />
+      </div>
+    </footer>
+  );
+}
+
+function LabsHeader() {
+  return (
+    <header className={chrome.header}>
+      <div className={chrome.mobileBrand}>
+        <SiteBrand />
+      </div>
+      <div className={chrome.breadcrumbSlot}>
+        <Breadcrumbs
+          items={[
+            {
+              label: m.holy_grail_nav_home(),
+              to: '/',
+            },
+            {
+              label: m.route_labs_title(),
+            },
+          ]}
+        />
+      </div>
+      <PagePreferences
+        activePath="/labs"
+        hasSidebar={false}
+      />
+    </header>
   );
 }

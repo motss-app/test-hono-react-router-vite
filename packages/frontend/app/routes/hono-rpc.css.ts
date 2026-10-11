@@ -1,6 +1,7 @@
 import { keyframes, style } from '@vanilla-extract/css';
 
 import { colorTokens } from '../styles/color-tokens.contract.css.ts';
+import { mediaQueries } from '../styles/media-queries.ts';
 import { radiusTokens } from '../styles/radius-tokens.contract.css.ts';
 
 const heroReveal = keyframes({
@@ -117,7 +118,7 @@ export const dataLabel = style({
 });
 export const dataList = style({
   '@media': {
-    '(min-width: 768px)': {
+    [mediaQueries.minWidth768]: {
       gridTemplateColumns: '1fr 1fr',
     },
   },
@@ -198,7 +199,7 @@ export const heroBody = style({
 });
 export const heroCopy = style({
   '@media': {
-    '(min-width: 768px)': {
+    [mediaQueries.minWidth768]: {
       paddingBottom: '4rem',
     },
   },
@@ -210,7 +211,7 @@ export const heroCopy = style({
 });
 export const heroInner = style({
   '@media': {
-    '(min-width: 768px)': {
+    [mediaQueries.minWidth768]: {
       paddingBottom: 0,
     },
   },
@@ -227,7 +228,7 @@ export const heroInner = style({
 });
 export const heroLead = style({
   '@media': {
-    '(min-width: 768px)': {
+    [mediaQueries.minWidth768]: {
       fontSize: '1.95rem',
     },
   },
@@ -252,10 +253,10 @@ export const heroLead = style({
 });
 export const heroMedia = style({
   '@media': {
-    '(min-width: 768px)': {
+    [mediaQueries.minWidth768]: {
       backgroundPosition: 'center center',
     },
-    '(prefers-reduced-motion: reduce)': {
+    [mediaQueries.reducedMotion]: {
       animationDuration: '1ms',
       animationIterationCount: 1,
     },
@@ -330,7 +331,7 @@ export const routesList = style({
 });
 export const routesTitle = style({
   '@media': {
-    '(min-width: 768px)': {
+    [mediaQueries.minWidth768]: {
       fontSize: '2.6rem',
     },
   },
@@ -365,7 +366,7 @@ export const rowContent = style({
 });
 export const rowNumber = style({
   '@media': {
-    '(min-width: 768px)': {
+    [mediaQueries.minWidth768]: {
       fontSize: '2rem',
     },
   },
@@ -382,7 +383,7 @@ export const rowNumber = style({
 });
 export const rowPanel = style({
   '@media': {
-    '(min-width: 960px)': {
+    [mediaQueries.minWidth960]: {
       gridTemplateColumns: '5.5rem minmax(0, 18rem) minmax(0, 1fr)',
     },
   },
@@ -437,10 +438,10 @@ export const skeletonTimestamp = style({
 });
 export const title = style({
   '@media': {
-    '(min-width: 768px)': {
+    [mediaQueries.minWidth768]: {
       fontSize: '6.4rem',
     },
-    '(prefers-reduced-motion: reduce)': {
+    [mediaQueries.reducedMotion]: {
       animationDuration: '1ms',
       animationIterationCount: 1,
     },

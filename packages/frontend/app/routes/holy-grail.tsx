@@ -1,16 +1,13 @@
 import { type JSX, useEffect, useLayoutEffect, useRef } from 'react';
 
+import { Breadcrumbs } from '../components/breadcrumbs.tsx';
 import { Link } from '../components/Link.tsx';
-import { LocaleSwitcher } from '../components/locale-switcher.tsx';
+import * as chrome from '../components/page-chrome.css.ts';
+import * as footerStyles from '../components/page-footer.css.ts';
+import { PagePreferences, SiteBrand } from '../components/page-navigation.tsx';
+import { PoweredByTools } from '../components/powered-by-tools.tsx';
 import { Text } from '../components/text.tsx';
-import {
-  IconArrowLeft,
-  IconCircleInfo,
-  IconGears,
-  IconHome,
-  IconServer,
-  IconShield,
-} from '../icons.ts';
+import { IconCircleInfo, IconHome, IconServer, IconShield } from '../icons.ts';
 import * as m from '../paraglide/messages.js';
 import type { Route } from './+types/holy-grail.ts';
 import {
@@ -18,15 +15,8 @@ import {
   articleEyebrow,
   articleShell,
   articleTitle,
-  brand,
-  brandIcon,
-  brandMark,
-  footer,
-  footerInner,
   footerLink,
-  footerNote,
   header,
-  headerInner,
   layoutCenter,
   layoutDiagram,
   layoutDiagramMain,
@@ -35,9 +25,6 @@ import {
   layoutLabel,
   layoutLeft,
   layoutRight,
-  layoutTitle,
-  nav,
-  navLink,
   pageShell,
   railBody,
   railIcon,
@@ -139,55 +126,29 @@ export default function HolyGrailPage(): JSX.Element {
       ref={shellRef}
     >
       <header
-        className={header}
+        className={`${header} ${chrome.header}`}
         ref={headerRef}
       >
-        <div className={headerInner}>
-          <div className={brand}>
-            <span className={brandMark}>
-              <IconGears className={brandIcon} />
-            </span>
-
-            <div>
-              <Text
-                as="p"
-                className={articleEyebrow}
-              >
-                {m.holy_grail_eyebrow()}
-              </Text>
-              <Text
-                as="h1"
-                className={layoutTitle}
-              >
-                {m.holy_grail_title()}
-              </Text>
-            </div>
-          </div>
-
-          <nav
-            aria-label="Primary"
-            className={nav}
-          >
-            <Link
-              className={navLink}
-              to="/"
-            >
-              {m.holy_grail_nav_home()}
-            </Link>
-            <Link
-              className={navLink}
-              to="/about"
-            >
-              {m.holy_grail_nav_about()}
-            </Link>
-            <Link
-              className={navLink}
-              to="/hono-rpc"
-            >
-              {m.holy_grail_nav_rpc()}
-            </Link>
-          </nav>
+        <div className={chrome.mobileBrand}>
+          <SiteBrand />
         </div>
+        <div className={chrome.breadcrumbSlot}>
+          <Breadcrumbs
+            items={[
+              {
+                label: m.holy_grail_nav_home(),
+                to: '/',
+              },
+              {
+                label: m.route_holy_grail_title(),
+              },
+            ]}
+          />
+        </div>
+        <PagePreferences
+          activePath="/holy-grail"
+          hasSidebar={false}
+        />
       </header>
 
       <main className={shell}>
@@ -225,6 +186,12 @@ export default function HolyGrailPage(): JSX.Element {
         </aside>
 
         <article className={articleShell}>
+          <Text
+            as="h1"
+            className={articleTitle}
+          >
+            {m.holy_grail_title()}
+          </Text>
           <div className={shellTopline}>
             <Text
               as="p"
@@ -381,30 +348,17 @@ export default function HolyGrailPage(): JSX.Element {
         </aside>
       </main>
 
-      <footer className={footer}>
-        <div className={footerInner}>
-          <LocaleSwitcher />
-          <p className={footerNote}>{m.holy_grail_footer_note()}</p>
-
-          <div className={nav}>
-            <Link
-              className={footerLink}
-              to="/"
-            >
-              <IconArrowLeft className={railIcon} />
-              <span>{m.holy_grail_back_home()}</span>
-            </Link>
-
-            <Link
-              className={footerLink}
-              to="/errors"
-            >
-              <IconCircleInfo className={railIcon} />
-              <span>{m.holy_grail_see_another()}</span>
-            </Link>
-          </div>
-        </div>
-      </footer>
+      <HolyGrailFooter />
     </div>
+  );
+}
+
+function HolyGrailFooter() {
+  return (
+    <footer className={footerStyles.footer}>
+      <div className={footerStyles.footerInner}>
+        <PoweredByTools />
+      </div>
+    </footer>
   );
 }

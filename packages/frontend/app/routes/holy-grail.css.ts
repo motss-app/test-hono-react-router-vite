@@ -1,6 +1,7 @@
 import { keyframes, style } from '@vanilla-extract/css';
 
 import { colorTokens } from '../styles/color-tokens.contract.css.ts';
+import { mediaQueries } from '../styles/media-queries.ts';
 import { radiusTokens } from '../styles/radius-tokens.contract.css.ts';
 
 const fadeUp = keyframes({
@@ -51,7 +52,7 @@ export const articleEyebrow = style({
 });
 export const articleTitle = style({
   '@container': {
-    '(min-width: 48rem)': {
+    [mediaQueries.minWidth48rem]: {
       fontSize: '3.2rem',
     },
   },
@@ -113,39 +114,6 @@ export const brandMark = style({
   },
   width: '3rem',
 });
-export const footer = style({
-  borderBlockStyle: 'solid',
-  borderBlockWidth: '1px',
-  borderColor: colorTokens.slate200,
-  inlineSize: '100%',
-  marginInline: 'auto',
-  maxInlineSize: '96rem',
-  paddingBlockEnd: '1.25rem',
-  paddingBlockStart: '0.75rem',
-  paddingInlineEnd: '1.25rem',
-  paddingInlineStart: '1.25rem',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      borderColor: colorTokens.slate800,
-    },
-  },
-});
-export const footerInner = style({
-  '@container': {
-    '(min-width: 48rem)': {
-      gridTemplateColumns: '1fr auto',
-    },
-  },
-  alignItems: 'center',
-  animationDelay: '280ms',
-  animationDuration: '700ms',
-  animationFillMode: 'both',
-  animationName: fadeUp,
-  animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
-  display: 'grid',
-  gap: '1rem',
-  gridTemplateColumns: '1fr',
-});
 export const footerLink = style({
   alignItems: 'center',
   borderRadius: radiusTokens.radiusMd,
@@ -170,35 +138,14 @@ export const footerLink = style({
   textDecoration: 'none',
   transition: 'background-color 0.2s ease, transform 0.2s ease',
 });
-export const footerNote = style({
-  color: colorTokens.slate600,
-  fontSize: '0.92rem',
-  margin: 0,
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.slate400,
-    },
-  },
-});
 export const header = style({
-  backdropFilter: 'blur(20px)',
-  backgroundColor: 'rgba(250, 250, 250, 0.82)',
-  borderBottomColor: colorTokens.slate200,
-  borderBottomStyle: 'solid',
-  borderBottomWidth: '1px',
   position: 'sticky',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      backgroundColor: 'rgba(2, 6, 23, 0.7)',
-      borderBottomColor: colorTokens.slate800,
-    },
-  },
   top: 0,
-  zIndex: 2,
+  zIndex: 20,
 });
 export const headerInner = style({
   '@container': {
-    '(min-width: 48rem)': {
+    [mediaQueries.minWidth48rem]: {
       gridTemplateColumns: 'auto 1fr',
     },
   },
@@ -264,7 +211,7 @@ export const layoutDiagram = style({
 });
 export const layoutDiagramBody = style({
   '@container': {
-    '(min-width: 40rem)': {
+    [mediaQueries.minWidth40rem]: {
       gridTemplateColumns: 'minmax(12rem, 1fr) minmax(0, 2fr) minmax(12rem, 1fr)',
     },
   },
@@ -292,7 +239,7 @@ export const layoutDiagramHeader = style({
 });
 export const layoutDiagramMain = style({
   '@container': {
-    '(min-width: 40rem)': {
+    [mediaQueries.minWidth40rem]: {
       gridTemplateColumns: 'minmax(12rem, 1fr) minmax(0, 2fr) minmax(12rem, 1fr)',
     },
   },
@@ -323,7 +270,7 @@ export const layoutLabel = style({
 });
 export const layoutTitle = style({
   '@container': {
-    '(min-width: 48rem)': {
+    [mediaQueries.minWidth48rem]: {
       fontSize: '3.6rem',
     },
   },
@@ -399,7 +346,7 @@ export const pageVars = style({
 });
 export const rail = style({
   '@container': {
-    '(min-width: 60rem)': {
+    [mediaQueries.minWidth60rem]: {
       position: 'sticky',
       top: 'calc(var(--holy-grail-header-height) + var(--holy-grail-sticky-gap))',
     },
@@ -496,7 +443,7 @@ export const railSectionAccent = style({
 });
 export const shell = style({
   '@container': {
-    '(min-width: 60rem)': {
+    [mediaQueries.minWidth60rem]: {
       gridTemplateAreas: '"left main right"',
       gridTemplateColumns: 'minmax(12rem, 1fr) minmax(0, 2.6fr) minmax(12rem, 1fr)',
     },
@@ -536,7 +483,7 @@ export const shellRightGrid = style({
 });
 export const shellTitle = style({
   '@container': {
-    '(min-width: 48rem)': {
+    [mediaQueries.minWidth48rem]: {
       fontSize: '1.45rem',
     },
   },
