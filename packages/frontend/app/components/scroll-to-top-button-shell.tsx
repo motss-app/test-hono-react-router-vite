@@ -12,9 +12,18 @@ export function ScrollToTopButtonShell(): JSX.Element | null {
 
   const handleClick = useCallback(() => {
     globalThis.scrollTo({
-      behavior: 'smooth',
+      behavior: globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches
+        ? 'instant'
+        : 'smooth',
       top: 0,
     });
+    const main = document.querySelector('main');
+    if (main) {
+      main.tabIndex = -1;
+      main.focus({
+        preventScroll: true,
+      });
+    }
     setIsVisible(false);
   }, []);
 

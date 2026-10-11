@@ -141,6 +141,12 @@ export const utilities = {
 };
 
 // Locale Switcher
+globalStyle('.locale-switcher-portal', {
+  height: 0,
+  position: 'absolute',
+  width: 0,
+});
+
 globalStyle('.locale-switcher-trigger', {
   alignItems: 'center',
   backgroundColor: 'transparent',

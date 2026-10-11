@@ -1,68 +1,62 @@
 import { ParaglideMessage } from '@inlang/paraglide-js-react';
 import type { JSX } from 'react';
+import { useId } from 'react';
 
+import {
+  IconArrowRight,
+  IconBolt,
+  IconCode,
+  IconFlask,
+  IconTriangleExclamation,
+} from '../components/expressive.icons.ts';
+import { ExpressivePageShell } from '../components/expressive-page-shell.tsx';
 import { Link } from '../components/Link.tsx';
-import { LocaleSwitcher } from '../components/locale-switcher.tsx';
-import { Text } from '../components/text.tsx';
 import * as m from '../paraglide/messages.js';
-import { createBackgroundSvgPreloadLinks } from '../utils/background-svg-preload.ts';
 import type { Route } from './+types/home.ts';
 import * as c from './home.css.ts';
 
-// Must be a function — m.*() calls resolve locale at call time, so they
-// cannot live at module scope where Paraglide locale isn't set yet.
-function getRoutes() {
+/** Resolve translated content at render time, after the locale is set. */
+function getDemos() {
   return [
     {
-      description: m.route_about_description(),
-      number: '01',
-      path: '/about',
-      title: m.route_about_title(),
-      to: '/about',
-    },
-    {
-      description: m.route_holy_grail_description(),
-      number: '02',
-      path: '/holy-grail',
-      title: m.route_holy_grail_title(),
-      to: '/holy-grail',
-    },
-    {
       description: m.route_ssr_description(),
-      number: '03',
-      path: '/ssr',
+      Icon: IconBolt,
       title: m.route_ssr_title(),
       to: '/ssr',
+      tone: c.rendering,
     },
     {
       description: m.route_hono_rpc_description(),
-      number: '04',
-      path: '/hono-rpc',
+      Icon: IconCode,
       title: m.route_hono_rpc_title(),
       to: '/hono-rpc',
+      tone: c.rpc,
     },
     {
       description: m.route_labs_description(),
-      number: '05',
-      path: '/labs',
+      Icon: IconFlask,
       title: m.route_labs_title(),
       to: '/labs',
+      tone: c.labs,
     },
     {
       description: m.route_errors_description(),
-      number: '06',
-      path: '/errors',
+      Icon: IconTriangleExclamation,
       title: m.route_errors_title(),
       to: '/errors',
+      tone: c.errors,
     },
   ];
 }
 
-export const links: Route.LinksFunction = () =>
-  createBackgroundSvgPreloadLinks([
-    '/assets/home-hero-dark.svg',
-    '/assets/home-hero-light.svg',
-  ]);
+export const links: Route.LinksFunction = () => [
+  {
+    as: 'image',
+    href: '/assets/home-expressive.svg',
+    rel: 'preload',
+    type: 'image/svg+xml',
+  },
+];
 
 export function meta(_args: Route.MetaArgs): Route.MetaDescriptors {
   return [
@@ -77,21 +71,33 @@ export function meta(_args: Route.MetaArgs): Route.MetaDescriptors {
 }
 
 export default function Home(): JSX.Element {
+  const mainId = useId();
+  const titleId = useId();
+  const demosId = useId();
   return (
-    <main className={c.page}>
-      <section className={c.hero}>
+    <ExpressivePageShell
+      activePath="/"
+      mainId={mainId}
+    >
+      <main
+        className={c.page}
+        id={mainId}
+        tabIndex={-1}
+      >
         <div
           aria-hidden="true"
-          className={c.heroMedia}
+          className={c.artwork}
         />
-        <div
-          aria-hidden="true"
-          className={c.heroOverlay}
-        />
-
-        <div className={c.heroInner}>
-          <div className={c.heroCopy}>
-            <h1 className={c.title}>
+        <div className={c.content}>
+          <section
+            aria-labelledby={titleId}
+            className={c.hero}
+          >
+            <p className={c.eyebrow}>{m.home_brand_caption()}</p>
+            <h1
+              className={c.title}
+              id={titleId}
+            >
               <ParaglideMessage
                 inputs={{}}
                 markup={{
@@ -100,83 +106,106 @@ export default function Home(): JSX.Element {
                 message={m.home_title}
               />
             </h1>
-
-            <Text
-              as="p"
-              className={c.heroLead}
-            >
-              {m.hero_lead()}
-            </Text>
-
-            <p className={c.heroBody}>{m.hero_body()}</p>
-
+            <p className={c.heroLead}>{m.hero_lead()}</p>
             <div className={c.heroActions}>
               <Link
                 className={c.ctaPrimary}
                 to="/about"
               >
                 {m.hero_cta_overview()}
+                <IconArrowRight aria-hidden="true" />
               </Link>
-              <Link
+              <a
                 className={c.ctaSecondary}
-                to="/hono-rpc"
+                href="https://github.com/motss-app/test-hono-react-router-vite"
               >
-                {m.hero_cta_rpc()}
-              </Link>
+                {m.home_view_source()}
+              </a>
             </div>
-          </div>
-        </div>
-      </section>
-
-      <section className={c.routesSection}>
-        <div className={c.routesInner}>
-          <Text
-            as="h2"
-            className={c.routesTitle}
+          </section>
+          <section
+            aria-labelledby={demosId}
+            className={c.demos}
           >
-            {m.routes_section_title()}
-          </Text>
-
-          <p className={c.routesIntro}>{m.routes_section_intro()}</p>
-
-          <div className={c.routesList}>
-            {getRoutes().map(route => (
-              <div
-                className={c.routeRow}
-                key={route.to}
+            <div className={c.sectionHeading}>
+              <h2
+                className={c.sectionTitle}
+                id={demosId}
               >
+                {m.home_explore_demos()}
+              </h2>
+              <span className={c.sectionNote}>{m.home_demo_count()}</span>
+            </div>
+            <div className={c.demoGrid}>
+              {getDemos().map(({ to, title, description, Icon, tone }) => (
                 <Link
-                  className={c.routeLink}
-                  to={route.to}
+                  className={`${c.demoCard} ${tone}`}
+                  key={to}
+                  to={to}
                 >
-                  <span className={c.routeNumber}>{route.number}</span>
-
-                  <div className={c.routeTitleBlock}>
-                    <Text
-                      as="h3"
-                      className={c.routeTitle}
-                    >
-                      {route.title}
-                    </Text>
-                    <span className={c.routePath}>{route.path}</span>
-                  </div>
-
-                  <p className={c.routeDescription}>{route.description}</p>
-
-                  <span className={c.routeAction}>{m.route_open_action()}</span>
+                  <span className={c.demoIcon}>
+                    <Icon aria-hidden="true" />
+                  </span>
+                  <h3 className={c.demoTitle}>{title}</h3>
+                  <p className={c.demoDescription}>{description}</p>
+                  <span className={c.demoAction}>
+                    {m.home_open_demo()}
+                    <IconArrowRight aria-hidden="true" />
+                  </span>
                 </Link>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </section>
+          <footer className={c.footer}>
+            <p className={c.poweredLabel}>{m.home_powered_by()}</p>
+            <ul
+              aria-label={m.home_powered_by()}
+              className={c.technologies}
+            >
+              <li>
+                <img
+                  alt=""
+                  src="/assets/logos/hono.svg"
+                />
+                <span>Hono</span>
+              </li>
+              <li>
+                <img
+                  alt=""
+                  className={c.lightLogo}
+                  src="/assets/logos/react-router-light.svg"
+                />
+                <img
+                  alt=""
+                  className={c.darkLogo}
+                  src="/assets/logos/react-router-dark.svg"
+                />
+                <span>React Router</span>
+              </li>
+              <li>
+                <img
+                  alt=""
+                  className={c.lightLogo}
+                  src="/assets/logos/vite-light.svg"
+                />
+                <img
+                  alt=""
+                  className={c.darkLogo}
+                  src="/assets/logos/vite-dark.svg"
+                />
+                <span>Vite</span>
+              </li>
+              <li>
+                <img
+                  alt=""
+                  src="/assets/logos/webassembly.svg"
+                />
+                <span>WebAssembly</span>
+              </li>
+            </ul>
+          </footer>
         </div>
-      </section>
-
-      <footer className={c.footer}>
-        <div className={c.footerInner}>
-          <LocaleSwitcher />
-          <p className={c.footerNote}>{m.footer_note()}</p>
-        </div>
-      </footer>
-    </main>
+      </main>
+    </ExpressivePageShell>
   );
 }

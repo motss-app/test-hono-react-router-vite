@@ -12,7 +12,13 @@ import {
   startSpan,
 } from '@sentry/react-router/cloudflare';
 import posthog from 'posthog-js';
-import { StrictMode, startTransition, useEffect } from 'react';
+import {
+  type PropsWithChildren,
+  type ReactNode,
+  StrictMode,
+  startTransition,
+  useEffect,
+} from 'react';
 import { hydrateRoot } from 'react-dom/client';
 import { HydratedRouter } from 'react-router/dom';
 
@@ -42,7 +48,10 @@ const browserWindow = window as Window & {
 let browserBootstrapSpanEnded = false;
 let browserBootstrapSpan: ReturnType<typeof startInactiveSpan> | undefined;
 
-function BrowserBootstrapSpanEnder(): null {
+/**
+ * Keep the router as a single child so its React IDs match the server tree.
+ */
+function BrowserBootstrapSpanEnder({ children }: PropsWithChildren): ReactNode {
   useEffect(() => {
     if (browserBootstrapSpanEnded) {
       return;
@@ -53,7 +62,7 @@ function BrowserBootstrapSpanEnder(): null {
     browserBootstrapSpan = undefined;
   }, []);
 
-  return null;
+  return children;
 }
 
 console.info(
@@ -183,14 +192,15 @@ startTransition(() => {
   hydrateRoot(
     document,
     <StrictMode>
-      <BrowserBootstrapSpanEnder />
-      {/* Keep this prop wiring for future Framework Mode support; do not remove it lightly. */}
-      <HydratedRouter
-        instrumentations={[
-          tracing.clientInstrumentation,
-        ]}
-        onError={sentryOnError}
-      />
+      <BrowserBootstrapSpanEnder>
+        {/* Keep this prop wiring for future Framework Mode support; do not remove it lightly. */}
+        <HydratedRouter
+          instrumentations={[
+            tracing.clientInstrumentation,
+          ]}
+          onError={sentryOnError}
+        />
+      </BrowserBootstrapSpanEnder>
     </StrictMode>
   );
 });

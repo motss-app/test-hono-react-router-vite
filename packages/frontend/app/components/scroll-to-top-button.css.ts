@@ -1,8 +1,14 @@
 import { style } from '@vanilla-extract/css';
 
+import { colorTokens } from '../styles/color-tokens.contract.css.ts';
 import { radiusTokens } from '../styles/radius-tokens.contract.css.ts';
 
 export const button = style({
+  '@media': {
+    '(prefers-reduced-motion: reduce)': {
+      transition: 'none',
+    },
+  },
   alignItems: 'center',
   backgroundColor: '#2563eb',
   border: 'none',
@@ -17,6 +23,10 @@ export const button = style({
   position: 'fixed',
   right: '1.5rem',
   selectors: {
+    '&:focus-visible': {
+      outline: `3px solid ${colorTokens.primary}`,
+      outlineOffset: '3px',
+    },
     '&:hover': {
       backgroundColor: '#1d4ed8',
     },
