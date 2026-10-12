@@ -1,21 +1,22 @@
-import type { JSX } from 'react';
-import { data } from 'react-router';
+import { type JSX, useCallback, useId } from 'react';
+import { data, useRevalidator } from 'react-router';
 
 import { Breadcrumbs } from '../components/breadcrumbs.tsx';
-import { Link } from '../components/Link.tsx';
 import * as chrome from '../components/page-chrome.css.ts';
 import * as footerStyles from '../components/page-footer.css.ts';
-import { PagePreferences, SiteBrand } from '../components/page-navigation.tsx';
+import {
+  PagePreferences,
+  SiteBrand,
+  SiteNavigation,
+  SkipToContent,
+} from '../components/page-navigation.tsx';
 import { PoweredByTools } from '../components/powered-by-tools.tsx';
-import { Text } from '../components/text.tsx';
-import { IconArrowLeft, IconServer } from '../icons.ts';
 import * as m from '../paraglide/messages.js';
 import { HonoContext } from '../router-context.ts';
-import { iconStyles } from '../styles/icon.css.ts';
 import type { HonoEnv } from '../types/hono.types.ts';
-import { createBackgroundSvgPreloadLinks } from '../utils/background-svg-preload.ts';
 import type { Route } from './+types/ssr.ts';
 import { s } from './ssr.css.ts';
+import { IconChevronDown, IconCode, IconRotateRight, IconServer } from './ssr.icons.ts';
 
 const noStoreCacheControl = 'no-store';
 
@@ -27,11 +28,14 @@ export function meta(): Route.MetaDescriptors {
   ];
 }
 
-export const links: Route.LinksFunction = () =>
-  createBackgroundSvgPreloadLinks([
-    '/assets/ssr-hero-dark.svg',
-    '/assets/ssr-hero-light.svg',
-  ]);
+export const links: Route.LinksFunction = () => [
+  {
+    as: 'image',
+    href: '/assets/ssr-expressive.svg',
+    rel: 'preload',
+    type: 'image/svg+xml',
+  },
+];
 
 /** This loader makes this page SSR - it runs on EVERY request */
 export function loader({ context, request }: Route.LoaderArgs) {
@@ -83,14 +87,30 @@ export function headers({ loaderHeaders, parentHeaders }: Route.HeadersArgs): He
 }
 
 export default function SsrPage({ loaderData }: Route.ComponentProps): JSX.Element {
+  const mainId = useId();
+  const responseId = useId();
+  const contextId = useId();
+  const verifyId = useId();
+  const revalidator = useRevalidator();
+  const requesting = revalidator.state === 'loading';
+  const requestAgain = useCallback(async () => {
+    if (!requesting) {
+      await revalidator.revalidate();
+    }
+  }, [
+    requesting,
+    revalidator.revalidate,
+  ]);
   const responseRows = [
     {
       label: m.ssr_label_timestamp(),
-      value: loaderData.timestamp,
+      value: <time dateTime={loaderData.timestamp}>{loaderData.timestamp}</time>,
+      volatile: true,
     },
     {
       label: m.ssr_label_render_time(),
-      value: `${loaderData.renderTime}ms`,
+      value: `${loaderData.renderTime} ms`,
+      volatile: true,
     },
     {
       label: m.ssr_label_user_agent(),
@@ -100,8 +120,7 @@ export default function SsrPage({ loaderData }: Route.ComponentProps): JSX.Eleme
       label: m.ssr_label_message(),
       value: loaderData.message,
     },
-  ] as const;
-
+  ];
   const verificationRows = [
     {
       label: m.ssr_verify_refresh_label(),
@@ -115,174 +134,159 @@ export default function SsrPage({ loaderData }: Route.ComponentProps): JSX.Eleme
       label: m.ssr_verify_compare_label(),
       value: m.ssr_verify_compare_value(),
     },
-  ] as const;
+  ];
 
   return (
-    <>
-      <SsrHeader />
-      <main className={s.page}>
-        <section className={s.hero}>
+    <div className={`${s.layout} ${chrome.interactiveScope}`}>
+      <SkipToContent mainId={mainId} />
+      <aside className={chrome.sidebar}>
+        <SiteBrand />
+        <SiteNavigation activePath="/ssr" />
+      </aside>
+      <div className={s.workspace}>
+        <SsrHeader />
+        <main
+          className={s.page}
+          id={mainId}
+          tabIndex={-1}
+        >
           <div
             aria-hidden="true"
-            className={s.heroMedia}
+            className={s.artwork}
           />
-          <div
-            aria-hidden="true"
-            className={s.heroOverlay}
-          />
-
-          <div className={s.heroInner}>
-            <div className={s.heroCopy}>
-              <Text
-                as="h1"
-                className={s.title}
-              >
-                SSR
+          <div className={s.content}>
+            <header className={s.intro}>
+              <h1 className={s.title}>
                 <span className={s.titleAccent}>{m.ssr_title()}</span>
-              </Text>
+              </h1>
+              <p className={s.lead}>{m.ssr_hero_lead()}</p>
+              <p className={s.body}>{m.ssr_hero_body()}</p>
+            </header>
 
-              <Text
-                as="p"
-                className={s.heroLead}
-              >
-                {m.ssr_hero_lead()}
-              </Text>
-
-              <p className={s.heroBody}>{m.ssr_hero_body()}</p>
-
-              <div className={s.heroActions}>
-                <Link
-                  className={s.ctaSecondary}
-                  to="/"
-                >
-                  <IconArrowLeft className={iconStyles.base} />
-                  <span>{m.ssr_cta_home()}</span>
-                </Link>
-                <Link
-                  className={s.ctaPrimary}
-                  to="/hono-rpc"
-                >
-                  <IconServer className={iconStyles.base} />
-                  <span>{m.ssr_cta_rpc()}</span>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section>
-          <div className={s.routesInner}>
-            <Text
-              as="h2"
-              className={s.routesTitle}
+            <section
+              aria-labelledby={responseId}
+              className={s.response}
             >
-              {m.ssr_section_response_title()}
-            </Text>
-
-            <p className={s.routesIntro}>{m.ssr_section_response_intro()}</p>
-
-            <div className={s.routesList}>
-              <div className={s.rowRow}>
-                <div className={s.rowPanel}>
-                  <span className={s.rowNumber}>01</span>
-
-                  <div className={s.rowContent}>
-                    <Text
-                      as="h3"
-                      className={s.rowTitle}
-                    >
-                      {m.ssr_live_response_title()}
-                    </Text>
-                    <p className={s.rowBody}>{m.ssr_live_response_desc()}</p>
-                  </div>
-
-                  <dl className={s.dataList}>
-                    {responseRows.map(row => (
-                      <div key={row.label}>
-                        <dt className={s.dataLabel}>{row.label}</dt>
-                        <dd className={s.dataValue}>{row.value}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                </div>
+              <div className={s.responseHeading}>
+                <h2
+                  className={s.sectionTitle}
+                  id={responseId}
+                >
+                  {m.ssr_live_response_title()}
+                </h2>
+                <span
+                  className={s.status}
+                  role="status"
+                >
+                  <IconServer aria-hidden="true" />
+                  {requesting ? m.ssr_requesting() : m.ssr_server_rendered()}
+                </span>
               </div>
-
-              {loaderData.honoVars ? (
-                <div className={s.rowRow}>
-                  <div className={s.rowPanel}>
-                    <span className={s.rowNumber}>02</span>
-
-                    <div className={s.rowContent}>
-                      <Text
-                        as="h3"
-                        className={s.rowTitle}
+              <p className={s.body}>{m.ssr_live_response_desc()}</p>
+              <div className={s.responsePanel}>
+                <dl
+                  aria-busy={requesting}
+                  className={s.dataList}
+                >
+                  {responseRows.map(row => (
+                    <div
+                      className={s.dataRow}
+                      key={row.label}
+                    >
+                      <dt className={s.dataLabel}>{row.label}</dt>
+                      <dd
+                        className={`${s.dataValue} ${row.volatile ? s.machineValue : ''}`}
+                        data-vrt-volatile={row.volatile ? '' : undefined}
                       >
-                        {m.ssr_hono_context_title()}
-                      </Text>
-                      <p className={s.rowBody}>{m.ssr_hono_context_desc()}</p>
+                        {row.value}
+                      </dd>
                     </div>
-
-                    <dl className={s.dataList}>
-                      <div>
-                        <dt className={s.dataLabel}>{m.ssr_label_request_url()}</dt>
-                        <dd className={s.dataValue}>{loaderData.honoVars.meta.requestUrl}</dd>
-                      </div>
-                      {loaderData.honoVars.meta.requestId ? (
-                        <div>
-                          <dt className={s.dataLabel}>{m.ssr_label_request_id()}</dt>
-                          <dd className={s.dataValue}>{loaderData.honoVars.meta.requestId}</dd>
-                        </div>
-                      ) : null}
-                    </dl>
-                  </div>
+                  ))}
+                </dl>
+                <div className={s.responseActions}>
+                  <button
+                    aria-disabled={requesting}
+                    className={s.requestButton}
+                    onClick={requestAgain}
+                    type="button"
+                  >
+                    <IconRotateRight aria-hidden="true" />
+                    {m.ssr_new_request()}
+                  </button>
                 </div>
-              ) : null}
-            </div>
-          </div>
-        </section>
-
-        <section>
-          <div className={s.routesInner}>
-            <Text
-              as="h2"
-              className={s.routesTitle}
-            >
-              {m.ssr_section_verify_title()}
-            </Text>
-
-            <p className={s.routesIntro}>{m.ssr_section_verify_intro()}</p>
-
-            <div className={s.routesList}>
-              <div className={s.rowRow}>
-                <div className={s.rowPanel}>
-                  <span className={s.rowNumber}>03</span>
-
-                  <div className={s.rowContent}>
-                    <Text
-                      as="h3"
-                      className={s.rowTitle}
-                    >
-                      {m.ssr_verify_title()}
-                    </Text>
-                    <p className={s.rowBody}>{m.ssr_verify_desc()}</p>
-                  </div>
-
-                  <dl className={s.dataList}>
-                    {verificationRows.map(row => (
-                      <div key={row.label}>
-                        <dt className={s.dataLabel}>{row.label}</dt>
-                        <dd className={s.dataValue}>{row.value}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                </div>
+                <details className={s.jsonDisclosure}>
+                  <summary className={s.jsonSummary}>
+                    <IconCode aria-hidden="true" />
+                    {m.ssr_view_json()}
+                    <IconChevronDown aria-hidden="true" />
+                  </summary>
+                  <pre className={s.json}>
+                    <code>{JSON.stringify(loaderData, null, 2)}</code>
+                  </pre>
+                </details>
               </div>
-            </div>
+            </section>
+
+            {loaderData.honoVars ? (
+              <section
+                aria-labelledby={contextId}
+                className={s.context}
+              >
+                <h2
+                  className={s.sectionTitle}
+                  id={contextId}
+                >
+                  {m.ssr_hono_context_title()}
+                </h2>
+                <p className={s.body}>{m.ssr_hono_context_desc()}</p>
+                <dl className={s.contextData}>
+                  <div className={s.dataRow}>
+                    <dt className={s.dataLabel}>{m.ssr_label_request_url()}</dt>
+                    <dd className={s.dataValue}>{loaderData.honoVars.meta.requestUrl}</dd>
+                  </div>
+                  {loaderData.honoVars.meta.requestId ? (
+                    <div className={s.dataRow}>
+                      <dt className={s.dataLabel}>{m.ssr_label_request_id()}</dt>
+                      <dd
+                        className={`${s.dataValue} ${s.machineValue}`}
+                        data-vrt-volatile=""
+                      >
+                        {loaderData.honoVars.meta.requestId}
+                      </dd>
+                    </div>
+                  ) : null}
+                </dl>
+              </section>
+            ) : null}
+
+            <section
+              aria-labelledby={verifyId}
+              className={s.verify}
+            >
+              <h2
+                className={s.sectionTitle}
+                id={verifyId}
+              >
+                {m.ssr_verify_title()}
+              </h2>
+              <p className={s.body}>{m.ssr_verify_desc()}</p>
+              <ol className={s.steps}>
+                {verificationRows.map(row => (
+                  <li
+                    className={s.step}
+                    key={row.label}
+                  >
+                    <h3 className={s.stepTitle}>{row.label}</h3>
+                    <p className={s.body}>{row.value}</p>
+                  </li>
+                ))}
+              </ol>
+            </section>
           </div>
-        </section>
-      </main>
-      <SsrFooter />
-    </>
+        </main>
+        <SsrFooter />
+      </div>
+    </div>
   );
 }
 
@@ -315,10 +319,7 @@ function SsrHeader() {
           ]}
         />
       </div>
-      <PagePreferences
-        activePath="/ssr"
-        hasSidebar={false}
-      />
+      <PagePreferences activePath="/ssr" />
     </header>
   );
 }

@@ -18,9 +18,9 @@ pnpm backgrounds:generate --page holy-grail --mirror --random
 pnpm backgrounds:generate --page holy-grail --seed my-seed
 ```
 
-Available pages are `about`, `holy-grail`, `labs`, `mandelbrot`,
+Available pages are `about`, `holy-grail`, `ssr`, `labs`, `mandelbrot`,
 `dominant-color`, `image-optimize`, `not-found`, and `application-error`.
-The original Home artwork and the dedicated SSR, RPC, and error hero
+The original Home artwork and the dedicated RPC and error hero
 illustrations remain independently authored assets.
 
 `--mirror` reverses the corner arrangement while keeping the central reading
@@ -34,6 +34,7 @@ Extract styles. It does not run in the browser or randomly change artwork
 between visits. Review light and dark themes, narrow screens, and text contrast
 after regeneration. Commit the generated SVGs with any intentional seed change.
 
-About and Holy Grail place their artwork across the full main area. Other
+Home, About, Holy Grail, and SSR keep a shared 64px gap before their footer.
+About, Holy Grail, and SSR place their artwork across the full main area. Other
 generated backgrounds belong to their page's hero or error surface. The SVGs
 leave the center clear for content, and page styles reduce opacity on mobile.

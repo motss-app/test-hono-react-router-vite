@@ -484,7 +484,7 @@
   "meta_labs_mandelbrot_desc": "Interactive Mandelbrot rendered by Rust WASM in the browser and by a Rust Cloudflare Worker at the edge.",
   "meta_labs_mandelbrot_title": "Mandelbrot Explorer · React Router + Hono Demo",
   "meta_labs_title": "WASM Labs · React Router + Hono Demo",
-  "meta_ssr_title": "SSR Demo · React Router + Hono Demo",
+  "meta_ssr_title": "SSR · Hono",
   "navigation_application_error": "Application error",
   "navigation_breadcrumbs": "Breadcrumb",
   "navigation_runtime_error": "Runtime error",
@@ -529,10 +529,13 @@
   "ssr_live_response_desc": "Request-specific data produced by the SSR loader before the page is delivered.",
   "ssr_live_response_title": "Live response",
   "ssr_loader_message": "This page is rendered on the server on EVERY request!",
+  "ssr_new_request": "New request",
+  "ssr_requesting": "Requesting…",
   "ssr_section_response_intro": "These values are generated during the request, then serialized into the rendered HTML and response headers.",
   "ssr_section_response_title": "The current response came from the server.",
   "ssr_section_verify_intro": "The route is meant to be inspected, not just viewed. These checks make the rendering mode obvious.",
   "ssr_section_verify_title": "How to verify the page is really SSR.",
+  "ssr_server_rendered": "Server rendered",
   "ssr_title": "Live on request",
   "ssr_verify_compare_label": "Compare rendering modes",
   "ssr_verify_compare_value": "Unlike `/` or `/about`, this route is not SSG. Unlike CSR-only UI, its first HTML already contains the server response.",
@@ -541,5 +544,6 @@
   "ssr_verify_headers_value": "Open the Network tab and check `Server-Timing` to verify the loader duration.",
   "ssr_verify_refresh_label": "Refresh the route",
   "ssr_verify_refresh_value": "The timestamp changes on every request because the loader runs server-side each time.",
-  "ssr_verify_title": "Verification steps"
+  "ssr_verify_title": "Verification steps",
+  "ssr_view_json": "View JSON"
 }

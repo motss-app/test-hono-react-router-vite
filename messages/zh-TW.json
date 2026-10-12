@@ -484,7 +484,7 @@
   "meta_labs_mandelbrot_desc": "互動式 Mandelbrot:瀏覽器以 Rust 編譯的 WASM 繪製,邊緣則由 Rust Cloudflare Worker 渲染。",
   "meta_labs_mandelbrot_title": "Mandelbrot 探索器 · React Router + Hono Demo",
   "meta_labs_title": "WASM Labs · React Router + Hono Demo",
-  "meta_ssr_title": "SSR 示範 · React Router + Hono 示範",
+  "meta_ssr_title": "SSR 頁面 · Hono",
   "navigation_application_error": "應用程式錯誤",
   "navigation_breadcrumbs": "麵包屑導覽",
   "navigation_runtime_error": "執行時錯誤",
@@ -529,10 +529,13 @@
   "ssr_live_response_desc": "SSR 載入器在頁面交付前產生的請求專屬資料。",
   "ssr_live_response_title": "即時回應",
   "ssr_loader_message": "此頁面在每個請求上都在伺服器上渲染！",
+  "ssr_new_request": "重新請求",
+  "ssr_requesting": "請求中…",
   "ssr_section_response_intro": "這些值在請求期間產生，然後序列化到渲染的 HTML 和回應標頭中。",
   "ssr_section_response_title": "當前回應來自伺服器。",
   "ssr_section_verify_intro": "此路由是為了檢視而非僅僅觀看。這些檢查讓渲染模式顯而易見。",
   "ssr_section_verify_title": "如何驗證頁面真的是 SSR。",
+  "ssr_server_rendered": "由伺服器渲染",
   "ssr_title": "請求時即時",
   "ssr_verify_compare_label": "比較渲染模式",
   "ssr_verify_compare_value": "與 `/` 或 `/about` 不同，此路由不是 SSG。與純 CSR 介面不同，其第一個 HTML 已包含伺服器回應。",
@@ -541,5 +544,6 @@
   "ssr_verify_headers_value": "開啟網路分頁並檢查 `Server-Timing` 以驗證載入器執行時間。",
   "ssr_verify_refresh_label": "重新整理路由",
   "ssr_verify_refresh_value": "時間戳記在每個請求上都會變化，因為載入器每次都在伺服器端執行。",
-  "ssr_verify_title": "驗證步驟"
+  "ssr_verify_title": "驗證步驟",
+  "ssr_view_json": "檢視 JSON"
 }

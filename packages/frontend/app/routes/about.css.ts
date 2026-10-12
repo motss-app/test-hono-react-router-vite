@@ -16,7 +16,6 @@ const reveal = keyframes({
 
 export const page = style({
   isolation: 'isolate',
-  minHeight: 'calc(100svh - 80px)',
   minWidth: 0,
   outline: 'none',
   overflow: 'clip',
@@ -49,7 +48,7 @@ globalStyle(`:root[data-theme="dark"] ${artwork}`, {
 export const content = style({
   marginInline: 'auto',
   maxWidth: '960px',
-  padding: '1.5rem clamp(1rem, 3.5vw, 3rem) 2rem',
+  padding: `1.5rem clamp(1rem, 3.5vw, 3rem) ${t.space.pageFooterGap}`,
   position: 'relative',
 });
 export const intro = style({
@@ -78,6 +77,11 @@ export const lead = style({
 });
 export const section = style({
   marginBlockEnd: '2rem',
+  selectors: {
+    '&:last-child': {
+      marginBlockEnd: 0,
+    },
+  },
 });
 export const sectionTitle = style({
   fontSize: t.type.headline,

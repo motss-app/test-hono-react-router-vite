@@ -25,13 +25,7 @@ const drift = keyframes({
 });
 
 export const page = style({
-  '@media': {
-    [mediaQueries.maxWidth599]: {
-      minHeight: 'calc(100svh - 72px)',
-    },
-  },
   isolation: 'isolate',
-  minHeight: 'calc(100svh - 80px)',
   outline: 'none',
   overflow: 'clip',
   position: 'relative',
@@ -67,7 +61,7 @@ globalStyle(`:root[data-theme="dark"] ${artwork}`, {
 export const content = style({
   marginInline: 'auto',
   maxWidth: '1120px',
-  paddingBlockEnd: t.space.extraLarge,
+  paddingBlockEnd: t.space.pageFooterGap,
   paddingInline: 'clamp(1rem, 3.5vw, 3rem)',
   position: 'relative',
 });

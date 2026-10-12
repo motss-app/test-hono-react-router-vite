@@ -29,8 +29,9 @@ export const layout = style({
   },
 });
 export const workspace = style({
+  alignContent: 'start',
   display: 'grid',
-  gridTemplateRows: 'auto 1fr auto',
+  gridTemplateRows: 'auto auto auto',
   minWidth: 0,
 });
 export const header = style({
@@ -55,7 +56,7 @@ export const main = style({
   minWidth: 0,
   outline: 'none',
   overflow: 'clip',
-  padding: '1.5rem clamp(1rem, 3.5vw, 3rem) 3rem',
+  padding: `1.5rem clamp(1rem, 3.5vw, 3rem) ${t.space.pageFooterGap}`,
   position: 'relative',
   width: '100%',
 });

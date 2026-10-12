@@ -484,7 +484,7 @@
   "meta_labs_mandelbrot_desc": "ブラウザーでは Rust 製 WASM が、エッジでは Rust 製 Cloudflare Worker が Mandelbrot を描画するデモ。",
   "meta_labs_mandelbrot_title": "マンデルブロ・エクスプローラー · React Router + Hono Demo",
   "meta_labs_title": "WASM Labs · React Router + Hono Demo",
-  "meta_ssr_title": "SSRデモ · React Router + Hono デモ",
+  "meta_ssr_title": "SSRページ · Hono",
   "navigation_application_error": "アプリケーションエラー",
   "navigation_breadcrumbs": "パンくずリスト",
   "navigation_runtime_error": "実行時エラー",
@@ -529,10 +529,13 @@
   "ssr_live_response_desc": "ページが配信される前にSSRローダーが生成するリクエスト固有のデータ。",
   "ssr_live_response_title": "ライブレスポンス",
   "ssr_loader_message": "このページはすべてのリクエストでサーバーでレンダリングされます！",
+  "ssr_new_request": "新しいリクエスト",
+  "ssr_requesting": "リクエスト中…",
   "ssr_section_response_intro": "これらの値はリクエスト中に生成され、レンダリングされたHTMLとレスポンスヘッダーにシリアライズされます。",
   "ssr_section_response_title": "現在のレスポンスはサーバーから届きました。",
   "ssr_section_verify_intro": "このルートは閲覧するだけでなく、検証するためにあります。これらのチェックにより、レンダリングモードが明白になります。",
   "ssr_section_verify_title": "ページが本当にSSRであることを確認する方法。",
+  "ssr_server_rendered": "サーバーでレンダリング済み",
   "ssr_title": "リクエスト時に表示",
   "ssr_verify_compare_label": "レンダリングモードを比較",
   "ssr_verify_compare_value": "`/`や`/about`とは異なり、このルートはSSGではありません。CSRのみのUIとは異なり、最初のHTMLにすでにサーバーレスポンスが含まれています。",
@@ -541,5 +544,6 @@
   "ssr_verify_headers_value": "ネットワークタブを開き、`Server-Timing`を確認してローダーの実行時間を検証します。",
   "ssr_verify_refresh_label": "ルートを更新",
   "ssr_verify_refresh_value": "タイムスタンプはローダーが毎回サーバーサイドで実行されるため、リクエストごとに変化します。",
-  "ssr_verify_title": "検証手順"
+  "ssr_verify_title": "検証手順",
+  "ssr_view_json": "JSONを表示"
 }
