@@ -1,552 +1,379 @@
-import { keyframes, style } from '@vanilla-extract/css';
+import { createVar, keyframes, style } from '@vanilla-extract/css';
 
-import { colorTokens } from '../styles/color-tokens.contract.css.ts';
+import { expressiveTokens as t } from '../styles/expressive-tokens.css.ts';
 import { mediaQueries } from '../styles/media-queries.ts';
-import { radiusTokens } from '../styles/radius-tokens.contract.css.ts';
 
-const fadeUp = keyframes({
-  '0%': {
+export const headerHeight = createVar();
+const reveal = keyframes({
+  from: {
     opacity: 0,
-    transform: 'translate3d(0, 1rem, 0)',
+    transform: 'translateY(10px)',
   },
-  '100%': {
+  to: {
     opacity: 1,
-    transform: 'translate3d(0, 0, 0)',
+    transform: 'translateY(0)',
   },
 });
-
-export const article = style({
-  animationDelay: '180ms',
-  animationDuration: '700ms',
-  animationFillMode: 'both',
-  animationName: fadeUp,
-  animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
+export const layout = style({
+  '@media': {
+    [mediaQueries.minWidth1000]: {
+      gridTemplateColumns: '232px minmax(0, 1fr)',
+    },
+  },
+  backgroundColor: t.color.surface,
+  color: t.color.onSurface,
   display: 'grid',
-  gap: '1.25rem',
-  minInlineSize: 0,
-});
-export const articleBody = style({
-  color: colorTokens.slate700,
-  fontSize: '1rem',
-  lineHeight: 1.7,
-  margin: 0,
-  maxInlineSize: '54ch',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.slate300,
-    },
+  minHeight: '100svh',
+  vars: {
+    [headerHeight]: '80px',
   },
 });
-export const articleEyebrow = style({
-  color: colorTokens.info,
-  fontSize: '0.82rem',
-  fontWeight: 600,
-  letterSpacing: '0.16em',
-  margin: 0,
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: '#7dd3fc',
-    },
-  },
-  textTransform: 'uppercase',
-});
-export const articleTitle = style({
-  '@container': {
-    [mediaQueries.minWidth48rem]: {
-      fontSize: '3.2rem',
-    },
-  },
-  color: colorTokens.slate900,
-  fontSize: '2.25rem',
-  fontWeight: 700,
-  letterSpacing: '-0.05em',
-  lineHeight: 0.95,
-  margin: 0,
-  maxInlineSize: '12ch',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.white,
-    },
-  },
-});
-export const bodyCopy = style({
-  color: colorTokens.slate700,
-  fontSize: '1rem',
-  lineHeight: 1.7,
-  margin: 0,
-  maxInlineSize: '62ch',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.slate300,
-    },
-  },
-});
-export const brand = style({
-  alignItems: 'center',
+export const workspace = style({
   display: 'grid',
-  gap: '0.9rem',
-  gridAutoColumns: 'max-content',
-  gridAutoFlow: 'column',
-  minInlineSize: 0,
-});
-export const brandIconVars = style({
-  height: '1.25rem',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.slate900,
-    },
-  },
-  width: '1.25rem',
-});
-export const brandMark = style({
-  alignItems: 'center',
-  backgroundColor: colorTokens.info,
-  borderRadius: radiusTokens.radiusMd,
-  display: 'inline-grid',
-  flexShrink: 0,
-  height: '3rem',
-  justifyContent: 'center',
-  placeItems: 'center',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      backgroundColor: '#7dd3fc',
-    },
-  },
-  width: '3rem',
-});
-export const footerLink = style({
-  alignItems: 'center',
-  borderRadius: radiusTokens.radiusMd,
-  color: colorTokens.slate900,
-  display: 'inline-grid',
-  gap: '0.45rem',
-  gridAutoColumns: 'max-content',
-  gridAutoFlow: 'column',
-  padding: '0.55rem 0.9rem',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.slate100,
-    },
-    ':root[data-theme="dark"] &:hover': {
-      backgroundColor: 'rgba(125, 211, 252, 0.14)',
-    },
-    '&:hover': {
-      backgroundColor: 'rgba(14, 165, 233, 0.1)',
-      transform: 'translate3d(0.25rem, 0, 0)',
-    },
-  },
-  textDecoration: 'none',
-  transition: 'background-color 0.2s ease, transform 0.2s ease',
+  gridTemplateRows: 'auto 1fr auto',
+  minWidth: 0,
 });
 export const header = style({
   position: 'sticky',
   top: 0,
   zIndex: 20,
 });
-export const headerInner = style({
-  '@container': {
-    [mediaQueries.minWidth48rem]: {
-      gridTemplateColumns: 'auto 1fr',
+export const main = style({
+  '@media': {
+    [mediaQueries.minWidth1200]: {
+      gridTemplateColumns: 'minmax(0, 1fr) 224px',
     },
   },
-  alignItems: 'center',
-  animationDelay: '60ms',
-  animationDuration: '700ms',
-  animationFillMode: 'both',
-  animationName: fadeUp,
-  animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
+  alignItems: 'start',
+  boxSizing: 'border-box',
   display: 'grid',
-  gap: '1rem',
-  gridTemplateColumns: '1fr',
-  inlineSize: '100%',
+  gap: '2.5rem',
+  gridTemplateColumns: 'minmax(0, 1fr)',
   marginInline: 'auto',
-  maxInlineSize: '96rem',
-  paddingBlockEnd: '1rem',
-  paddingBlockStart: '1rem',
-  paddingInlineEnd: '1.25rem',
-  paddingInlineStart: '1.25rem',
+  maxWidth: '1280px',
+  minWidth: 0,
+  outline: 'none',
+  padding: '1.5rem clamp(1rem, 3.5vw, 3rem) 3rem',
+  width: '100%',
 });
-export const layoutBlock = style({
-  borderColor: colorTokens.slate300,
-  borderRadius: radiusTokens.radiusMd,
-  borderStyle: 'solid',
-  borderWidth: '1px',
-  padding: '1rem',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      borderColor: colorTokens.slate700,
-    },
-  },
-  transition: 'transform 0.2s ease, border-color 0.2s ease',
+export const article = style({
+  minWidth: 0,
 });
-export const layoutBlockCenter = style({
-  backgroundColor: 'rgba(255, 255, 255, 0.9)',
-  minBlockSize: '15rem',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      backgroundColor: 'rgba(8, 15, 31, 0.92)',
-    },
-  },
+export const intro = style({
+  animation: `${reveal} ${t.motion.entrance} ${t.motion.easing} both`,
+  isolation: 'isolate',
+  marginBottom: '2rem',
+  position: 'relative',
 });
-export const layoutBlockLeft = style({
-  backgroundColor: 'rgba(239, 246, 255, 0.92)',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      backgroundColor: 'rgba(15, 23, 42, 0.54)',
-    },
-  },
+export const artwork = style({
+  backgroundImage: 'url("/assets/about-expressive.svg")',
+  backgroundPosition: 'right top',
+  backgroundRepeat: 'no-repeat',
+  backgroundSize: 'auto 250px',
+  height: '100px',
+  insetBlockStart: '-1.5rem',
+  insetInlineEnd: '-1rem',
+  opacity: 0.18,
+  pointerEvents: 'none',
+  position: 'absolute',
+  width: '100px',
+  zIndex: -1,
 });
-export const layoutBlockRight = style({
-  backgroundColor: 'rgba(249, 250, 251, 0.92)',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      backgroundColor: 'rgba(15, 23, 42, 0.38)',
-    },
-  },
+export const title = style({
+  color: t.color.onSurface,
+  fontSize: 'clamp(2rem, 3.2vw, 3rem)',
+  fontWeight: 750,
+  letterSpacing: '-0.045em',
+  lineHeight: 1.15,
+  margin: '0 0 1rem',
+  overflowWrap: 'anywhere',
 });
-export const layoutDiagram = style({
-  containerType: 'inline-size',
-  display: 'grid',
-  gap: '0.85rem',
+export const titleAccent = style({
+  color: t.color.primary,
+  display: 'inline-block',
 });
-export const layoutDiagramBody = style({
-  '@container': {
-    [mediaQueries.minWidth40rem]: {
-      gridTemplateColumns: 'minmax(12rem, 1fr) minmax(0, 2fr) minmax(12rem, 1fr)',
-    },
-  },
-  display: 'grid',
-  gap: '0.85rem',
-  gridTemplateColumns: '1fr',
-});
-export const layoutDiagramFooter = style({
-  backgroundColor: 'rgba(241, 245, 249, 0.92)',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      backgroundColor: 'rgba(15, 23, 42, 0.5)',
-    },
-  },
-  textAlign: 'center',
-});
-export const layoutDiagramHeader = style({
-  backgroundColor: '#dbeafe',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      backgroundColor: '#0f172a',
-    },
-  },
-  textAlign: 'center',
-});
-export const layoutDiagramMain = style({
-  '@container': {
-    [mediaQueries.minWidth40rem]: {
-      gridTemplateColumns: 'minmax(12rem, 1fr) minmax(0, 2fr) minmax(12rem, 1fr)',
-    },
-  },
-  backgroundColor: 'rgba(14, 165, 233, 0.08)',
-  containerType: 'inline-size',
-  display: 'grid',
-  gap: '0.85rem',
-  gridTemplateColumns: '1fr',
-  minBlockSize: '15rem',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      backgroundColor: 'rgba(125, 211, 252, 0.14)',
-    },
-  },
-});
-export const layoutLabel = style({
-  color: colorTokens.info,
-  fontSize: '0.78rem',
-  fontWeight: 600,
-  letterSpacing: '0.18em',
+export const lead = style({
+  color: t.color.onSurfaceVariant,
+  fontSize: t.type.body,
+  lineHeight: 1.7,
   margin: 0,
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: '#7dd3fc',
-    },
-  },
-  textTransform: 'uppercase',
+  maxWidth: '62ch',
 });
-export const layoutTitle = style({
-  '@container': {
-    [mediaQueries.minWidth48rem]: {
-      fontSize: '3.6rem',
-    },
-  },
-  color: colorTokens.slate900,
-  fontSize: '2.4rem',
+export const sectionTitle = style({
+  fontSize: t.type.headline,
   fontWeight: 700,
-  letterSpacing: '-0.06em',
-  lineHeight: 0.94,
-  margin: 0,
-  maxInlineSize: 'none',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.white,
-    },
-  },
-  whiteSpace: 'nowrap',
+  letterSpacing: '-0.025em',
+  lineHeight: 1.25,
+  margin: '0 0 0.75rem',
+  overflowWrap: 'anywhere',
 });
-export const nav = style({
+export const body = style({
+  color: t.color.onSurfaceVariant,
+  fontSize: t.type.label,
+  lineHeight: 1.65,
+  margin: 0,
+  overflowWrap: 'anywhere',
+});
+export const explorer = style({
+  animation: `${reveal} ${t.motion.entrance} ${t.motion.easing} 80ms both`,
+});
+export const previewWidth = createVar();
+export const previewControls = style({
   alignItems: 'center',
   display: 'grid',
-  gap: '0.5rem',
-  gridAutoColumns: 'max-content',
-  gridAutoFlow: 'column',
+  gap: '0.25rem 0.75rem',
+  gridTemplateColumns: 'minmax(0, 1fr) auto',
+  marginBlock: '1.25rem',
 });
-export const navLink = style({
-  borderRadius: radiusTokens.radiusMd,
-  color: colorTokens.slate900,
-  fontSize: '0.92rem',
-  padding: '0.55rem 0.8rem',
+export const previewWidthLabel = style({
+  display: 'flex',
+  fontSize: t.type.label,
+  fontWeight: 650,
+  gridColumn: '1 / -1',
+  justifyContent: 'space-between',
+  lineHeight: 1.5,
+});
+export const widthSlider = style({
+  accentColor: t.color.primary,
+  cursor: 'pointer',
+  height: '44px',
+  margin: 0,
+  minWidth: 0,
   selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.slate100,
+    '&:focus-visible': {
+      borderRadius: t.shape.small,
+      outline: `3px solid ${t.color.primary}`,
+      outlineOffset: '3px',
     },
-    ':root[data-theme="dark"] &:hover': {
-      backgroundColor: 'rgba(125, 211, 252, 0.12)',
+  },
+  width: '100%',
+});
+export const resetButton = style({
+  backgroundColor: t.color.surfaceRaised,
+  border: `1px solid ${t.color.outline}`,
+  borderRadius: t.shape.full,
+  color: t.color.primary,
+  cursor: 'pointer',
+  fontFamily: 'inherit',
+  fontSize: t.type.label,
+  minHeight: '44px',
+  padding: '0.5rem 1rem',
+  selectors: {
+    '&:focus-visible': {
+      outline: `3px solid ${t.color.primary}`,
+      outlineOffset: '3px',
     },
     '&:hover': {
-      backgroundColor: 'rgba(14, 165, 233, 0.08)',
+      backgroundColor: t.color.primaryContainer,
     },
   },
-  textDecoration: 'none',
-  transition: 'background-color 0.2s ease, color 0.2s ease',
+  transition: `background-color ${t.motion.duration} ${t.motion.easing}`,
 });
-export const page = style({
-  color: colorTokens.slate900,
+export const previewFrame = style({
+  backgroundColor: t.color.surfaceContainer,
+  border: `1px solid ${t.color.outline}`,
+  borderRadius: t.shape.large,
+  boxSizing: 'border-box',
   containerType: 'inline-size',
   display: 'grid',
   gridTemplateRows: 'auto minmax(0, 1fr) auto',
-  minBlockSize: '100svh',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.slate100,
-    },
-  },
+  marginInline: 'auto',
+  maxWidth: '100%',
+  minWidth: 0,
+  overflow: 'hidden',
+  width: previewWidth,
 });
-export const pageBg = style({
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      backgroundImage:
-        'radial-gradient(circle at top, rgba(14, 165, 233, 0.12), transparent 40%), linear-gradient(180deg, rgba(2, 6, 23, 0.92) 0%, rgba(2, 6, 23, 1) 55%)',
-    },
-    '&': {
-      backgroundImage:
-        'radial-gradient(circle at top, rgba(14, 165, 233, 0.1), transparent 40%), linear-gradient(180deg, rgba(248, 250, 252, 0.96) 0%, rgba(241, 245, 249, 1) 55%)',
-    },
-  },
+export const previewHeader = style({
+  backgroundColor: t.color.primaryContainer,
+  color: t.color.onPrimaryContainer,
+  padding: '1rem',
 });
-export const pageVars = style({
-  vars: {
-    '--holy-grail-header-height': '0px',
-    '--holy-grail-sticky-gap': '1rem',
-  },
-});
-export const rail = style({
-  '@container': {
-    [mediaQueries.minWidth60rem]: {
-      position: 'sticky',
-      top: 'calc(var(--holy-grail-header-height) + var(--holy-grail-sticky-gap))',
-    },
-  },
-  alignSelf: 'start',
-  animationDuration: '700ms',
-  animationFillMode: 'both',
-  animationName: fadeUp,
-  animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
-  display: 'grid',
-  gap: '1rem',
-  minInlineSize: 0,
-  position: 'static',
-  top: 'auto',
-});
-export const railBody = style({
-  color: colorTokens.slate700,
-  fontSize: '0.96rem',
-  lineHeight: 1.7,
-  margin: 0,
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.slate300,
-    },
-  },
-});
-export const railHeading = style({
-  color: colorTokens.slate900,
-  fontSize: '1.15rem',
-  fontWeight: 600,
-  letterSpacing: '-0.03em',
-  lineHeight: 1.05,
-  margin: 0,
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.white,
-    },
-  },
-});
-export const railIconVars = style({
-  color: colorTokens.info,
-  height: '1rem',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: '#7dd3fc',
-    },
-  },
-  width: '1rem',
-});
-export const railIconWrap = style({
+export const previewPartLabel = style({
   alignItems: 'center',
-  display: 'inline-grid',
-  placeItems: 'center',
+  display: 'flex',
+  flexWrap: 'wrap',
+  fontSize: t.type.label,
+  fontWeight: 650,
+  gap: '0.5rem',
+  lineHeight: 1.5,
+  margin: 0,
 });
-export const railList = style({
+export const previewTitle = style({
+  fontSize: t.type.title,
+  fontWeight: 650,
+  lineHeight: 1.4,
+  margin: '0.5rem 0 0',
+  overflowWrap: 'anywhere',
+});
+export const previewBody = style({
+  '@container': {
+    [mediaQueries.minWidth40rem]: {
+      gridTemplateAreas: '"navigation main aside"',
+      gridTemplateColumns: 'minmax(0, 0.85fr) minmax(0, 2fr) minmax(0, 0.85fr)',
+    },
+  },
+  alignItems: 'start',
+  boxSizing: 'border-box',
   display: 'grid',
   gap: '0.75rem',
+  gridTemplateAreas: '"main" "navigation" "aside"',
+  gridTemplateColumns: 'minmax(0, 1fr)',
+  height: 'clamp(15rem, 50svh, 28rem)',
+  minHeight: 0,
+  minWidth: 0,
+  overflow: 'auto',
+  overscrollBehavior: 'contain',
+  padding: '0.75rem',
+  selectors: {
+    '&:focus-visible': {
+      outline: `3px solid ${t.color.primary}`,
+      outlineOffset: '-3px',
+    },
+  },
+});
+export const previewNavigation = style({
+  '@container': {
+    [mediaQueries.minWidth40rem]: {
+      position: 'sticky',
+      top: 0,
+    },
+  },
+  backgroundColor: t.color.surfaceContainer,
+  gridArea: 'navigation',
+  minWidth: 0,
+  padding: '0.5rem',
+});
+export const previewAside = style({
+  '@container': {
+    [mediaQueries.minWidth40rem]: {
+      position: 'sticky',
+      top: 0,
+    },
+  },
+  backgroundColor: t.color.surfaceContainer,
+  display: 'grid',
+  gap: '1rem',
+  gridArea: 'aside',
+  minWidth: 0,
+  padding: '0.5rem',
+});
+export const previewArticle = style({
+  backgroundColor: t.color.surfaceRaised,
+  borderRadius: t.shape.medium,
+  gridArea: 'main',
+  minWidth: 0,
+  padding: '1rem',
+});
+export const previewHeading = style({
+  alignItems: 'center',
+  display: 'flex',
+  fontSize: t.type.label,
+  fontWeight: 650,
+  gap: '0.5rem',
+  lineHeight: 1.5,
+  margin: '0 0 0.75rem',
+  overflowWrap: 'anywhere',
+});
+export const previewLinks = style({
+  display: 'grid',
+  gap: '0.25rem',
   listStyle: 'none',
-  margin: 0,
+  margin: '0.75rem 0',
   padding: 0,
 });
-export const railListItem = style({
-  borderBlockStyle: 'solid',
-  borderBlockWidth: '1px',
-  borderColor: colorTokens.slate300,
-  paddingBlockStart: '0.75rem',
+export const previewLink = style({
+  alignItems: 'center',
+  borderRadius: t.shape.small,
+  boxSizing: 'border-box',
+  color: t.color.primary,
+  display: 'flex',
+  fontSize: t.type.label,
+  lineHeight: 1.5,
+  minHeight: '44px',
+  overflowWrap: 'anywhere',
+  padding: '0.5rem',
   selectors: {
-    ':root[data-theme="dark"] &': {
-      borderColor: colorTokens.slate800,
+    '&:focus-visible': {
+      outline: `3px solid ${t.color.primary}`,
+      outlineOffset: '2px',
+    },
+    '&:hover': {
+      backgroundColor: t.color.primaryContainer,
     },
   },
+  textDecoration: 'none',
+  transition: `background-color ${t.motion.duration} ${t.motion.easing}`,
 });
-export const railSection = style({
-  borderColor: colorTokens.slate200,
-  borderRadius: '1.25rem',
-  borderStyle: 'solid',
-  borderWidth: '1px',
+export const previewSection = style({
+  borderTop: `1px solid ${t.color.outline}`,
   display: 'grid',
-  gap: '0.95rem',
-  padding: '1rem',
+  gap: '0.75rem',
+  marginTop: '1.25rem',
+  paddingTop: '1rem',
+  scrollMarginBlockStart: `calc(${headerHeight} + 1rem)`,
   selectors: {
-    ':root[data-theme="dark"] &': {
-      borderColor: colorTokens.slate800,
+    '&:target, &:focus': {
+      borderRadius: t.shape.small,
+      outline: `2px solid ${t.color.primary}`,
+      outlineOffset: '4px',
     },
   },
 });
-export const railSectionAccent = style({
-  backgroundColor: 'rgba(14, 165, 233, 0.06)',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      backgroundColor: 'rgba(125, 211, 252, 0.08)',
-    },
-  },
+export const previewSectionTitle = style({
+  fontSize: t.type.label,
+  fontWeight: 650,
+  lineHeight: 1.5,
+  margin: 0,
 });
-export const shell = style({
-  '@container': {
-    [mediaQueries.minWidth60rem]: {
-      gridTemplateAreas: '"left main right"',
-      gridTemplateColumns: 'minmax(12rem, 1fr) minmax(0, 2.6fr) minmax(12rem, 1fr)',
-    },
-  },
+export const previewMetadata = style({
+  borderTop: `1px solid ${t.color.outline}`,
+  paddingTop: '1rem',
+});
+export const previewFooter = style({
+  backgroundColor: t.color.primaryContainer,
+  borderTop: `1px solid ${t.color.outline}`,
+  color: t.color.onPrimaryContainer,
   display: 'grid',
-  gap: '1.25rem',
-  gridTemplateAreas: '"left" "main" "right"',
-  gridTemplateColumns: '1fr',
-  inlineSize: '100%',
-  marginInline: 'auto',
-  maxInlineSize: '96rem',
-  paddingBlockEnd: '1.5rem',
-  paddingBlockStart: '1.25rem',
-  paddingInlineEnd: '1.25rem',
-  paddingInlineStart: '1.25rem',
+  gap: '0.25rem',
+  padding: '0.75rem 1rem',
 });
-export const shellLeftGrid = style({
-  gridArea: 'left',
-});
-export const shellMain = style({
-  gridArea: 'main',
-});
-export const shellNote = style({
-  color: colorTokens.slate600,
-  fontSize: '0.9rem',
-  letterSpacing: '0.08em',
-  margin: 0,
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.slate400,
+export const notes = style({
+  '@media': {
+    [mediaQueries.minWidth1200]: {
+      position: 'sticky',
+      top: `calc(${headerHeight} + 1.5rem)`,
     },
   },
-  textTransform: 'uppercase',
+  backgroundColor: t.color.surfaceContainer,
+  borderRadius: t.shape.large,
+  minWidth: 0,
+  padding: '1.25rem',
 });
-export const shellRightGrid = style({
-  gridArea: 'right',
+export const notesTitle = style({
+  alignItems: 'center',
+  display: 'flex',
+  fontSize: t.type.title,
+  fontWeight: 650,
+  gap: '0.625rem',
+  lineHeight: 1.45,
+  margin: '0 0 1rem',
 });
-export const shellTitle = style({
-  '@container': {
-    [mediaQueries.minWidth48rem]: {
-      fontSize: '1.45rem',
-    },
-  },
-  color: colorTokens.slate900,
-  fontSize: '1.2rem',
-  fontWeight: 700,
-  letterSpacing: '-0.03em',
-  lineHeight: 1.05,
-  margin: 0,
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.white,
-    },
-  },
+export const notesIcon = style({
+  color: t.color.primary,
+  fontSize: '1rem',
 });
-export const shellTopline = style({
-  animationDelay: '120ms',
-  animationDuration: '700ms',
-  animationFillMode: 'both',
-  animationName: fadeUp,
-  animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
+export const notesList = style({
+  color: t.color.onSurfaceVariant,
   display: 'grid',
-  gap: '0.5rem',
+  fontSize: t.type.label,
+  gap: '1rem',
+  lineHeight: 1.65,
+  margin: '1.25rem 0',
+  paddingInlineStart: '1rem',
 });
-export const topLine = style({
-  color: colorTokens.slate600,
-  fontSize: '0.92rem',
-  lineHeight: 1.6,
-  margin: 0,
-  maxInlineSize: '32ch',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.slate400,
-    },
-  },
+export const noteLabel = style({
+  fontSize: t.type.label,
+  fontWeight: 650,
+  lineHeight: 1.5,
+  margin: '0 0 0.5rem',
 });
-export const topLineAccent = style({
-  color: colorTokens.info,
-  fontWeight: 600,
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: '#7dd3fc',
-    },
-  },
-});
-export const articleShell = style({});
-export const brandIcon = style({
-  display: 'inline-block',
-  fill: 'currentColor',
-  height: '1.25rem',
-  width: '1.25rem',
-});
-export const layoutCenter = style({});
-export const layoutFooter = style({});
-export const layoutHeader = style({});
-export const layoutLeft = style({});
-export const layoutRight = style({});
-export const pageShell = style({});
-export const railIcon = style({
-  display: 'inline-block',
-  fill: 'currentColor',
-  height: '1rem',
-  width: '1rem',
-});
-export const shellLeft = style({});
-export const shellRight = style({});

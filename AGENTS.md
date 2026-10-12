@@ -146,7 +146,6 @@ Never use semicolons or em dashes in comments, docs, or user-facing prose. Use p
 
 ## Related Instruction Files
 
-- `.opencode/agents/AGENTS.md`: thin pointer for opencode delegating to this file (frontmatter plus pointer only). Do not duplicate rules there.
 - `.github/copilot-instructions.md`: repository-specific GitHub Copilot instructions (delegates to this file).
 - `.github/LLMS.md`: external LLM reference material used by this repo.
 - `docs/dev-urls.md`: all health check, SSR, and API URLs to probe after changes.
@@ -163,6 +162,5 @@ Never use semicolons or em dashes in comments, docs, or user-facing prose. Use p
 ## Maintenance
 
 - When the user asks to "add instructions", update this file immediately.
-- Keep `.opencode/agents/AGENTS.md` as a thin pointer to this file (frontmatter plus pointer only). Do not duplicate rules there.
 - Keep `.github/copilot-instructions.md` as a thin pointer to this file. Do not duplicate rules there.
 - Keep `.github/agents/coding.agent.md` as a thin pointer to this file (frontmatter plus pointer only). Do not duplicate rules there.
