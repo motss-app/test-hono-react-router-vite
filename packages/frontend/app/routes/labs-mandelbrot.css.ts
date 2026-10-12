@@ -2,6 +2,7 @@ import { keyframes, style } from '@vanilla-extract/css';
 
 import { colorTokens } from '../styles/color-tokens.contract.css.ts';
 import { mediaQueries } from '../styles/media-queries.ts';
+import { decorativeBackground } from '../styles/page-background.ts';
 import { radiusTokens } from '../styles/radius-tokens.contract.css.ts';
 
 const heroReveal = keyframes({
@@ -31,17 +32,20 @@ export const page = style({
   paddingBlockEnd: '4rem',
 });
 
-export const hero = style({
-  backgroundColor: '#f4f1ff',
-  minInlineSize: 0,
-  overflow: 'hidden',
-  position: 'relative',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      backgroundColor: '#0b0a18',
+export const hero = style([
+  decorativeBackground('/assets/mandelbrot-expressive.svg'),
+  {
+    backgroundColor: '#f4f1ff',
+    minInlineSize: 0,
+    overflow: 'hidden',
+    position: 'relative',
+    selectors: {
+      ':root[data-theme="dark"] &': {
+        backgroundColor: '#0b0a18',
+      },
     },
   },
-});
+]);
 
 export const heroInner = style({
   '@media': {

@@ -13,14 +13,6 @@ const reveal = keyframes({
     transform: 'translateY(0)',
   },
 });
-const drift = keyframes({
-  from: {
-    transform: 'translateY(0)',
-  },
-  to: {
-    transform: 'translateY(-8px)',
-  },
-});
 
 export const page = style({
   isolation: 'isolate',
@@ -33,30 +25,26 @@ export const page = style({
 export const artwork = style({
   '@media': {
     [mediaQueries.maxWidth599]: {
-      opacity: 0.2,
+      opacity: 0.36,
     },
   },
-  animation: `${drift} 14s ${t.motion.easing} infinite alternate`,
   backgroundImage: 'url("/assets/about-expressive.svg")',
-  backgroundPosition: 'right top',
+  backgroundPosition: 'center',
   backgroundRepeat: 'no-repeat',
-  backgroundSize: 'auto 360px',
-  height: '160px',
-  insetBlockStart: 0,
-  insetInlineEnd: 0,
-  opacity: 0.55,
+  backgroundSize: '100% 100%',
+  inset: 0,
+  opacity: 0.8,
   pointerEvents: 'none',
   position: 'absolute',
-  width: '160px',
   zIndex: -1,
 });
 globalStyle(`:root[data-theme="dark"] ${artwork}`, {
   '@media': {
     [mediaQueries.maxWidth599]: {
-      opacity: 0.14,
+      opacity: 0.28,
     },
   },
-  opacity: 0.28,
+  opacity: 0.62,
 });
 export const content = style({
   marginInline: 'auto',
@@ -163,7 +151,7 @@ export const technologyName = style({
   overflowWrap: 'anywhere',
 });
 export const technologyRole = style({
-  color: t.color.onSurfaceVariant,
+  color: t.color.onSurface,
   fontSize: t.type.label,
   lineHeight: 1.6,
   margin: '0.25rem 0 0 28px',
@@ -193,7 +181,7 @@ export const choiceTitle = style({
   margin: '0 0 0.25rem',
 });
 export const choiceDescription = style({
-  color: t.color.onSurfaceVariant,
+  color: t.color.onSurface,
   fontSize: t.type.label,
   lineHeight: 1.6,
   margin: 0,

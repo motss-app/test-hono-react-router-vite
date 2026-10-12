@@ -39,6 +39,8 @@ export function meta(): Route.MetaDescriptors {
 
 export const links: Route.LinksFunction = () =>
   createBackgroundSvgPreloadLinks([
+    '/assets/server-error-hero-dark.svg',
+    '/assets/server-error-hero-light.svg',
     '/assets/error-code-hero-dark.svg',
     '/assets/error-code-hero-light.svg',
     '/assets/runtime-error-hero-dark.svg',

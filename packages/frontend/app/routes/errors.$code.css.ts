@@ -381,10 +381,10 @@ export const heroMedia = style({
 });
 
 export const heroMediaCritical = style({
-  backgroundImage: 'url("/assets/error-code-hero-light.svg")',
+  backgroundImage: 'url("/assets/server-error-hero-light.svg")',
   selectors: {
     ':root[data-theme="dark"] &': {
-      backgroundImage: 'url("/assets/error-code-hero-dark.svg")',
+      backgroundImage: 'url("/assets/server-error-hero-dark.svg")',
     },
   },
 });

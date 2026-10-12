@@ -8,7 +8,7 @@ import { PagePreferences, SiteBrand } from '../components/page-navigation.tsx';
 import { PoweredByTools } from '../components/powered-by-tools.tsx';
 import * as m from '../paraglide/messages.js';
 import type { Route } from './+types/$.ts';
-import { s } from './$.css.ts';
+import { s } from './not-found.css.ts';
 
 export function meta(): Route.MetaDescriptors {
   return [

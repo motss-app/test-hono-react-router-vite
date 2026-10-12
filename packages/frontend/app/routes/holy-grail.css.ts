@@ -1,4 +1,4 @@
-import { createVar, keyframes, style } from '@vanilla-extract/css';
+import { createVar, globalStyle, keyframes, style } from '@vanilla-extract/css';
 
 import { expressiveTokens as t } from '../styles/expressive-tokens.css.ts';
 import { mediaQueries } from '../styles/media-queries.ts';
@@ -41,7 +41,7 @@ export const header = style({
 export const main = style({
   '@media': {
     [mediaQueries.minWidth1200]: {
-      gridTemplateColumns: 'minmax(0, 1fr) 224px',
+      gridTemplateColumns: 'minmax(0, 960px) 224px',
     },
   },
   alignItems: 'start',
@@ -49,11 +49,14 @@ export const main = style({
   display: 'grid',
   gap: '2.5rem',
   gridTemplateColumns: 'minmax(0, 1fr)',
+  isolation: 'isolate',
+  justifyContent: 'center',
   marginInline: 'auto',
-  maxWidth: '1280px',
   minWidth: 0,
   outline: 'none',
+  overflow: 'clip',
   padding: '1.5rem clamp(1rem, 3.5vw, 3rem) 3rem',
+  position: 'relative',
   width: '100%',
 });
 export const article = style({
@@ -66,18 +69,28 @@ export const intro = style({
   position: 'relative',
 });
 export const artwork = style({
-  backgroundImage: 'url("/assets/about-expressive.svg")',
-  backgroundPosition: 'right top',
+  '@media': {
+    [mediaQueries.maxWidth599]: {
+      opacity: 0.36,
+    },
+  },
+  backgroundImage: 'url("/assets/holy-grail-expressive.svg")',
+  backgroundPosition: 'center',
   backgroundRepeat: 'no-repeat',
-  backgroundSize: 'auto 250px',
-  height: '100px',
-  insetBlockStart: '-1.5rem',
-  insetInlineEnd: '-1rem',
-  opacity: 0.18,
+  backgroundSize: '100% 100%',
+  inset: 0,
+  opacity: 0.8,
   pointerEvents: 'none',
   position: 'absolute',
-  width: '100px',
   zIndex: -1,
+});
+globalStyle(`:root[data-theme="dark"] ${artwork}`, {
+  '@media': {
+    [mediaQueries.maxWidth599]: {
+      opacity: 0.28,
+    },
+  },
+  opacity: 0.62,
 });
 export const title = style({
   color: t.color.onSurface,
@@ -93,7 +106,7 @@ export const titleAccent = style({
   display: 'inline-block',
 });
 export const lead = style({
-  color: t.color.onSurfaceVariant,
+  color: t.color.onSurface,
   fontSize: t.type.body,
   lineHeight: 1.7,
   margin: 0,
@@ -108,7 +121,7 @@ export const sectionTitle = style({
   overflowWrap: 'anywhere',
 });
 export const body = style({
-  color: t.color.onSurfaceVariant,
+  color: t.color.onSurface,
   fontSize: t.type.label,
   lineHeight: 1.65,
   margin: 0,
@@ -212,13 +225,18 @@ export const previewBody = style({
       gridTemplateColumns: 'minmax(0, 0.85fr) minmax(0, 2fr) minmax(0, 0.85fr)',
     },
   },
+  '@media': {
+    [mediaQueries.maxWidth599]: {
+      height: 'clamp(15rem, 50svh, 28rem)',
+    },
+  },
   alignItems: 'start',
   boxSizing: 'border-box',
   display: 'grid',
   gap: '0.75rem',
   gridTemplateAreas: '"main" "navigation" "aside"',
   gridTemplateColumns: 'minmax(0, 1fr)',
-  height: 'clamp(15rem, 50svh, 28rem)',
+  height: 'clamp(18rem, 60svh, 34rem)',
   minHeight: 0,
   minWidth: 0,
   overflow: 'auto',

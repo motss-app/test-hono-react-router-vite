@@ -425,15 +425,15 @@ export default function HolyGrailPage(): JSX.Element {
           id={mainId}
           tabIndex={-1}
         >
+          <div
+            aria-hidden="true"
+            className={s.artwork}
+          />
           <article
             aria-labelledby={titleId}
             className={s.article}
           >
             <div className={s.intro}>
-              <div
-                aria-hidden="true"
-                className={s.artwork}
-              />
               <h1
                 className={s.title}
                 id={titleId}

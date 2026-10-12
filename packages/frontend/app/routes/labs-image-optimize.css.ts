@@ -2,6 +2,7 @@ import { createVar, keyframes, style } from '@vanilla-extract/css';
 
 import { colorTokens } from '../styles/color-tokens.contract.css.ts';
 import { mediaQueries } from '../styles/media-queries.ts';
+import { decorativeBackground } from '../styles/page-background.ts';
 import { radiusTokens } from '../styles/radius-tokens.contract.css.ts';
 
 const reveal = keyframes({
@@ -41,11 +42,14 @@ export const page = style({
   minInlineSize: 0,
   paddingBlockEnd: '5rem',
 });
-export const hero = style({
-  background: 'linear-gradient(135deg, #101827 0%, #1f2937 58%, #1e3a5f 100%)',
-  color: colorTokens.white,
-  minInlineSize: 0,
-});
+export const hero = style([
+  decorativeBackground('/assets/image-optimize-expressive.svg'),
+  {
+    background: 'linear-gradient(135deg, #101827 0%, #1f2937 58%, #1e3a5f 100%)',
+    color: colorTokens.white,
+    minInlineSize: 0,
+  },
+]);
 export const heroInner = style({
   alignItems: 'end',
   display: 'grid',

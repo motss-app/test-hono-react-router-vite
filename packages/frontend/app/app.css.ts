@@ -2,6 +2,7 @@ import { globalStyle, style } from '@vanilla-extract/css';
 
 import { colorTokens } from './styles/color-tokens.contract.css.ts';
 import { fontWeightTokens } from './styles/font-weight-tokens.contract.css.ts';
+import { decorativeBackground } from './styles/page-background.ts';
 import { radiusTokens } from './styles/radius-tokens.contract.css.ts';
 import './styles/global-themes.css.ts';
 
@@ -71,13 +72,16 @@ export const errorStyles = {
     padding: '0.75rem 1.5rem',
     textDecoration: 'none',
   }),
-  main: style({
-    alignItems: 'center',
-    backgroundColor: colorTokens.backgroundDark,
-    display: 'flex',
-    justifyContent: 'center',
-    padding: '1rem',
-  }),
+  main: style([
+    decorativeBackground('/assets/application-error-expressive.svg'),
+    {
+      alignItems: 'center',
+      backgroundColor: colorTokens.backgroundDark,
+      display: 'flex',
+      justifyContent: 'center',
+      padding: '1rem',
+    },
+  ]),
   stackDetails: style({
     backgroundColor: 'rgba(255,255,255,0.08)',
     borderColor: colorTokens.slate700,

@@ -106,6 +106,7 @@
   "packageManager": "pnpm@12.10.1",
   "private": true,
   "scripts": {
+    "backgrounds:generate": "node scripts/generate-page-backgrounds.ts",
     "bench": "ulimit -n 9998999 && pnpm build && ./http-bench --target 'node:PORT=8787 pnpm --dir packages/gateway preview' --duration 30 --connections 7999 --url http://localhost:8787/api/test",
     "bench:all": "ulimit -n 9998999 && node scripts/bench-all.ts",
     "build": "pnpm build:frontend && pnpm build:gateway",
