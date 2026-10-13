@@ -11,6 +11,7 @@ const pages = [
   'about',
   'holy-grail',
   'ssr',
+  'hono-rpc',
   'labs',
   'mandelbrot',
   'dominant-color',

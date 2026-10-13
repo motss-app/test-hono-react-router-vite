@@ -3,7 +3,7 @@
 /**
  * Visual regression screenshot generator for Sentry Snapshots.
  *
- * Takes screenshots of every prerendered page and the SSR route at mobile and desktop
+ * Takes screenshots of every prerendered page and the SSR and RPC routes at mobile and desktop
  * viewports in both light and dark themes. Output goes to
  * __screenshots__/ for upload to Sentry Snapshots.
  *
@@ -238,7 +238,12 @@ function pageName(path: string): string {
 function discoverPages(): Page[] {
   return [
     ...discoverPrerenderRoutes(),
-    ...locales.map(locale => `/${locale}/ssr`),
+    ...locales.flatMap(locale =>
+      [
+        'ssr',
+        'hono-rpc',
+      ].map(path => `/${locale}/${path}`)
+    ),
   ].map(path => ({
     name: pageName(path),
     path,
