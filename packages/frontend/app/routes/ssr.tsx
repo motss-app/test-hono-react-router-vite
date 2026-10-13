@@ -14,6 +14,7 @@ import { PoweredByTools } from '../components/powered-by-tools.tsx';
 import * as m from '../paraglide/messages.js';
 import { HonoContext } from '../router-context.ts';
 import type { HonoEnv } from '../types/hono.types.ts';
+import { loadWithFetchTime } from '../utils/loader-fetch-time.ts';
 import type { Route } from './+types/ssr.ts';
 import { s } from './ssr.css.ts';
 import { IconChevronDown, IconCode, IconRotateRight, IconServer } from './ssr.icons.ts';
@@ -48,10 +49,11 @@ export function loader({ context, request }: Route.LoaderArgs) {
   const requestId = honoVars?.honoData?.meta?.requestId;
 
   const endTime = performance.now();
-  const duration = (endTime - startTime).toFixed(2);
+  const duration = endTime - startTime;
 
   return data(
     {
+      fetchTime: null,
       honoVars: honoVars?.honoData,
       message: m.ssr_loader_message(),
       renderTime: duration,
@@ -61,7 +63,7 @@ export function loader({ context, request }: Route.LoaderArgs) {
     },
     {
       headers: {
-        'X-Render-Time': duration,
+        'X-Render-Time': String(duration),
         ...(requestId
           ? {
               'X-Request-Id': requestId,
@@ -70,6 +72,15 @@ export function loader({ context, request }: Route.LoaderArgs) {
       },
     }
   );
+}
+
+export async function clientLoader({ request, serverLoader }: Route.ClientLoaderArgs) {
+  const { fetchTime, response } = await loadWithFetchTime(request, serverLoader);
+
+  return {
+    ...response,
+    fetchTime,
+  };
 }
 
 export function headers({ loaderHeaders, parentHeaders }: Route.HeadersArgs): Headers {
@@ -103,22 +114,29 @@ export default function SsrPage({ loaderData }: Route.ComponentProps): JSX.Eleme
   ]);
   const responseRows = [
     {
-      label: m.ssr_label_timestamp(),
-      value: <time dateTime={loaderData.timestamp}>{loaderData.timestamp}</time>,
-      volatile: true,
-    },
-    {
       label: m.ssr_label_render_time(),
       value: `${loaderData.renderTime} ms`,
       volatile: true,
     },
     {
-      label: m.ssr_label_user_agent(),
-      value: loaderData.userAgent,
+      description: loaderData.fetchTime === null ? m.ssr_fetch_time_not_measured() : undefined,
+      label: m.ssr_label_fetch_time(),
+      value: loaderData.fetchTime === null ? '-' : `${loaderData.fetchTime} ms`,
+      volatile: loaderData.fetchTime !== null,
+    },
+    {
+      label: m.ssr_label_timestamp(),
+      value: <time dateTime={loaderData.timestamp}>{loaderData.timestamp}</time>,
+      volatile: true,
     },
     {
       label: m.ssr_label_message(),
       value: loaderData.message,
+    },
+    {
+      fullWidth: true,
+      label: m.ssr_label_user_agent(),
+      value: loaderData.userAgent,
     },
   ];
   const verificationRows = [
@@ -183,6 +201,7 @@ export default function SsrPage({ loaderData }: Route.ComponentProps): JSX.Eleme
                 </span>
               </div>
               <p className={s.body}>{m.ssr_live_response_desc()}</p>
+              <p className={s.body}>{m.ssr_fetch_time_desc()}</p>
               <div className={s.responsePanel}>
                 <dl
                   aria-busy={requesting}
@@ -190,11 +209,14 @@ export default function SsrPage({ loaderData }: Route.ComponentProps): JSX.Eleme
                 >
                   {responseRows.map(row => (
                     <div
-                      className={s.dataRow}
+                      className={`${s.dataRow} ${row.fullWidth ? s.dataRowFullWidth : ''}`}
                       key={row.label}
                     >
                       <dt className={s.dataLabel}>{row.label}</dt>
-                      <dd className={s.dataValue}>
+                      <dd
+                        className={s.dataValue}
+                        title={row.description}
+                      >
                         <pre className={s.valueBlock}>
                           <code data-vrt-volatile={row.volatile ? '' : undefined}>{row.value}</code>
                         </pre>

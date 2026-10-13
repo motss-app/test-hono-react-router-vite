@@ -99,6 +99,9 @@ export const s = {
     gap: '0.375rem',
     minWidth: 0,
   }),
+  dataRowFullWidth: style({
+    gridColumn: '1 / -1',
+  }),
   dataValue: style({
     color: t.color.onSurface,
     fontSize: t.type.label,
@@ -210,14 +213,13 @@ export const s = {
       },
       '&:hover:not([aria-disabled="true"])': {
         backgroundColor: t.color.primaryHover,
-        transform: 'translateY(-1px)',
       },
       '&[aria-disabled="true"]': {
         cursor: 'wait',
         opacity: 0.7,
       },
     },
-    transition: `background-color ${t.motion.duration} ${t.motion.easing}, transform ${t.motion.duration} ${t.motion.easing}`,
+    transition: `background-color ${t.motion.duration} ${t.motion.easing}`,
   }),
   response: style({
     display: 'grid',
