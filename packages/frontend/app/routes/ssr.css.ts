@@ -14,6 +14,19 @@ const reveal = keyframes({
   },
 });
 
+const codeBlock = style({
+  backgroundColor: t.color.surfaceRaised,
+  borderRadius: t.shape.medium,
+  color: t.color.onSurface,
+  fontFamily: 'ui-monospace, SFMono-Regular, Consolas, monospace',
+  fontSize: '0.8125rem',
+  lineHeight: 1.6,
+  minWidth: 0,
+  overflowWrap: 'anywhere',
+  padding: '1rem',
+  whiteSpace: 'pre-wrap',
+});
+
 export const s = {
   artwork: style({
     '@media': {
@@ -81,6 +94,7 @@ export const s = {
     minWidth: 0,
   }),
   dataRow: style({
+    alignContent: 'start',
     display: 'grid',
     gap: '0.375rem',
     minWidth: 0,
@@ -91,6 +105,17 @@ export const s = {
     lineHeight: 1.65,
     margin: 0,
     overflowWrap: 'anywhere',
+  }),
+  inlineCode: style({
+    backgroundColor: t.color.surfaceRaised,
+    borderRadius: '0.25rem',
+    boxDecorationBreak: 'clone',
+    color: t.color.onSurface,
+    fontFamily: 'ui-monospace, SFMono-Regular, Consolas, monospace',
+    fontSize: '0.9em',
+    overflowWrap: 'anywhere',
+    padding: '0.125em 0.375em',
+    whiteSpace: 'normal',
   }),
   intro: style({
     '@media': {
@@ -103,18 +128,12 @@ export const s = {
     gap: '0.75rem',
     maxWidth: '42rem',
   }),
-  json: style({
-    backgroundColor: t.color.surfaceRaised,
-    borderRadius: t.shape.medium,
-    color: t.color.onSurface,
-    fontSize: '0.8125rem',
-    lineHeight: 1.6,
-    margin: '0.5rem 0 0',
-    minWidth: 0,
-    overflowWrap: 'anywhere',
-    padding: '1rem',
-    whiteSpace: 'pre-wrap',
-  }),
+  json: style([
+    codeBlock,
+    {
+      margin: '0.5rem 0 0',
+    },
+  ]),
   jsonDisclosure: style({
     borderTop: `1px solid ${t.color.outline}`,
     marginBlockStart: '1.25rem',
@@ -156,9 +175,6 @@ export const s = {
     fontWeight: 650,
     lineHeight: 1.5,
     margin: 0,
-  }),
-  machineValue: style({
-    fontFamily: 'ui-monospace, SFMono-Regular, Consolas, monospace',
   }),
   page: style({
     isolation: 'isolate',
@@ -274,6 +290,12 @@ export const s = {
   titleAccent: style({
     color: t.color.primary,
   }),
+  valueBlock: style([
+    codeBlock,
+    {
+      margin: 0,
+    },
+  ]),
   verify: style({
     display: 'grid',
     gap: '0.75rem',

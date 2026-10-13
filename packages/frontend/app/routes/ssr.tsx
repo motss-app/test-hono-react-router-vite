@@ -1,4 +1,4 @@
-import { type JSX, useCallback, useId } from 'react';
+import { type JSX, type ReactNode, useCallback, useId } from 'react';
 import { data, useRevalidator } from 'react-router';
 
 import { Breadcrumbs } from '../components/breadcrumbs.tsx';
@@ -194,11 +194,10 @@ export default function SsrPage({ loaderData }: Route.ComponentProps): JSX.Eleme
                       key={row.label}
                     >
                       <dt className={s.dataLabel}>{row.label}</dt>
-                      <dd
-                        className={`${s.dataValue} ${row.volatile ? s.machineValue : ''}`}
-                        data-vrt-volatile={row.volatile ? '' : undefined}
-                      >
-                        {row.value}
+                      <dd className={s.dataValue}>
+                        <pre className={s.valueBlock}>
+                          <code data-vrt-volatile={row.volatile ? '' : undefined}>{row.value}</code>
+                        </pre>
                       </dd>
                     </div>
                   ))}
@@ -238,20 +237,25 @@ export default function SsrPage({ loaderData }: Route.ComponentProps): JSX.Eleme
                 >
                   {m.ssr_hono_context_title()}
                 </h2>
-                <p className={s.body}>{m.ssr_hono_context_desc()}</p>
+                <p className={s.body}>
+                  <InlineCodeText>{m.ssr_hono_context_desc()}</InlineCodeText>
+                </p>
                 <dl className={s.contextData}>
                   <div className={s.dataRow}>
                     <dt className={s.dataLabel}>{m.ssr_label_request_url()}</dt>
-                    <dd className={s.dataValue}>{loaderData.honoVars.meta.requestUrl}</dd>
+                    <dd className={s.dataValue}>
+                      <pre className={s.valueBlock}>
+                        <code>{loaderData.honoVars.meta.requestUrl}</code>
+                      </pre>
+                    </dd>
                   </div>
                   {loaderData.honoVars.meta.requestId ? (
                     <div className={s.dataRow}>
                       <dt className={s.dataLabel}>{m.ssr_label_request_id()}</dt>
-                      <dd
-                        className={`${s.dataValue} ${s.machineValue}`}
-                        data-vrt-volatile=""
-                      >
-                        {loaderData.honoVars.meta.requestId}
+                      <dd className={s.dataValue}>
+                        <pre className={s.valueBlock}>
+                          <code data-vrt-volatile="">{loaderData.honoVars.meta.requestId}</code>
+                        </pre>
                       </dd>
                     </div>
                   ) : null}
@@ -277,7 +281,9 @@ export default function SsrPage({ loaderData }: Route.ComponentProps): JSX.Eleme
                     key={row.label}
                   >
                     <h3 className={s.stepTitle}>{row.label}</h3>
-                    <p className={s.body}>{row.value}</p>
+                    <p className={s.body}>
+                      <InlineCodeText>{row.value}</InlineCodeText>
+                    </p>
                   </li>
                 ))}
               </ol>
@@ -288,6 +294,27 @@ export default function SsrPage({ loaderData }: Route.ComponentProps): JSX.Eleme
       </div>
     </div>
   );
+}
+
+function InlineCodeText({ children }: { children: string }): JSX.Element {
+  const parts: ReactNode[] = [];
+  let cursor = 0;
+
+  for (const match of children.matchAll(/`([^`]+)`/g)) {
+    parts.push(children.slice(cursor, match.index));
+    parts.push(
+      <code
+        className={s.inlineCode}
+        key={match.index}
+      >
+        {match[1]}
+      </code>
+    );
+    cursor = match.index + match[0].length;
+  }
+
+  parts.push(children.slice(cursor));
+  return <>{parts}</>;
 }
 
 function SsrFooter() {
