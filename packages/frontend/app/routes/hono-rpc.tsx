@@ -22,6 +22,7 @@ import {
   sentryMetricNames,
 } from '../monitoring/sentry.ts';
 import * as m from '../paraglide/messages.js';
+import { getRpcFetchTime } from '../utils/rpc-fetch-time.ts';
 import type { Route } from './+types/hono-rpc.ts';
 import { s } from './hono-rpc.css.ts';
 import {
@@ -32,6 +33,10 @@ import {
 } from './hono-rpc.icons.ts';
 
 type HelloResponse = InferResponseType<typeof client.rpc.hello.$get>;
+type RpcResult = {
+  response: HelloResponse;
+  fetchTime: number | null;
+};
 
 const client = hc<ApiAppType>('/api');
 const honoRpcHelloPath = '/api/rpc/hello';
@@ -58,15 +63,18 @@ export const links: Route.LinksFunction = () => [
   },
 ];
 
-export function loader(): HelloResponse {
+export function loader(): RpcResult {
   return {
-    message: 'Hello, World!',
-    server: 'Hono RPC',
-    timestamp: new Date().toISOString(),
+    fetchTime: null,
+    response: {
+      message: 'Hello, World!',
+      server: 'Hono RPC',
+      timestamp: new Date().toISOString(),
+    },
   };
 }
 
-async function fetchHelloResponse(): Promise<HelloResponse> {
+async function fetchHelloResponse(): Promise<RpcResult> {
   const requestStartedAt = performance.now();
   let response: Awaited<ReturnType<typeof client.rpc.hello.$get>>;
 
@@ -148,19 +156,25 @@ async function fetchHelloResponse(): Promise<HelloResponse> {
     flush(2000);
   }
 
-  return await response.json();
+  const data = await response.json();
+  return {
+    fetchTime: getRpcFetchTime(response.headers, performance.now() - requestStartedAt),
+    response: data,
+  };
 }
 
-export async function clientLoader(): Promise<HelloResponse> {
+export async function clientLoader(): Promise<RpcResult> {
   return await fetchHelloResponse();
 }
 
 function HonoRpcView({
+  fetchTime,
   isLoading,
   isReady,
   response,
   refresh,
 }: {
+  fetchTime: number | null;
   isLoading: boolean;
   isReady: boolean;
   response: HelloResponse;
@@ -179,6 +193,12 @@ function HonoRpcView({
       label: m.hono_rpc_label_timestamp(),
       value: <time dateTime={response.timestamp}>{response.timestamp}</time>,
       volatile: true,
+    },
+    {
+      description: fetchTime === null ? m.ssr_fetch_time_not_measured() : undefined,
+      label: m.ssr_label_fetch_time(),
+      value: fetchTime === null ? '-' : `${fetchTime} ms`,
+      volatile: fetchTime !== null,
     },
     {
       fullWidth: true,
@@ -267,7 +287,12 @@ function HonoRpcView({
                 <dt className={s.dataLabel}>{row.label}</dt>
                 <dd className={s.dataValue}>
                   <pre className={s.codeBlock}>
-                    <code data-vrt-volatile={row.volatile ? '' : undefined}>{row.value}</code>
+                    <code
+                      data-vrt-volatile={row.volatile ? '' : undefined}
+                      title={row.description}
+                    >
+                      {row.value}
+                    </code>
                   </pre>
                 </dd>
               </div>
@@ -392,14 +417,14 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps): JSX.Element 
 }
 
 export default function HonoRpcPage({ loaderData }: Route.ComponentProps): JSX.Element {
-  const [response, setResponse] = useState(loaderData);
+  const [result, setResult] = useState(loaderData);
   const [refreshError, setRefreshError] = useState<Error | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const pending = useRef(false);
 
   useEffect(() => {
-    setResponse(loaderData);
+    setResult(loaderData);
     setIsReady(true);
   }, [
     loaderData,
@@ -429,7 +454,7 @@ export default function HonoRpcPage({ loaderData }: Route.ComponentProps): JSX.E
           fetchHelloResponse
         )
       );
-      setResponse(nextResponse);
+      setResult(nextResponse);
     } catch (error) {
       setRefreshError(
         error instanceof Error ? error : new Error('Failed to refresh the Hono RPC response.')
@@ -446,10 +471,11 @@ export default function HonoRpcPage({ loaderData }: Route.ComponentProps): JSX.E
 
   return (
     <HonoRpcView
+      fetchTime={result.fetchTime}
       isLoading={isLoading}
       isReady={isReady}
       refresh={refresh}
-      response={response}
+      response={result.response}
     />
   );
 }

@@ -33,13 +33,12 @@ export const page = style({
 export const artwork = style({
   '@media': {
     [mediaQueries.maxWidth599]: {
-      backgroundPosition: 'right top',
-      backgroundSize: 'auto 680px',
       opacity: 0.36,
     },
   },
   animation: `${drift} 14s ${t.motion.easing} infinite alternate`,
   backgroundImage: 'url("/assets/home-expressive.svg")',
+  backgroundPosition: 'center',
   backgroundRepeat: 'no-repeat',
   backgroundSize: '100% 100%',
   inset: 0,
