@@ -1,48 +1,58 @@
-import type { JSX } from 'react';
+import { type JSX, useId } from 'react';
 
 import { Breadcrumbs } from '../components/breadcrumbs.tsx';
+import { IconArrowRight } from '../components/expressive.icons.ts';
 import { Link } from '../components/Link.tsx';
 import * as chrome from '../components/page-chrome.css.ts';
 import * as footerStyles from '../components/page-footer.css.ts';
-import { PagePreferences, SiteBrand } from '../components/page-navigation.tsx';
+import {
+  PagePreferences,
+  SiteBrand,
+  SiteNavigation,
+  SkipToContent,
+} from '../components/page-navigation.tsx';
 import { PoweredByTools } from '../components/powered-by-tools.tsx';
-import { Text } from '../components/text.tsx';
-import { IconArrowLeft } from '../icons.ts';
 import * as m from '../paraglide/messages.js';
-import { iconStyles } from '../styles/icon.css.ts';
 import type { Route } from './+types/labs.ts';
 import * as c from './labs.css.ts';
 
-interface LabTool {
-  description: string;
-  number: string;
-  title: string;
-  to: string;
-}
+type ToolId = 'mandelbrot' | 'dominant-color' | 'image-optimize';
 
-// Must be a function because m.*() calls resolve locale at call time, so they
-// cannot live at module scope where Paraglide locale isn't set yet.
-function getTools(): LabTool[] {
+/** Resolve translated catalog content after the route locale is set. */
+function getTools() {
   return [
     {
       description: m.labs_tool_mandelbrot_desc(),
-      number: '01',
+      id: 'mandelbrot',
+      runtime: m.labs_runtime_browser_edge(),
       title: m.labs_tool_mandelbrot_title(),
       to: '/labs/mandelbrot',
+      tone: c.mandelbrot,
     },
     {
       description: m.labs_tool_dominant_color_desc(),
-      number: '02',
+      id: 'dominant-color',
+      runtime: m.labs_runtime_edge(),
       title: m.labs_tool_dominant_color_title(),
       to: '/labs/dominant-color',
+      tone: c.dominantColor,
     },
     {
       description: m.labs_tool_image_optimize_desc(),
-      number: '03',
+      id: 'image-optimize',
+      runtime: m.labs_runtime_edge(),
       title: m.labs_tool_image_optimize_title(),
       to: '/labs/image-optimize',
+      tone: c.imageOptimize,
     },
-  ];
+  ] satisfies {
+    description: string;
+    id: ToolId;
+    runtime: string;
+    title: string;
+    to: string;
+    tone: string;
+  }[];
 }
 
 export function meta(): Route.MetaDescriptors {
@@ -57,90 +67,132 @@ export function meta(): Route.MetaDescriptors {
   ];
 }
 
+export const links: Route.LinksFunction = () => [
+  {
+    as: 'image',
+    href: '/assets/labs-expressive.svg',
+    rel: 'preload',
+    type: 'image/svg+xml',
+  },
+];
+
 export default function Labs(): JSX.Element {
-  const tools = getTools();
+  const mainId = useId();
+  const toolId = useId();
 
   return (
-    <>
-      <LabsHeader />
-      <main className={c.page}>
-        <section className={c.hero}>
-          <div className={c.heroInner}>
-            <div className={c.heroCopy}>
-              <Text
-                as="h1"
-                className={c.title}
-              >
-                {m.labs_title()}
-                <span className={c.titleAccent}>{m.labs_title_accent()}</span>
-              </Text>
-
-              <Text
-                as="p"
-                className={c.heroLead}
-              >
-                {m.labs_hero_lead()}
-              </Text>
-
-              <p className={c.heroBody}>{m.labs_hero_body()}</p>
-
-              <div className={c.heroActions}>
-                <Link
-                  className={c.ctaSecondary}
-                  to="/"
-                >
-                  <IconArrowLeft className={iconStyles.base} />
-                  <span>{m.labs_cta_back_home()}</span>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section>
-          <div className={c.labInner}>
-            <Text
-              as="h2"
-              className={c.sectionTitle}
-            >
-              {m.labs_section_title()}
-            </Text>
-            <p className={c.sectionIntro}>{m.labs_section_intro()}</p>
-
-            <div className={c.toolList}>
-              {tools.map(tool => (
-                <div
-                  className={c.toolRow}
-                  key={tool.to}
-                >
-                  <Link
-                    className={c.toolPanel}
-                    to={tool.to}
+    <div className={`${c.layout} ${chrome.interactiveScope}`}>
+      <SkipToContent mainId={mainId} />
+      <aside className={chrome.sidebar}>
+        <SiteBrand />
+        <SiteNavigation activePath="/labs" />
+      </aside>
+      <div className={c.workspace}>
+        <LabsHeader />
+        <main
+          className={c.page}
+          id={mainId}
+          tabIndex={-1}
+        >
+          <div
+            aria-hidden="true"
+            className={c.artwork}
+          />
+          <div className={c.content}>
+            <header className={c.intro}>
+              <h1 className={c.title}>{m.labs_title_accent()}</h1>
+              <p className={c.lead}>{m.labs_hero_lead()}</p>
+              <p className={c.body}>{m.labs_hero_body()}</p>
+            </header>
+            <div className={c.tools}>
+              {getTools().map(tool => {
+                const titleId = `${toolId}-${tool.id}-title`;
+                const descriptionId = `${toolId}-${tool.id}-description`;
+                const runtimeId = `${toolId}-${tool.id}-runtime`;
+                return (
+                  <article
+                    className={c.tool}
+                    key={tool.id}
                   >
-                    <span className={c.toolNumber}>{tool.number}</span>
-
-                    <div className={c.toolContent}>
-                      <Text
-                        as="h3"
-                        className={c.toolTitle}
-                      >
-                        {tool.title}
-                      </Text>
-                      <p className={c.toolBody}>{tool.description}</p>
-                    </div>
-
-                    <span className={c.toolAction}>{m.route_open_action()}</span>
-                  </Link>
-                </div>
-              ))}
+                    <Link
+                      className={`${c.toolLink} ${tool.tone}`}
+                      to={tool.to}
+                    >
+                      <div className={c.toolCopy}>
+                        <h2
+                          className={c.toolTitle}
+                          id={titleId}
+                        >
+                          {tool.title}
+                        </h2>
+                        <p
+                          className={c.toolDescription}
+                          id={descriptionId}
+                        >
+                          {tool.description}
+                        </p>
+                      </div>
+                      <ToolPreview id={tool.id} />
+                      <div className={c.toolFooter}>
+                        <span
+                          className={c.runtime}
+                          id={runtimeId}
+                        >
+                          {tool.runtime}
+                        </span>
+                        <span className={c.action}>
+                          {m.labs_open_tool()}
+                          <span
+                            aria-hidden="true"
+                            className={c.actionIcon}
+                          >
+                            <IconArrowRight />
+                          </span>
+                        </span>
+                      </div>
+                    </Link>
+                  </article>
+                );
+              })}
             </div>
-
-            <p className={c.footerNote}>{m.labs_more_note()}</p>
           </div>
-        </section>
-      </main>
-      <LabsFooter />
-    </>
+        </main>
+        <LabsFooter />
+      </div>
+    </div>
+  );
+}
+
+function ToolPreview({ id }: { id: ToolId }): JSX.Element {
+  if (id === 'dominant-color') {
+    return (
+      <div className={`${c.media} ${c.palettePreview}`}>
+        <img
+          alt=""
+          className={c.previewImage}
+          height={256}
+          src="/assets/labs-landscape.jpg"
+          width={256}
+        />
+        <div className={c.paletteResult}>
+          <span className={c.colorSwatch} />
+          <span>#38596F</span>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className={c.media}>
+      <img
+        alt=""
+        className={c.previewImage}
+        height={id === 'mandelbrot' ? 400 : 256}
+        src={
+          id === 'mandelbrot' ? '/assets/labs-mandelbrot-preview.png' : '/assets/labs-landscape.jpg'
+        }
+        width={id === 'mandelbrot' ? 640 : 256}
+      />
+    </div>
   );
 }
 
@@ -173,10 +225,7 @@ function LabsHeader() {
           ]}
         />
       </div>
-      <PagePreferences
-        activePath="/labs"
-        hasSidebar={false}
-      />
+      <PagePreferences activePath="/labs" />
     </header>
   );
 }
