@@ -1,0 +1,10 @@
+export { default as IconArrowDown } from '@iconify-react/fa7-solid/arrow-down';
+export { default as IconArrowLeft } from '@iconify-react/fa7-solid/arrow-left';
+export { default as IconArrowRight } from '@iconify-react/fa7-solid/arrow-right';
+export { default as IconArrowUp } from '@iconify-react/fa7-solid/arrow-up';
+export { default as IconCloudArrowDown } from '@iconify-react/fa7-solid/cloud-arrow-down';
+export { default as IconDownload } from '@iconify-react/fa7-solid/download';
+export { default as IconMinus } from '@iconify-react/fa7-solid/minus';
+export { default as IconPlus } from '@iconify-react/fa7-solid/plus';
+export { default as IconRotateLeft } from '@iconify-react/fa7-solid/rotate-left';
+export { default as IconStopwatch } from '@iconify-react/fa7-solid/stopwatch';
