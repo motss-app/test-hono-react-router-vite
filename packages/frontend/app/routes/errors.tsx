@@ -1,53 +1,26 @@
-import type { JSX } from 'react';
+import { type JSX, type ReactNode, useId } from 'react';
 
 import { Breadcrumbs } from '../components/breadcrumbs.tsx';
+import {
+  IconArrowRight,
+  IconCircleXmark,
+  IconCode,
+  IconTriangleExclamation,
+} from '../components/expressive.icons.ts';
 import { Link } from '../components/Link.tsx';
 import * as chrome from '../components/page-chrome.css.ts';
 import * as footerStyles from '../components/page-footer.css.ts';
-import { PagePreferences, SiteBrand } from '../components/page-navigation.tsx';
+import {
+  PagePreferences,
+  SiteBrand,
+  SiteNavigation,
+  SkipToContent,
+} from '../components/page-navigation.tsx';
 import { PoweredByTools } from '../components/powered-by-tools.tsx';
-import { Text } from '../components/text.tsx';
-import { IconArrowLeft, IconCircleInfo, IconHome, IconTriangleExclamation } from '../icons.ts';
 import * as m from '../paraglide/messages.js';
-import { iconStyles } from '../styles/icon.css.ts';
-import { createBackgroundSvgPreloadLinks } from '../utils/background-svg-preload.ts';
 import { errorScenarios } from '../utils/error-scenarios.ts';
 import type { Route } from './+types/errors.ts';
-import {
-  toneStyles as allToneStyles,
-  ctaPrimary,
-  ctaSecondary,
-  hero,
-  heroActions,
-  heroBody,
-  heroCopy,
-  heroInner,
-  heroLead,
-  heroMedia,
-  heroOverlay,
-  page,
-  routesInner,
-  routesIntro,
-  routesIntroSpacer,
-  routesList,
-  routesTitle,
-  rowBody,
-  rowCode,
-  rowCodeCritical,
-  rowCodeRuntime,
-  rowCodeWarning,
-  rowContent,
-  rowDetail,
-  rowDetailText,
-  rowLink,
-  rowPanel,
-  rowRow,
-  rowTitle,
-  sectionSpacer,
-  statusLabel,
-  title,
-  titleAccent,
-} from './errors.css.ts';
+import * as c from './errors.css.ts';
 
 export function meta(): Route.MetaDescriptors {
   return [
@@ -61,15 +34,20 @@ export function meta(): Route.MetaDescriptors {
   ];
 }
 
-export const links: Route.LinksFunction = () =>
-  createBackgroundSvgPreloadLinks([
-    '/assets/errors-hero-dark.svg',
-    '/assets/errors-hero-light.svg',
-  ]);
+export const links: Route.LinksFunction = () => [
+  {
+    as: 'image',
+    href: '/assets/errors-expressive.svg',
+    rel: 'preload',
+    type: 'image/svg+xml',
+  },
+];
 
-export default function ErrorsDemo(): JSX.Element {
+export default function Errors(): JSX.Element {
+  const mainId = useId();
+  const groupId = useId();
   const scenarioTranslations: Record<
-    string,
+    (typeof errorScenarios)[number]['code'],
     {
       label: string;
       summary: string;
@@ -113,205 +91,201 @@ export default function ErrorsDemo(): JSX.Element {
     },
   };
 
+  const groups = [
+    {
+      description: m.errors_client_description(),
+      Icon: IconTriangleExclamation,
+      title: m.errors_client_title(),
+      tone: 'warning',
+    },
+    {
+      description: m.errors_server_description(),
+      Icon: IconCircleXmark,
+      title: m.errors_server_title(),
+      tone: 'critical',
+    },
+    {
+      description: m.errors_runtime_description(),
+      Icon: IconCode,
+      title: m.errors_runtime_title(),
+      tone: 'runtime',
+    },
+  ] as const;
+  const notices = [
+    {
+      body: m.errors_notice_1_body(),
+      detail: m.errors_notice_1_detail(),
+      title: m.errors_notice_1_title(),
+    },
+    {
+      body: m.errors_notice_2_body(),
+      detail: m.errors_notice_2_detail(),
+      title: m.errors_notice_2_title(),
+    },
+    {
+      body: m.errors_notice_3_body(),
+      detail: m.errors_notice_3_detail(),
+      title: m.errors_notice_3_title(),
+    },
+  ];
   return (
-    <>
-      <ErrorsHeader />
-      <main className={page}>
-        <section className={hero}>
+    <div className={`${c.layout} ${chrome.interactiveScope}`}>
+      <SkipToContent mainId={mainId} />
+      <aside className={chrome.sidebar}>
+        <SiteBrand />
+        <SiteNavigation activePath="/errors" />
+      </aside>
+      <div className={c.workspace}>
+        <ErrorsHeader />
+        <main
+          className={c.page}
+          id={mainId}
+          tabIndex={-1}
+        >
           <div
             aria-hidden="true"
-            className={heroMedia}
+            className={c.artwork}
           />
-          <div
-            aria-hidden="true"
-            className={heroOverlay}
-          />
-
-          <div className={heroInner}>
-            <div className={heroCopy}>
-              <p className={statusLabel}>{m.errors_hero_status_label()}</p>
-
-              <Text
-                as="h1"
-                className={title}
-              >
-                {m.errors_hero_title()}
-                <span className={titleAccent}>{m.errors_hero_title_accent()}</span>
-              </Text>
-
-              <Text
-                as="p"
-                className={heroLead}
-              >
-                {m.errors_hero_lead()}
-              </Text>
-
-              <p className={heroBody}>{m.errors_hero_body()}</p>
-
-              <div className={heroActions}>
-                <Link
-                  className={ctaPrimary}
-                  to="/errors/404"
-                >
-                  <IconTriangleExclamation className={iconStyles.base} />
-                  <span>{m.errors_cta_trigger_404()}</span>
-                </Link>
-
-                <Link
-                  className={ctaSecondary}
-                  to="/"
-                >
-                  <IconHome className={iconStyles.base} />
-                  <span>{m.errors_cta_back_home()}</span>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section>
-          <div className={routesInner}>
-            <Text
-              as="h2"
-              className={routesTitle}
-            >
-              {m.errors_section_title_choose()}
-            </Text>
-
-            <p className={routesIntro}>{m.errors_section_intro_choose()}</p>
-
-            <div className={routesList}>
-              {errorScenarios.map(scenario => {
-                const toneStyles = allToneStyles[scenario.tone];
-                const translated = scenarioTranslations[scenario.code];
-
+          <div className={c.content}>
+            <header className={c.intro}>
+              <h1 className={c.title}>{m.errors_hero_title()}</h1>
+              <p className={c.lead}>{m.errors_hero_lead()}</p>
+              <p className={c.body}>{m.errors_hero_body()}</p>
+            </header>
+            <div className={c.groups}>
+              {groups.map(({ tone, title, description, Icon }) => {
+                const scenarios = errorScenarios.filter(scenario => scenario.tone === tone);
+                const headingId = `${groupId}-${tone}`;
                 return (
-                  <div
-                    className={rowRow}
-                    key={scenario.code}
+                  <section
+                    aria-labelledby={headingId}
+                    className={`${c.group} ${c.tones[tone]}`}
+                    key={tone}
                   >
-                    <div className={rowPanel}>
-                      <span className={`${rowCode} ${toneStyles.code}`}>
-                        {scenario.code === 'runtime' ? 'ERR' : scenario.code}
+                    <header className={c.groupHeading}>
+                      <span
+                        aria-hidden="true"
+                        className={c.groupIcon}
+                      >
+                        <Icon />
                       </span>
-
-                      <div className={rowContent}>
-                        <Text
-                          as="h3"
-                          className={rowTitle}
+                      <div className={c.groupCopy}>
+                        <h2
+                          className={c.groupTitle}
+                          id={headingId}
                         >
-                          {translated?.label ?? scenario.label}
-                        </Text>
-                        <p className={rowBody}>{translated?.summary ?? scenario.summary}</p>
+                          {title}
+                        </h2>
+                        <p className={c.body}>{description}</p>
                       </div>
-
-                      <div className={rowDetail}>
-                        <p className={rowDetailText}>{translated?.detail ?? scenario.detail}</p>
-                        <Link
-                          className={`${rowLink} ${toneStyles.link}`}
-                          to={`/errors/${scenario.code}`}
-                        >
-                          <span>{m.errors_open_case()}</span>
-                          <IconArrowLeft
-                            className={iconStyles.base}
-                            style={{
-                              transform: 'rotate(180deg)',
-                            }}
-                          />
-                        </Link>
-                      </div>
+                    </header>
+                    <div className={c.groupCases}>
+                      <ul className={c.caseList}>
+                        {scenarios.map(scenario => {
+                          const translated = scenarioTranslations[scenario.code];
+                          return (
+                            <li key={scenario.code}>
+                              <Link
+                                className={c.caseLink}
+                                to={`/errors/${scenario.code}`}
+                              >
+                                <span className={c.caseCode}>
+                                  {scenario.code === 'runtime' ? 'ERR' : scenario.code}
+                                </span>
+                                <div className={c.caseCopy}>
+                                  <h3 className={c.caseTitle}>{translated.label}</h3>
+                                  <p className={c.body}>{translated.summary}</p>
+                                </div>
+                                <span className={c.caseAction}>
+                                  {m.errors_open_case()}
+                                  <IconArrowRight aria-hidden="true" />
+                                </span>
+                              </Link>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                      <details className={c.details}>
+                        <summary className={c.detailsToggle}>{m.errors_case_details()}</summary>
+                        <dl className={c.detailList}>
+                          {scenarios.map(scenario => {
+                            const translated = scenarioTranslations[scenario.code];
+                            return (
+                              <div key={scenario.code}>
+                                <dt className={c.detailTitle}>
+                                  {scenario.code === 'runtime' ? 'ERR' : scenario.code} ·{' '}
+                                  {translated.label}
+                                </dt>
+                                <dd className={c.detailBody}>
+                                  <InlineCodeText>{translated.detail}</InlineCodeText>
+                                </dd>
+                              </div>
+                            );
+                          })}
+                        </dl>
+                      </details>
                     </div>
-                  </div>
+                  </section>
                 );
               })}
             </div>
-
-            <div className={sectionSpacer}>
-              <Text
-                as="h2"
-                className={routesTitle}
+            <section
+              aria-labelledby={`${groupId}-notice`}
+              className={c.explanation}
+            >
+              <h2
+                className={c.sectionTitle}
+                id={`${groupId}-notice`}
               >
                 {m.errors_section_title_notice()}
-              </Text>
-
-              <p className={routesIntro}>{m.errors_section_intro_notice()}</p>
-
-              <div className={routesList}>
-                <div className={rowRow}>
-                  <div className={rowPanel}>
-                    <span className={rowCodeWarning}>01</span>
-
-                    <div className={rowContent}>
-                      <Text
-                        as="h3"
-                        className={rowTitle}
-                      >
-                        {m.errors_notice_1_title()}
-                      </Text>
-                      <p className={rowBody}>
-                        <code>/errors</code> {m.errors_notice_1_body()}
+              </h2>
+              <ol className={c.notices}>
+                {notices.map((notice, index) => (
+                  <li
+                    className={c.notice}
+                    key={notice.title}
+                  >
+                    <span
+                      aria-hidden="true"
+                      className={c.noticeNumber}
+                    >
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    <div>
+                      <h3 className={c.noticeTitle}>{notice.title}</h3>
+                      <p className={c.body}>
+                        <InlineCodeText>{`${notice.body} ${notice.detail}`}</InlineCodeText>
                       </p>
                     </div>
-
-                    <div className={rowDetail}>
-                      <p className={rowDetailText}>{m.errors_notice_1_detail()}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className={rowRow}>
-                  <div className={rowPanel}>
-                    <span className={rowCodeCritical}>02</span>
-
-                    <div className={rowContent}>
-                      <Text
-                        as="h3"
-                        className={rowTitle}
-                      >
-                        {m.errors_notice_2_title()}
-                      </Text>
-                      <p className={rowBody}>
-                        <code>/errors/:code</code> {m.errors_notice_2_body()}
-                      </p>
-                    </div>
-
-                    <div className={rowDetail}>
-                      <p className={rowDetailText}>{m.errors_notice_2_detail()}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className={rowRow}>
-                  <div className={rowPanel}>
-                    <span className={rowCodeRuntime}>03</span>
-
-                    <div className={rowContent}>
-                      <Text
-                        as="h3"
-                        className={rowTitle}
-                      >
-                        {m.errors_notice_3_title()}
-                      </Text>
-                      <p className={rowBody}>{m.errors_notice_3_body()}</p>
-                    </div>
-
-                    <div className={rowDetail}>
-                      <p className={rowDetailText}>{m.errors_notice_3_detail()}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <p className={routesIntroSpacer}>
-                <IconCircleInfo className={iconStyles.base} /> {m.errors_spacer_intro()}
-              </p>
-            </div>
+                  </li>
+                ))}
+              </ol>
+            </section>
           </div>
-        </section>
-      </main>
-      <ErrorsFooter />
-    </>
+        </main>
+        <ErrorsFooter />
+      </div>
+    </div>
   );
+}
+
+function InlineCodeText({ children }: { children: string }): JSX.Element {
+  const parts: ReactNode[] = [];
+  let cursor = 0;
+  for (const match of children.matchAll(/`([^`]+)`/g)) {
+    parts.push(children.slice(cursor, match.index));
+    parts.push(
+      <code
+        className={c.inlineCode}
+        key={match.index}
+      >
+        {match[1]}
+      </code>
+    );
+    cursor = match.index + match[0].length;
+  }
+  parts.push(children.slice(cursor));
+  return <>{parts}</>;
 }
 
 function ErrorsFooter() {
@@ -343,10 +317,7 @@ function ErrorsHeader() {
           ]}
         />
       </div>
-      <PagePreferences
-        activePath="/errors"
-        hasSidebar={false}
-      />
+      <PagePreferences activePath="/errors" />
     </header>
   );
 }

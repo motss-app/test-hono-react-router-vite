@@ -4,6 +4,7 @@ export { default as IconBolt } from '@iconify-react/fa7-solid/bolt';
 export { default as IconCheck } from '@iconify-react/fa7-solid/check';
 export { default as IconChevronRight } from '@iconify-react/fa7-solid/chevron-right';
 export { default as IconCircleInfo } from '@iconify-react/fa7-solid/circle-info';
+export { default as IconCircleXmark } from '@iconify-react/fa7-solid/circle-xmark';
 export { default as IconCode } from '@iconify-react/fa7-solid/code';
 export { default as IconDesktop } from '@iconify-react/fa7-solid/desktop';
 export { default as IconFlask } from '@iconify-react/fa7-solid/flask';
