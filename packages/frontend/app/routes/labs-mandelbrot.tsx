@@ -152,8 +152,8 @@ interface ViewControlsProps {
   children: ReactNode;
   engine: FractalEngine | null;
   maxIter: number;
-  onEngineChange: (event: ReactChangeEvent<HTMLSelectElement>) => void;
   onIterationsChange: (event: ReactChangeEvent<HTMLInputElement>) => void;
+  onEngineChange: (event: ReactChangeEvent<HTMLSelectElement>) => void;
   onPaletteChange: (event: ReactChangeEvent<HTMLSelectElement>) => void;
   palette: FractalPaletteName;
   webgl2Available: boolean;
@@ -171,7 +171,7 @@ function ViewControls({
 }: ViewControlsProps): JSX.Element {
   const controlsId = useId();
   const engineId = `${controlsId}-engine`;
-  const iterationsId = `${controlsId}-iterations`;
+  const settingsIterationsId = `${controlsId}-iterations`;
   const paletteId = `${controlsId}-palette`;
   const settingsId = `${controlsId}-settings`;
   return (
@@ -185,90 +185,96 @@ function ViewControls({
       >
         {m.labs_mandelbrot_settings_title()}
       </h2>
-      <div className={c.controlsRow}>
-        <div className={c.controlGroup}>
-          <label
-            className={c.controlLabel}
-            htmlFor={engineId}
-          >
-            {m.labs_mandelbrot_label_engine()}
-          </label>
-          <select
-            className={c.selectInput}
-            disabled={engine === null}
-            id={engineId}
-            onChange={onEngineChange}
-            value={engine ?? ''}
-          >
-            <option
-              disabled
-              hidden
-              value=""
-            >
-              {m.labs_mandelbrot_status_preparing()}
-            </option>
-            {ENGINES.map(name => (
-              <option
-                disabled={name === 'webgl2' && !webgl2Available}
-                key={name}
-                value={name}
+      <div className={c.controlGroup}>
+        <label
+          className={c.controlLabel}
+          htmlFor={engineId}
+        >
+          {m.labs_mandelbrot_label_engine()}
+        </label>
+        <div className={c.controlsGrid}>
+          <div className={c.controlFields}>
+            <div className={c.controlGroup}>
+              <select
+                className={c.selectInput}
+                disabled={engine === null}
+                id={engineId}
+                onChange={onEngineChange}
+                value={engine ?? ''}
               >
-                {ENGINE_LABELS[name]()}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className={c.controlGroup}>
-          <label
-            className={c.controlLabel}
-            htmlFor={paletteId}
-          >
-            {m.labs_mandelbrot_label_palette()}
-          </label>
-          <select
-            className={c.selectInput}
-            id={paletteId}
-            onChange={onPaletteChange}
-            value={palette}
-          >
-            {PALETTES.map(name => (
-              <option
-                key={name}
-                value={name}
+                <option
+                  disabled
+                  hidden
+                  value=""
+                >
+                  {m.labs_mandelbrot_status_preparing()}
+                </option>
+                {ENGINES.map(name => (
+                  <option
+                    disabled={name === 'webgl2' && !webgl2Available}
+                    key={name}
+                    value={name}
+                  >
+                    {ENGINE_LABELS[name]()}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className={c.controlGroup}>
+              <label
+                className={c.controlLabel}
+                htmlFor={paletteId}
               >
-                {PALETTE_LABELS[name]()}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className={c.controlGroup}>
-          <div className={c.controlHeading}>
-            <label
-              className={c.controlLabel}
-              htmlFor={iterationsId}
-            >
-              {m.labs_mandelbrot_label_iterations()}
-            </label>
-            <output
-              className={c.raceValue}
-              htmlFor={iterationsId}
-            >
-              {maxIter}
-            </output>
+                {m.labs_mandelbrot_label_palette()}
+              </label>
+              <select
+                className={c.selectInput}
+                id={paletteId}
+                onChange={onPaletteChange}
+                value={palette}
+              >
+                {PALETTES.map(name => (
+                  <option
+                    key={name}
+                    value={name}
+                  >
+                    {PALETTE_LABELS[name]()}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className={c.settingsIterations}>
+              <div className={c.controlGroup}>
+                <div className={c.controlHeading}>
+                  <label
+                    className={c.controlLabel}
+                    htmlFor={settingsIterationsId}
+                  >
+                    {m.labs_mandelbrot_label_iterations()}
+                  </label>
+                  <output
+                    className={c.raceValue}
+                    htmlFor={settingsIterationsId}
+                  >
+                    {maxIter}
+                  </output>
+                </div>
+                <input
+                  className={c.rangeInput}
+                  id={settingsIterationsId}
+                  max={1000}
+                  min={50}
+                  onChange={onIterationsChange}
+                  step={10}
+                  type="range"
+                  value={maxIter}
+                />
+              </div>
+            </div>
           </div>
-          <input
-            className={c.rangeInput}
-            id={iterationsId}
-            max={1000}
-            min={50}
-            onChange={onIterationsChange}
-            step={10}
-            type="range"
-            value={maxIter}
-          />
+          <div className={c.navigationCell}>{children}</div>
         </div>
       </div>
-      {children}
     </aside>
   );
 }
@@ -286,6 +292,7 @@ function ViewNavigation({
   onZoomIn: () => void;
   onZoomOut: () => void;
 }): JSX.Element {
+  const navigationId = useId();
   const handlePan = useCallback(
     (event: ReactMouseEvent<HTMLButtonElement>) => {
       onPan(Number(event.currentTarget.dataset.panX), Number(event.currentTarget.dataset.panY));
@@ -294,82 +301,85 @@ function ViewNavigation({
       onPan,
     ]
   );
-  const directions = [
+  const controls = [
     {
-      Icon: IconArrowLeft,
-      label: m.labs_mandelbrot_pan_left(),
-      x: -1,
-      y: 0,
+      area: c.panAreas.zoomIn,
+      Icon: IconPlus,
+      label: m.labs_mandelbrot_action_zoom_in(),
+      onClick: onZoomIn,
     },
     {
+      area: c.panAreas.reset,
+      Icon: IconRotateLeft,
+      label: m.labs_mandelbrot_action_reset(),
+      onClick: onReset,
+    },
+    {
+      area: c.panAreas.zoomOut,
+      Icon: IconMinus,
+      label: m.labs_mandelbrot_action_zoom_out(),
+      onClick: onZoomOut,
+    },
+    {
+      area: c.panAreas.up,
       Icon: IconArrowUp,
       label: m.labs_mandelbrot_pan_up(),
       x: 0,
       y: -1,
     },
     {
+      area: c.panAreas.left,
+      Icon: IconArrowLeft,
+      label: m.labs_mandelbrot_pan_left(),
+      x: -1,
+      y: 0,
+    },
+    {
+      area: c.panAreas.down,
       Icon: IconArrowDown,
       label: m.labs_mandelbrot_pan_down(),
       x: 0,
       y: 1,
     },
     {
+      area: c.panAreas.right,
       Icon: IconArrowRight,
       label: m.labs_mandelbrot_pan_right(),
       x: 1,
       y: 0,
     },
   ];
+  const renderControl = (control: (typeof controls)[number]) => (
+    <button
+      aria-label={control.label}
+      className={`${c.panButton} ${control.area}`}
+      data-pan-x={'x' in control ? control.x : undefined}
+      data-pan-y={'y' in control ? control.y : undefined}
+      key={control.label}
+      onClick={'onClick' in control ? control.onClick : handlePan}
+      onKeyDown={onKeyDown}
+      title={control.label}
+      type="button"
+    >
+      <control.Icon
+        aria-hidden="true"
+        className={c.panIcon}
+      />
+    </button>
+  );
   return (
-    <div className={c.viewNavigation}>
-      <div className={c.zoomControls}>
-        <button
-          className={c.zoomButton}
-          onClick={onZoomIn}
-          onKeyDown={onKeyDown}
-          type="button"
-        >
-          <IconPlus aria-hidden="true" />
-          {m.labs_mandelbrot_action_zoom_in()}
-        </button>
-        <button
-          className={c.zoomButton}
-          onClick={onZoomOut}
-          onKeyDown={onKeyDown}
-          type="button"
-        >
-          <IconMinus aria-hidden="true" />
-          {m.labs_mandelbrot_action_zoom_out()}
-        </button>
-        <button
-          className={c.zoomButton}
-          onClick={onReset}
-          onKeyDown={onKeyDown}
-          type="button"
-        >
-          <IconRotateLeft aria-hidden="true" />
-          {m.labs_mandelbrot_action_reset()}
-        </button>
-      </div>
+    <div className={c.navigationPanel}>
+      <h3
+        className={c.navigationTitle}
+        id={navigationId}
+      >
+        {m.labs_mandelbrot_view_controls_title()}
+      </h3>
       <fieldset
-        aria-label={m.labs_mandelbrot_pan_label()}
+        aria-labelledby={navigationId}
         className={c.panControls}
       >
-        {directions.map(({ Icon, label, x, y }) => (
-          <button
-            aria-label={label}
-            className={c.panButton}
-            data-pan-x={x}
-            data-pan-y={y}
-            key={label}
-            onClick={handlePan}
-            onKeyDown={onKeyDown}
-            title={label}
-            type="button"
-          >
-            <Icon aria-hidden="true" />
-          </button>
-        ))}
+        {controls.map(renderControl)}
       </fieldset>
     </div>
   );
@@ -1127,7 +1137,12 @@ function useFractalCanvas(): {
   }, []);
 
   const resetView = useCallback(() => {
-    setView(DEFAULT_VIEW);
+    setView(previous => ({
+      ...previous,
+      centerX: DEFAULT_VIEW.centerX,
+      centerY: DEFAULT_VIEW.centerY,
+      scale: DEFAULT_VIEW.scale,
+    }));
   }, []);
 
   return {
@@ -1163,6 +1178,7 @@ export default function RustLab(): JSX.Element {
     handlePointerMove,
     handlePointerUp,
     renderMs,
+    resetView,
     setEngine,
     setView,
     shellRef,
@@ -1186,12 +1202,6 @@ export default function RustLab(): JSX.Element {
       setView,
     ]
   );
-
-  const resetView = useCallback(() => {
-    setView(DEFAULT_VIEW);
-  }, [
-    setView,
-  ]);
 
   const handleIterationsChange = useCallback(
     (event: ReactChangeEvent<HTMLInputElement>) => {
@@ -1307,21 +1317,22 @@ export default function RustLab(): JSX.Element {
             shellRef={shellRef}
             wasmStatus={wasmStatus}
           />
-          <p
-            className={c.canvasHint}
-            id={instructionsId}
-          >
-            {m.labs_mandelbrot_canvas_desc()}
-          </p>
-
-          <ViewStatusBar
-            centerX={view.centerX}
-            centerY={view.centerY}
-            engine={engine}
-            renderMs={renderMs}
-            scale={view.scale}
-          />
-          <p className={c.gpuNote}>{m.labs_mandelbrot_gpu_note()}</p>
+          <div className={c.explorerDetails}>
+            <p
+              className={c.canvasHint}
+              id={instructionsId}
+            >
+              {m.labs_mandelbrot_canvas_desc()}
+            </p>
+            <ViewStatusBar
+              centerX={view.centerX}
+              centerY={view.centerY}
+              engine={engine}
+              renderMs={renderMs}
+              scale={view.scale}
+            />
+            <p className={c.gpuNote}>{m.labs_mandelbrot_gpu_note()}</p>
+          </div>
         </div>
         <ViewControls
           engine={engine}

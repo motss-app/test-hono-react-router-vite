@@ -14,6 +14,7 @@ export const mediaQueries = {
   minWidth960: '(min-width: 960px)',
   minWidth1000: '(min-width: 1000px)',
   minWidth1200: '(min-width: 1200px)',
+  minWidth1600: '(min-width: 1600px)',
   reducedMotion: '(prefers-reduced-motion: reduce)',
   width600To1199: '(min-width: 600px) and (max-width: 1199px)',
 } as const satisfies Record<string, string>;

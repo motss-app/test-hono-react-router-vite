@@ -60,7 +60,7 @@ Selection rules:
 
 ### Session hygiene
 
-- Start each task with a fresh dedicated MCP session. List pages first, record the baseline, and track created pages and process ownership. Never modify user-owned tabs or pre-existing shared browser processes.
+- Start each task with a fresh dedicated MCP session. List pages first, record the baseline, and track created pages and process ownership. Never modify user-owned tabs or pre-existing shared browser processes. After all browser work for a task is complete, terminate the task-owned Chrome or Edge processes (identified via parent relationships along with `puppeteer_dev_chrome_profile-*` and `--remote-debugging-pipe`) so no spawned browser instance lingers, using `kill -TERM` and verifying exit with `ps`. Do not kill VRT or other test-owned Chromium processes that are still running required automated checks.
 - On `Transport closed`, stop and ask the user to restart the MCP server through the VS Code MCP panel. After confirmation, list pages again before continuing. Never retry a dead transport or launch a separate stdio server as a replacement connection.
 - After an MCP reconnect or restart, list pages again and discard stale page IDs before continuing.
 - For other page-call failures, inspect the live session and recover when possible.

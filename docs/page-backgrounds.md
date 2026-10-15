@@ -28,6 +28,8 @@ area clear. Include it when replaying the seed of a mirrored composition.
 
 The current Holy Grail artwork uses seed
 `916c72dd-58de-4de3-9965-e0f7c5c7f7ed` with `--page holy-grail --mirror`.
+The current Mandelbrot artwork uses seed
+`ae900c47-80a3-4395-a7e4-63ee9ace3f57` with `--page mandelbrot`.
 
 The script writes to the existing asset paths used by each page's Vanilla
 Extract styles. It does not run in the browser or randomly change artwork

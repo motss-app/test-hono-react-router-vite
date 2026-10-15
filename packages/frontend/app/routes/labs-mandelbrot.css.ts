@@ -68,7 +68,7 @@ export const page = style({
 export const artwork = style({
   '@media': {
     [mediaQueries.maxWidth599]: {
-      opacity: 0.24,
+      opacity: 0.28,
     },
   },
   backgroundImage: 'url("/assets/mandelbrot-expressive.svg")',
@@ -76,7 +76,7 @@ export const artwork = style({
   backgroundRepeat: 'repeat-y',
   backgroundSize: '100% auto',
   inset: 0,
-  opacity: 0.62,
+  opacity: 0.72,
   pointerEvents: 'none',
   position: 'absolute',
   zIndex: -1,
@@ -88,7 +88,7 @@ export const content = style({
   marginInline: 'auto',
   maxWidth: '1280px',
   minWidth: 0,
-  padding: `1.5rem clamp(1rem, 3.5vw, 3rem) ${t.space.pageFooterGap}`,
+  padding: `1.5rem clamp(8px, 3.5vw, 3rem) ${t.space.pageFooterGap}`,
   width: '100%',
 });
 export const intro = style({
@@ -132,11 +132,17 @@ export const explorer = style({
   display: 'grid',
   gap: '1.5rem',
   minWidth: 0,
-  padding: '1rem',
+  padding: 'clamp(8px, 2vw, 16px)',
 });
 export const canvasColumn = style({
   display: 'grid',
   gap: '1rem',
+  minWidth: 0,
+});
+export const explorerDetails = style({
+  display: 'grid',
+  gap: '1rem',
+  gridColumn: '1 / -1',
   minWidth: 0,
 });
 export const canvasShell = style({
@@ -182,7 +188,7 @@ export const canvasHint = style({
 });
 export const controlsPanel = style({
   display: 'grid',
-  gap: '1.25rem',
+  gap: '1.25rem 1.25rem',
   minWidth: 0,
 });
 export const controlTitle = style({
@@ -191,20 +197,54 @@ export const controlTitle = style({
   lineHeight: 1.4,
   margin: 0,
 });
-export const controlsRow = style({
-  '@media': {
-    [mediaQueries.width600To1199]: {
-      gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-    },
-  },
+export const controlsGrid = style({
+  alignItems: 'start',
+  display: 'grid',
+  gap: '1.25rem',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 12rem), 1fr))',
+  minWidth: 0,
+});
+export const controlFields = style({
   display: 'grid',
   gap: '1.25rem',
   minWidth: 0,
 });
 export const controlGroup = style({
+  alignContent: 'start',
   display: 'grid',
-  gap: '0.5rem',
+  gap: '0.75rem',
   minWidth: 0,
+});
+export const navigationCell = style({
+  alignContent: 'start',
+  alignSelf: 'start',
+  containerType: 'inline-size',
+  display: 'grid',
+  justifyItems: 'center',
+  minWidth: 0,
+});
+export const navigationPanel = style({
+  backgroundColor: t.color.primary,
+  border: `1px solid ${t.color.primary}`,
+  borderRadius: t.shape.extraLarge,
+  boxSizing: 'border-box',
+  display: 'grid',
+  gap: '16px',
+  maxWidth: '100%',
+  minWidth: 0,
+  /** Keep the 168px pad and its border inside narrow cells. */
+  padding: '16px clamp(0px, calc(50cqi - 85px), 12px)',
+  width: 'max-content',
+});
+export const navigationTitle = style({
+  color: t.color.onPrimary,
+  fontSize: t.type.label,
+  fontWeight: 650,
+  lineHeight: 1.5,
+  margin: 0,
+  minWidth: 0,
+  overflowWrap: 'anywhere',
+  textAlign: 'center',
 });
 export const controlHeading = style({
   alignItems: 'center',
@@ -230,7 +270,13 @@ export const rangeInput = style({
   width: '100%',
 });
 export const selectInput = style({
+  appearance: 'none',
   backgroundColor: t.color.surfaceRaised,
+  backgroundImage:
+    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2360566d' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\")",
+  backgroundPosition: 'right 0.75rem center',
+  backgroundRepeat: 'no-repeat',
+  backgroundSize: '1rem 1rem',
   border: `1px solid ${t.color.outline}`,
   borderRadius: t.shape.small,
   boxSizing: 'border-box',
@@ -238,44 +284,77 @@ export const selectInput = style({
   fontFamily: 'inherit',
   fontSize: t.type.label,
   lineHeight: 1.5,
+  MozAppearance: 'none',
   minHeight: '44px',
   minWidth: 0,
-  padding: '0.625rem 0.5rem',
+  padding: '0.625rem 2.5rem 0.625rem 0.75rem',
   selectors: {
     '&:focus-visible': focus,
   },
+  WebkitAppearance: 'none',
   width: '100%',
 });
-export const viewNavigation = style({
-  alignItems: 'center',
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: '0.75rem',
-  justifyContent: 'space-between',
-});
-export const zoomControls = style({
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: '0.5rem',
-});
 export const panControls = style({
+  alignItems: 'start',
   border: 0,
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: '0.375rem',
-  margin: 0,
+  display: 'grid',
+  gap: '0.75rem',
+  gridTemplateAreas: `
+    "zoomIn reset zoomOut"
+    ". up ."
+    "left down right"
+  `,
+  gridTemplateColumns: '48px minmax(6rem, auto) 48px',
+  justifyItems: 'center',
+  margin: '0 auto',
+  maxWidth: '100%',
   minWidth: 0,
   padding: 0,
+  width: 'max-content',
 });
-export const zoomButton = secondaryButton;
+export const panAreas = {
+  down: style({
+    gridArea: 'down',
+  }),
+  left: style({
+    gridArea: 'left',
+  }),
+  reset: style({
+    gridArea: 'reset',
+  }),
+  right: style({
+    gridArea: 'right',
+  }),
+  up: style({
+    gridArea: 'up',
+  }),
+  zoomIn: style({
+    gridArea: 'zoomIn',
+  }),
+  zoomOut: style({
+    gridArea: 'zoomOut',
+  }),
+};
 export const panButton = style([
   secondaryButton,
   {
+    boxSizing: 'border-box',
     flexShrink: 0,
-    padding: '0.5rem',
-    width: '44px',
+    height: '64px',
+    justifyContent: 'center',
+    padding: '8px',
+    selectors: {
+      '&:focus-visible': {
+        outline: `3px solid ${t.color.onPrimary}`,
+        outlineOffset: '3px',
+      },
+    },
+    width: '64px',
   },
 ]);
+export const panIcon = style({
+  flexShrink: 0,
+});
 export const statusBar = style({
   '@media': {
     [mediaQueries.minWidth600]: {
@@ -546,11 +625,21 @@ export const codeInline = style({
   overflowWrap: 'anywhere',
   padding: '0.125rem 0.375rem',
 });
+
+export const settingsIterations = style({
+  display: 'block',
+});
+
 globalStyle(`:root[data-theme="dark"] ${artwork}`, {
   '@media': {
     [mediaQueries.maxWidth599]: {
-      opacity: 0.18,
+      opacity: 0.22,
     },
   },
-  opacity: 0.42,
+  opacity: 0.52,
+});
+
+globalStyle(`:root[data-theme="dark"] .${selectInput}`, {
+  backgroundImage:
+    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23c2b9d0' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\")",
 });

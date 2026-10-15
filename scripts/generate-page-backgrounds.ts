@@ -215,35 +215,41 @@ function artwork(page: string): string {
     /** Branches of shrinking circles echo self-similarity at the page edges. */
     for (const [x, y, direction] of [
       [
-        1460,
-        180,
+        random(1445, 1480),
+        random(265, 305),
         -1,
       ],
       [
-        -35,
-        670,
+        random(-50, -20),
+        random(585, 625),
         1,
       ],
     ] as const) {
-      const radius = Math.round(random(100, 125) * 1.2);
-      paths.push(`<circle cx="${x}" cy="${y}" r="${radius}" fill="url(#violet)" opacity=".42"/>`);
+      const radius = Math.round(random(108, 122) * 1.2);
+      paths.push(
+        `<circle cx="${x}" cy="${y}" r="${radius}" fill="url(#violet)" opacity=".${random(46, 56)}"/>`
+      );
+      const spread = random(48, 58) / 100;
+      const tilt = random(-6, 6) / 100;
       for (let branch = 0; branch < 3; branch++) {
-        const angle = (branch - 1) * 0.8;
+        const angle = (branch - 1) * spread + tilt;
         let previousX: number = x;
         let previousY: number = y;
+        let previousRadius = radius;
         for (let depth = 1; depth < 4; depth++) {
-          const size = Math.round(radius * 0.55 ** depth);
-          const distance = radius * (1.8 - 0.8 ** depth);
-          const cx = Math.round(x + direction * Math.cos(angle) * distance);
-          const cy = Math.round(y + Math.sin(angle) * distance);
+          const size = Math.round(radius * 0.56 ** depth);
+          const step = previousRadius + size + random(6, 12);
+          const cx = Math.round(previousX + direction * Math.cos(angle) * step);
+          const cy = Math.round(previousY + Math.sin(angle) * step);
           paths.push(
-            `<path d="M${previousX} ${previousY} L${cx} ${cy}" stroke="url(#${colors[branch]})" stroke-width="${Math.max(2, size / 8)}" opacity=".25"/>`
+            `<path d="M${previousX} ${previousY} L${cx} ${cy}" stroke="url(#${colors[branch]})" stroke-width="${Math.max(3, Math.round(size / 5))}" stroke-linecap="round" opacity=".34"/>`
           );
           paths.push(
-            `<circle cx="${cx}" cy="${cy}" r="${size}" fill="url(#${colors[branch]})" opacity=".${random(28, 44)}"/>`
+            `<circle cx="${cx}" cy="${cy}" r="${size}" fill="url(#${colors[branch]})" opacity=".${random(38, 52)}"/>`
           );
           previousX = cx;
           previousY = cy;
+          previousRadius = size;
         }
       }
     }
