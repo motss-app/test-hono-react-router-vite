@@ -4,6 +4,8 @@ import { expressiveTokens as t } from '../styles/expressive-tokens.css.ts';
 import { mediaQueries } from '../styles/media-queries.ts';
 
 export const raceWidth = createVar();
+const remoteKeySize = createVar();
+const remoteSidePadding = createVar();
 const reveal = keyframes({
   from: {
     opacity: 0,
@@ -224,7 +226,7 @@ export const navigationCell = style({
   minWidth: 0,
 });
 export const navigationPanel = style({
-  backgroundColor: t.color.primary,
+  backgroundColor: t.color.primaryContainer,
   border: `1px solid ${t.color.primary}`,
   borderRadius: t.shape.extraLarge,
   boxSizing: 'border-box',
@@ -232,12 +234,16 @@ export const navigationPanel = style({
   gap: '16px',
   maxWidth: '100%',
   minWidth: 0,
-  /** Keep the 168px pad and its border inside narrow cells. */
-  padding: '16px clamp(0px, calc(50cqi - 85px), 12px)',
+  padding: `16px ${remoteSidePadding}`,
+  /** Reserve the border, fixed gaps, and side padding before sizing keys. */
+  vars: {
+    [remoteKeySize]: 'clamp(48px, calc((100cqi - 50px) / 3), 64px)',
+    [remoteSidePadding]: 'clamp(0px, calc(50cqi - 85px), 12px)',
+  },
   width: 'max-content',
 });
 export const navigationTitle = style({
-  color: t.color.onPrimary,
+  color: t.color.onPrimaryContainer,
   fontSize: t.type.label,
   fontWeight: 650,
   lineHeight: 1.5,
@@ -298,13 +304,13 @@ export const panControls = style({
   alignItems: 'start',
   border: 0,
   display: 'grid',
-  gap: '0.75rem',
+  gap: '12px',
   gridTemplateAreas: `
     "zoomIn reset zoomOut"
     ". up ."
     "left down right"
   `,
-  gridTemplateColumns: '48px minmax(6rem, auto) 48px',
+  gridTemplateColumns: `repeat(3, ${remoteKeySize})`,
   justifyItems: 'center',
   margin: '0 auto',
   maxWidth: '100%',
@@ -338,18 +344,23 @@ export const panAreas = {
 export const panButton = style([
   secondaryButton,
   {
+    backgroundColor: t.color.primary,
+    border: '1px solid transparent',
     boxSizing: 'border-box',
+    color: t.color.onPrimary,
     flexShrink: 0,
-    height: '64px',
+    height: remoteKeySize,
     justifyContent: 'center',
     padding: '8px',
     selectors: {
-      '&:focus-visible': {
-        outline: `3px solid ${t.color.onPrimary}`,
-        outlineOffset: '3px',
+      '&:focus-visible': focus,
+      '&:hover': {
+        backgroundColor: t.color.primaryHover,
+        borderColor: 'transparent',
+        color: t.color.onPrimary,
       },
     },
-    width: '64px',
+    width: remoteKeySize,
   },
 ]);
 export const panIcon = style({
