@@ -1,37 +1,20 @@
 import { style } from '@vanilla-extract/css';
 
-import { colorTokens } from '../styles/color-tokens.contract.css.ts';
+import { expressiveTokens as t } from '../styles/expressive-tokens.css.ts';
 
 export const footer = style({
-  borderTopColor: colorTokens.slate200,
-  borderTopStyle: 'solid',
-  borderTopWidth: '1px',
-  paddingBlock: '1.5rem',
-  paddingInline: '1rem',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      borderTopColor: colorTokens.slate800,
-    },
-  },
+  backgroundColor: t.color.surface,
+  borderTop: `1px solid ${t.color.outline}`,
+  color: t.color.onSurface,
+  padding: '1.5rem clamp(1rem, 3.5vw, 3rem) 2rem',
 });
-
 export const footerInner = style({
   alignItems: 'center',
   display: 'flex',
   flexWrap: 'wrap',
-  gap: '1rem',
+  gap: '1.5rem 2rem',
   justifyContent: 'space-between',
   marginInline: 'auto',
-  maxInlineSize: '84rem',
-});
-
-export const footerNote = style({
-  color: colorTokens.slate500,
-  fontSize: '0.875rem',
-  margin: 0,
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.slate400,
-    },
-  },
+  maxWidth: '1120px',
+  minWidth: 0,
 });

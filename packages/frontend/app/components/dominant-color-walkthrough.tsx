@@ -1,10 +1,16 @@
+import { assignInlineVars } from '@vanilla-extract/dynamic';
 import type { JSX, MouseEvent as ReactMouseEvent } from 'react';
 import { useCallback, useId, useMemo, useState } from 'react';
 
 import * as m from '../paraglide/messages.js';
 import * as c from './dominant-color-walkthrough.css.ts';
+import {
+  IconArrowLeft,
+  IconArrowRight,
+  IconRotateLeft,
+} from './dominant-color-walkthrough.icons.ts';
 
-type PixelName = 'coral' | 'coral-light' | 'gold' | 'teal';
+type PixelName = 'purple' | 'purple-light' | 'peach' | 'cyan';
 
 type Pixel = {
   readonly a: number;
@@ -60,38 +66,39 @@ type Model = {
   winnerRgb: Marker;
 };
 
+/** Fixed samples from the shared M3E dark palette, independent of page theme. */
 const PIXELS: Pixel[] = [
   {
     a: 255,
-    b: 58,
-    g: 76,
+    b: 255,
+    g: 173,
     id: 'P1',
-    name: 'coral',
-    r: 232,
+    name: 'purple',
+    r: 207,
   },
   {
     a: 255,
-    b: 63,
-    g: 79,
+    b: 255,
+    g: 201,
     id: 'P2',
-    name: 'coral-light',
-    r: 239,
+    name: 'purple-light',
+    r: 223,
   },
   {
     a: 255,
-    b: 164,
-    g: 182,
+    b: 235,
+    g: 222,
     id: 'P3',
-    name: 'teal',
-    r: 44,
+    name: 'cyan',
+    r: 135,
   },
   {
     a: 255,
-    b: 78,
-    g: 193,
+    b: 139,
+    g: 189,
     id: 'P4',
-    name: 'gold',
-    r: 242,
+    name: 'peach',
+    r: 255,
   },
 ];
 
@@ -131,10 +138,10 @@ const STEPS = [
 ];
 
 function pixelName(name: PixelName): string {
-  if (name === 'coral') return m.dominant_color_pixel_coral();
-  if (name === 'coral-light') return m.dominant_color_pixel_coral_light();
-  if (name === 'gold') return m.dominant_color_pixel_gold();
-  return m.dominant_color_pixel_teal();
+  if (name === 'purple') return m.dominant_color_pixel_purple();
+  if (name === 'purple-light') return m.dominant_color_pixel_purple_light();
+  if (name === 'peach') return m.dominant_color_pixel_peach();
+  return m.dominant_color_pixel_cyan();
 }
 
 function binFor(pixel: Pixel): {
@@ -155,11 +162,6 @@ function binIndex(bin: { b: number; g: number; r: number }): number {
 
 function rgbCss(rgb: Marker): string {
   return `rgb(${rgb[0]} ${rgb[1]} ${rgb[2]})`;
-}
-
-function textColorForBg(rgb: Marker): string {
-  const luminance = (0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]) / 255;
-  return luminance > 0.55 ? '#152016' : '#ecfdf5';
 }
 
 function rgbHex(rgb: Marker): string {
@@ -385,19 +387,7 @@ function PixelTile({
 }): JSX.Element {
   return (
     <div
-      className={`${c.pixel} ${highlighted ? c.pixelHighlighted : ''} ${dimmed ? c.pixelDimmed : ''}`.trim()}
-      style={{
-        backgroundColor: rgbCss([
-          pixel.r,
-          pixel.g,
-          pixel.b,
-        ]),
-        color: textColorForBg([
-          pixel.r,
-          pixel.g,
-          pixel.b,
-        ]),
-      }}
+      className={`${c.pixel} ${c.pixelTone[pixel.name]} ${highlighted ? c.pixelHighlighted : ''} ${dimmed ? c.pixelDimmed : ''}`.trim()}
     >
       <div className={c.pixelTop}>
         <span>{pixel.id}</span>
@@ -405,6 +395,17 @@ function PixelTile({
           {m.dominant_color_alpha()} {pixel.a}
         </span>
       </div>
+      <span
+        aria-hidden="true"
+        className={c.pixelSample}
+        style={assignInlineVars({
+          [c.sampleColor]: rgbCss([
+            pixel.r,
+            pixel.g,
+            pixel.b,
+          ]),
+        })}
+      />
       <div>
         <div className={c.pixelName}>{pixelName(pixel.name)}</div>
         <div className={c.pixelValue}>
@@ -415,9 +416,26 @@ function PixelTile({
   );
 }
 
+function DistanceExample({ pixel, marker }: { pixel: Pixel; marker: Marker }) {
+  const rgb: Marker = [
+    pixel.r,
+    pixel.g,
+    pixel.b,
+  ];
+  return (
+    <span className={c.mathValue}>
+      d = {marker.map((channel, index) => `(${channel} − ${rgb[index]})²`).join(' + ')} ={' '}
+      {distanceSquared(marker, rgb)}
+    </span>
+  );
+}
+
 function WalkthroughScene({ model, step }: { model: Model; step: number }): JSX.Element {
   const busiest = model.bins[0];
-  if (!busiest) return <div className={c.stable}>{m.dominant_color_no_visible_pixels()}</div>;
+  const sample = busiest?.pixels[0];
+  if (!busiest || !sample)
+    return <div className={c.stable}>{m.dominant_color_no_visible_pixels()}</div>;
+  const sampleAddress = binFor(sample);
   if (step === 0) {
     return (
       <div>
@@ -470,7 +488,10 @@ function WalkthroughScene({ model, step }: { model: Model; step: number }): JSX.
         </div>
         <div className={c.mathBlock}>
           <span className={c.mathLabel}>{m.dominant_color_address_formula()}</span>
-          <span className={c.mathValue}>29 × 1024 + 9 × 32 + 7 = 29991</span>
+          <span className={c.mathValue}>
+            {sampleAddress.r} × 1024 + {sampleAddress.g} × 32 + {sampleAddress.b} ={' '}
+            {binIndex(sampleAddress)}
+          </span>
         </div>
       </div>
     );
@@ -480,7 +501,9 @@ function WalkthroughScene({ model, step }: { model: Model; step: number }): JSX.
       <div>
         <div className={c.stageHeader}>{m.dominant_color_scene_collect()}</div>
         <div className={c.mathBlock}>
-          <span className={c.mathLabel}>{m.dominant_color_drawer_slot()} bins[29991]</span>
+          <span className={c.mathLabel}>
+            {m.dominant_color_drawer_slot()} bins[{binIndex(sampleAddress)}]
+          </span>
           <span className={c.mathValue}>{m.dominant_color_drawer_start()} (0, 0, 0)</span>
         </div>
         {busiest.pixels.map(pixel => (
@@ -554,7 +577,7 @@ function WalkthroughScene({ model, step }: { model: Model; step: number }): JSX.
                   <br />
                   {bin.pixels.map(pixel => pixel.id).join(' + ')}
                 </span>
-                <span className={`${c.rowNote} ${c.markerCalculation}`}>
+                <span className={c.rowNote}>
                   ({bin.r}, {bin.g}, {bin.b}) ÷ {bin.a}
                   <br />= ({marker.map(value => value.toFixed(1)).join(', ')})
                 </span>
@@ -563,7 +586,7 @@ function WalkthroughScene({ model, step }: { model: Model; step: number }): JSX.
           })}
         </div>
         <p className={c.stable}>
-          {m.dominant_color_seed_prefix()} 8 {m.dominant_color_seed_markers()} 3{' '}
+          {m.dominant_color_seed_prefix()} 8 {m.dominant_color_seed_markers()} {model.bins.length}{' '}
           {m.dominant_color_seed_drawers()}
         </p>
       </div>
@@ -589,9 +612,10 @@ function WalkthroughScene({ model, step }: { model: Model; step: number }): JSX.
         </div>
         <div className={c.mathBlock}>
           <span className={c.mathLabel}>{m.dominant_color_worked_example()}</span>
-          <span className={c.mathValue}>
-            d = (235.5 − 232)² + (77.5 − 76)² + (60.5 − 58)² = 20.75
-          </span>
+          <DistanceExample
+            marker={markerFor(busiest)}
+            pixel={sample}
+          />
         </div>
       </div>
     );
@@ -691,7 +715,8 @@ function WalkthroughScene({ model, step }: { model: Model; step: number }): JSX.
           <div className={c.winnerHex}>{model.winnerHex}</div>
           <div className={c.familyMembers}>
             {m.dominant_color_rounded_rgb()} (
-            {model.winnerRgb.map(value => Math.round(value)).join(', ')}) · P1 + P2
+            {model.winnerRgb.map(value => Math.round(value)).join(', ')}) ·{' '}
+            {model.winnerFamily.pixels.map(pixel => pixel.id).join(' + ')}
           </div>
         </div>
       </div>
@@ -714,7 +739,6 @@ export function DominantColorWalkthrough(): JSX.Element {
   const [step, setStep] = useState(0);
   const model = useMemo(buildModel, []);
   const lastStep = STEPS.length - 1;
-  const activeStep = STEPS[step] ?? STEPS[0];
   const titleId = useId();
   const handleStepSelect = useCallback((event: ReactMouseEvent<HTMLButtonElement>) => {
     const nextStep = Number(event.currentTarget.getAttribute('data-step'));
@@ -767,43 +791,87 @@ export function DominantColorWalkthrough(): JSX.Element {
               </button>
             ))}
           </nav>
+          <div className={c.controls}>
+            <button
+              aria-label={m.dominant_color_back()}
+              className={c.controlButton}
+              disabled={step === 0}
+              onClick={handlePrevious}
+              type="button"
+            >
+              <IconArrowLeft
+                aria-hidden="true"
+                className={c.actionIcon}
+              />
+              <span className={c.fullActionLabel}>{m.dominant_color_back()}</span>
+            </button>
+            <button
+              aria-label={
+                step === lastStep ? m.dominant_color_start_again() : m.dominant_color_next_step()
+              }
+              className={`${c.controlButton} ${c.controlButtonPrimary}`.trim()}
+              onClick={handleNext}
+              type="button"
+            >
+              <span
+                aria-hidden={step === lastStep}
+                className={step === lastStep ? c.controlLabelHidden : c.controlLabel}
+              >
+                {m.dominant_color_next_step()}
+              </span>
+              <span
+                aria-hidden={step !== lastStep}
+                className={step !== lastStep ? c.controlLabelHidden : c.controlLabel}
+              >
+                {m.dominant_color_start_again()}
+              </span>
+              {step === lastStep ? (
+                <IconRotateLeft
+                  aria-hidden="true"
+                  className={c.actionIcon}
+                />
+              ) : (
+                <IconArrowRight
+                  aria-hidden="true"
+                  className={c.actionIcon}
+                />
+              )}
+            </button>
+          </div>
         </div>
         <div className={c.body}>
           <div
             aria-live="polite"
             className={c.stage}
           >
-            <WalkthroughScene
-              model={model}
-              step={step}
-            />
+            {STEPS.map((item, index) => (
+              <div
+                aria-hidden={step !== index}
+                className={`${c.scene} ${step === index ? c.sceneActive : ''}`.trim()}
+                key={item.label()}
+              >
+                <WalkthroughScene
+                  model={model}
+                  step={index}
+                />
+              </div>
+            ))}
           </div>
           <aside className={c.side}>
-            <div>
-              <span className={c.sideLabel}>{activeStep?.label()}</span>
-              <h3 className={c.stepTitle}>{activeStep?.title()}</h3>
-              <p className={c.stepCopy}>{stepCopy(step)}</p>
+            <div className={c.stepIntros}>
+              {STEPS.map((item, index) => (
+                <div
+                  aria-hidden={step !== index}
+                  className={`${c.scene} ${step === index ? c.sceneActive : ''}`.trim()}
+                  key={item.label()}
+                >
+                  <span className={c.sideLabel}>{item.label()}</span>
+                  <h3 className={c.stepTitle}>{item.title()}</h3>
+                  <p className={c.stepCopy}>{stepCopy(index)}</p>
+                </div>
+              ))}
             </div>
             <div>
-              <div className={c.controls}>
-                <button
-                  className={c.controlButton}
-                  disabled={step === 0}
-                  onClick={handlePrevious}
-                  type="button"
-                >
-                  {m.dominant_color_back()}
-                </button>
-                <button
-                  className={`${c.controlButton} ${c.controlButtonPrimary}`.trim()}
-                  onClick={handleNext}
-                  type="button"
-                >
-                  {step === lastStep
-                    ? m.dominant_color_start_again()
-                    : m.dominant_color_next_step()}
-                </button>
-              </div>
               <p className={c.sourceNote}>
                 {m.dominant_color_fixture_prefix()}{' '}
                 <span className={c.sourceCode}>{model.winnerHex}</span>.{' '}

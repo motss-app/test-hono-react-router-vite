@@ -1,116 +1,178 @@
-import type { JSX } from 'react';
+import { type JSX, useId } from 'react';
 
-// Bundle-size baseline update trigger — runtime reference so bundler keeps it.
-const BUNDLE_TRIGGER = `route-bundle-size-baseline-test-${Date.now()}`;
-void BUNDLE_TRIGGER;
-
-import { Link } from '../components/Link.tsx';
-import { PageFooter } from '../components/page-footer.tsx';
-import { Text } from '../components/text.tsx';
+import { Breadcrumbs } from '../components/breadcrumbs.tsx';
+import { IconBolt, IconCode, IconDesktop } from '../components/expressive.icons.ts';
+import * as chrome from '../components/page-chrome.css.ts';
+import * as footerStyles from '../components/page-footer.css.ts';
 import {
-  IconArrowLeft,
-  IconBolt,
-  IconGears,
-  IconMobile,
-  IconServer,
-  IconShield,
-} from '../icons.ts';
+  PagePreferences,
+  SiteBrand,
+  SiteNavigation,
+  SkipToContent,
+} from '../components/page-navigation.tsx';
+import { PoweredByTools } from '../components/powered-by-tools.tsx';
+import { TechnologyLogo } from '../components/technology-logo.tsx';
 import * as m from '../paraglide/messages.js';
-import { iconStyles } from '../styles/icon.css.ts';
-import { createBackgroundSvgPreloadLinks } from '../utils/background-svg-preload.ts';
 import type { Route } from './+types/about.ts';
-import { s } from './about.css.ts';
+import * as s from './about.css.ts';
 
-// Must be functions — m.*() calls resolve locale at call time, so they
-// cannot live at module scope where Paraglide's locale isn't set yet.
-function getStackSections() {
+function getStackGroups() {
   return [
     {
-      description: m.about_stack_frontend_desc(),
-      icon: IconGears,
-      iconStyle: s.rowIconBlue,
       items: [
-        m.about_stack_frontend_item_1(),
-        m.about_stack_frontend_item_2(),
-        m.about_stack_frontend_item_3(),
-        m.about_stack_frontend_item_4(),
+        {
+          brand: 'react',
+          name: 'React 19',
+          role: m.about_role_react(),
+        },
+        {
+          brand: 'typescript',
+          name: 'TypeScript',
+          role: m.about_role_typescript(),
+        },
+        {
+          brand: 'base-ui',
+          name: 'Base UI',
+          role: m.about_role_baseui(),
+        },
+        {
+          brand: 'vanilla-extract',
+          name: 'Vanilla Extract',
+          role: m.about_role_styles(),
+        },
+        {
+          brand: 'inlang',
+          name: 'inlang',
+          role: m.about_role_inlang(),
+        },
+        {
+          brand: 'iconify',
+          name: 'Iconify',
+          role: m.about_role_iconify(),
+        },
+        {
+          brand: 'font-awesome',
+          name: 'Font Awesome 7',
+          role: m.about_role_fontawesome(),
+        },
       ],
-      number: '01',
-      title: m.about_stack_frontend_title(),
+      title: m.about_group_interface(),
     },
     {
-      description: m.about_stack_runtime_desc(),
-      icon: IconServer,
-      iconStyle: s.rowIconGreen,
       items: [
-        m.about_stack_runtime_item_1(),
-        m.about_stack_runtime_item_2(),
-        m.about_stack_runtime_item_3(),
-        m.about_stack_runtime_item_4(),
+        {
+          brand: 'react-router',
+          name: 'React Router 8',
+          role: m.about_role_router(),
+        },
+        {
+          brand: 'hono',
+          name: 'Hono',
+          role: m.about_role_hono(),
+        },
       ],
-      number: '02',
-      title: m.about_stack_runtime_title(),
+      title: m.about_group_routing(),
     },
-  ];
+    {
+      items: [
+        {
+          brand: 'cloudflare-workers',
+          name: 'Cloudflare Workers',
+          role: m.about_role_workers(),
+        },
+        {
+          brand: 'webassembly',
+          name: 'WebAssembly',
+          role: m.about_role_webassembly(),
+        },
+        {
+          brand: 'rust',
+          name: 'Rust',
+          role: m.about_role_rust(),
+        },
+      ],
+      title: m.about_group_execution(),
+    },
+    {
+      items: [
+        {
+          brand: 'vite',
+          name: 'Vite',
+          role: m.about_role_vite(),
+        },
+        {
+          brand: 'nodejs',
+          name: 'Node.js',
+          role: m.about_role_node(),
+        },
+      ],
+      title: m.about_group_tooling(),
+    },
+  ] as const;
 }
 
-function getFeatures() {
+function StackGroup({ title, items }: ReturnType<typeof getStackGroups>[number]) {
+  const titleId = useId();
+  return (
+    <section
+      aria-labelledby={titleId}
+      className={s.stackGroup}
+    >
+      <h3
+        className={s.groupTitle}
+        id={titleId}
+      >
+        {title}
+      </h3>
+      <dl className={s.stackRows}>
+        {items.map(({ brand, name, role }) => (
+          <div
+            className={s.stackRow}
+            key={name}
+          >
+            <dt className={s.technologyName}>
+              <TechnologyLogo
+                brand={brand}
+                size="small"
+              />
+              <span>{name}</span>
+            </dt>
+            <dd className={s.technologyRole}>{role}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
+}
+
+function getDesignChoices() {
   return [
     {
-      description: m.about_feature_fast_dev_desc(),
-      icon: IconBolt,
-      iconStyle: s.featureIconAmber,
-      number: '03',
-      title: m.about_feature_fast_dev_title(),
+      description: m.about_choice_iteration_desc(),
+      Icon: IconBolt,
+      title: m.about_choice_iteration(),
     },
     {
-      description: m.about_feature_type_safety_desc(),
-      icon: IconShield,
-      iconStyle: s.featureIconBlue,
-      number: '04',
-      title: m.about_feature_type_safety_title(),
+      description: m.about_choice_types_desc(),
+      Icon: IconCode,
+      title: m.about_choice_types(),
     },
     {
-      description: m.about_feature_responsive_desc(),
-      icon: IconMobile,
-      iconStyle: s.featureIconGreen,
-      number: '05',
-      title: m.about_feature_responsive_title(),
+      description: m.about_choice_responsive_desc(),
+      Icon: IconDesktop,
+      title: m.about_choice_responsive(),
     },
   ];
 }
 
-function getNextRoutes() {
-  return [
-    {
-      description: m.about_next_ssr_desc(),
-      number: '06',
-      path: '/ssr',
-      title: m.about_next_ssr_title(),
-      to: '/ssr',
-    },
-    {
-      description: m.about_next_hono_rpc_desc(),
-      number: '07',
-      path: '/hono-rpc',
-      title: m.about_next_hono_rpc_title(),
-      to: '/hono-rpc',
-    },
-    {
-      description: m.about_next_errors_desc(),
-      number: '08',
-      path: '/errors',
-      title: m.about_next_errors_title(),
-      to: '/errors',
-    },
-  ];
-}
-
-export const links: Route.LinksFunction = () =>
-  createBackgroundSvgPreloadLinks([
-    '/assets/about-hero-dark.svg',
-    '/assets/about-hero-light.svg',
-  ]);
+export const links: Route.LinksFunction = () => [
+  {
+    as: 'image',
+    href: '/assets/about-expressive.svg',
+    rel: 'preload',
+    type: 'image/svg+xml',
+  },
+];
 
 export function meta(_args: Route.MetaArgs): Route.MetaDescriptors {
   return [
@@ -124,213 +186,124 @@ export function meta(_args: Route.MetaArgs): Route.MetaDescriptors {
   ];
 }
 
-export default function About(): JSX.Element {
+function AboutHeader() {
   return (
-    <main className={s.page}>
-      <section className={s.hero}>
-        <div
-          aria-hidden="true"
-          className={s.heroMedia}
+    <header className={chrome.header}>
+      <div className={chrome.mobileBrand}>
+        <SiteBrand />
+      </div>
+      <div className={chrome.breadcrumbSlot}>
+        <Breadcrumbs
+          items={[
+            {
+              label: m.holy_grail_nav_home(),
+              to: '/',
+            },
+            {
+              label: m.route_about_title(),
+            },
+          ]}
         />
-        <div
-          aria-hidden="true"
-          className={s.heroOverlay}
-        />
+      </div>
+      <PagePreferences activePath="/about" />
+    </header>
+  );
+}
 
-        <div className={s.heroInner}>
-          <div className={s.heroCopy}>
-            <Text
-              as="h1"
-              className={s.title}
+function AboutFooter() {
+  return (
+    <footer className={footerStyles.footer}>
+      <div className={footerStyles.footerInner}>
+        <PoweredByTools />
+      </div>
+    </footer>
+  );
+}
+
+export default function About(): JSX.Element {
+  const mainId = useId();
+  const stackId = useId();
+  const choicesId = useId();
+
+  return (
+    <div className={`${s.layout} ${chrome.interactiveScope}`}>
+      <SkipToContent mainId={mainId} />
+      <aside className={chrome.sidebar}>
+        <SiteBrand />
+        <SiteNavigation activePath="/about" />
+      </aside>
+      <div className={s.workspace}>
+        <AboutHeader />
+        <main
+          className={s.page}
+          id={mainId}
+          tabIndex={-1}
+        >
+          <div
+            aria-hidden="true"
+            className={s.artwork}
+          />
+          <div className={s.content}>
+            <header className={s.intro}>
+              <h1 className={s.title}>
+                {m.about_title()} <span className={s.titleAccent}>{m.about_title_accent()}</span>
+              </h1>
+              <p className={s.introSummary}>{m.about_hero_lead()}</p>
+              <p className={s.lead}>{m.about_hero_body()}</p>
+            </header>
+
+            <section
+              aria-labelledby={stackId}
+              className={s.section}
             >
-              {m.about_title()}
-              <span className={s.titleAccent}>{m.about_title_accent()}</span>
-            </Text>
-
-            <Text
-              as="p"
-              className={s.heroLead}
-            >
-              {m.about_hero_lead()}
-            </Text>
-
-            <p className={s.heroBody}>{m.about_hero_body()}</p>
-
-            <div className={s.heroActions}>
-              <Link
-                className={s.ctaSecondary}
-                to="/"
+              <h2
+                className={s.sectionTitle}
+                id={stackId}
               >
-                <IconArrowLeft className={iconStyles.base} />
-                <span>{m.about_cta_back_home()}</span>
-              </Link>
-              <Link
-                className={s.ctaPrimary}
-                to="/hono-rpc"
-              >
-                {m.about_cta_rpc()}
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section>
-        <div className={s.routesInner}>
-          <Text
-            as="h2"
-            className={s.routesTitle}
-          >
-            {m.about_stack_title()}
-          </Text>
-
-          <p className={s.routesIntro}>{m.about_stack_intro()}</p>
-
-          <div className={s.stackList}>
-            {getStackSections().map(section => {
-              const Icon = section.icon;
-
-              return (
-                <div
-                  className={s.rowRow}
-                  key={section.title}
-                >
-                  <div className={s.nextLink}>
-                    <span className={s.rowNumber}>{section.number}</span>
-
-                    <div className={s.rowTitleBlock}>
-                      <span
-                        className={[
-                          s.rowIcon,
-                          section.iconStyle,
-                        ].join(' ')}
-                      >
-                        <Icon className={`${iconStyles.base} ${s.rowIconSvg}`} />
-                      </span>
-                      <Text
-                        as="h3"
-                        className={s.rowTitle}
-                      >
-                        {section.title}
-                      </Text>
-                    </div>
-
-                    <p className={s.rowBody}>{section.description}</p>
-
-                    <ul className={s.stackItems}>
-                      {section.items.map(item => (
-                        <li
-                          className={s.stackListItem}
-                          key={item}
-                        >
-                          <span className={s.itemBullet} />
-                          <span className={s.itemText}>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      <section>
-        <div className={s.routesInner}>
-          <Text
-            as="h2"
-            className={s.routesTitle}
-          >
-            {m.about_features_title()}
-          </Text>
-
-          <p className={s.routesIntro}>{m.about_features_intro()}</p>
-
-          <div className={s.nextList}>
-            {getFeatures().map(feature => {
-              const Icon = feature.icon;
-
-              return (
-                <div
-                  className={s.featureRow}
-                  key={feature.title}
-                >
-                  <div className={s.nextLink}>
-                    <span className={s.featureNumber}>{feature.number}</span>
-
-                    <div className={s.rowTitleBlock}>
-                      <span
-                        className={[
-                          s.featureIcon,
-                          feature.iconStyle,
-                        ].join(' ')}
-                      >
-                        <Icon className={`${iconStyles.base} ${s.featureIconSvg}`} />
-                      </span>
-                      <Text
-                        as="h3"
-                        className={s.featureTitle}
-                      >
-                        {feature.title}
-                      </Text>
-                    </div>
-
-                    <p className={s.featureBody}>{feature.description}</p>
-
-                    <span className={s.nextAction}>{m.about_built_in()}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      <section>
-        <div className={s.routesInner}>
-          <Text
-            as="h2"
-            className={s.routesTitle}
-          >
-            {m.about_next_title()}
-          </Text>
-
-          <p className={s.routesIntro}>{m.about_next_intro()}</p>
-
-          <div className={s.nextList}>
-            {getNextRoutes().map(route => (
-              <div
-                className={s.nextRow}
-                key={route.to}
-              >
-                <Link
-                  className={s.nextLink}
-                  to={route.to}
-                >
-                  <span className={s.rowNumber}>{route.number}</span>
-
-                  <div className={s.nextTitleBlock}>
-                    <Text
-                      as="h3"
-                      className={s.nextTitle}
-                    >
-                      {route.title}
-                    </Text>
-                    <span className={s.nextPath}>{route.path}</span>
-                  </div>
-
-                  <p className={s.rowBody}>{route.description}</p>
-
-                  <span className={s.nextAction}>{m.about_open()}</span>
-                </Link>
+                {m.about_stack_roles_title()}
+              </h2>
+              <div className={s.stackGroups}>
+                {getStackGroups().map(group => (
+                  <StackGroup
+                    {...group}
+                    key={group.title}
+                  />
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
+            </section>
 
-      <PageFooter />
-    </main>
+            <section
+              aria-labelledby={choicesId}
+              className={s.section}
+            >
+              <h2
+                className={s.sectionTitle}
+                id={choicesId}
+              >
+                {m.about_choices_title()}
+              </h2>
+              <ul className={s.choices}>
+                {getDesignChoices().map(({ Icon, title, description }) => (
+                  <li
+                    className={s.choice}
+                    key={title}
+                  >
+                    <Icon
+                      aria-hidden="true"
+                      className={s.choiceIcon}
+                    />
+                    <div>
+                      <h3 className={s.choiceTitle}>{title}</h3>
+                      <p className={s.choiceDescription}>{description}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          </div>
+        </main>
+        <AboutFooter />
+      </div>
+    </div>
   );
 }

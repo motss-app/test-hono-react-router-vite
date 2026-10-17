@@ -1,372 +1,275 @@
-import { keyframes, style } from '@vanilla-extract/css';
+import { createVar, globalStyle, keyframes, style } from '@vanilla-extract/css';
 
-import { colorTokens } from '../styles/color-tokens.contract.css.ts';
-import { radiusTokens } from '../styles/radius-tokens.contract.css.ts';
+import { expressiveTokens as t } from '../styles/expressive-tokens.css.ts';
+import { mediaQueries } from '../styles/media-queries.ts';
 
-const heroReveal = keyframes({
-  '0%': {
+const toolSurface = createVar();
+const toolAccent = createVar();
+const reveal = keyframes({
+  from: {
     opacity: 0,
-    transform: 'translate3d(0, 1.5rem, 0)',
+    transform: 'translateY(8px)',
   },
-  '100%': {
+  to: {
     opacity: 1,
-    transform: 'translate3d(0, 0, 0)',
+    transform: 'translateY(0)',
   },
 });
 
+export const layout = style({
+  '@media': {
+    [mediaQueries.minWidth1000]: {
+      gridTemplateColumns: '232px minmax(0, 1fr)',
+    },
+  },
+  backgroundColor: t.color.surface,
+  color: t.color.onSurface,
+  display: 'grid',
+  minHeight: '100svh',
+});
+export const workspace = style({
+  minWidth: 0,
+});
 export const page = style({
-  minInlineSize: 0,
-  paddingBlockEnd: '4rem',
-});
-
-export const hero = style({
-  backgroundColor: '#f4f1ff',
-  minInlineSize: 0,
-  overflow: 'hidden',
+  isolation: 'isolate',
+  minWidth: 0,
+  outline: 'none',
+  overflow: 'clip',
   position: 'relative',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      backgroundColor: '#0b0a18',
-    },
-  },
 });
-
-export const heroInner = style({
+export const artwork = style({
   '@media': {
-    '(min-width: 768px)': {
-      paddingBottom: 0,
+    [mediaQueries.maxWidth599]: {
+      opacity: 0.32,
     },
   },
-  alignItems: 'flex-end',
+  backgroundImage: 'url("/assets/labs-expressive.svg")',
+  backgroundPosition: 'center top',
+  backgroundRepeat: 'no-repeat',
+  backgroundSize: '100% auto',
+  inset: 0,
+  opacity: 0.72,
+  pointerEvents: 'none',
+  position: 'absolute',
+  zIndex: -1,
+});
+export const content = style({
+  alignContent: 'start',
+  boxSizing: 'border-box',
   display: 'grid',
+  gap: '2rem',
   marginInline: 'auto',
-  maxWidth: '84rem',
-  minBlockSize: '100svh',
-  minInlineSize: 0,
-  paddingBlockEnd: '2rem',
-  paddingBlockStart: '4rem',
-  paddingInline: '1rem',
-  position: 'relative',
+  maxWidth: '1120px',
+  minWidth: 0,
+  padding: `1.5rem clamp(1rem, 3.5vw, 3rem) ${t.space.pageFooterGap}`,
+  width: '100%',
 });
-
-export const heroCopy = style({
+export const intro = style({
   '@media': {
-    '(min-width: 768px)': {
-      paddingBottom: '4rem',
+    [mediaQueries.reducedMotion]: {
+      animation: 'none',
     },
   },
-  maxWidth: '38rem',
-  minInlineSize: 0,
-  paddingBlockEnd: '2.5rem',
-  position: 'relative',
-  zIndex: 2,
-});
-
-export const title = style({
-  '@media': {
-    '(min-width: 768px)': {
-      fontSize: '3.4rem',
-    },
-  },
-  color: colorTokens.slate900,
-  fontSize: '2.6rem',
-  fontWeight: 700,
-  letterSpacing: '-0.045em',
-  lineHeight: 1.02,
-  marginBlockEnd: '1rem',
-  marginBlockStart: 0,
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.white,
-    },
-  },
-});
-
-export const titleAccent = style({
-  color: colorTokens.purple,
-  display: 'block',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: '#c4b5fd',
-    },
-  },
-});
-
-export const heroLead = style({
-  '@media': {
-    '(min-width: 768px)': {
-      fontSize: '1.95rem',
-    },
-  },
-  animationDelay: '110ms',
-  animationDuration: '700ms',
-  animationFillMode: 'both',
-  animationName: heroReveal,
-  animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
-  color: colorTokens.slate900,
-  fontSize: '1.28rem',
-  fontWeight: 500,
-  letterSpacing: '-0.025em',
-  lineHeight: 1.12,
-  marginBlockEnd: '0.85rem',
-  marginBlockStart: 0,
-  maxWidth: '22ch',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.slate100,
-    },
-  },
-});
-
-export const heroBody = style({
-  animationDelay: '160ms',
-  animationDuration: '700ms',
-  animationFillMode: 'both',
-  animationName: heroReveal,
-  animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
-  color: colorTokens.slate800,
-  fontSize: '1rem',
-  lineHeight: 1.7,
-  marginBlockEnd: '2rem',
-  marginBlockStart: 0,
-  maxWidth: '31rem',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.slate300,
-    },
-  },
-});
-
-export const heroActions = style({
-  display: 'inline-grid',
+  animation: `${reveal} ${t.motion.entrance} ${t.motion.easing} both`,
+  display: 'grid',
   gap: '0.75rem',
-  gridAutoFlow: 'column',
-  justifyContent: 'flex-start',
+  maxWidth: '44rem',
 });
-
-export const ctaSecondary = style({
-  alignItems: 'center',
-  animationDelay: '320ms',
-  animationDuration: '700ms',
-  animationFillMode: 'both',
-  animationName: heroReveal,
-  animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
-  backgroundColor: 'rgba(255, 255, 255, 0.78)',
-  borderColor: 'rgba(15, 23, 42, 0.12)',
-  borderRadius: radiusTokens.radiusMd,
-  borderStyle: 'solid',
-  borderWidth: '1px',
-  color: colorTokens.slate900,
-  display: 'inline-grid',
-  fontWeight: 600,
-  gap: '0.5rem',
-  gridAutoFlow: 'column',
-  padding: '0.92rem 1.45rem',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      backgroundColor: 'rgba(15, 23, 42, 0.28)',
-      borderColor: 'rgba(226, 232, 240, 0.26)',
-      color: colorTokens.slate100,
-    },
-    ':root[data-theme="dark"] &:hover': {
-      backgroundColor: 'rgba(148, 163, 184, 0.12)',
-      borderColor: colorTokens.slate400,
-    },
-    '&:hover': {
-      backgroundColor: 'rgba(255, 255, 255, 0.7)',
-      borderColor: '#c4b5fd',
-      transform: 'translate3d(0, -0.125rem, 0)',
-    },
-  },
-  textDecoration: 'none',
-  transition: 'background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease',
-  whiteSpace: 'nowrap',
+export const title = style({
+  color: t.color.primary,
+  fontSize: 'clamp(2rem, 3.2vw, 3rem)',
+  fontWeight: 750,
+  letterSpacing: '-0.045em',
+  lineHeight: 1.15,
+  margin: 0,
+  overflowWrap: 'anywhere',
 });
-
-export const labInner = style({
-  marginInline: 'auto',
-  maxWidth: '84rem',
-  minInlineSize: 0,
-  paddingBlockStart: '3.5rem',
-  paddingInline: '1rem',
+export const lead = style({
+  fontSize: t.type.body,
+  fontWeight: 650,
+  lineHeight: 1.5,
+  margin: 0,
 });
-
-export const sectionTitle = style({
-  '@media': {
-    '(min-width: 768px)': {
-      fontSize: '2.6rem',
-    },
-  },
-  color: colorTokens.slate900,
-  fontSize: '2rem',
-  fontWeight: 700,
-  letterSpacing: '-0.04em',
-  lineHeight: 0.98,
-  marginBlockEnd: '0.75rem',
-  marginBlockStart: 0,
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.white,
-    },
-  },
-});
-
-export const sectionIntro = style({
-  color: colorTokens.slate700,
-  fontSize: '1rem',
-  lineHeight: 1.7,
-  marginBlockEnd: '2rem',
-  marginBlockStart: 0,
-  maxWidth: '34rem',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.slate300,
-    },
-  },
-});
-
-export const toolList = style({
-  borderTopColor: colorTokens.slate200,
-  borderTopStyle: 'solid',
-  borderTopWidth: '1px',
-  minInlineSize: 0,
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      borderTopColor: colorTokens.slate800,
-    },
-  },
-});
-
-export const toolRow = style({
-  borderBottomColor: colorTokens.slate200,
-  borderBottomStyle: 'solid',
-  borderBottomWidth: '1px',
-  minInlineSize: 0,
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      borderBottomColor: colorTokens.slate800,
-    },
-  },
-});
-
-export const toolPanel = style({
-  '@media': {
-    '(min-width: 960px)': {
-      gridTemplateColumns: '5.5rem minmax(0, 1fr) auto',
-    },
-  },
-  alignItems: 'center',
-  borderRadius: radiusTokens.radiusMd,
-  display: 'grid',
-  gap: '1rem',
-  gridTemplateColumns: '1fr',
-  minInlineSize: 0,
-  paddingBlockEnd: '1.45rem',
-  paddingBlockStart: '1.45rem',
-  paddingInlineEnd: '0.5rem',
-  paddingInlineStart: '0.5rem',
-  position: 'relative',
-  selectors: {
-    ':root[data-theme="dark"] &:hover': {
-      backgroundColor: 'rgba(15, 23, 42, 0.22)',
-    },
-    '&:hover': {
-      backgroundColor: 'rgba(248, 250, 252, 0.9)',
-      transform: 'translate3d(0.35rem, 0, 0)',
-    },
-  },
-  textDecoration: 'none',
-  transition: 'background-color 0.2s ease, transform 0.2s ease',
-});
-
-export const toolNumber = style({
-  '@media': {
-    '(min-width: 768px)': {
-      fontSize: '2rem',
-    },
-  },
-  color: colorTokens.purple,
-  fontSize: '1.45rem',
-  fontWeight: 700,
-  letterSpacing: '-0.04em',
-  lineHeight: 1,
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: '#c4b5fd',
-    },
-  },
-});
-
-export const toolContent = style({
-  minInlineSize: 0,
-});
-
-export const toolTitle = style({
-  '@media': {
-    '(min-width: 768px)': {
-      fontSize: '1.35rem',
-    },
-  },
-  color: colorTokens.slate900,
-  fontSize: '1.15rem',
-  fontWeight: 700,
-  letterSpacing: '-0.02em',
-  lineHeight: 1.2,
-  marginBlockEnd: '0.35rem',
-  marginBlockStart: 0,
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.slate100,
-    },
-  },
-});
-
-export const toolBody = style({
-  color: colorTokens.slate700,
-  fontSize: '0.98rem',
+export const body = style({
+  fontSize: t.type.label,
   lineHeight: 1.65,
   margin: 0,
-  minInlineSize: 0,
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.slate300,
+  overflowWrap: 'anywhere',
+});
+export const tools = style({
+  '@media': {
+    [mediaQueries.minWidth600]: {
+      gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    },
+    [mediaQueries.minWidth1200]: {
+      gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
     },
   },
+  display: 'grid',
+  gap: t.space.medium,
+  gridTemplateColumns: 'minmax(0, 1fr)',
+  minWidth: 0,
 });
-
-export const toolAction = style({
-  color: colorTokens.purple,
-  fontWeight: 600,
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: '#c4b5fd',
+export const tool = style({
+  display: 'flex',
+  minWidth: 0,
+});
+export const toolLink = style({
+  '@media': {
+    [mediaQueries.reducedMotion]: {
+      transition: 'none',
     },
   },
-  whiteSpace: 'nowrap',
-});
-
-export const footerNote = style({
-  borderTopColor: colorTokens.slate200,
-  borderTopStyle: 'solid',
-  borderTopWidth: '1px',
-  color: colorTokens.slate600,
-  fontSize: '0.9rem',
-  lineHeight: 1.7,
-  marginBlockStart: '1rem',
-  maxWidth: '46rem',
-  paddingBlockStart: '1.5rem',
+  backgroundColor: toolSurface,
+  border: '1px solid transparent',
+  borderRadius: t.shape.large,
+  boxSizing: 'border-box',
+  color: t.color.onSurface,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '1.25rem',
+  minWidth: 0,
+  padding: '1.25rem',
   selectors: {
-    ':root[data-theme="dark"] &': {
-      borderTopColor: colorTokens.slate800,
-      color: colorTokens.slate400,
+    '&:focus-visible': {
+      outline: `3px solid ${t.color.primary}`,
+      outlineOffset: '3px',
+    },
+    '&:hover': {
+      backgroundColor: t.color.surfaceContainer,
+      borderColor: toolAccent,
+      textDecoration: 'none',
     },
   },
+  textDecoration: 'none',
+  transition:
+    'background-color ' +
+    t.motion.duration +
+    ' ' +
+    t.motion.easing +
+    ', border-color ' +
+    t.motion.duration +
+    ' ' +
+    t.motion.easing,
+  width: '100%',
+});
+export const mandelbrot = style({
+  vars: {
+    [toolSurface]: t.color.primaryContainer,
+    [toolAccent]: t.color.onPrimaryContainer,
+  },
+});
+export const dominantColor = style({
+  vars: {
+    [toolSurface]: t.color.tertiaryContainer,
+    [toolAccent]: t.color.onTertiaryContainer,
+  },
+});
+export const imageOptimize = style({
+  vars: {
+    [toolSurface]: t.color.secondaryContainer,
+    [toolAccent]: t.color.onSecondaryContainer,
+  },
+});
+export const toolCopy = style({
+  display: 'grid',
+  gap: '0.5rem',
+});
+export const toolTitle = style({
+  color: toolAccent,
+  fontSize: '1.25rem',
+  fontWeight: 700,
+  letterSpacing: '-0.025em',
+  lineHeight: 1.3,
+  margin: 0,
+  overflowWrap: 'anywhere',
+});
+export const toolDescription = style({
+  color: t.color.onSurfaceVariant,
+  fontSize: t.type.label,
+  lineHeight: 1.6,
+  margin: 0,
+  overflowWrap: 'anywhere',
+});
+export const media = style({
+  aspectRatio: '8 / 5',
+  backgroundColor: t.color.surfaceRaised,
+  borderRadius: t.shape.medium,
+  marginBlockStart: 'auto',
+  minWidth: 0,
+  overflow: 'hidden',
+});
+export const previewImage = style({
+  display: 'block',
+  height: '100%',
+  minHeight: 0,
+  objectFit: 'cover',
+  width: '100%',
+});
+export const palettePreview = style({
+  display: 'grid',
+  gridTemplateRows: 'minmax(0, 1fr) 3rem',
+});
+export const paletteResult = style({
+  alignItems: 'center',
+  backgroundColor: t.color.surfaceRaised,
+  color: t.color.onSurface,
+  display: 'flex',
+  fontFamily: 'ui-monospace, SFMono-Regular, Consolas, monospace',
+  fontSize: '0.8125rem',
+  gap: 'min(0.75rem, 12px)',
+  lineHeight: 1.5,
+  paddingInline: 'min(0.875rem, 14px)',
+});
+export const colorSwatch = style({
+  backgroundColor: '#38596F',
+  borderRadius: '0.375rem',
+  flexShrink: 0,
+  height: '28px',
+  width: '28px',
+});
+export const toolFooter = style({
+  alignItems: 'center',
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '0.5rem 0.75rem',
+  justifyContent: 'space-between',
+});
+export const runtime = style({
+  color: t.color.onSurfaceVariant,
+  fontSize: '0.8125rem',
+  lineHeight: 1.5,
+});
+export const action = style({
+  alignItems: 'center',
+  color: toolAccent,
+  display: 'inline-flex',
+  fontSize: '0.8125rem',
+  fontWeight: 650,
+  gap: '0.5rem',
+  lineHeight: 1.5,
+});
+export const actionIcon = style({
+  alignItems: 'center',
+  backgroundColor: t.color.surfaceRaised,
+  borderRadius: t.shape.full,
+  display: 'inline-flex',
+  fontSize: '0.875rem',
+  height: '32px',
+  justifyContent: 'center',
+  width: '32px',
 });
 
-export const codeInline = style({
-  backgroundColor: 'rgba(148, 163, 184, 0.16)',
-  borderRadius: radiusTokens.radiusXxs,
-  fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-  fontSize: '0.85em',
-  padding: '0.1rem 0.35rem',
+globalStyle(`${paletteResult} > span:last-child`, {
+  minWidth: 0,
+  overflowWrap: 'anywhere',
+});
+
+globalStyle(`:root[data-theme="dark"] ${artwork}`, {
+  '@media': {
+    [mediaQueries.maxWidth599]: {
+      opacity: 0.24,
+    },
+  },
+  opacity: 0.52,
 });

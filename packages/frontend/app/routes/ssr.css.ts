@@ -1,432 +1,334 @@
-import { keyframes, style } from '@vanilla-extract/css';
+import { globalStyle, keyframes, style } from '@vanilla-extract/css';
 
-import { colorTokens } from '../styles/color-tokens.contract.css.ts';
-import { radiusTokens } from '../styles/radius-tokens.contract.css.ts';
+import { expressiveTokens as t } from '../styles/expressive-tokens.css.ts';
+import { mediaQueries } from '../styles/media-queries.ts';
 
-const heroReveal = keyframes({
-  '0%': {
+const reveal = keyframes({
+  from: {
     opacity: 0,
-    transform: 'translate3d(0, 1.5rem, 0)',
+    transform: 'translateY(10px)',
   },
-  '100%': {
+  to: {
     opacity: 1,
-    transform: 'translate3d(0, 0, 0)',
+    transform: 'translateY(0)',
   },
 });
 
-const artworkDrift = keyframes({
-  '0%': {
-    transform: 'scale(1.02) translate3d(0, 0, 0)',
-  },
-  '50%': {
-    transform: 'scale(1.05) translate3d(-0.75%, 0.5%, 0)',
-  },
-  '100%': {
-    transform: 'scale(1.03) translate3d(-0.25%, -0.35%, 0)',
-  },
+const codeBlock = style({
+  backgroundColor: t.color.surfaceRaised,
+  borderRadius: t.shape.medium,
+  color: t.color.onSurface,
+  fontFamily: 'ui-monospace, SFMono-Regular, Consolas, monospace',
+  fontSize: '0.8125rem',
+  lineHeight: 1.6,
+  minWidth: 0,
+  overflowWrap: 'anywhere',
+  padding: '1rem',
+  whiteSpace: 'pre-wrap',
 });
 
 export const s = {
-  ctaPrimary: style({
-    alignItems: 'center',
-    animationDelay: '240ms',
-    animationDuration: '700ms',
-    animationFillMode: 'both',
-    animationName: heroReveal,
-    animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
-    backgroundColor: colorTokens.info,
-    borderRadius: radiusTokens.radiusMd,
-    color: colorTokens.white,
-    display: 'inline-grid',
-    fontWeight: 600,
-    gap: '0.5rem',
-    gridAutoFlow: 'column',
-    padding: '0.92rem 1.45rem',
-    selectors: {
-      ':root[data-theme="dark"] &': {
-        backgroundColor: '#bae6fd',
-        color: colorTokens.slate900,
-      },
-      ':root[data-theme="dark"] &:hover': {
-        backgroundColor: '#7dd3fc',
-      },
-      '&:hover': {
-        backgroundColor: colorTokens.infoHover,
-        transform: 'translate3d(0, -0.125rem, 0)',
+  artwork: style({
+    '@media': {
+      [mediaQueries.maxWidth599]: {
+        opacity: 0.36,
       },
     },
-    textDecoration: 'none',
-    transition: 'background-color 0.2s ease, transform 0.2s ease',
-    whiteSpace: 'nowrap',
+    backgroundImage: 'url("/assets/ssr-expressive.svg")',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat',
+    backgroundSize: '100% 100%',
+    inset: 0,
+    opacity: 0.8,
+    pointerEvents: 'none',
+    position: 'absolute',
+    zIndex: -1,
   }),
-  ctaSecondary: style({
-    alignItems: 'center',
-    animationDelay: '320ms',
-    animationDuration: '700ms',
-    animationFillMode: 'both',
-    animationName: heroReveal,
-    animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
-    backgroundColor: 'rgba(255, 255, 255, 0.78)',
-    borderColor: 'rgba(15, 23, 42, 0.12)',
-    borderRadius: radiusTokens.radiusMd,
-    borderStyle: 'solid',
-    borderWidth: '1px',
-    color: colorTokens.slate900,
-    display: 'inline-grid',
-    fontWeight: 600,
-    gap: '0.5rem',
-    gridAutoFlow: 'column',
-    padding: '0.92rem 1.45rem',
-    selectors: {
-      ':root[data-theme="dark"] &': {
-        backgroundColor: 'rgba(15, 23, 42, 0.28)',
-        borderColor: 'rgba(226, 232, 240, 0.26)',
-        color: colorTokens.slate100,
-      },
-      ':root[data-theme="dark"] &:hover': {
-        backgroundColor: 'rgba(148, 163, 184, 0.12)',
-        borderColor: colorTokens.slate400,
-      },
-      '&:hover': {
-        backgroundColor: 'rgba(255, 255, 255, 0.7)',
-        borderColor: '#bfdbfe',
-        transform: 'translate3d(0, -0.125rem, 0)',
+  body: style({
+    color: t.color.onSurface,
+    fontSize: t.type.label,
+    lineHeight: 1.65,
+    margin: 0,
+    overflowWrap: 'anywhere',
+  }),
+  content: style({
+    display: 'grid',
+    gap: '2rem',
+    marginInline: 'auto',
+    maxWidth: '1120px',
+    padding: `1.5rem clamp(1rem, 3.5vw, 3rem) ${t.space.pageFooterGap}`,
+    position: 'relative',
+  }),
+  context: style({
+    display: 'grid',
+    gap: '0.75rem',
+    minWidth: 0,
+  }),
+  contextData: style({
+    '@media': {
+      [mediaQueries.minWidth768]: {
+        gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
       },
     },
-    textDecoration: 'none',
-    transition: 'background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease',
-    whiteSpace: 'nowrap',
+    borderTop: `1px solid ${t.color.outline}`,
+    display: 'grid',
+    gap: '1.25rem 2rem',
+    margin: '0.25rem 0 0',
+    paddingBlockStart: '1rem',
   }),
   dataLabel: style({
-    color: colorTokens.slate600,
-    fontSize: '0.86rem',
-    letterSpacing: '0.08em',
-    selectors: {
-      ':root[data-theme="dark"] &': {
-        color: colorTokens.slate400,
-      },
-    },
-    textTransform: 'uppercase',
+    color: t.color.onSurface,
+    fontSize: t.type.label,
+    fontWeight: 650,
+    lineHeight: 1.5,
   }),
   dataList: style({
     '@media': {
-      '(min-width: 768px)': {
-        gridTemplateColumns: '1fr 1fr',
+      [mediaQueries.minWidth768]: {
+        gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
       },
     },
     display: 'grid',
-    gap: '1rem',
-    minInlineSize: 0,
+    gap: '1.25rem 2rem',
+    margin: 0,
+    minWidth: 0,
+  }),
+  dataRow: style({
+    alignContent: 'start',
+    display: 'grid',
+    gap: '0.375rem',
+    minWidth: 0,
+  }),
+  dataRowFullWidth: style({
+    gridColumn: '1 / -1',
   }),
   dataValue: style({
-    color: colorTokens.slate900,
-    fontSize: '1.1rem',
-    lineHeight: 1.55,
-    margin: 0,
-    minInlineSize: 0,
-    overflowWrap: 'anywhere',
-    selectors: {
-      ':root[data-theme="dark"] &': {
-        color: colorTokens.slate100,
-      },
-    },
-  }),
-  hero: style({
-    backgroundColor: '#edf6ff',
-    minInlineSize: 0,
-    overflow: 'hidden',
-    position: 'relative',
-    selectors: {
-      ':root[data-theme="dark"] &': {
-        backgroundColor: '#08101b',
-      },
-    },
-  }),
-  heroActions: style({
-    display: 'inline-grid',
-    gap: '0.75rem',
-    gridAutoFlow: 'column',
-    justifyContent: 'flex-start',
-  }),
-  heroBody: style({
-    animationDelay: '160ms',
-    animationDuration: '700ms',
-    animationFillMode: 'both',
-    animationName: heroReveal,
-    animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
-    color: colorTokens.slate900,
-    fontSize: '1rem',
-    lineHeight: 1.7,
-    marginBlockEnd: '2rem',
-    marginBlockStart: 0,
-    maxWidth: '31rem',
-    selectors: {
-      ':root[data-theme="dark"] &': {
-        color: colorTokens.slate300,
-      },
-    },
-  }),
-  heroCopy: style({
-    '@media': {
-      '(min-width: 768px)': {
-        paddingBottom: '4rem',
-      },
-    },
-    maxWidth: '38rem',
-    minInlineSize: 0,
-    paddingBlockEnd: '2.5rem',
-    position: 'relative',
-    zIndex: 2,
-  }),
-  heroInner: style({
-    '@media': {
-      '(min-width: 768px)': {
-        paddingBottom: 0,
-      },
-    },
-    alignItems: 'flex-end',
-    display: 'grid',
-    marginInline: 'auto',
-    maxWidth: '84rem',
-    minBlockSize: '100svh',
-    minInlineSize: 0,
-    paddingBlockEnd: '2rem',
-    paddingBlockStart: '4rem',
-    paddingInline: '1rem',
-    position: 'relative',
-  }),
-  heroLead: style({
-    '@media': {
-      '(min-width: 768px)': {
-        fontSize: '1.95rem',
-      },
-    },
-    animationDelay: '110ms',
-    animationDuration: '700ms',
-    animationFillMode: 'both',
-    animationName: heroReveal,
-    animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
-    color: colorTokens.slate900,
-    fontSize: '1.28rem',
-    fontWeight: 500,
-    letterSpacing: '-0.025em',
-    lineHeight: 1.12,
-    marginBlockEnd: '0.85rem',
-    marginBlockStart: 0,
-    maxWidth: '15ch',
-    position: 'relative',
-    selectors: {
-      ':root[data-theme="dark"] &': {
-        color: colorTokens.slate100,
-      },
-    },
-  }),
-  heroMedia: style({
-    '@media': {
-      '(min-width: 768px)': {
-        backgroundPosition: 'center center',
-      },
-      '(prefers-reduced-motion: reduce)': {
-        animationDuration: '1ms',
-        animationIterationCount: 1,
-      },
-    },
-    animationDirection: 'alternate',
-    animationDuration: '18s',
-    animationIterationCount: 'infinite',
-    animationName: artworkDrift,
-    animationTimingFunction: 'ease-in-out',
-    backgroundImage: 'url("/assets/ssr-hero-light.svg")',
-    backgroundPosition: '72% center',
-    backgroundRepeat: 'no-repeat',
-    backgroundSize: 'cover',
-    inset: 0,
-    opacity: 0.8,
-    position: 'absolute',
-    selectors: {
-      ':root[data-theme="dark"] &': {
-        backgroundImage: 'url("/assets/ssr-hero-dark.svg")',
-        opacity: 1,
-      },
-    },
-    transformOrigin: 'center',
-  }),
-  heroOverlay: style({
-    backgroundImage:
-      'linear-gradient(90deg, rgba(249, 252, 255, 0.995) 0%, rgba(249, 252, 255, 0.94) 28%, rgba(243, 248, 255, 0.78) 48%, rgba(239, 246, 255, 0.48) 68%, rgba(237, 246, 255, 0.26) 100%), linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(226, 239, 255, 0.12) 100%)',
-    inset: 0,
-    position: 'absolute',
-    selectors: {
-      ':root[data-theme="dark"] &': {
-        backgroundImage:
-          'linear-gradient(90deg, rgba(8, 16, 27, 0.92) 0%, rgba(8, 16, 27, 0.72) 26%, rgba(8, 16, 27, 0.28) 54%, rgba(8, 16, 27, 0.1) 100%), linear-gradient(180deg, rgba(8, 16, 27, 0.12) 0%, rgba(8, 16, 27, 0.18) 100%)',
-      },
-    },
-    zIndex: 1,
-  }),
-  page: style({
-    minInlineSize: 0,
-    paddingBlockEnd: '4rem',
-  }),
-  routesInner: style({
-    marginInline: 'auto',
-    maxWidth: '84rem',
-    minInlineSize: 0,
-    paddingBlockStart: '3.5rem',
-    paddingInline: '1rem',
-  }),
-  routesIntro: style({
-    color: colorTokens.slate700,
-    fontSize: '1rem',
-    lineHeight: 1.7,
-    marginBlockEnd: '2rem',
-    marginBlockStart: 0,
-    maxWidth: '34rem',
-    selectors: {
-      ':root[data-theme="dark"] &': {
-        color: colorTokens.slate300,
-      },
-    },
-  }),
-  routesList: style({
-    borderBlockStyle: 'solid',
-    borderBlockWidth: '1px',
-    borderColor: colorTokens.slate200,
-    minInlineSize: 0,
-    selectors: {
-      ':root[data-theme="dark"] &': {
-        borderColor: colorTokens.slate800,
-      },
-    },
-  }),
-  routesTitle: style({
-    '@media': {
-      '(min-width: 768px)': {
-        fontSize: '2.6rem',
-      },
-    },
-    color: colorTokens.slate900,
-    fontSize: '2rem',
-    fontWeight: 700,
-    letterSpacing: '-0.04em',
-    lineHeight: 0.98,
-    marginBlockEnd: '0.75rem',
-    marginBlockStart: 0,
-    maxWidth: '12ch',
-    selectors: {
-      ':root[data-theme="dark"] &': {
-        color: colorTokens.white,
-      },
-    },
-  }),
-  rowBody: style({
-    color: colorTokens.slate700,
-    fontSize: '0.98rem',
+    color: t.color.onSurface,
+    fontSize: t.type.label,
     lineHeight: 1.65,
     margin: 0,
-    minInlineSize: 0,
-    selectors: {
-      ':root[data-theme="dark"] &': {
-        color: colorTokens.slate300,
-      },
-    },
+    overflowWrap: 'anywhere',
   }),
-  rowContent: style({
-    minInlineSize: 0,
+  inlineCode: style({
+    backgroundColor: t.color.surfaceRaised,
+    borderRadius: '0.25rem',
+    boxDecorationBreak: 'clone',
+    color: t.color.onSurface,
+    fontFamily: 'ui-monospace, SFMono-Regular, Consolas, monospace',
+    fontSize: '0.9em',
+    overflowWrap: 'anywhere',
+    padding: '0.125em 0.375em',
+    whiteSpace: 'normal',
   }),
-  rowNumber: style({
+  intro: style({
     '@media': {
-      '(min-width: 768px)': {
-        fontSize: '2rem',
+      [mediaQueries.reducedMotion]: {
+        animation: 'none',
       },
     },
-    color: colorTokens.info,
-    fontSize: '1.45rem',
-    fontWeight: 700,
-    letterSpacing: '-0.04em',
-    lineHeight: 1,
-    position: 'relative',
-    selectors: {
-      ':root[data-theme="dark"] &': {
-        color: '#7dd3fc',
-      },
-    },
-  }),
-  rowPanel: style({
-    '@media': {
-      '(min-width: 768px)': {
-        gridTemplateColumns: '5.5rem minmax(0, 18rem) minmax(0, 1fr)',
-      },
-    },
-    alignItems: 'flex-start',
+    animation: `${reveal} ${t.motion.entrance} ${t.motion.easing} both`,
     display: 'grid',
-    gap: '1rem 1rem',
-    gridTemplateColumns: '1fr',
-    minInlineSize: 0,
-    paddingBlockEnd: '1.45rem',
-    paddingBlockStart: '1.45rem',
-    paddingInlineEnd: '0.5rem',
-    paddingInlineStart: '0.5rem',
+    gap: '0.75rem',
+    maxWidth: '42rem',
   }),
-  rowRow: style({
-    borderBottomColor: colorTokens.slate200,
-    borderBottomStyle: 'solid',
-    borderBottomWidth: '1px',
-    minInlineSize: 0,
+  json: style([
+    codeBlock,
+    {
+      margin: '0.5rem 0 0',
+    },
+  ]),
+  jsonDisclosure: style({
+    borderTop: `1px solid ${t.color.outline}`,
+    marginBlockStart: '1.25rem',
+    minWidth: 0,
+    paddingBlockStart: '0.5rem',
+  }),
+  jsonSummary: style({
+    alignItems: 'center',
+    borderRadius: t.shape.small,
+    color: t.color.primary,
+    cursor: 'pointer',
+    display: 'flex',
+    fontSize: t.type.label,
+    fontWeight: 650,
+    gap: '0.625rem',
+    minHeight: '44px',
+    paddingInline: '0.375rem',
     selectors: {
-      ':root[data-theme="dark"] &': {
-        borderBottomColor: colorTokens.slate800,
+      '&:focus-visible': {
+        outline: `3px solid ${t.color.primary}`,
+        outlineOffset: '2px',
       },
     },
   }),
-  rowTitle: style({
-    color: colorTokens.slate900,
-    fontSize: '1.45rem',
-    fontWeight: 600,
-    letterSpacing: '-0.03em',
-    lineHeight: 1.1,
-    marginBlockEnd: '0.3rem',
-    marginBlockStart: 0,
-    selectors: {
-      ':root[data-theme="dark"] &': {
-        color: colorTokens.white,
+  layout: style({
+    '@media': {
+      [mediaQueries.minWidth1000]: {
+        gridTemplateColumns: '232px minmax(0, 1fr)',
       },
     },
+    backgroundColor: t.color.surface,
+    color: t.color.onSurface,
+    display: 'grid',
+    minHeight: '100svh',
+  }),
+  lead: style({
+    color: t.color.onSurface,
+    fontSize: t.type.body,
+    fontWeight: 650,
+    lineHeight: 1.5,
+    margin: 0,
+  }),
+  page: style({
+    isolation: 'isolate',
+    minWidth: 0,
+    outline: 'none',
+    overflow: 'clip',
+    position: 'relative',
+  }),
+  requestButton: style({
+    '@media': {
+      [mediaQueries.reducedMotion]: {
+        transition: 'none',
+      },
+    },
+    alignItems: 'center',
+    backgroundColor: t.color.primary,
+    border: 0,
+    borderRadius: t.shape.full,
+    color: t.color.onPrimary,
+    cursor: 'pointer',
+    display: 'inline-flex',
+    fontFamily: 'inherit',
+    fontSize: t.type.label,
+    fontWeight: 650,
+    gap: '0.5rem',
+    lineHeight: 1.5,
+    minHeight: '44px',
+    padding: '0.625rem 1.25rem',
+    selectors: {
+      '&:focus-visible': {
+        outline: `3px solid ${t.color.primary}`,
+        outlineOffset: '3px',
+      },
+      '&:hover:not([aria-disabled="true"])': {
+        backgroundColor: t.color.primaryHover,
+      },
+      '&[aria-disabled="true"]': {
+        cursor: 'wait',
+        opacity: 0.7,
+      },
+    },
+    transition: `background-color ${t.motion.duration} ${t.motion.easing}`,
+  }),
+  response: style({
+    display: 'grid',
+    gap: '0.75rem',
+    minWidth: 0,
+  }),
+  responseActions: style({
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '0.75rem',
+    marginBlockStart: '1.25rem',
+  }),
+  responseHeading: style({
+    alignItems: 'center',
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '0.75rem 1.5rem',
+    justifyContent: 'space-between',
+  }),
+  responsePanel: style({
+    backgroundColor: t.color.surfaceContainer,
+    border: `1px solid ${t.color.outline}`,
+    borderRadius: t.shape.large,
+    minWidth: 0,
+    padding: '1.25rem',
+  }),
+  sectionTitle: style({
+    fontSize: t.type.headline,
+    fontWeight: 700,
+    letterSpacing: '-0.025em',
+    lineHeight: 1.25,
+    margin: 0,
+    overflowWrap: 'anywhere',
+  }),
+  status: style({
+    alignItems: 'center',
+    backgroundColor: t.color.tertiaryContainer,
+    borderRadius: t.shape.full,
+    color: t.color.onTertiaryContainer,
+    display: 'inline-flex',
+    fontSize: t.type.label,
+    fontWeight: 650,
+    gap: '0.5rem',
+    lineHeight: 1.5,
+    padding: '0.375rem 0.75rem',
+  }),
+  step: style({
+    paddingInlineStart: '0.375rem',
+  }),
+  steps: style({
+    display: 'grid',
+    gap: '1.25rem',
+    margin: '0.25rem 0 0',
+    paddingInlineStart: '1.5rem',
+  }),
+  stepTitle: style({
+    fontSize: t.type.body,
+    fontWeight: 650,
+    lineHeight: 1.5,
+    margin: '0 0 0.375rem',
   }),
   title: style({
-    '@media': {
-      '(min-width: 768px)': {
-        fontSize: '6.4rem',
-      },
-      '(prefers-reduced-motion: reduce)': {
-        animationDuration: '1ms',
-        animationIterationCount: 1,
-      },
-    },
-    animationDuration: '700ms',
-    animationFillMode: 'both',
-    animationName: heroReveal,
-    animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
-    color: colorTokens.slate900,
-    fontSize: '3.95rem',
-    letterSpacing: '-0.07em',
-    lineHeight: 0.84,
-    marginBlockEnd: '1rem',
-    marginBlockStart: 0,
-    maxWidth: '7ch',
-    selectors: {
-      ':root[data-theme="dark"] &': {
-        color: colorTokens.white,
-      },
-    },
+    fontSize: 'clamp(2rem, 3.2vw, 3rem)',
+    fontWeight: 750,
+    letterSpacing: '-0.045em',
+    lineHeight: 1.15,
+    margin: 0,
+    overflowWrap: 'anywhere',
   }),
   titleAccent: style({
-    color: colorTokens.info,
-    display: 'block',
-    selectors: {
-      ':root[data-theme="dark"] &': {
-        color: '#7dd3fc',
-      },
+    color: t.color.primary,
+  }),
+  valueBlock: style([
+    codeBlock,
+    {
+      margin: 0,
     },
+  ]),
+  verify: style({
+    display: 'grid',
+    gap: '0.75rem',
+    minWidth: 0,
+  }),
+  workspace: style({
+    minWidth: 0,
   }),
 };
+
+globalStyle(`:root[data-theme="dark"] ${s.artwork}`, {
+  '@media': {
+    [mediaQueries.maxWidth599]: {
+      opacity: 0.28,
+    },
+  },
+  opacity: 0.62,
+});
+globalStyle(`${s.step}::marker`, {
+  color: t.color.primary,
+  fontWeight: 650,
+});
+globalStyle(`${s.jsonSummary} > svg:last-child`, {
+  '@media': {
+    [mediaQueries.reducedMotion]: {
+      transition: 'none',
+    },
+  },
+  marginInlineStart: 'auto',
+  transition: `transform ${t.motion.duration} ${t.motion.easing}`,
+});
+globalStyle(`${s.jsonDisclosure}[open] ${s.jsonSummary} > svg:last-child`, {
+  transform: 'rotate(180deg)',
+});

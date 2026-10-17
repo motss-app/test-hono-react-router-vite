@@ -1,4 +1,5 @@
 type Theme = 'light' | 'dark';
+type ThemePreference = Theme | 'system';
 
 interface LegacyMediaQueryList extends MediaQueryList {
   addListener(listener: (event: MediaQueryListEvent) => void): void;
@@ -12,11 +13,13 @@ interface ThemeBootstrapGlobal {
   __themeBootstrapInitialized?: boolean;
 }
 
-function getSavedTheme(): Theme | null {
+function getSavedTheme(): ThemePreference | null {
   try {
-    const match = document.cookie.match(new RegExp(`(?:^|;\\s*)${themeStorageKey}=(light|dark)`));
+    const match = document.cookie.match(
+      new RegExp(`(?:^|;\\s*)${themeStorageKey}=(light|dark|system)(?:;|$)`)
+    );
 
-    return match ? (match[1] as Theme) : null;
+    return match ? (match[1] as ThemePreference) : null;
   } catch {
     return null;
   }
@@ -28,19 +31,12 @@ function getSystemTheme(mediaQueryList: MediaQueryList): Theme {
 
 function applyTheme(theme: Theme): void {
   document.documentElement.setAttribute('data-theme', theme);
-
-  // Persist to cookie so SSR can read the theme without localStorage access.
-  try {
-    // biome-ignore lint/suspicious/noDocumentCookie: intentional — SSR reads this cookie to render data-theme
-    document.cookie = `${themeStorageKey}=${theme}; path=/; max-age=31536000; samesite=lax`;
-  } catch {
-    // cookie write may fail in restricted environments
-  }
 }
 
 function registerSystemThemeListener(mediaQueryList: MediaQueryList): void {
   const handleThemeChange = (event: MediaQueryListEvent): void => {
-    if (getSavedTheme() !== null) {
+    const preference = getSavedTheme();
+    if (preference !== null && preference !== 'system') {
       return;
     }
 
@@ -64,6 +60,8 @@ if (!themeBootstrapGlobal[themeBootstrapFlag]) {
   const mediaQueryList = globalThis.matchMedia(themeMediaQuery);
   const savedTheme = getSavedTheme();
 
-  applyTheme(savedTheme ?? getSystemTheme(mediaQueryList));
+  applyTheme(
+    savedTheme === 'light' || savedTheme === 'dark' ? savedTheme : getSystemTheme(mediaQueryList)
+  );
   registerSystemThemeListener(mediaQueryList);
 }

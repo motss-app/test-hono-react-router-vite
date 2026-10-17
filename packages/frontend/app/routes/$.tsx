@@ -1,9 +1,14 @@
 import type { JSX } from 'react/jsx-runtime';
 import { data, Link } from 'react-router';
 
+import { Breadcrumbs } from '../components/breadcrumbs.tsx';
+import * as chrome from '../components/page-chrome.css.ts';
+import * as footerStyles from '../components/page-footer.css.ts';
+import { PagePreferences, SiteBrand } from '../components/page-navigation.tsx';
+import { PoweredByTools } from '../components/powered-by-tools.tsx';
 import * as m from '../paraglide/messages.js';
 import type { Route } from './+types/$.ts';
-import { s } from './$.css.ts';
+import { s } from './not-found.css.ts';
 
 export function meta(): Route.MetaDescriptors {
   return [
@@ -46,22 +51,63 @@ export default function NotFound({ loaderData }: Route.ComponentProps): JSX.Elem
   }
 
   return (
-    <div className={s.container}>
-      <h1 className={s.h1}>404</h1>
-      <h2>{m.not_found_title()}</h2>
-      <p>
-        {m.not_found_description({
-          url: loaderData.url,
-        })}
-      </p>
-      <div className={s.marginTop}>
-        <Link
-          className={s.link}
-          to="/"
-        >
-          ← {m.not_found_back_home()}
-        </Link>
+    <>
+      <NotFoundHeader />
+      <main className={s.container}>
+        <h1 className={s.h1}>404</h1>
+        <h2>{m.not_found_title()}</h2>
+        <p>
+          {m.not_found_description({
+            url: loaderData.url,
+          })}
+        </p>
+        <div className={s.marginTop}>
+          <Link
+            className={s.link}
+            to="/"
+          >
+            ← {m.not_found_back_home()}
+          </Link>
+        </div>
+      </main>
+      <NotFoundFooter />
+    </>
+  );
+}
+
+function NotFoundFooter() {
+  return (
+    <footer className={footerStyles.footer}>
+      <div className={footerStyles.footerInner}>
+        <PoweredByTools />
       </div>
-    </div>
+    </footer>
+  );
+}
+
+function NotFoundHeader() {
+  return (
+    <header className={chrome.header}>
+      <div className={chrome.mobileBrand}>
+        <SiteBrand />
+      </div>
+      <div className={chrome.breadcrumbSlot}>
+        <Breadcrumbs
+          items={[
+            {
+              label: m.holy_grail_nav_home(),
+              to: '/',
+            },
+            {
+              label: m.not_found_title(),
+            },
+          ]}
+        />
+      </div>
+      <PagePreferences
+        activePath="/missing-route"
+        hasSidebar={false}
+      />
+    </header>
   );
 }

@@ -60,7 +60,7 @@ Selection rules:
 
 ### Session hygiene
 
-- Start each task with a fresh dedicated MCP session. List pages first, record the baseline, and track created pages and process ownership. Never modify user-owned tabs or pre-existing shared browser processes.
+- Start each task with a fresh dedicated MCP session. List pages first, record the baseline, and track created pages and process ownership. Never modify user-owned tabs or pre-existing shared browser processes. After all browser work for a task is complete, terminate the task-owned Chrome or Edge processes (identified via parent relationships along with `puppeteer_dev_chrome_profile-*` and `--remote-debugging-pipe`) so no spawned browser instance lingers, using `kill -TERM` and verifying exit with `ps`. Do not kill VRT or other test-owned Chromium processes that are still running required automated checks.
 - On `Transport closed`, stop and ask the user to restart the MCP server through the VS Code MCP panel. After confirmation, list pages again before continuing. Never retry a dead transport or launch a separate stdio server as a replacement connection.
 - After an MCP reconnect or restart, list pages again and discard stale page IDs before continuing.
 - For other page-call failures, inspect the live session and recover when possible.
@@ -146,7 +146,6 @@ Never use semicolons or em dashes in comments, docs, or user-facing prose. Use p
 
 ## Related Instruction Files
 
-- `.opencode/agents/AGENTS.md`: thin pointer for opencode delegating to this file (frontmatter plus pointer only). Do not duplicate rules there.
 - `.github/copilot-instructions.md`: repository-specific GitHub Copilot instructions (delegates to this file).
 - `.github/LLMS.md`: external LLM reference material used by this repo.
 - `docs/dev-urls.md`: all health check, SSR, and API URLs to probe after changes.
@@ -163,6 +162,5 @@ Never use semicolons or em dashes in comments, docs, or user-facing prose. Use p
 ## Maintenance
 
 - When the user asks to "add instructions", update this file immediately.
-- Keep `.opencode/agents/AGENTS.md` as a thin pointer to this file (frontmatter plus pointer only). Do not duplicate rules there.
 - Keep `.github/copilot-instructions.md` as a thin pointer to this file. Do not duplicate rules there.
 - Keep `.github/agents/coding.agent.md` as a thin pointer to this file (frontmatter plus pointer only). Do not duplicate rules there.

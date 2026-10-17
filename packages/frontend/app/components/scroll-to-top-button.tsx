@@ -1,5 +1,6 @@
 import type { JSX } from 'react';
 
+import * as m from '../paraglide/messages.js';
 import { button, hidden, visible } from './scroll-to-top-button.css.ts';
 
 interface ScrollToTopButtonProps {
@@ -10,9 +11,12 @@ interface ScrollToTopButtonProps {
 export function ScrollToTopButton({ isVisible, onClick }: ScrollToTopButtonProps): JSX.Element {
   return (
     <button
-      aria-label="Scroll to top"
+      aria-hidden={!isVisible}
+      aria-label={m.home_scroll_to_top()}
       className={`${button} ${isVisible ? visible : hidden}`}
+      disabled={!isVisible}
       onClick={onClick}
+      tabIndex={isVisible ? 0 : -1}
       type="button"
     >
       <svg

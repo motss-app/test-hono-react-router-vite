@@ -1,7 +1,8 @@
 import { Select } from '@base-ui/react/select';
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 
 import { labels, locales } from '../../locales.ts';
+import * as m from '../paraglide/messages.js';
 import type { Locale } from '../paraglide/runtime.js';
 import { deLocalizeHref, getLocale, localizeHref } from '../paraglide/runtime.js';
 
@@ -44,6 +45,10 @@ function CheckIcon(props: React.ComponentProps<'svg'>) {
 }
 
 export function LocaleSwitcherInner() {
+  const popupContainer = useRef<HTMLElement | null>(null);
+  const setTriggerRef = useCallback((element: HTMLButtonElement | null) => {
+    popupContainer.current = element?.closest<HTMLElement>('header, footer, main, aside') ?? null;
+  }, []);
   const currentLocale = getLocale();
   const handleLocaleChange = useCallback((value: string | null) => {
     if (value) {
@@ -65,17 +70,24 @@ export function LocaleSwitcherInner() {
       onValueChange={handleLocaleChange}
     >
       <Select.Trigger
-        aria-label="Select locale"
+        aria-label={m.home_select_locale()}
         className="locale-switcher-trigger"
+        ref={setTriggerRef}
       >
         <Select.Value />
         <Select.Icon>
           <CaretUpDownIcon />
         </Select.Icon>
       </Select.Trigger>
-      <Select.Portal>
+      <Select.Portal
+        className="locale-switcher-portal"
+        container={popupContainer}
+      >
         <Select.Positioner sideOffset={4}>
-          <Select.Popup className="locale-switcher-popup">
+          <Select.Popup
+            aria-label={m.home_select_locale()}
+            className="locale-switcher-popup"
+          >
             <Select.List>
               {LOCALES.map(locale => (
                 <Select.Item

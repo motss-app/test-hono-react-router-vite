@@ -1,504 +1,354 @@
-import { keyframes, style } from '@vanilla-extract/css';
+import { createVar, globalStyle, keyframes, style } from '@vanilla-extract/css';
 
-import { colorTokens } from '../styles/color-tokens.contract.css.ts';
-import { fontWeightTokens } from '../styles/font-weight-tokens.contract.css.ts';
-import { radiusTokens } from '../styles/radius-tokens.contract.css.ts';
+import { expressiveTokens as t } from '../styles/expressive-tokens.css.ts';
+import { mediaQueries } from '../styles/media-queries.ts';
 
-const heroReveal = keyframes({
-  '0%': {
+const statusAccent = createVar();
+const statusSurface = createVar();
+const reveal = keyframes({
+  from: {
     opacity: 0,
-    transform: 'translate3d(0, 1.5rem, 0)',
+    transform: 'translateY(8px)',
   },
-  '100%': {
+  to: {
     opacity: 1,
-    transform: 'translate3d(0, 0, 0)',
+    transform: 'translateY(0)',
   },
 });
-
-const artworkDrift = keyframes({
-  '0%': {
-    transform: 'scale(1.02) translate3d(0, 0, 0)',
-  },
-  '50%': {
-    transform: 'scale(1.05) translate3d(-0.75%, 0.5%, 0)',
-  },
-  '100%': {
-    transform: 'scale(1.03) translate3d(-0.25%, -0.35%, 0)',
-  },
-});
-
-export const ctaPrimary = style({
-  alignItems: 'center',
-  animationDelay: '240ms',
-  animationDuration: '700ms',
-  animationFillMode: 'both',
-  animationName: heroReveal,
-  animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
-  backgroundColor: '#f59e0b',
-  borderRadius: radiusTokens.radiusMd,
-  color: colorTokens.slate900,
-  display: 'inline-grid',
-  fontWeight: fontWeightTokens.fontWeightSemibold,
-  gap: '0.5rem',
-  gridAutoFlow: 'column',
-  padding: '0.92rem 1.45rem',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      backgroundColor: '#fcd34d',
-    },
-    ':root[data-theme="dark"] &:hover': {
-      backgroundColor: '#fde68a',
-    },
-    '&:hover': {
-      backgroundColor: '#d97706',
-      transform: 'translate3d(0, -0.125rem, 0)',
-    },
-  },
-  textDecoration: 'none',
-  transition: 'background-color 0.2s ease, transform 0.2s ease',
-  whiteSpace: 'nowrap',
-});
-export const ctaSecondary = style({
-  alignItems: 'center',
-  animationDelay: '320ms',
-  animationDuration: '700ms',
-  animationFillMode: 'both',
-  animationName: heroReveal,
-  animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
-  backgroundColor: 'rgba(255, 255, 255, 0.82)',
-  borderColor: 'rgba(120, 53, 15, 0.12)',
-  borderRadius: radiusTokens.radiusMd,
-  borderStyle: 'solid',
-  borderWidth: '1px',
-  color: colorTokens.slate900,
-  display: 'inline-grid',
-  fontWeight: fontWeightTokens.fontWeightSemibold,
-  gap: '0.5rem',
-  gridAutoFlow: 'column',
-  padding: '0.92rem 1.45rem',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      backgroundColor: 'rgba(15, 23, 42, 0.28)',
-      borderColor: 'rgba(226, 232, 240, 0.26)',
-      color: colorTokens.slate100,
-    },
-    ':root[data-theme="dark"] &:hover': {
-      backgroundColor: 'rgba(148, 163, 184, 0.12)',
-      borderColor: colorTokens.slate400,
-    },
-    '&:hover': {
-      backgroundColor: 'rgba(255, 255, 255, 0.72)',
-      borderColor: '#fed7aa',
-      transform: 'translate3d(0, -0.125rem, 0)',
-    },
-  },
-  textDecoration: 'none',
-  transition: 'background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease',
-  whiteSpace: 'nowrap',
-});
-export const hero = style({
-  backgroundColor: '#fff7ed',
-  minInlineSize: 0,
-  overflow: 'hidden',
-  position: 'relative',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      backgroundColor: '#140d07',
-    },
-  },
-});
-export const heroActions = style({
-  display: 'inline-grid',
-  gap: '0.75rem',
-  gridAutoFlow: 'column',
-  justifyContent: 'flex-start',
-});
-export const heroBody = style({
-  animationDelay: '160ms',
-  animationDuration: '700ms',
-  animationFillMode: 'both',
-  animationName: heroReveal,
-  animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
-  color: '#7c2d12',
-  fontSize: '1rem',
-  lineHeight: 1.7,
-  marginBlockEnd: '2rem',
-  marginBlockStart: 0,
-  maxWidth: '31rem',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.slate300,
-    },
-  },
-});
-export const heroCopy = style({
+export const layout = style({
   '@media': {
-    '(min-width: 768px)': {
-      paddingBottom: '4rem',
+    [mediaQueries.minWidth1000]: {
+      gridTemplateColumns: '232px minmax(0, 1fr)',
     },
   },
-  maxWidth: '40rem',
-  minInlineSize: 0,
-  paddingBlockEnd: '2.5rem',
-  position: 'relative',
-  zIndex: 2,
-});
-export const heroInner = style({
-  '@media': {
-    '(min-width: 768px)': {
-      paddingBottom: 0,
-    },
-  },
-  alignItems: 'flex-end',
+  backgroundColor: t.color.surface,
+  color: t.color.onSurface,
   display: 'grid',
-  marginInline: 'auto',
-  maxWidth: '84rem',
-  minBlockSize: '100svh',
-  minInlineSize: 0,
-  paddingBlockEnd: '2rem',
-  paddingBlockStart: '4rem',
-  paddingInline: '1rem',
-  position: 'relative',
+  minHeight: '100svh',
 });
-export const heroLead = style({
-  '@media': {
-    '(min-width: 768px)': {
-      fontSize: '1.95rem',
-    },
-  },
-  animationDelay: '110ms',
-  animationDuration: '700ms',
-  animationFillMode: 'both',
-  animationName: heroReveal,
-  animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
-  color: '#9a3412',
-  fontSize: '1.28rem',
-  fontWeight: 500,
-  letterSpacing: '-0.025em',
-  lineHeight: 1.12,
-  marginBlockEnd: '0.85rem',
-  marginBlockStart: 0,
-  maxWidth: '17ch',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: '#fde68a',
-    },
-  },
-});
-export const heroMedia = style({
-  '@media': {
-    '(min-width: 768px)': {
-      backgroundPosition: 'center center',
-    },
-    '(prefers-reduced-motion: reduce)': {
-      animationDuration: '1ms',
-      animationIterationCount: 1,
-    },
-  },
-  animationDirection: 'alternate',
-  animationDuration: '18s',
-  animationIterationCount: 'infinite',
-  animationName: artworkDrift,
-  animationTimingFunction: 'ease-in-out',
-  backgroundImage: 'url("/assets/errors-hero-light.svg")',
-  backgroundPosition: '74% center',
-  backgroundRepeat: 'no-repeat',
-  backgroundSize: 'cover',
-  inset: 0,
-  opacity: 0.82,
-  position: 'absolute',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      backgroundImage: 'url("/assets/errors-hero-dark.svg")',
-      opacity: 1,
-    },
-  },
-  transformOrigin: 'center',
-});
-export const heroOverlay = style({
-  backgroundImage:
-    'linear-gradient(90deg, rgba(255, 250, 245, 0.995) 0%, rgba(255, 247, 237, 0.95) 28%, rgba(255, 238, 221, 0.8) 48%, rgba(255, 237, 213, 0.48) 68%, rgba(255, 247, 237, 0.22) 100%), linear-gradient(180deg, rgba(255, 255, 255, 0.24) 0%, rgba(255, 237, 213, 0.1) 100%)',
-  inset: 0,
-  position: 'absolute',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      backgroundImage:
-        'linear-gradient(90deg, rgba(20, 13, 7, 0.94) 0%, rgba(20, 13, 7, 0.74) 28%, rgba(20, 13, 7, 0.28) 56%, rgba(20, 13, 7, 0.1) 100%), linear-gradient(180deg, rgba(20, 13, 7, 0.16) 0%, rgba(20, 13, 7, 0.18) 100%)',
-    },
-  },
-  zIndex: 1,
+export const workspace = style({
+  minWidth: 0,
 });
 export const page = style({
-  minInlineSize: 0,
-  paddingBlockEnd: '4rem',
+  isolation: 'isolate',
+  minWidth: 0,
+  outline: 'none',
+  overflow: 'clip',
+  position: 'relative',
 });
-export const routesInner = style({
+export const artwork = style({
+  '@media': {
+    [mediaQueries.maxWidth599]: {
+      opacity: 0.28,
+    },
+  },
+  backgroundImage: 'url("/assets/errors-expressive.svg")',
+  backgroundPosition: 'center top',
+  backgroundRepeat: 'no-repeat',
+  backgroundSize: '100% auto',
+  inset: 0,
+  opacity: 0.64,
+  pointerEvents: 'none',
+  position: 'absolute',
+  zIndex: -1,
+});
+export const content = style({
+  alignContent: 'start',
+  boxSizing: 'border-box',
+  display: 'grid',
+  gap: '2rem',
   marginInline: 'auto',
-  maxWidth: '84rem',
-  minInlineSize: 0,
-  paddingBlockStart: '3.5rem',
-  paddingInline: '1rem',
+  maxWidth: '1120px',
+  minWidth: 0,
+  padding: `1.5rem clamp(1rem, 3.5vw, 3rem) ${t.space.pageFooterGap}`,
+  width: '100%',
 });
-export const routesIntro = style({
-  color: '#7c2d12',
-  fontSize: '1rem',
-  lineHeight: 1.7,
-  marginBlockEnd: '2rem',
-  marginBlockStart: 0,
-  maxWidth: '37rem',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.slate300,
-    },
-  },
-});
-export const routesList = style({
-  borderBlockStyle: 'solid',
-  borderBlockWidth: '1px',
-  borderColor: '#fdba74',
-  minInlineSize: 0,
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      borderColor: colorTokens.slate800,
-    },
-  },
-});
-export const routesTitle = style({
+export const intro = style({
   '@media': {
-    '(min-width: 768px)': {
-      fontSize: '2.6rem',
+    [mediaQueries.reducedMotion]: {
+      animation: 'none',
     },
   },
-  color: colorTokens.slate900,
-  fontSize: '2rem',
-  fontWeight: 700,
-  letterSpacing: '-0.04em',
-  lineHeight: 0.98,
-  marginBlockEnd: '0.75rem',
-  marginBlockStart: 0,
-  maxWidth: '13ch',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.white,
-    },
-  },
-});
-export const rowBody = style({
-  color: colorTokens.slate700,
-  fontSize: '0.98rem',
-  lineHeight: 1.65,
-  margin: 0,
-  minInlineSize: 0,
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.slate300,
-    },
-  },
-});
-export const rowCode = style({
-  '@media': {
-    '(min-width: 768px)': {
-      fontSize: '2rem',
-    },
-  },
-  fontSize: '1.45rem',
-  fontWeight: 700,
-  letterSpacing: '-0.04em',
-  lineHeight: 1.0,
-});
-export const rowCodeCriticalBase = style({
-  color: '#dc2626',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: '#fca5a5',
-    },
-  },
-});
-export const rowCodeRuntimeBase = style({
-  color: '#0891b2',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: '#67e8f9',
-    },
-  },
-});
-export const rowCodeWarningBase = style({
-  color: '#d97706',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: '#fde68a',
-    },
-  },
-});
-export const rowContent = style({
-  minInlineSize: 0,
-});
-export const rowDetail = style({
-  color: colorTokens.slate700,
+  animation: `${reveal} ${t.motion.entrance} ${t.motion.easing} both`,
   display: 'grid',
   gap: '0.75rem',
-  minInlineSize: 0,
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.slate300,
-    },
-  },
-});
-export const rowDetailText = style({
-  color: colorTokens.slate700,
-  fontSize: '0.98rem',
-  lineHeight: 1.65,
-  margin: 0,
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.slate300,
-    },
-  },
-});
-export const rowLink = style({
-  display: 'inline-grid',
-  fontWeight: 600,
-  gap: '0.5rem',
-  gridAutoColumns: 'max-content',
-  gridAutoFlow: 'column',
-  inlineSize: 'fit-content',
-  textDecoration: 'none',
-});
-export const rowLinkCritical = style({
-  color: '#dc2626',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: '#fca5a5',
-    },
-  },
-});
-export const rowLinkRuntime = style({
-  color: '#0891b2',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: '#67e8f9',
-    },
-  },
-});
-export const rowLinkWarning = style({
-  color: '#d97706',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: '#fde68a',
-    },
-  },
-});
-export const rowPanel = style({
-  '@media': {
-    '(min-width: 768px)': {
-      gridTemplateColumns: '6rem minmax(0, 19rem) minmax(0, 1fr)',
-    },
-  },
-  alignItems: 'flex-start',
-  display: 'grid',
-  gap: '1rem 1rem',
-  gridTemplateColumns: '1fr',
-  minInlineSize: 0,
-  paddingBlockEnd: '1.45rem',
-  paddingBlockStart: '1.45rem',
-  paddingInlineEnd: '0.5rem',
-  paddingInlineStart: '0.5rem',
-});
-export const rowRow = style({
-  borderBlockStyle: 'solid',
-  borderBlockWidth: '1px',
-  borderColor: '#fed7aa',
-  minInlineSize: 0,
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      borderColor: colorTokens.slate800,
-    },
-  },
-});
-export const rowTitle = style({
-  color: colorTokens.slate900,
-  fontSize: '1.45rem',
-  fontWeight: 600,
-  letterSpacing: '-0.03em',
-  lineHeight: 1.1,
-  marginBlockEnd: '0.3rem',
-  marginBlockStart: 0,
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.white,
-    },
-  },
-});
-export const sectionSpacer = style({
-  marginTop: '3.5rem',
-});
-export const statusLabel = style({
-  color: '#9a3412',
-  fontSize: '0.86rem',
-  letterSpacing: '0.08em',
-  margin: 0,
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.slate400,
-    },
-  },
-  textTransform: 'uppercase',
+  maxWidth: '44rem',
 });
 export const title = style({
+  color: t.color.primary,
+  fontSize: 'clamp(2rem, 3.2vw, 3rem)',
+  fontWeight: 750,
+  letterSpacing: '-0.045em',
+  lineHeight: 1.15,
+  margin: 0,
+  overflowWrap: 'anywhere',
+});
+export const lead = style({
+  fontSize: t.type.body,
+  fontWeight: 650,
+  lineHeight: 1.5,
+  margin: 0,
+});
+export const body = style({
+  color: t.color.onSurfaceVariant,
+  fontSize: t.type.label,
+  lineHeight: 1.65,
+  margin: 0,
+  overflowWrap: 'anywhere',
+});
+export const groups = style({
+  display: 'grid',
+  gap: t.space.large,
+});
+export const group = style({
   '@media': {
-    '(min-width: 768px)': {
-      fontSize: '6.2rem',
-    },
-    '(prefers-reduced-motion: reduce)': {
-      animationDuration: '1ms',
-      animationIterationCount: 1,
+    [mediaQueries.minWidth900]: {
+      gridTemplateColumns: 'minmax(0, 14rem) minmax(0, 1fr)',
     },
   },
-  animationDuration: '700ms',
-  animationFillMode: 'both',
-  animationName: heroReveal,
-  animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
-  color: colorTokens.slate900,
-  fontSize: '3.95rem',
-  fontWeight: 700,
-  letterSpacing: '-0.07em',
-  lineHeight: 0.84,
-  marginBlockEnd: '1rem',
-  marginBlockStart: 0,
-  maxWidth: '7ch',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.white,
-    },
-  },
+  backgroundColor: statusSurface,
+  borderRadius: t.shape.large,
+  display: 'grid',
+  gap: '1rem 1.5rem',
+  minWidth: 0,
+  padding: '1.25rem',
 });
-export const titleAccent = style({
-  color: '#d97706',
-  display: 'block',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: '#fde68a',
+export const tones = {
+  critical: style({
+    vars: {
+      [statusAccent]: t.color.onErrorContainer,
+      [statusSurface]: t.color.errorContainer,
     },
-  },
-});
-
-export const toneStyles = {
-  critical: {
-    code: rowCodeCriticalBase,
-    link: rowLinkCritical,
-  },
-  runtime: {
-    code: rowCodeRuntimeBase,
-    link: rowLinkRuntime,
-  },
-  warning: {
-    code: rowCodeWarningBase,
-    link: rowLinkWarning,
-  },
+  }),
+  runtime: style({
+    vars: {
+      [statusAccent]: t.color.onTertiaryContainer,
+      [statusSurface]: t.color.tertiaryContainer,
+    },
+  }),
+  warning: style({
+    vars: {
+      [statusAccent]: t.color.onSecondaryContainer,
+      [statusSurface]: t.color.secondaryContainer,
+    },
+  }),
 };
-
-export const routesIntroSpacer = style({});
-
-export const rowCodeCritical = style({});
-export const rowCodeRuntime = style({});
-export const rowCodeWarning = style({});
+export const groupHeading = style({
+  alignItems: 'flex-start',
+  display: 'flex',
+  gap: '0.875rem',
+  minWidth: 0,
+});
+export const groupIcon = style({
+  alignItems: 'center',
+  backgroundColor: t.color.surfaceRaised,
+  borderRadius: t.shape.full,
+  color: statusAccent,
+  display: 'inline-flex',
+  flexShrink: 0,
+  fontSize: '1.25rem',
+  height: '44px',
+  justifyContent: 'center',
+  width: '44px',
+});
+export const groupCopy = style({
+  display: 'grid',
+  gap: '0.5rem',
+  minWidth: 0,
+});
+export const groupTitle = style({
+  color: statusAccent,
+  fontSize: '1.25rem',
+  fontWeight: 700,
+  lineHeight: 1.3,
+  margin: 0,
+  overflowWrap: 'anywhere',
+});
+export const groupCases = style({
+  minWidth: 0,
+});
+export const caseList = style({
+  display: 'grid',
+  gap: '0.5rem',
+  listStyle: 'none',
+  margin: 0,
+  padding: 0,
+});
+export const caseLink = style({
+  '@media': {
+    [mediaQueries.minWidth600]: {
+      gridTemplateColumns: '3.5rem minmax(0, 1fr) auto',
+    },
+    [mediaQueries.reducedMotion]: {
+      transition: 'none',
+    },
+  },
+  alignItems: 'center',
+  border: '1px solid transparent',
+  borderRadius: t.shape.medium,
+  color: t.color.onSurface,
+  display: 'grid',
+  gap: '0.625rem 0.875rem',
+  gridTemplateColumns: '3.5rem minmax(0, 1fr)',
+  minHeight: '44px',
+  minWidth: 0,
+  padding: '0.75rem',
+  selectors: {
+    '&:focus-visible': {
+      outline: `3px solid ${statusAccent}`,
+      outlineOffset: '2px',
+    },
+    '&:hover': {
+      backgroundColor: t.color.surfaceRaised,
+      borderColor: statusAccent,
+      textDecoration: 'none',
+    },
+  },
+  textDecoration: 'none',
+  transition: `background-color ${t.motion.duration} ${t.motion.easing}, border-color ${t.motion.duration} ${t.motion.easing}`,
+});
+export const caseCode = style({
+  alignItems: 'center',
+  backgroundColor: t.color.surfaceRaised,
+  borderRadius: t.shape.small,
+  color: statusAccent,
+  display: 'inline-flex',
+  fontFamily: 'ui-monospace, SFMono-Regular, Consolas, monospace',
+  fontSize: '1rem',
+  fontWeight: 700,
+  justifyContent: 'center',
+  minHeight: '44px',
+  overflowWrap: 'anywhere',
+  padding: '0.25rem',
+});
+export const caseCopy = style({
+  display: 'grid',
+  gap: '0.375rem',
+  minWidth: 0,
+});
+export const caseTitle = style({
+  fontSize: t.type.body,
+  fontWeight: 700,
+  lineHeight: 1.4,
+  margin: 0,
+  overflowWrap: 'anywhere',
+});
+export const caseAction = style({
+  '@media': {
+    [mediaQueries.minWidth600]: {
+      gridColumn: 'auto',
+    },
+  },
+  alignItems: 'center',
+  color: statusAccent,
+  display: 'inline-flex',
+  fontSize: '0.8125rem',
+  fontWeight: 650,
+  gap: '0.5rem',
+  gridColumn: '2',
+  justifySelf: 'end',
+  lineHeight: 1.5,
+});
+export const details = style({
+  marginTop: '0.5rem',
+});
+export const detailsToggle = style({
+  borderRadius: t.shape.small,
+  color: statusAccent,
+  cursor: 'pointer',
+  fontSize: '0.8125rem',
+  fontWeight: 650,
+  lineHeight: 1.5,
+  padding: '0.875rem 0.75rem',
+  selectors: {
+    '&:focus-visible': {
+      outline: `3px solid ${statusAccent}`,
+      outlineOffset: '2px',
+    },
+    '&:hover': {
+      backgroundColor: t.color.surfaceRaised,
+    },
+  },
+  transition: `background-color ${t.motion.duration} ${t.motion.easing}`,
+});
+export const detailList = style({
+  display: 'grid',
+  gap: '1rem',
+  margin: 0,
+  padding: '0.75rem',
+});
+export const detailTitle = style({
+  color: t.color.onSurface,
+  fontSize: t.type.label,
+  fontWeight: 650,
+  lineHeight: 1.5,
+  marginBottom: '0.375rem',
+  overflowWrap: 'anywhere',
+});
+export const detailBody = style({
+  color: t.color.onSurfaceVariant,
+  fontSize: t.type.label,
+  lineHeight: 1.65,
+  margin: 0,
+  overflowWrap: 'anywhere',
+});
+export const explanation = style({
+  display: 'grid',
+  gap: '1.5rem',
+});
+export const sectionTitle = style({
+  fontSize: t.type.headline,
+  fontWeight: 700,
+  letterSpacing: '-0.035em',
+  lineHeight: 1.25,
+  margin: 0,
+});
+export const notices = style({
+  '@media': {
+    [mediaQueries.minWidth768]: {
+      gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+    },
+  },
+  display: 'grid',
+  gap: '1.5rem',
+  listStyle: 'none',
+  margin: 0,
+  padding: 0,
+});
+export const notice = style({
+  borderTop: `1px solid ${t.color.outline}`,
+  display: 'grid',
+  gap: '0.75rem',
+  minWidth: 0,
+  paddingTop: '1rem',
+});
+export const noticeNumber = style({
+  color: t.color.primary,
+  fontSize: '0.8125rem',
+  fontWeight: 700,
+});
+export const noticeTitle = style({
+  fontSize: t.type.body,
+  fontWeight: 700,
+  lineHeight: 1.4,
+  margin: '0 0 0.5rem',
+  overflowWrap: 'anywhere',
+});
+export const inlineCode = style({
+  backgroundColor: t.color.surfaceRaised,
+  borderRadius: '0.25rem',
+  boxDecorationBreak: 'clone',
+  color: t.color.onSurface,
+  fontFamily: 'ui-monospace, SFMono-Regular, Consolas, monospace',
+  fontSize: '0.92em',
+  overflowWrap: 'anywhere',
+  padding: '0.125rem 0.375rem',
+});
+globalStyle(`:root[data-theme="dark"] ${artwork}`, {
+  '@media': {
+    [mediaQueries.maxWidth599]: {
+      opacity: 0.2,
+    },
+  },
+  opacity: 0.46,
+});
