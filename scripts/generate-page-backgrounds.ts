@@ -280,12 +280,44 @@ function artwork(page: string): string {
     }
   }
 
+  if (page === 'image-optimize') {
+    paths.length = 0;
+    /** Nested image frames and pixel blocks suggest resizing at the edges. */
+    for (const [x, y, rotation] of [
+      [
+        1400,
+        250,
+        -12,
+      ],
+      [
+        40,
+        740,
+        12,
+      ],
+    ] as const) {
+      for (let layer = 0; layer < 3; layer++) {
+        const width = 220 + layer * 80;
+        const height = 150 + layer * 60;
+        paths.push(
+          `<rect x="${x - width / 2}" y="${y - height / 2}" width="${width}" height="${height}" rx="40" transform="rotate(${rotation + random(-3, 3)} ${x} ${y})" stroke="url(#${colors[layer]})" stroke-width="26" opacity=".48"/>`
+        );
+      }
+      for (let pixel = 0; pixel < 4; pixel++) {
+        const size = 20 + pixel * 7;
+        paths.push(
+          `<rect x="${x - 100 + pixel * 44}" y="${y + 175 + (pixel % 2) * 40}" width="${size}" height="${size}" rx="8" fill="url(#${colors[pixel % colors.length]})" opacity=".5"/>`
+        );
+      }
+    }
+  }
+
   const aspectRatio = [
     'hono-rpc',
     'labs',
     'errors',
     'mandelbrot',
     'dominant-color',
+    'image-optimize',
   ].includes(page)
     ? 'xMidYMin meet'
     : 'none';

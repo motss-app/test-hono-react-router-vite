@@ -50,3 +50,11 @@ pnpm backgrounds:generate --page dominant-color --seed issue-97-dominant-color-s
 
 Its artwork covers the full main area,
 repeating vertically at a width-based scale so result tabs do not stretch it.
+
+Image Optimize uses nested rounded image frames and pixel blocks at the edges.
+Its full-page artwork repeats vertically without stretching during uploads or
+optimization. Reproduce it with:
+
+```sh
+pnpm backgrounds:generate --page image-optimize --seed issue-97-image-optimize-frames
+```

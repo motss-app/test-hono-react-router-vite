@@ -1,428 +1,352 @@
-import { createVar, keyframes, style } from '@vanilla-extract/css';
+import { keyframes, style } from '@vanilla-extract/css';
 
-import { colorTokens } from '../styles/color-tokens.contract.css.ts';
+import { expressiveTokens as t } from '../styles/expressive-tokens.css.ts';
 import { mediaQueries } from '../styles/media-queries.ts';
-import { decorativeBackground } from '../styles/page-background.ts';
-import { radiusTokens } from '../styles/radius-tokens.contract.css.ts';
 
+const focus = {
+  outline: `3px solid ${t.color.primary}`,
+  outlineOffset: '3px',
+};
+const mono = 'ui-monospace, SFMono-Regular, Menlo, monospace';
 const reveal = keyframes({
-  '0%': {
+  from: {
     opacity: 0,
-    transform: 'translateY(1rem)',
+    transform: 'translateY(8px)',
   },
-  '100%': {
+  to: {
     opacity: 1,
     transform: 'translateY(0)',
   },
 });
-
-const errorPop = keyframes({
-  '0%': {
-    opacity: 0,
-    transform: 'translateX(-0.5rem) scale(0.98)',
-  },
-  '100%': {
-    opacity: 1,
-    transform: 'translateX(0) scale(1)',
-  },
-});
-
 const spin = keyframes({
-  '0%': {
-    transform: 'rotate(0deg)',
-  },
-  '100%': {
+  to: {
     transform: 'rotate(360deg)',
   },
 });
 
-export const previewBackgroundColor = createVar();
-
-export const page = style({
-  minInlineSize: 0,
-  paddingBlockEnd: '5rem',
-});
-export const hero = style([
-  decorativeBackground('/assets/image-optimize-expressive.svg'),
-  {
-    background: 'linear-gradient(135deg, #101827 0%, #1f2937 58%, #1e3a5f 100%)',
-    color: colorTokens.white,
-    minInlineSize: 0,
+export const layout = style({
+  '@media': {
+    [mediaQueries.minWidth1000]: {
+      gridTemplateColumns: '232px minmax(0, 1fr)',
+    },
   },
-]);
-export const heroInner = style({
-  alignItems: 'end',
+  backgroundColor: t.color.surface,
+  color: t.color.onSurface,
   display: 'grid',
-  marginInline: 'auto',
-  maxWidth: '84rem',
-  minBlockSize: '48svh',
-  padding: '5rem 1rem 3rem',
+  minHeight: '100svh',
 });
-export const eyebrow = style({
-  color: '#93c5fd',
-  fontSize: '0.75rem',
-  fontWeight: 700,
-  letterSpacing: '0.14em',
-  marginBlockEnd: '1.25rem',
-  textTransform: 'uppercase',
+export const pageShell = style({
+  minWidth: 0,
+});
+export const page = style({
+  isolation: 'isolate',
+  minWidth: 0,
+  outline: 'none',
+  overflow: 'clip',
+  position: 'relative',
+});
+export const artwork = style({
+  '@media': {
+    [mediaQueries.maxWidth599]: {
+      opacity: 0.28,
+    },
+  },
+  backgroundImage: 'url("/assets/image-optimize-expressive.svg")',
+  backgroundPosition: 'center top',
+  backgroundRepeat: 'repeat-y',
+  backgroundSize: '100% auto',
+  inset: 0,
+  opacity: 0.65,
+  pointerEvents: 'none',
+  position: 'absolute',
+  zIndex: -1,
+});
+export const content = style({
+  boxSizing: 'border-box',
+  display: 'grid',
+  gap: t.space.section,
+  marginInline: 'auto',
+  maxWidth: '1280px',
+  minWidth: 0,
+  padding: `1.5rem clamp(8px, 3.5vw, 3rem) ${t.space.pageFooterGap}`,
+  width: '100%',
+});
+export const intro = style({
+  '@media': {
+    [mediaQueries.reducedMotion]: {
+      animation: 'none',
+    },
+  },
+  animation: `${reveal} ${t.motion.entrance} ${t.motion.easing} both`,
+  display: 'grid',
+  gap: '0.75rem',
 });
 export const title = style({
-  fontSize: 'clamp(2.75rem, 8vw, 6.5rem)',
-  fontWeight: 700,
-  letterSpacing: '-0.07em',
-  lineHeight: 0.9,
+  color: t.color.primary,
+  fontSize: 'clamp(2rem, 3.2vw, 3rem)',
+  fontWeight: 750,
+  letterSpacing: '-0.045em',
+  lineHeight: 1.15,
   margin: 0,
-  maxWidth: '8ch',
+  overflowWrap: 'anywhere',
 });
-export const heroLead = style({
-  color: '#d1d5db',
-  fontSize: 'clamp(1.05rem, 2vw, 1.4rem)',
-  lineHeight: 1.45,
-  margin: '1.5rem 0 0',
-  maxWidth: '34rem',
+export const lead = style({
+  color: t.color.onSurfaceVariant,
+  lineHeight: 1.65,
+  margin: 0,
+  maxWidth: '48rem',
 });
-export const heroActions = style({
-  '@media': {
-    [mediaQueries.maxWidth480]: {
-      gridAutoFlow: 'row',
-    },
-  },
-  display: 'inline-grid',
-  gap: '0.75rem',
-  gridAutoFlow: 'column',
-  justifyContent: 'flex-start',
-  marginBlockStart: '2rem',
-  maxInlineSize: '100%',
-});
-export const ctaSecondary = style({
-  alignItems: 'center',
-  backgroundColor: 'rgba(255, 255, 255, 0.78)',
-  borderColor: 'rgba(15, 23, 42, 0.12)',
-  borderRadius: radiusTokens.radiusMd,
-  borderStyle: 'solid',
-  borderWidth: '1px',
-  color: colorTokens.slate900,
-  display: 'inline-grid',
-  fontWeight: 600,
-  gap: '0.5rem',
-  gridAutoFlow: 'column',
-  padding: '0.92rem 1.45rem',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      backgroundColor: 'rgba(15, 23, 42, 0.28)',
-      borderColor: 'rgba(226, 232, 240, 0.26)',
-      color: colorTokens.slate100,
-    },
-    ':root[data-theme="dark"] &:hover': {
-      backgroundColor: 'rgba(148, 163, 184, 0.12)',
-      borderColor: colorTokens.slate400,
-    },
-    '&:hover': {
-      backgroundColor: 'rgba(255, 255, 255, 0.7)',
-      borderColor: '#93c5fd',
-      transform: 'translate3d(0, -0.125rem, 0)',
-    },
-  },
-  textDecoration: 'none',
-  transition: 'background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease',
-  whiteSpace: 'nowrap',
-});
-export const inner = style({
-  marginInline: 'auto',
-  maxWidth: '84rem',
-  padding: '4rem 1rem 3rem',
+export const workbench = style({
+  backgroundColor: t.color.surfaceContainer,
+  border: `1px solid ${t.color.outline}`,
+  borderRadius: t.shape.extraLarge,
+  containerName: 'image-optimize',
+  containerType: 'inline-size',
+  minWidth: 0,
+  padding: 'clamp(0.75rem, 2vw, 1.5rem)',
 });
 export const workspace = style({
-  '@media': {
-    [mediaQueries.minWidth900]: {
-      gridTemplateColumns: 'minmax(0, 1.05fr) minmax(20rem, 0.95fr)',
+  '@container': {
+    'image-optimize (min-width: 37.5rem)': {
+      gridTemplateAreas: '"source output" "settings settings" "metrics metrics"',
+      gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
     },
   },
-  alignItems: 'start',
   display: 'grid',
-  gap: '2rem',
+  gap: '1.5rem',
+  gridTemplateAreas: '"source" "settings" "output" "metrics"',
+  gridTemplateColumns: 'minmax(0, 1fr)',
 });
-export const uploadColumn = style({
-  minInlineSize: 0,
+export const previewPane = style({
+  alignContent: 'start',
+  containerName: 'optimize-preview',
+  containerType: 'inline-size',
+  display: 'grid',
+  gap: '0.75rem',
+  minWidth: 0,
 });
-export const sectionLabel = style({
-  color: colorTokens.slate500,
-  fontSize: '0.72rem',
-  fontWeight: 750,
-  letterSpacing: '0.13em',
-  margin: '1.5rem 0 0.75rem',
-  textTransform: 'uppercase',
+export const sourcePane = style({
+  gridArea: 'source',
+});
+export const outputPane = style({
+  gridArea: 'output',
+});
+export const previewHeader = style({
+  alignItems: 'center',
+  display: 'grid',
+  gap: '0.75rem',
+  gridTemplateColumns: 'minmax(0, 1fr) auto',
+  minHeight: '48px',
 });
 export const sectionTitle = style({
-  color: colorTokens.slate900,
-  fontSize: 'clamp(1.75rem, 3vw, 2.6rem)',
-  letterSpacing: '-0.05em',
-  lineHeight: 1,
-  margin: '0 0 0.75rem',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.white,
-    },
-  },
+  color: t.color.onSurface,
+  fontSize: t.type.title,
+  fontWeight: 700,
+  lineHeight: 1.3,
+  margin: 0,
+  minWidth: 0,
+  overflowWrap: 'anywhere',
 });
-export const sectionBody = style({
-  color: colorTokens.slate600,
-  lineHeight: 1.65,
-  margin: '0 0 1.5rem',
-  maxWidth: '38rem',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.slate300,
-    },
-  },
-});
-export const dropzone = style({
+const secondaryButton = style({
   alignItems: 'center',
-  animation: `${reveal} 600ms cubic-bezier(0.22, 1, 0.36, 1) both`,
-  backgroundColor: '#eff6ff',
-  blockSize: '21rem',
-  border: '1px dashed #60a5fa',
-  borderRadius: radiusTokens.radiusMd,
+  backgroundColor: t.color.surfaceRaised,
+  border: `1px solid ${t.color.outline}`,
+  borderRadius: t.shape.full,
+  color: t.color.onSurface,
   cursor: 'pointer',
-  display: 'flex',
+  display: 'inline-flex',
+  font: 'inherit',
+  fontSize: t.type.label,
+  fontWeight: 650,
+  gap: '0.5rem',
   justifyContent: 'center',
+  minHeight: '48px',
+  padding: '0.625rem 1rem',
+  selectors: {
+    '&:disabled': {
+      cursor: 'not-allowed',
+      opacity: 0.55,
+    },
+    '&:focus-visible': focus,
+    '&:hover:not(:disabled)': {
+      backgroundColor: t.color.primaryContainer,
+      borderColor: t.color.primary,
+      color: t.color.onPrimaryContainer,
+    },
+  },
+  transition: `background-color ${t.motion.duration} ${t.motion.easing}, border-color ${t.motion.duration} ${t.motion.easing}`,
+});
+export const previewAction = style([
+  secondaryButton,
+  {
+    '@container': {
+      'optimize-preview (min-width: 24rem)': {
+        paddingInline: '1rem',
+        width: 'auto',
+      },
+    },
+    flexShrink: 0,
+    padding: 0,
+    width: '48px',
+  },
+]);
+export const previewActionLabel = style({
+  '@container': {
+    'optimize-preview (min-width: 24rem)': {
+      display: 'inline',
+    },
+  },
+  display: 'none',
+  whiteSpace: 'nowrap',
+});
+export const actionIcon = style({
+  flexShrink: 0,
+  height: '1em',
+  width: '1em',
+});
+export const previewFrame = style({
+  alignItems: 'center',
+  backgroundColor: t.color.surfaceRaised,
+  blockSize: 'clamp(12rem, 24vw, 22rem)',
+  border: `2px solid ${t.color.outline}`,
+  borderRadius: t.shape.large,
+  boxSizing: 'border-box',
+  display: 'grid',
+  gridTemplateColumns: 'minmax(0, 1fr)',
+  gridTemplateRows: 'minmax(0, 1fr)',
+  minWidth: 0,
   overflow: 'hidden',
   padding: '0.75rem',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      backgroundColor: '#172554',
-      borderColor: '#60a5fa',
-    },
-    ':root[data-theme="dark"] &:hover': {
-      backgroundColor: '#1e3a5f',
-    },
-    '&:hover': {
-      backgroundColor: '#eff6ff',
-      borderColor: '#2563eb',
-      transform: 'translateY(-2px)',
-    },
-  },
-  textAlign: 'center',
-  transition: 'background-color 180ms ease, border-color 180ms ease, transform 180ms ease',
+  position: 'relative',
 });
+export const dropzone = style([
+  previewFrame,
+  {
+    borderStyle: 'dashed',
+    borderWidth: '2px',
+    cursor: 'pointer',
+    padding: '0.75rem',
+    selectors: {
+      '&:focus-within': {
+        ...focus,
+        borderColor: t.color.primary,
+      },
+      '&:hover': {
+        backgroundColor: t.color.primaryContainer,
+        borderColor: t.color.primary,
+      },
+    },
+    transition: `background-color ${t.motion.duration} ${t.motion.easing}, border-color ${t.motion.duration} ${t.motion.easing}`,
+  },
+]);
 export const dropzoneActive = style({
-  backgroundColor: '#eff6ff',
-  borderColor: '#2563eb',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      backgroundColor: '#1e3a5f',
-      borderColor: '#93c5fd',
-    },
-  },
-  transform: 'scale(1.01)',
-});
-export const dropContent = style({
-  display: 'grid',
-  gap: '0.65rem',
-});
-export const dropIcon = style({
-  color: '#3b82f6',
-  fontSize: '2.5rem',
-  lineHeight: 1,
-});
-export const dropTitle = style({
-  color: colorTokens.slate900,
-  fontSize: '1.2rem',
-  fontWeight: 700,
-  margin: 0,
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.white,
-    },
-  },
-});
-export const dropNote = style({
-  color: colorTokens.slate600,
-  fontSize: '0.9rem',
-  margin: 0,
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.slate300,
-    },
-  },
+  backgroundColor: t.color.primaryContainer,
+  borderColor: t.color.primary,
 });
 export const input = style({
-  clipPath: 'inset(50%)',
-  height: '1px',
-  margin: '-1px',
-  overflow: 'hidden',
+  cursor: 'pointer',
+  height: '100%',
+  inset: 0,
+  opacity: 0,
   position: 'absolute',
-  whiteSpace: 'nowrap',
-  width: '1px',
+  width: '100%',
+  zIndex: 1,
+});
+export const previewWrap = style({
+  blockSize: '100%',
+  display: 'grid',
+  gridTemplateRows: 'minmax(0, 1fr)',
+  minBlockSize: 0,
+  minWidth: 0,
 });
 export const preview = style({
   blockSize: '100%',
-  borderRadius: radiusTokens.radiusMd,
+  borderRadius: t.shape.medium,
   display: 'block',
   inlineSize: '100%',
-  maxBlockSize: '100%',
-  maxInlineSize: '100%',
+  minBlockSize: 0,
+  minWidth: 0,
   objectFit: 'contain',
 });
-export const previewWrap = style({
-  alignItems: 'center',
-  backgroundColor: previewBackgroundColor,
-  blockSize: '100%',
-  borderRadius: radiusTokens.radiusMd,
-  display: 'flex',
-  inlineSize: '100%',
-  justifyContent: 'center',
-  maxBlockSize: '100%',
-  minBlockSize: 0,
-  minInlineSize: 0,
-  overflow: 'hidden',
-  vars: {
-    [previewBackgroundColor]: '#111827',
-  },
-});
-export const actionRow = style({
-  alignItems: 'center',
-  display: 'flex',
-  flexDirection: 'row',
-  gap: '0.8rem',
-  marginBlock: '1rem 1.5rem',
-});
-export const action = style({
-  backgroundColor: '#1e40af',
-  border: 0,
-  borderRadius: radiusTokens.radiusMd,
-  color: colorTokens.white,
-  cursor: 'pointer',
-  font: 'inherit',
-  fontWeight: 700,
-  padding: '0.85rem 1.15rem',
-  selectors: {
-    '&:disabled': {
-      cursor: 'wait',
-      opacity: 0.55,
-    },
-    '&:focus-visible': {
-      outline: '2px solid #93c5fd',
-      outlineOffset: '2px',
-    },
-    '&:hover': {
-      backgroundColor: '#1d4ed8',
-      transform: 'translateY(-1px)',
-    },
-  },
-  transition: 'background-color 180ms ease, transform 180ms ease',
-});
-export const subtleAction = style({
-  background: 'transparent',
-  border: 0,
-  color: colorTokens.slate600,
-  cursor: 'pointer',
-  font: 'inherit',
-  fontWeight: 650,
-  padding: '0.85rem 0',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.slate300,
-    },
-    '&:focus-visible': {
-      outline: '2px solid #93c5fd',
-      outlineOffset: '2px',
-    },
-    '&:hover': {
-      color: '#1d4ed8',
-    },
-  },
-});
-export const error = style({
-  alignItems: 'flex-start',
-  animation: `${errorPop} 280ms cubic-bezier(0.22, 1, 0.36, 1) both`,
-  backgroundColor: '#fef2f2',
-  border: '1px solid #fecaca',
-  borderInlineStart: '3px solid #dc2626',
-  borderRadius: radiusTokens.radiusMd,
-  boxShadow: '0 4px 12px rgba(220, 38, 38, 0.12)',
-  color: '#991b1b',
-  display: 'flex',
-  gap: '0.65rem',
-  marginBlockStart: '1rem',
-  padding: '0.9rem 1rem',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      backgroundColor: '#32191c',
-      borderColor: '#7f1d1d',
-      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.35)',
-      color: '#fecaca',
-    },
-  },
-});
-export const errorIcon = style({
-  blockSize: '1.1rem',
-  flexShrink: 0,
-  inlineSize: '1.1rem',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: '#fca5a5',
-    },
-  },
-});
-export const errorText = style({
-  flex: 1,
-  lineHeight: 1.5,
-  minInlineSize: 0,
-  overflowWrap: 'anywhere',
-});
-export const resultColumn = style({
-  animation: `${reveal} 600ms 100ms cubic-bezier(0.22, 1, 0.36, 1) both`,
-  minInlineSize: 0,
-});
-export const result = style({
-  backgroundColor: '#0a1222',
-  border: '1px solid #5878a8',
-  borderRadius: radiusTokens.radiusMd,
-  color: '#d1d5db',
-  display: 'flex',
-  flexDirection: 'column',
-  minBlockSize: '20rem',
-  overflow: 'hidden',
-});
-export const resultHeader = style({
-  alignItems: 'center',
-  borderBlockEnd: '1px solid #374151',
-  display: 'flex',
+export const dropContent = style({
+  alignContent: 'center',
+  display: 'grid',
   gap: '0.75rem',
-  justifyContent: 'space-between',
-  padding: '1rem 1.2rem',
+  justifyItems: 'center',
+  minWidth: 0,
+  overflowWrap: 'anywhere',
+  padding: '0.5rem',
+  pointerEvents: 'none',
+  textAlign: 'center',
 });
-export const resultTitle = style({
-  color: colorTokens.white,
-  fontSize: '1rem',
-  fontWeight: 700,
+export const dropIcon = style({
+  alignItems: 'center',
+  backgroundColor: t.color.primaryContainer,
+  borderRadius: t.shape.medium,
+  color: t.color.onPrimaryContainer,
+  display: 'flex',
+  fontSize: '1.5rem',
+  height: '48px',
+  justifyContent: 'center',
+  width: '48px',
+});
+export const dropTitle = style({
+  fontSize: t.type.body,
+  fontWeight: 650,
   margin: 0,
 });
-export const resultMeta = style({
-  color: '#9ca3af',
-  display: 'grid',
-  fontSize: '0.78rem',
-  gap: '0.15rem',
-  lineHeight: 1.45,
-  margin: '0.2rem 0 0',
+export const note = style({
+  color: t.color.onSurfaceVariant,
+  fontSize: '0.8125rem',
+  lineHeight: 1.6,
+  margin: 0,
+  overflowWrap: 'anywhere',
 });
-export const emptyResult = style({
-  alignItems: 'center',
-  color: '#f1f5ff',
-  display: 'flex',
-  flex: '1 1 auto',
-  justifyContent: 'center',
-  padding: '2rem',
-  textAlign: 'center',
+export const caption = style({
+  alignContent: 'center',
+  blockSize: 'calc(4.5em + 0.25rem)',
+  color: t.color.onSurfaceVariant,
+  display: 'grid',
+  fontSize: t.type.label,
+  gap: '0.25rem',
+  gridTemplateRows: 'minmax(0, auto) 1.5em',
+  lineHeight: 1.5,
+  minWidth: 0,
+});
+export const fileName = style({
+  maxBlockSize: '3em',
+  minBlockSize: 0,
+  minWidth: 0,
+  overflowWrap: 'anywhere',
+  overflowX: 'hidden',
+  overflowY: 'auto',
+  scrollbarWidth: 'thin',
+  selectors: {
+    '&:focus-visible': focus,
+  },
+});
+export const fileDetails = style({
+  whiteSpace: 'nowrap',
+});
+export const outputCaption = style({
+  alignContent: 'center',
+  blockSize: 'calc(4.5em + 0.25rem)',
+  color: t.color.onSurfaceVariant,
+  display: 'grid',
+  fontSize: t.type.label,
+  gridTemplateRows: 'repeat(3, 1.5em)',
+  lineHeight: 1.5,
+  minWidth: 0,
+  overflowWrap: 'anywhere',
 });
 export const loadingResult = style({
   alignItems: 'center',
-  display: 'flex',
-  flex: '1 1 auto',
-  justifyContent: 'center',
-  minBlockSize: '18rem',
+  display: 'grid',
+  height: '100%',
+  justifyItems: 'center',
+  minWidth: 0,
   overflow: 'hidden',
+  padding: '1rem',
   position: 'relative',
 });
 export const loadingPlaceholder = style({
@@ -431,270 +355,228 @@ export const loadingPlaceholder = style({
   inlineSize: '100%',
   inset: 0,
   objectFit: 'cover',
-  position: 'absolute',
-  transform: 'scale(1.15)',
-});
-export const loadingPlaceholderFallback = style({
-  background: 'linear-gradient(135deg, #172554, #0f172a 55%, #1e3a5f)',
-  blockSize: '100%',
-  inlineSize: '100%',
-  inset: 0,
+  opacity: 0.35,
   position: 'absolute',
 });
 export const loadingOverlay = style({
   alignItems: 'center',
-  backgroundColor: 'rgba(10, 18, 34, 0.78)',
-  border: '1px solid rgba(147, 197, 253, 0.35)',
-  borderRadius: '9999px',
-  color: colorTokens.white,
+  backgroundColor: t.color.primaryContainer,
+  borderRadius: t.shape.full,
+  color: t.color.onPrimaryContainer,
   display: 'flex',
-  fontSize: '0.9rem',
-  fontWeight: 700,
-  gap: '0.65rem',
-  padding: '0.8rem 1rem',
+  fontSize: t.type.label,
+  gap: '0.75rem',
+  maxWidth: '100%',
+  overflowWrap: 'anywhere',
+  padding: '0.875rem',
   position: 'relative',
 });
 export const loadingSpinner = style({
+  '@media': {
+    [mediaQueries.reducedMotion]: {
+      animation: 'none',
+    },
+  },
   animation: `${spin} 900ms linear infinite`,
-  blockSize: '1rem',
-  border: '2px solid rgba(255, 255, 255, 0.35)',
-  borderRadius: '50%',
-  borderTopColor: colorTokens.white,
-  display: 'block',
-  inlineSize: '1rem',
+  border: `2px solid ${t.color.outline}`,
+  borderRadius: t.shape.full,
+  borderTopColor: t.color.primary,
+  flexShrink: 0,
+  height: '1rem',
+  width: '1rem',
 });
-export const optimizedImage = style({
-  blockSize: 'auto',
-  display: 'block',
-  inlineSize: '100%',
-  maxBlockSize: '24rem',
-  maxInlineSize: '100%',
-  objectFit: 'contain',
-  padding: '1rem',
-});
-export const metadataGrid = style({
-  borderTop: '1px solid #374151',
+export const settings = style({
+  borderBlockStart: `1px solid ${t.color.outline}`,
   display: 'grid',
-  fontSize: '0.8rem',
-  gap: '0.1rem',
-  padding: '0.8rem 1.2rem',
+  gap: '1rem',
+  gridArea: 'settings',
+  minWidth: 0,
+  paddingBlockStart: '1.5rem',
 });
-export const metadataRow = style({
-  alignItems: 'center',
-  borderBottom: '1px solid #26333d',
-  display: 'flex',
-  justifyContent: 'space-between',
-  paddingBlock: '0.45rem',
-  paddingInline: '0.1rem',
-});
-export const metadataLabel = style({
-  color: '#9ca3af',
-  fontWeight: 500,
-});
-export const metadataValue = style({
-  color: colorTokens.white,
-  fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-  fontSize: '0.78rem',
-  fontWeight: 600,
-});
-export const filterGroup = style({
+export const presetGroup = style({
   display: 'grid',
-  gap: '0.5rem',
-  marginBlockEnd: '1.5rem',
+  gap: '0.75rem',
+  gridAutoRows: '1fr',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 16rem), 1fr))',
 });
-export const formatGroup = style({
+export const presetPair = style({
   display: 'grid',
-  gap: '0.5rem',
-  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-  marginBlockEnd: '1rem',
+  gap: '0.75rem',
+  gridAutoRows: '1fr',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 6.5rem), 1fr))',
+  minWidth: 0,
 });
-export const filterOption = style({
-  alignItems: 'center',
-  backgroundColor: 'rgba(255, 255, 255, 0.04)',
-  border: '1px solid transparent',
-  borderRadius: radiusTokens.radiusMd,
-  cursor: 'pointer',
-  display: 'flex',
-  gap: '0.6rem',
-  padding: '0.65rem 0.85rem',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      backgroundColor: 'rgba(255, 255, 255, 0.04)',
-    },
-    '&:hover': {
-      backgroundColor: 'rgba(59, 130, 246, 0.08)',
-      borderColor: 'rgba(59, 130, 246, 0.2)',
-    },
-  },
-  transition: 'background-color 150ms ease, border-color 150ms ease',
-});
-export const filterOptionSelected = style({
-  backgroundColor: 'rgba(59, 130, 246, 0.12)',
-  borderColor: '#3b82f6',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      backgroundColor: 'rgba(59, 130, 246, 0.15)',
-    },
-  },
-});
-export const filterRadio = style({
-  accentColor: '#3b82f6',
+export const presetField = style({
+  border: 0,
+  display: 'grid',
+  gap: '0.75rem',
   margin: 0,
+  minWidth: 0,
+  padding: 0,
 });
-export const filterLabel = style({
-  color: colorTokens.slate900,
-  fontSize: '0.9rem',
-  fontWeight: 600,
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.slate100,
-    },
+export const presetChip = style([
+  secondaryButton,
+  {
+    minWidth: 0,
+    overflowWrap: 'anywhere',
   },
+]);
+export const presetChipActive = style({
+  backgroundColor: t.color.primaryContainer,
+  borderColor: t.color.primary,
+  color: t.color.onPrimaryContainer,
 });
-export const filterRecommended = style({
-  backgroundColor: '#dcfce7',
-  border: '1px solid #86efac',
-  borderRadius: '9999px',
-  color: '#166534',
-  fontSize: '0.65rem',
-  fontWeight: 700,
-  lineHeight: 1,
-  marginInlineStart: '0.5rem',
-  padding: '0.2rem 0.5rem',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      backgroundColor: 'rgba(34, 197, 94, 0.15)',
-      borderColor: 'rgba(34, 197, 94, 0.3)',
-      color: '#86efac',
-    },
-  },
-  textTransform: 'uppercase',
+export const fields = style({
+  display: 'grid',
+  gap: '1rem',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 26rem), 1fr))',
 });
-export const dimensionRow = style({
-  alignItems: 'center',
-  display: 'flex',
+export const fieldPair = style({
+  display: 'grid',
+  gap: '1rem',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 10rem), 1fr))',
+  minWidth: 0,
+});
+export const field = style({
+  display: 'grid',
   gap: '0.5rem',
-  marginBlockEnd: '1rem',
+  minWidth: 0,
 });
-export const dimensionInput = style({
-  backgroundColor: 'rgba(0, 0, 0, 0.04)',
-  border: '1px solid #d1d5db',
-  borderRadius: radiusTokens.radiusMd,
-  color: colorTokens.slate900,
-  fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-  fontSize: '0.9rem',
-  fontVariantNumeric: 'tabular-nums',
-  padding: '0.6rem 0.75rem',
+export const fieldLabel = style({
+  color: t.color.onSurface,
+  fontSize: t.type.label,
+  fontWeight: 650,
+  lineHeight: 1.5,
+});
+export const fieldInput = style({
+  backgroundColor: t.color.surfaceRaised,
+  border: `1px solid ${t.color.outline}`,
+  borderRadius: t.shape.medium,
+  boxSizing: 'border-box',
+  color: t.color.onSurface,
+  font: 'inherit',
+  fontSize: t.type.label,
+  height: '48px',
+  minWidth: 0,
+  padding: '0.75rem',
   selectors: {
-    ':root[data-theme="dark"] &': {
-      backgroundColor: 'rgba(255, 255, 255, 0.06)',
-      borderColor: '#374151',
-      color: colorTokens.slate100,
-    },
-    '&:focus': {
-      borderColor: '#3b82f6',
-      outline: 'none',
-    },
+    '&:focus-visible': focus,
   },
-  transition: 'border-color 150ms ease',
-  width: '7rem',
+  width: '100%',
 });
-export const dimensionSeparator = style({
-  color: colorTokens.slate500,
-  fontSize: '0.9rem',
-  fontWeight: 500,
+export const qualityActions = style({
+  alignItems: 'center',
+  display: 'grid',
+  gap: '1rem 2rem',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 18rem), 1fr))',
 });
 export const qualityHeader = style({
   alignItems: 'center',
   display: 'flex',
+  gap: '0.75rem',
   justifyContent: 'space-between',
 });
 export const qualityInput = style({
-  accentColor: '#3b82f6',
+  accentColor: t.color.primary,
   display: 'block',
-  marginBlockEnd: '1.5rem',
-  selectors: {
-    '&:disabled': {
-      cursor: 'not-allowed',
-    },
-  },
+  height: '32px',
+  margin: '0.5rem 0 0',
   width: '100%',
 });
 export const qualityValue = style({
-  color: colorTokens.slate600,
-  fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-  fontSize: '0.85rem',
-  fontWeight: 700,
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      color: colorTokens.slate300,
-    },
-  },
+  color: t.color.onSurfaceVariant,
+  fontFamily: mono,
+  fontSize: t.type.label,
 });
-export const presetGroup = style({
+export const actionRow = style({
   display: 'flex',
   flexWrap: 'wrap',
-  gap: '0.4rem',
-  marginBlockEnd: '1.5rem',
+  gap: '0.75rem',
+  justifyContent: 'end',
+  minWidth: 0,
 });
-export const presetChip = style({
-  backgroundColor: 'rgba(0, 0, 0, 0.04)',
-  border: '1px solid #d1d5db',
-  borderRadius: '9999px',
-  color: colorTokens.slate700,
-  cursor: 'pointer',
-  font: 'inherit',
-  fontSize: '0.78rem',
-  fontWeight: 600,
-  padding: '0.4rem 0.85rem',
-  selectors: {
-    ':root[data-theme="dark"] &': {
-      backgroundColor: 'rgba(255, 255, 255, 0.06)',
-      borderColor: '#374151',
-      color: colorTokens.slate300,
-    },
-    ':root[data-theme="dark"] &::hover': {
-      backgroundColor: 'rgba(59, 130, 246, 0.12)',
-      borderColor: '#3b82f6',
-      color: colorTokens.white,
-    },
-    '&:hover': {
-      backgroundColor: 'rgba(59, 130, 246, 0.12)',
-      borderColor: '#3b82f6',
-      color: colorTokens.white,
+export const action = style([
+  secondaryButton,
+  {
+    backgroundColor: t.color.primary,
+    borderColor: t.color.primary,
+    color: t.color.onPrimary,
+    maxWidth: '100%',
+    minWidth: 0,
+    selectors: {
+      '&:hover:not(:disabled)': {
+        backgroundColor: t.color.primaryHover,
+        borderColor: t.color.primaryHover,
+        color: t.color.onPrimary,
+      },
     },
   },
-  transition: 'background-color 150ms ease, border-color 150ms ease, color 150ms ease',
-});
-export const presetChipActive = style({
-  backgroundColor: '#1e40af',
-  borderColor: '#3b82f6',
-  color: colorTokens.white,
-});
-export const comparisonRow = style({
+]);
+export const actionText = style({
   display: 'grid',
-  gap: '1.5rem',
-  marginBlockStart: '2rem',
-  paddingBlockStart: '2rem',
+  minWidth: 0,
 });
-export const comparisonBox = style({
-  minInlineSize: 0,
+export const actionTextLabel = style({
+  gridArea: '1 / 1',
+  overflowWrap: 'anywhere',
 });
-export const comparisonLabel = style({
-  color: colorTokens.slate500,
-  fontSize: '0.72rem',
-  fontWeight: 750,
-  letterSpacing: '0.13em',
-  margin: '0 0 0.75rem',
-  textTransform: 'uppercase',
+export const actionTextHidden = style([
+  actionTextLabel,
+  {
+    visibility: 'hidden',
+  },
+]);
+export const error = style({
+  alignItems: 'start',
+  backgroundColor: t.color.errorContainer,
+  borderRadius: t.shape.medium,
+  color: t.color.onErrorContainer,
+  display: 'flex',
+  gap: '0.75rem',
+  lineHeight: 1.6,
+  overflowWrap: 'anywhere',
+  padding: '1rem',
 });
-export const comparisonImage = style({
-  blockSize: 'auto',
-  border: '1px solid #374151',
-  borderRadius: radiusTokens.radiusMd,
-  display: 'block',
-  inlineSize: '100%',
-  maxBlockSize: '20rem',
-  maxInlineSize: '100%',
-  objectFit: 'contain',
+export const errorIcon = style({
+  flexShrink: 0,
+  height: '1.25rem',
+  marginTop: '0.2rem',
+  width: '1.25rem',
+});
+export const metadataGrid = style({
+  display: 'grid',
+  gap: '1rem',
+  gridArea: 'metrics',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 8rem), 1fr))',
+  margin: 0,
+});
+export const metadataRow = style({
+  blockSize: '4.5rem',
+  borderBlockStart: `1px solid ${t.color.outline}`,
+  boxSizing: 'border-box',
+  display: 'grid',
+  gap: '0.25rem',
+  gridTemplateRows: 'auto minmax(0, 1fr)',
+  minWidth: 0,
+  paddingBlockStart: '0.75rem',
+});
+export const metadataLabel = style({
+  color: t.color.onSurfaceVariant,
+  fontSize: '0.75rem',
+  lineHeight: 1.5,
+});
+export const metadataValue = style({
+  color: t.color.onSurface,
+  fontFamily: mono,
+  fontSize: t.type.label,
+  lineHeight: 1.5,
+  margin: 0,
+  minWidth: 0,
+  overflowWrap: 'anywhere',
+});
+export const implementation = style({
+  borderBlockStart: `1px solid ${t.color.outline}`,
+  display: 'grid',
+  gap: '1rem',
+  paddingBlockStart: '1.5rem',
 });
