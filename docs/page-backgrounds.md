@@ -40,3 +40,13 @@ Home, About, Holy Grail, and SSR keep a shared 64px gap before their footer.
 About, Holy Grail, and SSR place their artwork across the full main area. Other
 generated backgrounds belong to their page's hero or error surface. The SVGs
 leave the center clear for content, and page styles reduce opacity on mobile.
+
+The Dominant Color page uses a unique fan of rounded color chips at opposite
+edges. Reproduce it with:
+
+```sh
+pnpm backgrounds:generate --page dominant-color --seed issue-97-dominant-color-swatches
+```
+
+Its artwork covers the full main area,
+repeating vertically at a width-based scale so result tabs do not stretch it.

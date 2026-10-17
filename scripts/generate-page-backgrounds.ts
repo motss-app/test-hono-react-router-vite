@@ -255,11 +255,37 @@ function artwork(page: string): string {
     }
   }
 
+  if (page === 'dominant-color') {
+    paths.length = 0;
+    /** Fanned color chips echo a designer's swatch deck at opposite edges. */
+    for (const [x, y, direction] of [
+      [
+        1400,
+        230,
+        -1,
+      ],
+      [
+        40,
+        720,
+        1,
+      ],
+    ] as const) {
+      for (let chip = 0; chip < 5; chip++) {
+        const angle = (chip - 2) * 19 * direction + random(-4, 4);
+        paths.push(
+          `<rect x="${x - 64}" y="${y - 230}" width="128" height="280" rx="40" transform="rotate(${angle} ${x} ${y})" fill="url(#${colors[chip % colors.length]})" opacity=".46"/>`
+        );
+      }
+      paths.push(`<circle cx="${x}" cy="${y}" r="16" fill="url(#pink)" opacity=".65"/>`);
+    }
+  }
+
   const aspectRatio = [
     'hono-rpc',
     'labs',
     'errors',
     'mandelbrot',
+    'dominant-color',
   ].includes(page)
     ? 'xMidYMin meet'
     : 'none';

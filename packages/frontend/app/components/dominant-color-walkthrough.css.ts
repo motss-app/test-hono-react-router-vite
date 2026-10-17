@@ -1,8 +1,7 @@
-import { keyframes, style } from '@vanilla-extract/css';
+import { createVar, keyframes, style, styleVariants } from '@vanilla-extract/css';
 
-import { colorTokens } from '../styles/color-tokens.contract.css.ts';
+import { expressiveTokens as t } from '../styles/expressive-tokens.css.ts';
 import { mediaQueries } from '../styles/media-queries.ts';
-import { radiusTokens } from '../styles/radius-tokens.contract.css.ts';
 
 const rise = keyframes({
   '0%': {
@@ -16,10 +15,9 @@ const rise = keyframes({
 });
 
 export const section = style({
-  marginBlockStart: '5rem',
-  marginInline: 'auto',
-  maxWidth: '84rem',
-  padding: '0 1rem',
+  borderBlockStart: `1px solid ${t.color.outline}`,
+  minWidth: 0,
+  paddingBlockStart: '1.5rem',
 });
 
 export const intro = style({
@@ -27,7 +25,7 @@ export const intro = style({
 });
 
 export const kicker = style({
-  color: '#65a30d',
+  color: t.color.primary,
   fontSize: '0.72rem',
   fontWeight: 750,
   letterSpacing: '0.13em',
@@ -36,148 +34,222 @@ export const kicker = style({
 });
 
 export const title = style({
-  color: colorTokens.slate900,
-  fontSize: 'clamp(2rem, 4vw, 3.5rem)',
-  letterSpacing: '-0.06em',
-  lineHeight: 0.98,
+  color: t.color.onSurface,
+  fontSize: t.type.headline,
+  letterSpacing: '-0.025em',
+  lineHeight: 1.3,
   margin: 0,
   selectors: {
     ':root[data-theme="dark"] &': {
-      color: colorTokens.white,
+      color: t.color.onSurface,
     },
   },
 });
 
 export const lead = style({
-  color: colorTokens.slate600,
+  color: t.color.onSurfaceVariant,
   fontSize: '1rem',
   lineHeight: 1.65,
   margin: '1rem 0 0',
   maxWidth: '38rem',
   selectors: {
     ':root[data-theme="dark"] &': {
-      color: colorTokens.slate300,
+      color: t.color.onSurfaceVariant,
     },
   },
 });
 
 export const shell = style({
-  animation: `${rise} 600ms cubic-bezier(0.22, 1, 0.36, 1) both`,
-  backgroundColor: '#0f1720',
-  border: '1px solid #26333d',
-  borderRadius: radiusTokens.radiusMd,
-  color: '#ecfdf5',
-  marginBlockStart: '2rem',
+  animation: `${rise} ${t.motion.entrance} ${t.motion.easing} both`,
+  backgroundColor: t.color.surfaceContainer,
+  border: `1px solid ${t.color.outline}`,
+  borderRadius: t.shape.extraLarge,
+  color: t.color.onSurface,
+  containerName: 'dominant-walkthrough',
+  containerType: 'inline-size',
+  marginBlockStart: '1.5rem',
   overflow: 'hidden',
 });
 
+/** Fit 48px step keys and action labels within the available panel width. */
 export const shellBar = style({
+  '@container': {
+    'dominant-walkthrough (min-width: 24rem)': {
+      gridTemplateAreas: '"count actions" "steps steps"',
+      gridTemplateColumns: 'minmax(0, 1fr) max-content',
+    },
+    'dominant-walkthrough (min-width: 54rem)': {
+      gridTemplateAreas: '"count steps actions"',
+      gridTemplateColumns: 'max-content minmax(0, 1fr) max-content',
+    },
+  },
   alignItems: 'center',
-  borderBlockEnd: '1px solid #26333d',
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: '1rem',
-  justifyContent: 'space-between',
-  padding: '1rem 1.15rem',
+  borderBlockEnd: `1px solid ${t.color.outline}`,
+  display: 'grid',
+  gap: '1rem 1.5rem',
+  gridTemplateAreas: '"count" "actions" "steps"',
+  gridTemplateColumns: 'minmax(0, 1fr)',
+  padding: '1rem',
 });
-
 export const shellLabel = style({
-  color: '#9fb1ad',
+  color: t.color.onSurfaceVariant,
   fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-  fontSize: '0.7rem',
-  letterSpacing: '0.1em',
-  textTransform: 'uppercase',
+  fontSize: '0.8125rem',
+  gridArea: 'count',
+  lineHeight: 1.5,
+  margin: 0,
+  overflowWrap: 'anywhere',
 });
-
 export const stepRail = style({
-  alignItems: 'center',
-  display: 'flex',
-  flex: '1 1 18rem',
-  gap: '0.35rem',
-  justifyContent: 'flex-end',
+  '@container': {
+    'dominant-walkthrough (min-width: 17rem)': {
+      gridTemplateColumns: 'repeat(4, 48px)',
+    },
+    'dominant-walkthrough (min-width: 24rem)': {
+      justifyContent: 'end',
+    },
+    'dominant-walkthrough (min-width: 32rem)': {
+      gridTemplateColumns: 'repeat(8, 48px)',
+      justifyContent: 'end',
+    },
+    'dominant-walkthrough (min-width: 54rem)': {
+      justifyContent: 'center',
+    },
+  },
+  display: 'grid',
+  gap: '12px',
+  gridArea: 'steps',
+  gridTemplateColumns: 'repeat(2, 48px)',
+  justifyContent: 'center',
 });
 
 export const stepButton = style({
-  background: 'transparent',
-  border: 0,
-  color: '#60716e',
+  alignItems: 'center',
+  backgroundColor: t.color.surfaceRaised,
+  border: `1px solid ${t.color.outline}`,
+  borderRadius: t.shape.full,
+  color: t.color.onSurfaceVariant,
   cursor: 'pointer',
+  display: 'inline-flex',
   font: 'inherit',
-  padding: '0.15rem',
+  height: '48px',
+  justifyContent: 'center',
+  padding: 0,
   selectors: {
     '&:focus-visible': {
-      outline: '2px solid #bef264',
+      outline: `3px solid ${t.color.primary}`,
       outlineOffset: '3px',
     },
     '&:hover': {
-      color: '#d9f99d',
+      backgroundColor: t.color.primaryContainer,
+      color: t.color.onPrimaryContainer,
     },
   },
+  width: '48px',
 });
 
 export const stepButtonActive = style({
-  color: '#d7f36b',
+  backgroundColor: t.color.primary,
+  borderColor: t.color.primary,
+  color: t.color.onPrimary,
 });
 
 export const stepDot = style({
   alignItems: 'center',
-  border: '1px solid currentColor',
-  borderRadius: '50%',
   display: 'flex',
   fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-  fontSize: '0.62rem',
+  fontSize: t.type.label,
   height: '1.55rem',
   justifyContent: 'center',
   width: '1.55rem',
 });
 
 export const body = style({
-  '@media': {
-    [mediaQueries.maxWidth760]: {
-      gridTemplateColumns: '1fr',
-    },
-  },
   display: 'grid',
-  gridTemplateColumns: 'minmax(0, 1.35fr) minmax(15rem, 0.65fr)',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 20rem), 1fr))',
 });
 
 export const stage = style({
-  blockSize: '36rem',
-  overflow: 'auto',
-  padding: 'clamp(1.1rem, 3vw, 2.25rem)',
+  display: 'grid',
+  gridTemplateColumns: 'minmax(0, 1fr)',
+  minWidth: 0,
+  overflowWrap: 'anywhere',
+  padding: 'clamp(0.75rem, 2vw, 1.5rem)',
+});
+
+/** Overlap scenes so the largest one reserves space without a scroll area. */
+export const scene = style({
+  alignSelf: 'start',
+  gridArea: '1 / 1',
+  minWidth: 0,
+  visibility: 'hidden',
+});
+export const sceneActive = style({
+  visibility: 'visible',
+});
+export const stepIntros = style({
+  display: 'grid',
+  gridTemplateColumns: 'minmax(0, 1fr)',
 });
 
 export const stageHeader = style({
-  color: '#60716e',
+  color: t.color.onSurfaceVariant,
   fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
   fontSize: '0.68rem',
   letterSpacing: '0.1em',
-  marginBlockEnd: '1.5rem',
+  marginBlockEnd: '1rem',
   textTransform: 'uppercase',
 });
 
 export const pixelGrid = style({
   display: 'grid',
-  gap: '0.65rem',
-  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+  gap: '0.75rem',
+  gridAutoRows: '1fr',
+  gridTemplateColumns:
+    'repeat(auto-fit, minmax(min(100%, max(8rem, calc((100% - 0.75rem) / 2))), 1fr))',
   marginInline: 'auto',
   maxWidth: '28rem',
 });
 
 export const pixel = style({
-  aspectRatio: '1',
-  border: '1px solid rgba(255,255,255,0.25)',
-  borderRadius: radiusTokens.radiusMd,
+  backgroundColor: t.color.primaryContainer,
+  border: `1px solid ${t.color.outline}`,
+  borderRadius: t.shape.medium,
+  color: t.color.onPrimaryContainer,
   display: 'flex',
   flexDirection: 'column',
+  gap: '0.75rem',
   justifyContent: 'space-between',
+  minBlockSize: '9rem',
   minWidth: 0,
-  padding: 'clamp(0.75rem, 2vw, 1.2rem)',
+  padding: '0.75rem',
   transition: 'box-shadow 180ms ease, opacity 180ms ease, transform 180ms ease',
 });
 
+export const pixelTone = styleVariants({
+  cyan: {
+    backgroundColor: t.color.tertiaryContainer,
+    color: t.color.onTertiaryContainer,
+  },
+  peach: {
+    backgroundColor: t.color.secondaryContainer,
+    color: t.color.onSecondaryContainer,
+  },
+  purple: {},
+  'purple-light': {},
+});
+export const sampleColor = createVar();
+export const pixelSample = style({
+  backgroundColor: sampleColor,
+  blockSize: '2rem',
+  border: `1px solid ${t.color.outline}`,
+  borderRadius: t.shape.small,
+  inlineSize: '3rem',
+  maxInlineSize: '100%',
+});
+
 export const pixelHighlighted = style({
-  boxShadow: '0 0 0 3px #d7f36b',
+  boxShadow: `0 0 0 3px ${t.color.primary}`,
   transform: 'translateY(-3px)',
 });
 
@@ -187,15 +259,18 @@ export const pixelDimmed = style({
 
 export const pixelTop = style({
   display: 'flex',
+  flexWrap: 'wrap',
   fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
   fontSize: '0.72rem',
+  gap: '0.5rem',
   justifyContent: 'space-between',
 });
 
 export const pixelName = style({
-  fontSize: 'clamp(1.15rem, 3vw, 1.8rem)',
+  fontSize: 'clamp(1rem, 2vw, 1.25rem)',
   fontWeight: 700,
-  marginBlockStart: '1.5rem',
+  lineHeight: 1.3,
+  overflowWrap: 'anywhere',
 });
 
 export const pixelValue = style({
@@ -212,11 +287,11 @@ export const addressList = style({
 
 export const addressRow = style({
   alignItems: 'center',
-  borderBlockEnd: '1px solid #26333d',
+  borderBlockEnd: `1px solid ${t.color.outline}`,
   display: 'grid',
-  gap: '0.8rem',
-  gridTemplateColumns: '1.8rem 1fr auto',
-  paddingBlock: '0.75rem',
+  gap: '0.5rem',
+  gridTemplateColumns: '1.8rem minmax(0, 1fr) auto',
+  paddingBlock: '0.5rem',
 });
 
 export const swatch = style({
@@ -229,39 +304,40 @@ export const swatch = style({
 
 export const rowMain = style({
   minWidth: 0,
+  overflowWrap: 'anywhere',
 });
 
 export const rowTitle = style({
-  color: '#ecfdf5',
+  color: t.color.onSurface,
   fontSize: '0.88rem',
 });
 
 export const rowNote = style({
-  color: '#81928e',
+  color: t.color.onSurfaceVariant,
   fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
   fontSize: '0.68rem',
   lineHeight: 1.5,
-  marginBlockStart: '0.22rem',
+  marginBlockStart: 0,
 });
 
 export const rowValue = style({
-  color: '#d7f36b',
+  color: t.color.primary,
   fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
   fontSize: '0.7rem',
   textAlign: 'right',
 });
 
 export const mathBlock = style({
-  backgroundColor: '#141f25',
-  borderInlineStart: '3px solid #d7f36b',
+  backgroundColor: t.color.surfaceRaised,
+  borderInlineStart: `3px solid ${t.color.primary}`,
   fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
   lineHeight: 1.7,
-  marginBlockEnd: '1.25rem',
-  padding: '1rem 1.1rem',
+  marginBlockEnd: '0.75rem',
+  padding: '0.75rem',
 });
 
 export const mathLabel = style({
-  color: '#8fa19d',
+  color: t.color.onSurfaceVariant,
   display: 'block',
   fontSize: '0.68rem',
   letterSpacing: '0.08em',
@@ -270,7 +346,7 @@ export const mathLabel = style({
 });
 
 export const mathValue = style({
-  color: '#ecfdf5',
+  color: t.color.onSurface,
   fontSize: '0.82rem',
   overflowWrap: 'anywhere',
 });
@@ -281,28 +357,16 @@ export const markerList = style({
 });
 
 export const markerRow = style({
-  '@media': {
-    [mediaQueries.maxWidth520]: {
-      gridTemplateColumns: '1.8rem 1fr',
-    },
-  },
   alignItems: 'center',
-  borderBlockEnd: '1px solid #26333d',
+  borderBlockEnd: `1px solid ${t.color.outline}`,
   display: 'grid',
   gap: '0.75rem',
-  gridTemplateColumns: '1.8rem minmax(5rem, 0.55fr) minmax(8rem, 1fr)',
+  gridTemplateColumns: '1.5rem minmax(0, 0.6fr) minmax(0, 1fr)',
   paddingBlock: '0.7rem',
-});
-export const markerCalculation = style({
-  '@media': {
-    [mediaQueries.maxWidth520]: {
-      gridColumn: '1 / -1',
-    },
-  },
 });
 
 export const markerName = style({
-  color: '#ecfdf5',
+  color: t.color.onSurface,
   fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
   fontSize: '0.72rem',
 });
@@ -314,21 +378,21 @@ export const matchList = style({
 
 export const matchRow = style({
   alignItems: 'center',
-  borderBlockEnd: '1px solid #26333d',
+  borderBlockEnd: `1px solid ${t.color.outline}`,
   display: 'grid',
   gap: '0.75rem',
-  gridTemplateColumns: '3rem 1fr auto',
+  gridTemplateColumns: 'auto minmax(0, 1fr) auto',
   paddingBlock: '0.75rem',
 });
 
 export const matchLabel = style({
-  color: '#d7f36b',
+  color: t.color.primary,
   fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
   fontSize: '0.72rem',
 });
 
 export const matchArrow = style({
-  color: '#81928e',
+  color: t.color.onSurfaceVariant,
   fontSize: '0.82rem',
 });
 
@@ -339,28 +403,28 @@ export const repeatList = style({
 
 export const repeatRow = style({
   alignItems: 'center',
-  borderBlockEnd: '1px solid #26333d',
+  borderBlockEnd: `1px solid ${t.color.outline}`,
   display: 'grid',
-  gap: '0.7rem',
-  gridTemplateColumns: '4rem 1fr auto',
-  paddingBlock: '0.7rem',
+  gap: '0.5rem',
+  gridTemplateColumns: 'auto minmax(0, 1fr) auto',
+  paddingBlock: '0.5rem',
 });
 
 export const repeatMarker = style({
-  color: '#d7f36b',
+  color: t.color.primary,
   fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
   fontSize: '0.7rem',
 });
 
 export const repeatText = style({
-  color: '#c7d5d1',
+  color: t.color.onSurface,
   fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
   fontSize: '0.7rem',
   lineHeight: 1.5,
 });
 
 export const stable = style({
-  color: '#9fb1ad',
+  color: t.color.onSurfaceVariant,
   fontSize: '0.82rem',
   lineHeight: 1.6,
   marginBlockStart: '1rem',
@@ -372,7 +436,7 @@ export const familyList = style({
 });
 
 export const familyRow = style({
-  borderBlockEnd: '1px solid #26333d',
+  borderBlockEnd: `1px solid ${t.color.outline}`,
   paddingBlock: '0.75rem',
 });
 
@@ -384,36 +448,36 @@ export const familyHeader = style({
 });
 
 export const familyName = style({
-  color: '#ecfdf5',
+  color: t.color.onSurface,
   fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
   fontSize: '0.74rem',
 });
 
 export const familyWeight = style({
-  color: '#9fb1ad',
+  color: t.color.onSurfaceVariant,
   fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
   fontSize: '0.68rem',
 });
 
 export const familyTrack = style({
-  backgroundColor: '#1c2a31',
+  backgroundColor: t.color.surfaceRaised,
   height: '0.5rem',
   marginBlockStart: '0.55rem',
   overflow: 'hidden',
 });
 
 export const familyBar = style({
-  backgroundColor: '#6b7b78',
+  backgroundColor: t.color.onSurfaceVariant,
   height: '100%',
   transition: 'width 260ms ease, background-color 180ms ease',
 });
 
 export const familyBarWinner = style({
-  backgroundColor: '#d7f36b',
+  backgroundColor: t.color.primary,
 });
 
 export const familyMembers = style({
-  color: '#81928e',
+  color: t.color.onSurfaceVariant,
   fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
   fontSize: '0.68rem',
   marginBlockStart: '0.5rem',
@@ -428,35 +492,28 @@ export const winner = style({
 
 export const winnerSwatch = style({
   border: '1px solid rgba(255,255,255,0.35)',
-  borderRadius: radiusTokens.radiusMd,
+  borderRadius: t.shape.medium,
   height: '4.5rem',
   width: '4.5rem',
 });
 
 export const winnerHex = style({
-  color: '#d7f36b',
+  color: t.color.primary,
   fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
   fontSize: '1.4rem',
 });
 
 export const side = style({
-  '@media': {
-    [mediaQueries.maxWidth760]: {
-      borderBlockStart: '1px solid #26333d',
-      borderInlineStart: 0,
-      minBlockSize: '16rem',
-    },
-  },
-  borderInlineStart: '1px solid #26333d',
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'space-between',
+  alignContent: 'start',
+  backgroundColor: t.color.surfaceRaised,
+  display: 'grid',
+  gap: '1rem',
   minWidth: 0,
-  padding: 'clamp(1.1rem, 3vw, 2rem)',
+  padding: 'clamp(0.75rem, 2vw, 1.5rem)',
 });
 
 export const stepTitle = style({
-  color: '#ecfdf5',
+  color: t.color.onSurface,
   fontSize: 'clamp(1.35rem, 2.5vw, 2rem)',
   letterSpacing: '-0.04em',
   lineHeight: 1.05,
@@ -464,14 +521,14 @@ export const stepTitle = style({
 });
 
 export const stepCopy = style({
-  color: '#aebdb9',
+  color: t.color.onSurfaceVariant,
   fontSize: '0.9rem',
   lineHeight: 1.65,
   margin: '1rem 0 0',
 });
 
 export const sideLabel = style({
-  color: '#60716e',
+  color: t.color.onSurfaceVariant,
   fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
   fontSize: '0.68rem',
   letterSpacing: '0.1em',
@@ -479,54 +536,110 @@ export const sideLabel = style({
 });
 
 export const controls = style({
-  alignItems: 'center',
-  display: 'flex',
-  gap: '0.55rem',
-  justifyContent: 'space-between',
-  marginBlockStart: '2rem',
+  '@container': {
+    'dominant-walkthrough (min-width: 24rem)': {
+      justifySelf: 'end',
+    },
+  },
+  display: 'grid',
+  gap: '12px',
+  gridArea: 'actions',
+  gridTemplateColumns: 'max-content max-content',
+  justifySelf: 'center',
+  maxInlineSize: '100%',
+});
+export const fullActionLabel = style({
+  '@container': {
+    'dominant-walkthrough (min-width: 17rem)': {
+      display: 'inline',
+    },
+  },
+  display: 'none',
+});
+export const actionIcon = style({
+  height: '1em',
+  width: '1em',
 });
 
+export const controlLabel = style({
+  '@container': {
+    'dominant-walkthrough (min-width: 17rem)': {
+      display: 'block',
+    },
+  },
+  display: 'none',
+  gridArea: '1 / 1',
+  minWidth: 0,
+});
+export const controlLabelHidden = style([
+  controlLabel,
+  {
+    visibility: 'hidden',
+  },
+]);
+
 export const controlButton = style({
-  backgroundColor: 'transparent',
-  border: '1px solid #40514f',
-  borderRadius: radiusTokens.radiusMd,
-  color: '#ecfdf5',
+  '@container': {
+    'dominant-walkthrough (min-width: 17rem)': {
+      columnGap: '0.5rem',
+      gridTemplateColumns: 'auto auto',
+      padding: '0.65rem 0.75rem',
+      width: 'auto',
+    },
+  },
+  alignContent: 'center',
+  alignItems: 'center',
+  backgroundColor: t.color.surfaceRaised,
+  border: `1px solid ${t.color.outline}`,
+  borderRadius: t.shape.full,
+  color: t.color.onSurface,
   cursor: 'pointer',
+  display: 'inline-grid',
   font: 'inherit',
-  fontSize: '0.78rem',
-  padding: '0.65rem 0.8rem',
+  fontSize: t.type.label,
+  gridTemplateColumns: 'auto',
+  height: '48px',
+  justifyContent: 'center',
+  minWidth: '48px',
+  padding: 0,
   selectors: {
     '&:disabled': {
-      color: '#52615f',
+      color: t.color.onSurfaceVariant,
       cursor: 'not-allowed',
       opacity: 0.7,
     },
     '&:focus-visible': {
-      outline: '2px solid #bef264',
+      outline: `3px solid ${t.color.primary}`,
       outlineOffset: '3px',
     },
     '&:hover:not(:disabled)': {
-      borderColor: '#d7f36b',
+      borderColor: t.color.primary,
     },
   },
+  whiteSpace: 'nowrap',
+  width: '48px',
 });
-
 export const controlButtonPrimary = style({
-  backgroundColor: '#d7f36b',
-  borderColor: '#d7f36b',
-  color: '#152016',
+  '@container': {
+    'dominant-walkthrough (min-width: 17rem)': {
+      gridTemplateColumns: 'minmax(0, 1fr) auto',
+    },
+  },
+  backgroundColor: t.color.primary,
+  borderColor: t.color.primary,
+  color: t.color.onPrimary,
   fontWeight: 700,
   selectors: {
     '&:hover:not(:disabled)': {
-      backgroundColor: '#c6eb4f',
-      borderColor: '#c6eb4f',
+      backgroundColor: t.color.primaryHover,
+      borderColor: t.color.primaryHover,
     },
   },
 });
 
 export const sourceNote = style({
-  borderBlockStart: '1px solid #26333d',
-  color: '#81928e',
+  borderBlockStart: `1px solid ${t.color.outline}`,
+  color: t.color.onSurfaceVariant,
   fontSize: '0.72rem',
   lineHeight: 1.55,
   marginBlockStart: '1.5rem',
@@ -534,7 +647,7 @@ export const sourceNote = style({
 });
 
 export const sourceCode = style({
-  color: '#d7f36b',
+  color: t.color.primary,
   fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
 });
 

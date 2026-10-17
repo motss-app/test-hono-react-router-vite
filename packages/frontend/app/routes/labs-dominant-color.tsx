@@ -1,19 +1,27 @@
 import { assignInlineVars } from '@vanilla-extract/dynamic';
-import type { JSX, ChangeEvent as ReactChangeEvent, DragEvent as ReactDragEvent } from 'react';
+import type {
+  JSX,
+  ChangeEvent as ReactChangeEvent,
+  DragEvent as ReactDragEvent,
+  ReactNode,
+} from 'react';
 import { useCallback, useEffect, useId, useState } from 'react';
 
 import { Breadcrumbs } from '../components/breadcrumbs.tsx';
 import { DominantColorWalkthrough } from '../components/dominant-color-walkthrough.tsx';
-import { Link } from '../components/Link.tsx';
 import * as chrome from '../components/page-chrome.css.ts';
 import * as footerStyles from '../components/page-footer.css.ts';
-import { PagePreferences, SiteBrand } from '../components/page-navigation.tsx';
+import {
+  PagePreferences,
+  SiteBrand,
+  SiteNavigation,
+  SkipToContent,
+} from '../components/page-navigation.tsx';
 import { PoweredByTools } from '../components/powered-by-tools.tsx';
-import { IconArrowLeft } from '../icons.ts';
 import * as m from '../paraglide/messages.js';
-import { iconStyles } from '../styles/icon.css.ts';
 import type { Route } from './+types/labs-dominant-color.ts';
 import * as c from './labs-dominant-color.css.ts';
+import { IconImage, IconPalette } from './labs-dominant-color.icons.ts';
 
 const MAX_BYTES = 32 * 1024 * 1024;
 const ACCEPT = 'image/avif,image/jpeg,image/png,image/webp,image/gif,image/tiff,image/jxl,.jxl';
@@ -206,6 +214,63 @@ function formatBytes(bytes: number): string {
     : `${Math.ceil(bytes / 1024)} KB`;
 }
 
+function fileExtension(file: File): string {
+  const dot = file.name.lastIndexOf('.');
+  return dot > 0 && dot < file.name.length - 1 ? file.name.slice(dot + 1).toUpperCase() : file.type;
+}
+
+function FileMetadata({ file }: { file: File | null }): JSX.Element {
+  return (
+    <div
+      aria-atomic="true"
+      aria-live="polite"
+      className={c.fileMeta}
+    >
+      {file ? (
+        <>
+          <section
+            aria-label={file.name}
+            className={c.fileName}
+            // biome-ignore lint/a11y/noNoninteractiveTabindex: Scroll region.
+            tabIndex={0}
+            title={file.name}
+          >
+            {file.name}
+          </section>
+          <span className={c.fileDetails}>
+            {fileExtension(file)} · {formatBytes(file.size)}
+          </span>
+        </>
+      ) : null}
+    </div>
+  );
+}
+
+function switchOutputTab(event: React.KeyboardEvent, select: (mode: OutputMode) => void) {
+  if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+  event.preventDefault();
+  const target = event.currentTarget as HTMLElement;
+  const tabs = Array.from(target.querySelectorAll<HTMLElement>('[role="tab"]'));
+  const currentIndex = tabs.indexOf(event.target as HTMLElement);
+  const nextIndex =
+    event.key === 'ArrowRight'
+      ? (currentIndex + 1) % tabs.length
+      : (currentIndex - 1 + tabs.length) % tabs.length;
+  /*
+   * Tab order is [formatted, raw], so the mode name matches the
+   * next tab's text. Derive it from the index instead of
+   * aria-selected, which still reflects the previous state.
+   */
+  const modes: readonly OutputMode[] = [
+    'formatted',
+    'raw',
+  ];
+  const nextTab = tabs[nextIndex];
+  if (!nextTab) return;
+  select(modes[nextIndex] ?? 'formatted');
+  nextTab.focus();
+}
+
 export default function DominantColorLab(): JSX.Element {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -215,6 +280,7 @@ export default function DominantColorLab(): JSX.Element {
   const [dragging, setDragging] = useState(false);
   const [outputMode, setOutputMode] = useState<OutputMode>('formatted');
   const outputId = useId();
+  const [previewUnavailable, setPreviewUnavailable] = useState(false);
   const formattedTabId = `${outputId}-formatted`;
   const rawTabId = `${outputId}-raw`;
   const outputPanelId = `${outputId}-panel`;
@@ -229,10 +295,8 @@ export default function DominantColorLab(): JSX.Element {
   );
 
   const chooseFile = useCallback((nextFile: File | null) => {
-    setError(null);
-    setResult(null);
-    setOutputMode('formatted');
     if (!nextFile) return;
+    setError(null);
     if (!nextFile.type.startsWith('image/') && !nextFile.name.toLowerCase().endsWith('.jxl')) {
       setError(m.dominant_color_error_invalid_file());
       return;
@@ -241,6 +305,9 @@ export default function DominantColorLab(): JSX.Element {
       setError(m.dominant_color_error_size());
       return;
     }
+    setResult(null);
+    setOutputMode('formatted');
+    setPreviewUnavailable(false);
     setFile(nextFile);
     setPreviewUrl(URL.createObjectURL(nextFile));
   }, []);
@@ -255,10 +322,11 @@ export default function DominantColorLab(): JSX.Element {
     (event: ReactDragEvent<HTMLLabelElement>) => {
       event.preventDefault();
       setDragging(false);
-      chooseFile(event.dataTransfer.files[0] ?? null);
+      if (!busy) chooseFile(event.dataTransfer.files[0] ?? null);
     },
     [
       chooseFile,
+      busy,
     ]
   );
   const onDragEnter = useCallback((event: ReactDragEvent<HTMLLabelElement>) => {
@@ -270,32 +338,13 @@ export default function DominantColorLab(): JSX.Element {
     (event: ReactDragEvent<HTMLLabelElement>) => event.preventDefault(),
     []
   );
+  const handlePreviewError = useCallback(() => setPreviewUnavailable(true), []);
   const showFormattedOutput = useCallback(() => setOutputMode('formatted'), []);
   const showRawOutput = useCallback(() => setOutputMode('raw'), []);
-  const handleTabKeyDown = useCallback((event: React.KeyboardEvent) => {
-    if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
-    event.preventDefault();
-    const target = event.currentTarget as HTMLElement;
-    const tabs = Array.from(target.querySelectorAll<HTMLElement>('[role="tab"]'));
-    const currentIndex = tabs.indexOf(event.target as HTMLElement);
-    const nextIndex =
-      event.key === 'ArrowRight'
-        ? (currentIndex + 1) % tabs.length
-        : (currentIndex - 1 + tabs.length) % tabs.length;
-    /*
-     * Tab order is [formatted, raw], so the mode name matches the
-     * next tab's text. Derive it from the index instead of
-     * aria-selected, which still reflects the previous state.
-     */
-    const modes: readonly OutputMode[] = [
-      'formatted',
-      'raw',
-    ];
-    const nextTab = tabs[nextIndex];
-    if (!nextTab) return;
-    setOutputMode(modes[nextIndex] ?? 'formatted');
-    nextTab.focus();
-  }, []);
+  const handleTabKeyDown = useCallback(
+    (event: React.KeyboardEvent) => switchOutputTab(event, setOutputMode),
+    []
+  );
 
   const analyze = useCallback(async () => {
     if (!file) return;
@@ -323,187 +372,245 @@ export default function DominantColorLab(): JSX.Element {
   ]);
 
   return (
-    <>
-      <DominantColorHeader />
-      <main className={c.page}>
-        <section className={c.hero}>
-          <div className={c.heroInner}>
-            <div>
-              <div className={c.eyebrow}>{m.dominant_color_hero_eyebrow()}</div>
-              <h1 className={c.title}>{m.dominant_color_title()}</h1>
-              <p className={c.heroLead}>{m.dominant_color_hero_lead()}</p>
-              <div className={c.heroActions}>
-                <Link
-                  className={c.ctaSecondary}
-                  to="/"
-                >
-                  <IconArrowLeft className={iconStyles.base} />
-                  <span>{m.labs_cta_back_home()}</span>
-                </Link>
-                <Link
-                  className={c.ctaSecondary}
-                  to="/labs"
-                >
-                  <IconArrowLeft className={iconStyles.base} />
-                  <span>{m.labs_mandelbrot_cta_back_home()}</span>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <DominantColorWalkthrough />
-
-        <section className={c.inner}>
-          <div className={c.workspace}>
-            <div className={c.uploadColumn}>
-              <p className={c.sectionLabel}>{m.dominant_color_input_label()}</p>
-              <h2 className={c.sectionTitle}>{m.dominant_color_input_title()}</h2>
-              <p className={c.sectionBody}>{m.dominant_color_input_desc()}</p>
-              {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: the label is the keyboard-accessible file picker and drag target. */}
-              <label
-                className={`${c.dropzone} ${dragging ? c.dropzoneActive : ''}`.trim()}
-                onDragEnter={onDragEnter}
-                onDragLeave={onDragLeave}
-                onDragOver={onDragOver}
-                onDrop={onDrop}
+    <DominantColorLayout>
+      <header className={c.intro}>
+        <h1 className={c.title}>{m.dominant_color_title()}</h1>
+        <p className={c.lead}>{m.dominant_color_hero_lead()}</p>
+      </header>
+      <div className={c.workspace}>
+        <section
+          aria-labelledby={`${outputId}-input`}
+          className={c.column}
+        >
+          <h2
+            className={c.sectionTitle}
+            id={`${outputId}-input`}
+          >
+            {m.dominant_color_input_title()}
+          </h2>
+          <p
+            className={c.sectionBody}
+            id={`${outputId}-limits`}
+          >
+            {m.dominant_color_input_desc()}
+          </p>
+          {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: the label is the keyboard-accessible file picker and drag target. */}
+          <label
+            aria-disabled={busy}
+            className={`${c.dropzone} ${dragging ? c.dropzoneActive : ''}`.trim()}
+            onDragEnter={onDragEnter}
+            onDragLeave={onDragLeave}
+            onDragOver={onDragOver}
+            onDrop={onDrop}
+          >
+            <input
+              accept={ACCEPT}
+              aria-describedby={`${outputId}-limits`}
+              aria-label={m.dominant_color_drop_title()}
+              className={c.input}
+              disabled={busy}
+              onChange={onInput}
+              type="file"
+            />
+            {previewUrl && !previewUnavailable ? (
+              <div
+                className={c.previewWrap}
+                style={assignInlineVars({
+                  [c.previewBackgroundColor]: result?.css.srgb,
+                })}
               >
-                <input
-                  accept={ACCEPT}
-                  className={c.input}
-                  onChange={onInput}
-                  type="file"
+                {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: image decoding failures need a preview fallback. */}
+                <img
+                  alt={m.dominant_color_preview_alt()}
+                  className={c.preview}
+                  onError={handlePreviewError}
+                  src={previewUrl}
                 />
-                {previewUrl ? (
-                  <div
-                    className={c.previewWrap}
-                    style={assignInlineVars({
-                      [c.previewBackgroundColor]: result?.css.srgb,
-                    })}
-                  >
-                    <img
-                      alt="Selected upload preview"
-                      className={c.preview}
-                      src={previewUrl}
-                    />
-                  </div>
-                ) : (
-                  <div className={c.dropContent}>
-                    <span className={c.dropIcon}>◌</span>
-                    <p className={c.dropTitle}>{m.dominant_color_drop_title()}</p>
-                    <p className={c.dropNote}>{m.dominant_color_formats()}</p>
-                  </div>
-                )}
-              </label>
-              {file ? (
-                <div className={c.actionRow}>
+              </div>
+            ) : (
+              <div className={c.dropContent}>
+                <span className={c.dropIcon}>
+                  <IconImage aria-hidden="true" />
+                </span>
+                <p className={c.dropTitle}>
+                  {previewUnavailable
+                    ? m.dominant_color_preview_unavailable()
+                    : m.dominant_color_drop_title()}
+                </p>
+                <p className={c.dropNote}>{m.dominant_color_formats()}</p>
+              </div>
+            )}
+          </label>
+          <div className={c.actionRow}>
+            <button
+              className={c.action}
+              disabled={!file || busy}
+              onClick={analyze}
+              type="button"
+            >
+              <IconPalette aria-hidden="true" />
+              {busy ? m.dominant_color_analyzing() : m.dominant_color_analyze()}
+            </button>
+            <FileMetadata file={file} />
+          </div>
+          {error ? (
+            <div
+              className={c.error}
+              role="alert"
+            >
+              {error}
+            </div>
+          ) : null}
+        </section>
+        <section
+          aria-labelledby={`${outputId}-output`}
+          className={c.column}
+        >
+          <h2
+            className={c.sectionTitle}
+            id={`${outputId}-output`}
+          >
+            {m.dominant_color_output_title()}
+          </h2>
+          <p className={c.sectionBody}>{m.dominant_color_output_desc()}</p>
+          <div
+            aria-busy={busy}
+            className={c.result}
+          >
+            {result ? (
+              <>
+                <ColorResultHeader result={result} />
+                <div
+                  aria-label={m.dominant_color_output_toggle()}
+                  className={c.outputToggle}
+                  onKeyDown={handleTabKeyDown}
+                  role="tablist"
+                >
                   <button
-                    className={c.action}
-                    disabled={busy}
-                    onClick={analyze}
+                    aria-controls={outputPanelId}
+                    aria-selected={outputMode === 'formatted'}
+                    className={`${c.outputTab} ${outputMode === 'formatted' ? c.outputTabActive : ''}`.trim()}
+                    id={formattedTabId}
+                    onClick={showFormattedOutput}
+                    role="tab"
+                    tabIndex={outputMode === 'formatted' ? 0 : -1}
                     type="button"
                   >
-                    {busy ? m.dominant_color_analyzing() : m.dominant_color_analyze()}
+                    {m.dominant_color_output_formatted()}
                   </button>
-                  <span className={c.dropNote}>
-                    {file.name} · {formatBytes(file.size)}
-                  </span>
+                  <button
+                    aria-controls={outputPanelId}
+                    aria-selected={outputMode === 'raw'}
+                    className={`${c.outputTab} ${outputMode === 'raw' ? c.outputTabActive : ''}`.trim()}
+                    id={rawTabId}
+                    onClick={showRawOutput}
+                    role="tab"
+                    tabIndex={outputMode === 'raw' ? 0 : -1}
+                    type="button"
+                  >
+                    {m.dominant_color_output_raw_json()}
+                  </button>
                 </div>
-              ) : null}
-              {error ? (
                 <div
-                  className={c.error}
-                  role="alert"
+                  aria-labelledby={outputMode === 'formatted' ? formattedTabId : rawTabId}
+                  className={c.outputContent}
+                  id={outputPanelId}
+                  role="tabpanel"
+                  // biome-ignore lint/a11y/noNoninteractiveTabindex: focusable scroll panel.
+                  tabIndex={0}
                 >
-                  {error}
+                  {outputMode === 'formatted' ? (
+                    <FormattedOutput result={result} />
+                  ) : (
+                    <pre className={c.json}>
+                      <code>{JSON.stringify(result, null, 2)}</code>
+                    </pre>
+                  )}
                 </div>
-              ) : null}
-            </div>
-            <div className={c.resultColumn}>
-              <p className={c.sectionLabel}>{m.dominant_color_output_label()}</p>
-              <h2 className={c.sectionTitle}>{m.dominant_color_output_title()}</h2>
-              <p className={c.sectionBody}>{m.dominant_color_output_desc()}</p>
-              <div className={c.result}>
-                {result ? (
-                  <>
-                    <div className={c.resultHeader}>
-                      <div>
-                        <p className={c.resultTitle}>{result.hex}</p>
-                        <div className={c.resultMeta}>
-                          <span>
-                            {result.width} × {result.height} · {result.pixel_count}{' '}
-                            {m.dominant_color_output_pixel_count()} ·{' '}
-                            {m.dominant_color_output_took()} {result.time_ms} ms
-                          </span>
-                          <span>
-                            {result.format} · {(result.coverage * 100).toFixed(1)}%{' '}
-                            {m.dominant_color_output_coverage()} · {result.rgba.a}{' '}
-                            {m.dominant_color_output_alpha()}
-                          </span>
-                        </div>
-                      </div>
-                      <span
-                        className={c.swatch}
-                        style={{
-                          backgroundColor: `rgba(${result.rgba.r}, ${result.rgba.g}, ${result.rgba.b}, ${result.rgba.a / 255})`,
-                        }}
-                      />
-                    </div>
-                    <div
-                      aria-label={m.dominant_color_output_toggle()}
-                      className={c.outputToggle}
-                      onKeyDown={handleTabKeyDown}
-                      role="tablist"
-                    >
-                      <button
-                        aria-controls={outputPanelId}
-                        aria-selected={outputMode === 'formatted'}
-                        className={`${c.outputTab} ${outputMode === 'formatted' ? c.outputTabActive : ''}`.trim()}
-                        id={formattedTabId}
-                        onClick={showFormattedOutput}
-                        role="tab"
-                        tabIndex={outputMode === 'formatted' ? 0 : -1}
-                        type="button"
-                      >
-                        {m.dominant_color_output_formatted()}
-                      </button>
-                      <button
-                        aria-controls={outputPanelId}
-                        aria-selected={outputMode === 'raw'}
-                        className={`${c.outputTab} ${outputMode === 'raw' ? c.outputTabActive : ''}`.trim()}
-                        id={rawTabId}
-                        onClick={showRawOutput}
-                        role="tab"
-                        tabIndex={outputMode === 'raw' ? 0 : -1}
-                        type="button"
-                      >
-                        {m.dominant_color_output_raw_json()}
-                      </button>
-                    </div>
-                    <div
-                      aria-labelledby={outputMode === 'formatted' ? formattedTabId : rawTabId}
-                      className={c.outputContent}
-                      id={outputPanelId}
-                      role="tabpanel"
-                    >
-                      {outputMode === 'formatted' ? (
-                        <FormattedOutput result={result} />
-                      ) : (
-                        <pre className={c.json}>{JSON.stringify(result, null, 2)}</pre>
-                      )}
-                    </div>
-                  </>
-                ) : (
-                  <div className={c.emptyResult}>{m.dominant_color_empty_result()}</div>
-                )}
+              </>
+            ) : (
+              <div
+                className={c.emptyResult}
+                role="status"
+              >
+                <span className={c.dropIcon}>
+                  <IconPalette aria-hidden="true" />
+                </span>
+                <span>{busy ? m.dominant_color_analyzing() : m.dominant_color_empty_result()}</span>
               </div>
-            </div>
+            )}
           </div>
-          <p className={c.footer}>{m.dominant_color_footer_note()}</p>
         </section>
-      </main>
-      <DominantColorFooter />
-    </>
+      </div>
+      <DominantColorWalkthrough />
+      <section
+        aria-labelledby={`${outputId}-implementation`}
+        className={c.implementation}
+      >
+        <h2
+          className={c.sectionTitle}
+          id={`${outputId}-implementation`}
+        >
+          {m.labs_mandelbrot_implementation_title()}
+        </h2>
+        <p className={c.lead}>{m.dominant_color_footer_note()}</p>
+      </section>
+    </DominantColorLayout>
+  );
+}
+
+function ColorResultHeader({ result }: { result: ColorResponse }) {
+  return (
+    <div className={c.resultHeader}>
+      <div>
+        <p className={c.resultTitle}>{result.hex}</p>
+        <div className={c.resultMeta}>
+          <span>
+            {result.width} × {result.height} · {result.pixel_count}{' '}
+            {m.dominant_color_output_pixel_count()} · {m.dominant_color_output_took()}{' '}
+            {result.time_ms} ms
+          </span>
+          <span>
+            {result.format} · {(result.coverage * 100).toFixed(1)}%{' '}
+            {m.dominant_color_output_coverage()} · {result.rgba.a} {m.dominant_color_output_alpha()}
+          </span>
+        </div>
+      </div>
+      <span
+        className={c.swatch}
+        style={{
+          backgroundColor: `rgba(${result.rgba.r}, ${result.rgba.g}, ${result.rgba.b}, ${result.rgba.a / 255})`,
+        }}
+      />
+    </div>
+  );
+}
+
+function DominantColorLayout({ children }: { children: ReactNode }) {
+  const mainId = useId();
+  return (
+    <div className={`${c.layout} ${chrome.interactiveScope}`}>
+      <SkipToContent mainId={mainId} />
+      <aside className={chrome.sidebar}>
+        <SiteBrand />
+        <SiteNavigation activePath="/labs" />
+      </aside>
+      <div className={c.pageShell}>
+        <DominantColorHeader />
+        <main
+          className={c.page}
+          id={mainId}
+          tabIndex={-1}
+        >
+          <div
+            aria-hidden="true"
+            className={c.artwork}
+          />
+          <div className={c.content}>{children}</div>
+        </main>
+        <DominantColorFooter />
+      </div>
+    </div>
   );
 }
 
@@ -540,10 +647,7 @@ function DominantColorHeader() {
           ]}
         />
       </div>
-      <PagePreferences
-        activePath="/labs"
-        hasSidebar={false}
-      />
+      <PagePreferences activePath="/labs" />
     </header>
   );
 }
